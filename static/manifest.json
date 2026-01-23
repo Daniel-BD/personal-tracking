@@ -1,0 +1,17 @@
+{
+	"name": "Activity & Food Tracker",
+	"short_name": "Tracker",
+	"description": "Personal app for tracking activities and food by frequency",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#f9fafb",
+	"theme_color": "#3b82f6",
+	"icons": [
+		{
+			"src": "/icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml",
+			"purpose": "any maskable"
+		}
+	]
+}
