@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import { entries, activityItems } from '$lib/store';
 	import { filterEntriesByType, getMonthRange, filterEntriesByDateRange } from '$lib/analysis';
 	import EntryForm from '../../components/EntryForm.svelte';
@@ -48,7 +49,7 @@
 		{#if $activityItems.length === 0}
 			<div class="text-center py-8">
 				<p class="text-gray-500 mb-4">No activity items yet</p>
-				<a href="/library" class="text-blue-600 hover:underline">
+				<a href="{base}/library" class="text-blue-600 hover:underline">
 					Add some in the Library
 				</a>
 			</div>

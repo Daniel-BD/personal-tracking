@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { base } from '$app/paths';
 	import { isConfigured } from '$lib/github';
 	import { initializeStore, entries, forceRefresh, syncStatus } from '$lib/store';
 	import {
@@ -44,7 +45,7 @@
 				Configure your GitHub token to start tracking.
 			</p>
 			<a
-				href="/settings"
+				href="{base}/settings"
 				class="inline-block mt-2 bg-yellow-600 text-white px-4 py-2 rounded-md text-sm hover:bg-yellow-700"
 			>
 				Go to Settings
