@@ -1,6 +1,6 @@
-# sv
+# Personal Activity & Food Tracker
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A lightweight personal app for tracking activities and food by frequency.
 
 ## Creating a project
 
