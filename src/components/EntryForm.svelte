@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ActivityItem, FoodItem, EntryType } from '$lib/types';
-	import { getTodayDate } from '$lib/types';
+	import { getTodayDate, getCurrentTime } from '$lib/types';
 	import { activityItems, foodItems, addEntry, addActivityItem, addFoodItem, allCategories } from '$lib/store';
 	import ItemPicker from './ItemPicker.svelte';
 	import CategoryPicker from './CategoryPicker.svelte';
@@ -14,6 +14,7 @@
 
 	let selectedItem = $state<ActivityItem | FoodItem | null>(null);
 	let date = $state(getTodayDate());
+	let time = $state<string | null>(getCurrentTime());
 	let notes = $state('');
 	let useOverrides = $state(false);
 	let categoryOverrides = $state<string[]>([]);
@@ -61,6 +62,7 @@
 			type,
 			selectedItem.id,
 			date,
+			time,
 			notes.trim() || null,
 			useOverrides ? categoryOverrides : null
 		);
@@ -68,11 +70,16 @@
 		// Reset form
 		selectedItem = null;
 		date = getTodayDate();
+		time = getCurrentTime();
 		notes = '';
 		useOverrides = false;
 		categoryOverrides = [];
 
 		onsave?.();
+	}
+
+	function clearTime() {
+		time = null;
 	}
 
 	function handleCategoryChange(categories: string[]) {
@@ -144,19 +151,44 @@
 		</div>
 
 		{#if selectedItem}
-			<div>
-				<label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-				<input
-					id="date"
-					type="date"
-					bind:value={date}
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				/>
+			<div class="flex gap-2">
+				<div class="flex-1">
+					<label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+					<input
+						id="date"
+						type="date"
+						bind:value={date}
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					/>
+				</div>
+				<div class="flex-1">
+					<label for="time" class="block text-sm font-medium text-gray-700 mb-1">
+						Time <span class="text-gray-400 font-normal">(optional)</span>
+					</label>
+					<div class="relative">
+						<input
+							id="time"
+							type="time"
+							bind:value={time}
+							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 {time ? 'pr-8' : ''}"
+						/>
+						{#if time}
+							<button
+								type="button"
+								onclick={clearTime}
+								class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg"
+								aria-label="Clear time"
+							>
+								&times;
+							</button>
+						{/if}
+					</div>
+				</div>
 			</div>
 
 			<div>
 				<label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
-					Notes (optional)
+					Notes <span class="text-gray-400 font-normal">(optional)</span>
 				</label>
 				<input
 					id="notes"

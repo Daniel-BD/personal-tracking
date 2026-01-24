@@ -17,6 +17,7 @@ export interface Entry {
 	type: EntryType;
 	itemId: string;
 	date: string; // YYYY-MM-DD format
+	time: string | null; // HH:MM format, optional
 	notes: string | null;
 	categoryOverrides: string[] | null;
 }
@@ -54,4 +55,9 @@ export function generateId(): string {
 
 export function getTodayDate(): string {
 	return new Date().toISOString().split('T')[0];
+}
+
+export function getCurrentTime(): string {
+	const now = new Date();
+	return now.toTimeString().slice(0, 5); // HH:MM format
 }
