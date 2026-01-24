@@ -151,38 +151,37 @@
 		</div>
 
 		{#if selectedItem}
-			<div class="flex gap-2">
-				<div class="flex-1">
-					<label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+			<div>
+				<label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+				<input
+					id="date"
+					type="date"
+					bind:value={date}
+					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				/>
+			</div>
+
+			<div>
+				<label for="time" class="block text-sm font-medium text-gray-700 mb-1">
+					Time <span class="text-gray-400 font-normal">(optional)</span>
+				</label>
+				<div class="relative">
 					<input
-						id="date"
-						type="date"
-						bind:value={date}
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						id="time"
+						type="time"
+						bind:value={time}
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 {time ? 'pr-8' : ''}"
 					/>
-				</div>
-				<div class="flex-1">
-					<label for="time" class="block text-sm font-medium text-gray-700 mb-1">
-						Time <span class="text-gray-400 font-normal">(optional)</span>
-					</label>
-					<div class="relative">
-						<input
-							id="time"
-							type="time"
-							bind:value={time}
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 {time ? 'pr-8' : ''}"
-						/>
-						{#if time}
-							<button
-								type="button"
-								onclick={clearTime}
-								class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg"
-								aria-label="Clear time"
-							>
-								&times;
-							</button>
-						{/if}
-					</div>
+					{#if time}
+						<button
+							type="button"
+							onclick={clearTime}
+							class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg"
+							aria-label="Clear time"
+						>
+							&times;
+						</button>
+					{/if}
 				</div>
 			</div>
 
