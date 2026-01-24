@@ -17,6 +17,15 @@
 		return item?.name ?? 'Unknown';
 	}
 
+	function formatTime(time: string | null): string {
+		if (!time) return '';
+		// Convert HH:MM to 12-hour format
+		const [hours, minutes] = time.split(':').map(Number);
+		const period = hours >= 12 ? 'PM' : 'AM';
+		const displayHours = hours % 12 || 12;
+		return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+	}
+
 	function handleDelete(id: string) {
 		if (confirm('Delete this entry?')) {
 			deleteEntry(id);
@@ -40,6 +49,9 @@
 									</span>
 								{/if}
 								<span class="font-medium">{getItemName(entry.type, entry.itemId)}</span>
+								{#if entry.time}
+									<span class="text-xs text-gray-400">{formatTime(entry.time)}</span>
+								{/if}
 							</div>
 							{#if entry.notes}
 								<p class="text-sm text-gray-600 mt-1">{entry.notes}</p>

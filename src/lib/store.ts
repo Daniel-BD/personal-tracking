@@ -171,6 +171,7 @@ export function addEntry(
 	type: EntryType,
 	itemId: string,
 	date: string,
+	time: string | null = null,
 	notes: string | null = null,
 	categoryOverrides: string[] | null = null
 ): Entry {
@@ -179,6 +180,7 @@ export function addEntry(
 		type,
 		itemId,
 		date,
+		time,
 		notes,
 		categoryOverrides
 	};
