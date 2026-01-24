@@ -33,9 +33,9 @@
 		}
 	}
 
-	function handleCreateNew() {
+	function handleCreateNew(prefillName: string = '') {
 		showNewItemForm = true;
-		newItemName = '';
+		newItemName = prefillName;
 		newItemCategories = [];
 	}
 

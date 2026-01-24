@@ -5,7 +5,7 @@
 		items: (ActivityItem | FoodItem)[];
 		selectedId: string | null;
 		onselect: (item: ActivityItem | FoodItem) => void;
-		oncreate: () => void;
+		oncreate: (searchQuery: string) => void;
 		placeholder?: string;
 	}
 
@@ -88,7 +88,7 @@
 				{#if filteredItems.length === 0 || searchQuery}
 					<button
 						type="button"
-						onclick={oncreate}
+						onclick={() => oncreate(searchQuery)}
 						class="w-full text-left px-3 py-2 text-blue-600 hover:bg-blue-50 flex items-center gap-2"
 					>
 						<span>+</span>
