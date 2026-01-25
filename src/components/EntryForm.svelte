@@ -99,18 +99,18 @@
 			</h3>
 
 			<div>
-				<label for="newItemName" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+				<label for="newItemName" class="form-label">Name</label>
 				<input
 					id="newItemName"
 					type="text"
 					bind:value={newItemName}
 					placeholder="Enter name..."
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="form-input"
 				/>
 			</div>
 
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">Categories</label>
+				<label class="form-label">Categories</label>
 				<CategoryPicker
 					selected={newItemCategories}
 					suggestions={$allCategories}
@@ -123,14 +123,14 @@
 					type="button"
 					onclick={handleSaveNewItem}
 					disabled={!newItemName.trim()}
-					class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
+					class="flex-1 btn-primary"
 				>
 					Create & Select
 				</button>
 				<button
 					type="button"
 					onclick={handleCancelNewItem}
-					class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300"
+					class="flex-1 btn-secondary"
 				>
 					Cancel
 				</button>
@@ -138,7 +138,7 @@
 		</div>
 	{:else}
 		<div>
-			<label class="block text-sm font-medium text-gray-700 mb-1">
+			<label class="form-label">
 				{type === 'activity' ? 'Activity' : 'Food'} Item
 			</label>
 			<ItemPicker
@@ -152,17 +152,17 @@
 
 		{#if selectedItem}
 			<div>
-				<label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+				<label for="date" class="form-label">Date</label>
 				<input
 					id="date"
 					type="date"
 					bind:value={date}
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="form-input"
 				/>
 			</div>
 
 			<div>
-				<label for="time" class="block text-sm font-medium text-gray-700 mb-1">
+				<label for="time" class="form-label">
 					Time <span class="text-gray-400 font-normal">(optional)</span>
 				</label>
 				<div class="relative">
@@ -170,7 +170,7 @@
 						id="time"
 						type="time"
 						bind:value={time}
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 {time ? 'pr-8' : ''}"
+						class="form-input {time ? 'pr-8' : ''}"
 					/>
 					{#if time}
 						<button
@@ -186,7 +186,7 @@
 			</div>
 
 			<div>
-				<label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
+				<label for="notes" class="form-label">
 					Notes <span class="text-gray-400 font-normal">(optional)</span>
 				</label>
 				<input
@@ -194,7 +194,7 @@
 					type="text"
 					bind:value={notes}
 					placeholder="Add a note..."
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="form-input"
 				/>
 			</div>
 
@@ -218,7 +218,7 @@
 			<button
 				type="button"
 				onclick={handleSubmit}
-				class="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 font-medium"
+				class="w-full btn-success btn-lg"
 			>
 				Log {type === 'activity' ? 'Activity' : 'Food'}
 			</button>
