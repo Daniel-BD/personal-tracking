@@ -63,12 +63,12 @@
 			bind:value={newCategory}
 			onkeydown={handleKeydown}
 			placeholder="Add category..."
-			class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+			class="flex-1 form-input-sm"
 		/>
 		<button
 			type="button"
 			onclick={addCategory}
-			class="px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+			class="btn-primary btn-sm"
 		>
 			Add
 		</button>
