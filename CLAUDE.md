@@ -68,7 +68,7 @@ Use these shared classes instead of repeating Tailwind utilities:
 | Class | Purpose |
 |-------|---------|
 | `.form-label` | Standard label for form fields |
-| `.form-input` | Text, date, time inputs (includes `max-w-full` to prevent overflow) |
+| `.form-input` | Text, date, time inputs (includes width constraints for proper sizing) |
 | `.form-input-sm` | Smaller input variant |
 | `.btn-primary` | Blue primary button |
 | `.btn-success` | Green action button |
@@ -152,6 +152,8 @@ All data mutations go through `src/lib/store.ts`:
 
 ## Known Quirks
 
-- HTML5 date/time inputs need `max-w-full` to prevent overflow (handled by `.form-input`)
+- **HTML5 date/time input width**: Browsers set intrinsic minimum widths on `<input type="date">` and `<input type="time">` that can cause overflow. This is handled in `app.css` with:
+  - `.form-input` includes `min-w-0` and `max-w-full` to constrain width
+  - Explicit CSS rules for `input[type='date']`, `input[type='time']`, `input[type='datetime-local']` that reset `min-width: 0` and `max-width: 100%`
 - GitHub Gist sync is fire-and-forget (no conflict resolution)
 - LocalStorage is the source of truth; Gist is backup only

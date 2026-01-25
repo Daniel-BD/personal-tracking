@@ -21,8 +21,16 @@ body {
 }
 
 .form-input {
-	@apply w-full max-w-full px-3 py-2 border border-gray-300 rounded-md;
+	@apply w-full min-w-0 max-w-full px-3 py-2 border border-gray-300 rounded-md;
 	@apply focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+/* Fix for HTML5 date/time inputs that have browser-defined minimum widths */
+input[type='date'],
+input[type='time'],
+input[type='datetime-local'] {
+	min-width: 0;
+	max-width: 100%;
 }
 
 .form-input-sm {
