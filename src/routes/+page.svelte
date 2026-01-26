@@ -12,7 +12,7 @@
 	import EntryForm from '../components/EntryForm.svelte';
 
 	let configured = $state(false);
-	let activeType = $state<'activity' | 'food'>('activity');
+	let activeType = $state<'activity' | 'food'>('food');
 	let showSuccess = $state(false);
 
 	onMount(() => {

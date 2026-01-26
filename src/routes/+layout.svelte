@@ -3,7 +3,6 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
-	import { syncStatus } from '$lib/store';
 
 	let { children } = $props();
 
@@ -29,17 +28,6 @@
 </svelte:head>
 
 <div class="min-h-screen flex flex-col">
-	<header class="bg-blue-600 text-white shadow-md">
-		<div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-			<h1 class="text-lg font-semibold">Tracker</h1>
-			{#if $syncStatus === 'syncing'}
-				<span class="text-xs bg-blue-500 px-2 py-1 rounded">Syncing...</span>
-			{:else if $syncStatus === 'error'}
-				<span class="text-xs bg-red-500 px-2 py-1 rounded">Sync Error</span>
-			{/if}
-		</div>
-	</header>
-
 	<main class="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
 		{@render children()}
 	</main>
