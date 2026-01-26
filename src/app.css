@@ -21,8 +21,7 @@ body {
 }
 
 .form-input {
-	@apply w-full min-w-0 max-w-full px-3 py-2 border border-gray-300 rounded-md;
-	@apply focus:outline-none focus:ring-2 focus:ring-blue-500;
+	@apply w-full min-w-0 max-w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500;
 }
 
 /* Fix for HTML5 date/time inputs that have browser-defined minimum widths */
@@ -34,29 +33,28 @@ input[type='datetime-local'] {
 }
 
 .form-input-sm {
-	@apply form-input text-sm;
+	@apply w-full min-w-0 max-w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500;
 }
 
 /* Buttons */
 .btn {
-	@apply px-4 py-2 rounded-md font-medium transition-colors;
-	@apply disabled:opacity-50 disabled:cursor-not-allowed;
+	@apply px-4 py-2 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 .btn-primary {
-	@apply btn bg-blue-600 text-white hover:bg-blue-700;
+	@apply px-4 py-2 rounded-md font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 .btn-success {
-	@apply btn bg-green-600 text-white hover:bg-green-700;
+	@apply px-4 py-2 rounded-md font-medium transition-colors bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 .btn-secondary {
-	@apply btn bg-gray-200 text-gray-700 hover:bg-gray-300;
+	@apply px-4 py-2 rounded-md font-medium transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 .btn-danger {
-	@apply btn bg-red-500 text-white hover:bg-red-600;
+	@apply px-4 py-2 rounded-md font-medium transition-colors bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 .btn-sm {
