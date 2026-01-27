@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ActivityItem, FoodItem } from '$lib/types';
+	import type { ActivityItem, FoodItem, Category } from '$lib/types';
 
 	interface Props {
 		items: (ActivityItem | FoodItem)[];
@@ -7,9 +7,10 @@
 		onselect: (item: ActivityItem | FoodItem) => void;
 		oncreate: (searchQuery: string) => void;
 		placeholder?: string;
+		categories?: Category[]; // Available categories for name lookup
 	}
 
-	let { items, selectedId, onselect, oncreate, placeholder = 'Search items...' }: Props = $props();
+	let { items, selectedId, onselect, oncreate, placeholder = 'Search items...', categories = [] }: Props = $props();
 
 	let searchQuery = $state('');
 	let showDropdown = $state(false);
@@ -21,6 +22,14 @@
 	);
 
 	const selectedItem = $derived(items.find((i) => i.id === selectedId));
+
+	function getCategoryNames(categoryIds: string[]): string {
+		if (categories.length === 0) return '';
+		return categoryIds
+			.map((id) => categories.find((c) => c.id === id)?.name)
+			.filter(Boolean)
+			.join(', ');
+	}
 
 	function handleSelect(item: ActivityItem | FoodItem) {
 		onselect(item);
@@ -46,7 +55,7 @@
 				<span class="font-medium">{selectedItem.name}</span>
 				{#if selectedItem.categories.length > 0}
 					<div class="text-xs text-gray-500 mt-1">
-						{selectedItem.categories.join(', ')}
+						{getCategoryNames(selectedItem.categories)}
 					</div>
 				{/if}
 			</div>
@@ -79,7 +88,7 @@
 						<div class="font-medium">{item.name}</div>
 						{#if item.categories.length > 0}
 							<div class="text-xs text-gray-500">
-								{item.categories.join(', ')}
+								{getCategoryNames(item.categories)}
 							</div>
 						{/if}
 					</button>

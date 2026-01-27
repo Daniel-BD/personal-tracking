@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ActivityItem, FoodItem, EntryType } from '$lib/types';
 	import { getTodayDate, getCurrentTime } from '$lib/types';
-	import { activityItems, foodItems, addEntry, addActivityItem, addFoodItem, allCategories } from '$lib/store';
+	import { activityItems, foodItems, activityCategories, foodCategories, addEntry, addActivityItem, addFoodItem } from '$lib/store';
 	import ItemPicker from './ItemPicker.svelte';
 	import CategoryPicker from './CategoryPicker.svelte';
 
@@ -17,12 +17,13 @@
 	let time = $state<string | null>(getCurrentTime());
 	let notes = $state('');
 	let useOverrides = $state(false);
-	let categoryOverrides = $state<string[]>([]);
+	let categoryOverrides = $state<string[]>([]); // Array of category IDs
 	let showNewItemForm = $state(false);
 	let newItemName = $state('');
-	let newItemCategories = $state<string[]>([]);
+	let newItemCategories = $state<string[]>([]); // Array of category IDs
 
 	const items = $derived(type === 'activity' ? $activityItems : $foodItems);
+	const categories = $derived(type === 'activity' ? $activityCategories : $foodCategories);
 
 	function handleItemSelect(item: ActivityItem | FoodItem) {
 		if (item.id) {
@@ -82,12 +83,12 @@
 		time = null;
 	}
 
-	function handleCategoryChange(categories: string[]) {
-		categoryOverrides = categories;
+	function handleCategoryChange(categoryIds: string[]) {
+		categoryOverrides = categoryIds;
 	}
 
-	function handleNewItemCategoryChange(categories: string[]) {
-		newItemCategories = categories;
+	function handleNewItemCategoryChange(categoryIds: string[]) {
+		newItemCategories = categoryIds;
 	}
 </script>
 
@@ -113,7 +114,7 @@
 				<label class="form-label">Categories</label>
 				<CategoryPicker
 					selected={newItemCategories}
-					suggestions={$allCategories}
+					categories={categories}
 					onchange={handleNewItemCategoryChange}
 				/>
 			</div>
@@ -143,6 +144,7 @@
 			</label>
 			<ItemPicker
 				{items}
+				{categories}
 				selectedId={selectedItem?.id || null}
 				onselect={handleItemSelect}
 				oncreate={handleCreateNew}
@@ -208,7 +210,7 @@
 					<div class="mt-2">
 						<CategoryPicker
 							selected={categoryOverrides}
-							suggestions={$allCategories}
+							categories={categories}
 							onchange={handleCategoryChange}
 						/>
 					</div>

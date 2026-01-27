@@ -1,19 +1,20 @@
 <script lang="ts">
-	import type { ActivityItem, FoodItem } from '$lib/types';
+	import type { ActivityItem, FoodItem, Category } from '$lib/types';
 	import {
 		activityItems,
 		foodItems,
 		activityCategories,
 		foodCategories,
-		allCategories,
 		addActivityItem,
 		addFoodItem,
 		updateActivityItem,
 		updateFoodItem,
 		deleteActivityItem,
 		deleteFoodItem,
-		renameCategory,
-		deleteCategory
+		addCategory,
+		updateCategory,
+		deleteCategory,
+		getCategoryNames
 	} from '$lib/store';
 	import CategoryPicker from '../../components/CategoryPicker.svelte';
 
@@ -22,11 +23,13 @@
 	let editingItem = $state<(ActivityItem | FoodItem) | null>(null);
 	let showAddForm = $state(false);
 	let newItemName = $state('');
-	let newItemCategories = $state<string[]>([]);
+	let newItemCategories = $state<string[]>([]); // Array of category IDs
 
 	// Category editing state
-	let editingCategory = $state<string | null>(null);
+	let editingCategoryId = $state<string | null>(null);
 	let editingCategoryName = $state('');
+	let showAddCategoryForm = $state(false);
+	let newCategoryName = $state('');
 
 	function handleAddItem() {
 		if (!newItemName.trim()) return;
@@ -72,49 +75,62 @@
 		}
 	}
 
-	function handleCategoryChange(categories: string[]) {
-		newItemCategories = categories;
+	function handleCategoryChange(categoryIds: string[]) {
+		newItemCategories = categoryIds;
 	}
 
-	function handleEditCategoryChange(categories: string[]) {
+	function handleEditCategoryChange(categoryIds: string[]) {
 		if (editingItem) {
-			editingItem = { ...editingItem, categories };
+			editingItem = { ...editingItem, categories: categoryIds };
 		}
 	}
 
 	// Category management functions
-	function handleEditCategory(category: string) {
-		editingCategory = category;
-		editingCategoryName = category;
+	function handleAddCategory() {
+		if (!newCategoryName.trim()) return;
+
+		addCategory(activeTab, newCategoryName.trim());
+		newCategoryName = '';
+		showAddCategoryForm = false;
+	}
+
+	function handleEditCategory(category: Category) {
+		editingCategoryId = category.id;
+		editingCategoryName = category.name;
 	}
 
 	function handleSaveCategoryEdit() {
-		if (!editingCategory || !editingCategoryName.trim()) return;
+		if (!editingCategoryId || !editingCategoryName.trim()) return;
 
-		renameCategory(activeTab, editingCategory, editingCategoryName.trim());
-		editingCategory = null;
+		updateCategory(activeTab, editingCategoryId, editingCategoryName.trim());
+		editingCategoryId = null;
 		editingCategoryName = '';
 	}
 
 	function handleCancelCategoryEdit() {
-		editingCategory = null;
+		editingCategoryId = null;
 		editingCategoryName = '';
 	}
 
-	function handleDeleteCategory(category: string) {
-		const itemCount = currentItems.filter((item) => item.categories.includes(category)).length;
+	function handleDeleteCategory(categoryId: string) {
+		const itemCount = getItemCountForCategory(categoryId);
+		const category = currentCategories.find((c) => c.id === categoryId);
 		if (
 			!confirm(
-				`Delete category "${category}"? It will be removed from ${itemCount} item${itemCount !== 1 ? 's' : ''}.`
+				`Delete category "${category?.name}"? It will be removed from ${itemCount} item${itemCount !== 1 ? 's' : ''}.`
 			)
 		)
 			return;
 
-		deleteCategory(activeTab, category);
+		deleteCategory(activeTab, categoryId);
 	}
 
-	function getItemCountForCategory(category: string): number {
-		return currentItems.filter((item) => item.categories.includes(category)).length;
+	function getItemCountForCategory(categoryId: string): number {
+		return currentItems.filter((item) => item.categories.includes(categoryId)).length;
+	}
+
+	function getCategoryNamesForItem(item: ActivityItem | FoodItem): string[] {
+		return getCategoryNames(activeTab, item.categories);
 	}
 
 	const currentItems = $derived(activeTab === 'activity' ? $activityItems : $foodItems);
@@ -189,7 +205,7 @@
 					<label class="block text-sm font-medium text-gray-700 mb-1">Categories</label>
 					<CategoryPicker
 						selected={newItemCategories}
-						suggestions={$allCategories}
+						categories={currentCategories}
 						onchange={handleCategoryChange}
 					/>
 				</div>
@@ -230,7 +246,7 @@
 						/>
 						<CategoryPicker
 							selected={editingItem.categories}
-							suggestions={$allCategories}
+							categories={currentCategories}
 							onchange={handleEditCategoryChange}
 						/>
 						<div class="flex gap-2">
@@ -254,9 +270,9 @@
 							<div class="font-medium">{item.name}</div>
 							{#if item.categories.length > 0}
 								<div class="flex flex-wrap gap-1 mt-1">
-									{#each item.categories as category}
+									{#each getCategoryNamesForItem(item) as categoryName}
 										<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-											{category}
+											{categoryName}
 										</span>
 									{/each}
 								</div>
@@ -290,9 +306,51 @@
 		</div>
 	{:else}
 		<!-- Categories view -->
+		{#if showAddCategoryForm}
+			<div class="bg-white rounded-lg shadow p-4 space-y-4">
+				<h3 class="font-semibold text-gray-800">Add New Category</h3>
+
+				<div>
+					<label for="newCategoryName" class="block text-sm font-medium text-gray-700 mb-1"
+						>Name</label
+					>
+					<input
+						id="newCategoryName"
+						type="text"
+						bind:value={newCategoryName}
+						placeholder="Enter category name..."
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					/>
+				</div>
+
+				<div class="flex gap-2">
+					<button
+						onclick={handleAddCategory}
+						disabled={!newCategoryName.trim()}
+						class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
+					>
+						Add Category
+					</button>
+					<button
+						onclick={() => (showAddCategoryForm = false)}
+						class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300"
+					>
+						Cancel
+					</button>
+				</div>
+			</div>
+		{:else}
+			<button
+				onclick={() => (showAddCategoryForm = true)}
+				class="w-full bg-white border-2 border-dashed border-gray-300 rounded-lg py-4 text-gray-500 hover:border-blue-400 hover:text-blue-600"
+			>
+				+ Add New Category
+			</button>
+		{/if}
+
 		<div class="space-y-2">
 			{#each currentCategories as category}
-				{#if editingCategory === category}
+				{#if editingCategoryId === category.id}
 					<div class="bg-white rounded-lg shadow p-4 space-y-3">
 						<input
 							type="text"
@@ -318,9 +376,9 @@
 				{:else}
 					<div class="bg-white rounded-lg shadow p-4 flex items-start justify-between">
 						<div class="flex-1">
-							<div class="font-medium">{category}</div>
+							<div class="font-medium">{category.name}</div>
 							<div class="text-xs text-gray-400 mt-1">
-								Used by {getItemCountForCategory(category)} item{getItemCountForCategory(category) !== 1 ? 's' : ''}
+								Used by {getItemCountForCategory(category.id)} item{getItemCountForCategory(category.id) !== 1 ? 's' : ''}
 							</div>
 						</div>
 						<div class="flex gap-2">
@@ -332,7 +390,7 @@
 								✏️
 							</button>
 							<button
-								onclick={() => handleDeleteCategory(category)}
+								onclick={() => handleDeleteCategory(category.id)}
 								class="text-gray-400 hover:text-red-500 p-1"
 								aria-label="Delete category"
 							>
@@ -343,8 +401,7 @@
 				{/if}
 			{:else}
 				<p class="text-center text-gray-500 py-8">
-					No categories for {activeTab === 'activity' ? 'activities' : 'food'} yet. Add categories
-					when creating items!
+					No categories for {activeTab === 'activity' ? 'activities' : 'food'} yet. Add one above!
 				</p>
 			{/each}
 		</div>
