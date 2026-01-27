@@ -8,8 +8,7 @@
 
 	const navItems = [
 		{ href: '/', label: 'Home', icon: '🏠' },
-		{ href: '/activities', label: 'Activities', icon: '🏃' },
-		{ href: '/food', label: 'Food', icon: '🍽️' },
+		{ href: '/log', label: 'Log', icon: '📝' },
 		{ href: '/library', label: 'Library', icon: '📚' },
 		{ href: '/stats', label: 'Stats', icon: '📊' },
 		{ href: '/settings', label: 'Settings', icon: '⚙️' }
