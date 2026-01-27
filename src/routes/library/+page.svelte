@@ -150,7 +150,7 @@
 				? 'bg-blue-600 text-white'
 				: 'bg-gray-200 text-gray-700'}"
 		>
-			Activities ({$activityItems.length})
+			Activities
 		</button>
 		<button
 			onclick={() => (activeTab = 'food')}
@@ -158,7 +158,7 @@
 				? 'bg-green-600 text-white'
 				: 'bg-gray-200 text-gray-700'}"
 		>
-			Food ({$foodItems.length})
+			Food
 		</button>
 	</div>
 
@@ -170,7 +170,7 @@
 				? 'bg-gray-700 text-white'
 				: 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
 		>
-			Items
+			Items ({currentItems.length})
 		</button>
 		<button
 			onclick={() => (activeSubTab = 'categories')}
