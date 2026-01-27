@@ -207,6 +207,7 @@
 						selected={newItemCategories}
 						categories={currentCategories}
 						onchange={handleCategoryChange}
+						type={activeTab}
 					/>
 				</div>
 
@@ -248,6 +249,7 @@
 							selected={editingItem.categories}
 							categories={currentCategories}
 							onchange={handleEditCategoryChange}
+							type={activeTab}
 						/>
 						<div class="flex gap-2">
 							<button

@@ -116,6 +116,7 @@
 					selected={newItemCategories}
 					categories={categories}
 					onchange={handleNewItemCategoryChange}
+					{type}
 				/>
 			</div>
 
@@ -212,6 +213,7 @@
 							selected={categoryOverrides}
 							categories={categories}
 							onchange={handleCategoryChange}
+							{type}
 						/>
 					</div>
 				{/if}
