@@ -13,93 +13,6 @@ import { getConfig, fetchGist, updateGist, isConfigured } from './github';
 
 const LOCAL_STORAGE_KEY = 'tracker_data';
 
-// Type for old data format (before category migration)
-interface OldTrackerData {
-	activityItems: ActivityItem[];
-	foodItems: FoodItem[];
-	entries: Entry[];
-	activityCategories?: Category[];
-	foodCategories?: Category[];
-}
-
-function migrateData(data: OldTrackerData): TrackerData {
-	// Check if data is already in new format
-	if (data.activityCategories && data.foodCategories) {
-		return data as TrackerData;
-	}
-
-	// Migrate from old format: categories are stored as names in items
-	// Create category entities and update items to use IDs
-
-	// Collect unique activity category names
-	const activityCategoryNames = new Set<string>();
-	data.activityItems.forEach((item) => {
-		item.categories.forEach((name) => activityCategoryNames.add(name));
-	});
-
-	// Collect unique food category names
-	const foodCategoryNames = new Set<string>();
-	data.foodItems.forEach((item) => {
-		item.categories.forEach((name) => foodCategoryNames.add(name));
-	});
-
-	// Also check categoryOverrides in entries
-	data.entries.forEach((entry) => {
-		if (entry.categoryOverrides) {
-			const categorySet =
-				entry.type === 'activity' ? activityCategoryNames : foodCategoryNames;
-			entry.categoryOverrides.forEach((name) => categorySet.add(name));
-		}
-	});
-
-	// Create category entities with IDs
-	const activityCategoryMap = new Map<string, string>(); // name -> id
-	const activityCategories: Category[] = [];
-	activityCategoryNames.forEach((name) => {
-		const id = generateId();
-		activityCategoryMap.set(name, id);
-		activityCategories.push({ id, name });
-	});
-
-	const foodCategoryMap = new Map<string, string>(); // name -> id
-	const foodCategories: Category[] = [];
-	foodCategoryNames.forEach((name) => {
-		const id = generateId();
-		foodCategoryMap.set(name, id);
-		foodCategories.push({ id, name });
-	});
-
-	// Update activity items to use category IDs
-	const migratedActivityItems = data.activityItems.map((item) => ({
-		...item,
-		categories: item.categories.map((name) => activityCategoryMap.get(name)!).filter(Boolean)
-	}));
-
-	// Update food items to use category IDs
-	const migratedFoodItems = data.foodItems.map((item) => ({
-		...item,
-		categories: item.categories.map((name) => foodCategoryMap.get(name)!).filter(Boolean)
-	}));
-
-	// Update entries with categoryOverrides
-	const migratedEntries = data.entries.map((entry) => {
-		if (!entry.categoryOverrides) return entry;
-		const categoryMap = entry.type === 'activity' ? activityCategoryMap : foodCategoryMap;
-		return {
-			...entry,
-			categoryOverrides: entry.categoryOverrides.map((name) => categoryMap.get(name)!).filter(Boolean)
-		};
-	});
-
-	return {
-		activityItems: migratedActivityItems,
-		foodItems: migratedFoodItems,
-		activityCategories,
-		foodCategories,
-		entries: migratedEntries
-	};
-}
-
 function loadFromLocalStorage(): TrackerData {
 	if (typeof localStorage === 'undefined') {
 		return createEmptyData();
@@ -107,8 +20,7 @@ function loadFromLocalStorage(): TrackerData {
 	const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
 	if (stored) {
 		try {
-			const data = JSON.parse(stored) as OldTrackerData;
-			return migrateData(data);
+			return JSON.parse(stored) as TrackerData;
 		} catch {
 			return createEmptyData();
 		}
@@ -191,9 +103,7 @@ export async function loadFromGist(): Promise<void> {
 
 	syncStatus.set('syncing');
 	try {
-		const rawData = await fetchGist(config.gistId, config.token);
-		// Migrate data from Gist if needed
-		const data = migrateData(rawData as OldTrackerData);
+		const data = await fetchGist(config.gistId, config.token);
 		trackerData.set(data);
 		syncStatus.set('idle');
 	} catch (error) {
