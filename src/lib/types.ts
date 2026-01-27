@@ -1,13 +1,18 @@
+export interface Category {
+	id: string;
+	name: string;
+}
+
 export interface ActivityItem {
 	id: string;
 	name: string;
-	categories: string[];
+	categories: string[]; // Array of category IDs
 }
 
 export interface FoodItem {
 	id: string;
 	name: string;
-	categories: string[];
+	categories: string[]; // Array of category IDs
 }
 
 export type EntryType = 'activity' | 'food';
@@ -19,12 +24,14 @@ export interface Entry {
 	date: string; // YYYY-MM-DD format
 	time: string | null; // HH:MM format, optional
 	notes: string | null;
-	categoryOverrides: string[] | null;
+	categoryOverrides: string[] | null; // Array of category IDs
 }
 
 export interface TrackerData {
 	activityItems: ActivityItem[];
 	foodItems: FoodItem[];
+	activityCategories: Category[];
+	foodCategories: Category[];
 	entries: Entry[];
 }
 
@@ -45,6 +52,8 @@ export function createEmptyData(): TrackerData {
 	return {
 		activityItems: [],
 		foodItems: [],
+		activityCategories: [],
+		foodCategories: [],
 		entries: []
 	};
 }

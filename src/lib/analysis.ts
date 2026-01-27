@@ -57,17 +57,17 @@ export function filterEntriesByItem(entries: Entry[], itemId: string): Entry[] {
 
 export function filterEntriesByCategory(
 	entries: Entry[],
-	category: string,
+	categoryId: string,
 	data: TrackerData
 ): Entry[] {
 	return entries.filter((entry) => {
 		if (entry.categoryOverrides) {
-			return entry.categoryOverrides.includes(category);
+			return entry.categoryOverrides.includes(categoryId);
 		}
 
 		const items = entry.type === 'activity' ? data.activityItems : data.foodItems;
 		const item = items.find((i) => i.id === entry.itemId);
-		return item?.categories.includes(category) ?? false;
+		return item?.categories.includes(categoryId) ?? false;
 	});
 }
 
@@ -83,7 +83,7 @@ export function countEntriesByItem(entries: Entry[]): Map<string, number> {
 	return counts;
 }
 
-export function getEntryCategories(entry: Entry, data: TrackerData): string[] {
+export function getEntryCategoryIds(entry: Entry, data: TrackerData): string[] {
 	if (entry.categoryOverrides) {
 		return entry.categoryOverrides;
 	}
@@ -93,13 +93,29 @@ export function getEntryCategories(entry: Entry, data: TrackerData): string[] {
 	return item?.categories ?? [];
 }
 
+export function getCategoryNameById(categoryId: string, data: TrackerData): string {
+	const activityCat = data.activityCategories.find((c) => c.id === categoryId);
+	if (activityCat) return activityCat.name;
+	const foodCat = data.foodCategories.find((c) => c.id === categoryId);
+	if (foodCat) return foodCat.name;
+	return '';
+}
+
+export function getEntryCategoryNames(entry: Entry, data: TrackerData): string[] {
+	const categoryIds = getEntryCategoryIds(entry, data);
+	return categoryIds.map((id) => getCategoryNameById(id, data)).filter(Boolean);
+}
+
 export function countEntriesByCategory(entries: Entry[], data: TrackerData): Map<string, number> {
 	const counts = new Map<string, number>();
 
 	entries.forEach((entry) => {
-		const categories = getEntryCategories(entry, data);
-		categories.forEach((category) => {
-			counts.set(category, (counts.get(category) || 0) + 1);
+		const categoryIds = getEntryCategoryIds(entry, data);
+		categoryIds.forEach((categoryId) => {
+			const categoryName = getCategoryNameById(categoryId, data);
+			if (categoryName) {
+				counts.set(categoryName, (counts.get(categoryName) || 0) + 1);
+			}
 		});
 	});
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Entry, EntryType } from '$lib/types';
 	import { getItemById, deleteEntry, trackerData } from '$lib/store';
-	import { getEntriesGroupedByDate, formatDate, getEntryCategories } from '$lib/analysis';
+	import { getEntriesGroupedByDate, formatDate, getEntryCategoryNames } from '$lib/analysis';
 
 	interface Props {
 		entries: Entry[];
@@ -39,7 +39,7 @@
 			<h3 class="text-sm font-semibold text-gray-500 mb-2">{formatDate(dateStr)}</h3>
 			<div class="space-y-2">
 				{#each dateEntries as entry}
-					{@const categories = getEntryCategories(entry, $trackerData)}
+					{@const categories = getEntryCategoryNames(entry, $trackerData)}
 					<div class="bg-white rounded-lg shadow-sm p-3 flex items-start justify-between">
 						<div class="flex-1">
 							<div class="flex items-center gap-2">

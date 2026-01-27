@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { entries, activityItems, foodItems, trackerData } from '$lib/store';
+	import { entries, activityItems, foodItems, activityCategories, foodCategories, trackerData } from '$lib/store';
 	import {
 		filterEntriesByType,
 		filterEntriesByCategory,
@@ -12,12 +12,12 @@
 		compareMonthsForItem,
 		formatMonthYear
 	} from '$lib/analysis';
-	import type { EntryType } from '$lib/types';
+	import type { EntryType, Category } from '$lib/types';
 
 	let activeTab = $state<'totals' | 'compare' | 'filter'>('totals');
 	let typeFilter = $state<EntryType | 'all'>('all');
 	let selectedItemId = $state<string | null>(null);
-	let selectedCategory = $state<string | null>(null);
+	let selectedCategoryId = $state<string | null>(null);
 
 	const currentDate = new Date();
 	const thisMonthRange = $derived(getMonthRange(currentDate));
@@ -57,24 +57,25 @@
 		...$foodItems.map((i) => ({ ...i, type: 'food' as const }))
 	]);
 
-	const allCategories = $derived(() => {
-		const cats = new Set<string>();
-		$activityItems.forEach((i) => i.categories.forEach((c) => cats.add(c)));
-		$foodItems.forEach((i) => i.categories.forEach((c) => cats.add(c)));
-		return Array.from(cats).sort();
-	});
+	// All categories combined from both types
+	const allCategories = $derived([...$activityCategories, ...$foodCategories]);
 
 	const selectedItemComparison = $derived(
 		selectedItemId ? compareMonthsForItem($entries, selectedItemId, currentDate) : null
 	);
 
 	const filteredByCategory = $derived(
-		selectedCategory ? filterEntriesByCategory($entries, selectedCategory, $trackerData) : []
+		selectedCategoryId ? filterEntriesByCategory($entries, selectedCategoryId, $trackerData) : []
 	);
 
 	const filteredByItem = $derived(
 		selectedItemId ? filterEntriesByItem($entries, selectedItemId) : []
 	);
+
+	function getCategoryName(categoryId: string): string {
+		const cat = allCategories.find((c) => c.id === categoryId);
+		return cat?.name ?? '';
+	}
 </script>
 
 <div class="space-y-4">
@@ -262,18 +263,25 @@
 				<h3 class="font-semibold text-gray-800 mb-3">Filter by Category</h3>
 
 				<select
-					bind:value={selectedCategory}
+					bind:value={selectedCategoryId}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md mb-4"
 				>
 					<option value={null}>Select a category...</option>
-					{#each allCategories() as category}
-						<option value={category}>{category}</option>
-					{/each}
+					<optgroup label="Activity Categories">
+						{#each $activityCategories as category}
+							<option value={category.id}>{category.name}</option>
+						{/each}
+					</optgroup>
+					<optgroup label="Food Categories">
+						{#each $foodCategories as category}
+							<option value={category.id}>{category.name}</option>
+						{/each}
+					</optgroup>
 				</select>
 
-				{#if selectedCategory && filteredByCategory.length > 0}
+				{#if selectedCategoryId && filteredByCategory.length > 0}
 					<div class="text-sm text-gray-600 mb-2">
-						{filteredByCategory.length} entries with "{selectedCategory}"
+						{filteredByCategory.length} entries with "{getCategoryName(selectedCategoryId)}"
 					</div>
 					<div class="max-h-60 overflow-y-auto space-y-2">
 						{#each filteredByCategory.slice(0, 20) as entry}
@@ -289,7 +297,7 @@
 							</div>
 						{/each}
 					</div>
-				{:else if selectedCategory}
+				{:else if selectedCategoryId}
 					<p class="text-gray-500 text-sm">No entries with this category</p>
 				{/if}
 			</div>

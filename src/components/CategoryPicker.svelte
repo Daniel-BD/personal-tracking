@@ -1,90 +1,75 @@
 <script lang="ts">
+	import type { Category } from '$lib/types';
+
 	interface Props {
-		selected: string[];
-		suggestions?: string[];
-		onchange: (categories: string[]) => void;
+		selected: string[]; // Array of category IDs
+		categories: Category[]; // Available categories to choose from
+		onchange: (categoryIds: string[]) => void;
 	}
 
-	let { selected, suggestions = [], onchange }: Props = $props();
+	let { selected, categories, onchange }: Props = $props();
 
-	let newCategory = $state('');
-
-	function addCategory() {
-		const trimmed = newCategory.trim();
-		if (trimmed && !selected.includes(trimmed)) {
-			onchange([...selected, trimmed]);
-			newCategory = '';
-		}
+	function removeCategory(categoryId: string) {
+		onchange(selected.filter((id) => id !== categoryId));
 	}
 
-	function removeCategory(category: string) {
-		onchange(selected.filter((c) => c !== category));
-	}
-
-	function toggleSuggestion(category: string) {
-		if (selected.includes(category)) {
-			removeCategory(category);
+	function toggleCategory(categoryId: string) {
+		if (selected.includes(categoryId)) {
+			removeCategory(categoryId);
 		} else {
-			onchange([...selected, category]);
+			onchange([...selected, categoryId]);
 		}
 	}
 
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Enter') {
-			event.preventDefault();
-			addCategory();
-		}
+	function getCategoryName(categoryId: string): string {
+		return categories.find((c) => c.id === categoryId)?.name ?? '';
 	}
 
-	const filteredSuggestions = $derived(
-		suggestions.filter((s) => !selected.includes(s) && s.toLowerCase().includes(newCategory.toLowerCase()))
+	// Categories not yet selected
+	const availableCategories = $derived(
+		categories.filter((c) => !selected.includes(c.id))
+	);
+
+	// Selected categories with their names for display
+	const selectedCategories = $derived(
+		selected.map((id) => ({
+			id,
+			name: getCategoryName(id)
+		})).filter((c) => c.name) // Filter out any invalid IDs
 	);
 </script>
 
 <div class="space-y-2">
-	<div class="flex flex-wrap gap-2">
-		{#each selected as category}
-			<span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
-				{category}
-				<button
-					type="button"
-					onclick={() => removeCategory(category)}
-					class="hover:text-blue-600"
-				>
-					×
-				</button>
-			</span>
-		{/each}
-	</div>
+	{#if selectedCategories.length > 0}
+		<div class="flex flex-wrap gap-2">
+			{#each selectedCategories as category}
+				<span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+					{category.name}
+					<button
+						type="button"
+						onclick={() => removeCategory(category.id)}
+						class="hover:text-blue-600"
+					>
+						×
+					</button>
+				</span>
+			{/each}
+		</div>
+	{/if}
 
-	<div class="flex gap-2">
-		<input
-			type="text"
-			bind:value={newCategory}
-			onkeydown={handleKeydown}
-			placeholder="Add category..."
-			class="flex-1 form-input-sm"
-		/>
-		<button
-			type="button"
-			onclick={addCategory}
-			class="btn-primary btn-sm"
-		>
-			Add
-		</button>
-	</div>
-
-	{#if filteredSuggestions.length > 0}
+	{#if availableCategories.length > 0}
 		<div class="flex flex-wrap gap-1">
-			{#each filteredSuggestions.slice(0, 10) as suggestion}
+			{#each availableCategories as category}
 				<button
 					type="button"
-					onclick={() => toggleSuggestion(suggestion)}
+					onclick={() => toggleCategory(category.id)}
 					class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs hover:bg-gray-200"
 				>
-					+ {suggestion}
+					+ {category.name}
 				</button>
 			{/each}
 		</div>
+	{:else if selectedCategories.length === 0}
+		<p class="text-xs text-gray-400">No categories available. Create categories in the Library.</p>
 	{/if}
 </div>
