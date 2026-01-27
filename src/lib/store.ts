@@ -225,6 +225,56 @@ export function getItemById(type: EntryType, itemId: string): ActivityItem | Foo
 	return data.foodItems.find((item) => item.id === itemId);
 }
 
+export function renameCategory(type: EntryType, oldName: string, newName: string): void {
+	if (!newName.trim() || oldName === newName) return;
+
+	trackerData.update((data) => {
+		if (type === 'activity') {
+			return {
+				...data,
+				activityItems: data.activityItems.map((item) => ({
+					...item,
+					categories: item.categories.map((c) => (c === oldName ? newName.trim() : c))
+				}))
+			};
+		} else {
+			return {
+				...data,
+				foodItems: data.foodItems.map((item) => ({
+					...item,
+					categories: item.categories.map((c) => (c === oldName ? newName.trim() : c))
+				}))
+			};
+		}
+	});
+
+	pushToGist();
+}
+
+export function deleteCategory(type: EntryType, categoryName: string): void {
+	trackerData.update((data) => {
+		if (type === 'activity') {
+			return {
+				...data,
+				activityItems: data.activityItems.map((item) => ({
+					...item,
+					categories: item.categories.filter((c) => c !== categoryName)
+				}))
+			};
+		} else {
+			return {
+				...data,
+				foodItems: data.foodItems.map((item) => ({
+					...item,
+					categories: item.categories.filter((c) => c !== categoryName)
+				}))
+			};
+		}
+	});
+
+	pushToGist();
+}
+
 export function initializeStore(): void {
 	if (isConfigured()) {
 		loadFromGist();
