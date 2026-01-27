@@ -1,13 +1,17 @@
 <script lang="ts">
-	import type { Category } from '$lib/types';
+	import type { Category, EntryType } from '$lib/types';
+	import { addCategory } from '$lib/store';
 
 	interface Props {
 		selected: string[]; // Array of category IDs
 		categories: Category[]; // Available categories to choose from
 		onchange: (categoryIds: string[]) => void;
+		type?: EntryType; // Required for adding new categories
 	}
 
-	let { selected, categories, onchange }: Props = $props();
+	let { selected, categories, onchange, type }: Props = $props();
+
+	let searchText = $state('');
 
 	function removeCategory(categoryId: string) {
 		onchange(selected.filter((id) => id !== categoryId));
@@ -25,9 +29,48 @@
 		return categories.find((c) => c.id === categoryId)?.name ?? '';
 	}
 
+	function handleAddCategory() {
+		const trimmedName = searchText.trim();
+		if (!trimmedName || !type) return;
+
+		// Check if category with this name already exists (case-insensitive)
+		const existing = categories.find(
+			(c) => c.name.toLowerCase() === trimmedName.toLowerCase()
+		);
+
+		if (existing) {
+			// Select existing category if not already selected
+			if (!selected.includes(existing.id)) {
+				onchange([...selected, existing.id]);
+			}
+		} else {
+			// Create new category and select it
+			const newCategory = addCategory(type, trimmedName);
+			onchange([...selected, newCategory.id]);
+		}
+
+		searchText = '';
+	}
+
+	function handleKeyDown(event: KeyboardEvent) {
+		if (event.key === 'Enter') {
+			event.preventDefault();
+			handleAddCategory();
+		}
+	}
+
 	// Categories not yet selected
 	const availableCategories = $derived(
 		categories.filter((c) => !selected.includes(c.id))
+	);
+
+	// Filter available categories based on search text
+	const filteredCategories = $derived(
+		searchText.trim()
+			? availableCategories.filter((c) =>
+					c.name.toLowerCase().includes(searchText.toLowerCase())
+				)
+			: availableCategories
 	);
 
 	// Selected categories with their names for display
@@ -36,6 +79,13 @@
 			id,
 			name: getCategoryName(id)
 		})).filter((c) => c.name) // Filter out any invalid IDs
+	);
+
+	// Check if current search text matches an existing category name exactly
+	const searchMatchesExisting = $derived(
+		categories.some(
+			(c) => c.name.toLowerCase() === searchText.trim().toLowerCase()
+		)
 	);
 </script>
 
@@ -57,9 +107,29 @@
 		</div>
 	{/if}
 
-	{#if availableCategories.length > 0}
+	{#if type}
+		<div class="flex gap-2">
+			<input
+				type="text"
+				bind:value={searchText}
+				onkeydown={handleKeyDown}
+				placeholder="Search or add category..."
+				class="form-input-sm flex-1"
+			/>
+			<button
+				type="button"
+				onclick={handleAddCategory}
+				disabled={!searchText.trim()}
+				class="btn-secondary btn-sm"
+			>
+				{searchMatchesExisting ? 'Select' : 'Add'}
+			</button>
+		</div>
+	{/if}
+
+	{#if filteredCategories.length > 0}
 		<div class="flex flex-wrap gap-1">
-			{#each availableCategories as category}
+			{#each filteredCategories as category}
 				<button
 					type="button"
 					onclick={() => toggleCategory(category.id)}
@@ -69,7 +139,9 @@
 				</button>
 			{/each}
 		</div>
-	{:else if selectedCategories.length === 0}
+	{:else if selectedCategories.length === 0 && !type}
 		<p class="text-xs text-gray-400">No categories available. Create categories in the Library.</p>
+	{:else if searchText.trim() && filteredCategories.length === 0}
+		<p class="text-xs text-gray-400">No matching categories. Click "Add" to create "{searchText.trim()}".</p>
 	{/if}
 </div>
