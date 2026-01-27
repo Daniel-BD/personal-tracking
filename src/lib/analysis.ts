@@ -194,7 +194,8 @@ export function getEntriesGroupedByDate(entries: Entry[]): Map<string, Entry[]> 
 		.sort((a, b) => b.date.localeCompare(a.date))
 		.forEach((entry) => {
 			const existing = grouped.get(entry.date) || [];
-			grouped.set(entry.date, [...existing, entry]);
+			// Prepend to show most recently logged entries first within each day
+			grouped.set(entry.date, [entry, ...existing]);
 		});
 
 	return grouped;
