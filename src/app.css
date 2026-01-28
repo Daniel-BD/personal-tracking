@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* Include LayerChart and svelte-ux component styles */
+@source "../node_modules/layerchart/**/*.{svelte,js}";
+@source "../node_modules/svelte-ux/**/*.{svelte,js}";
+
 :root {
 	--color-primary: #3b82f6;
 	--color-primary-dark: #2563eb;
