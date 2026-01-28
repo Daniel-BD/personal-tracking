@@ -133,9 +133,15 @@
 		return getCategoryNames(activeTab, item.categories);
 	}
 
-	const currentItems = $derived(activeTab === 'activity' ? $activityItems : $foodItems);
+	const currentItems = $derived(
+		(activeTab === 'activity' ? $activityItems : $foodItems)
+			.slice()
+			.sort((a, b) => a.name.localeCompare(b.name))
+	);
 	const currentCategories = $derived(
-		activeTab === 'activity' ? $activityCategories : $foodCategories
+		(activeTab === 'activity' ? $activityCategories : $foodCategories)
+			.slice()
+			.sort((a, b) => a.name.localeCompare(b.name))
 	);
 </script>
 
