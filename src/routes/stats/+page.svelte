@@ -11,7 +11,7 @@
 	} from '$lib/analysis';
 	import TimeRangeSelector from '../../components/TimeRangeSelector.svelte';
 	import InsightList from '../../components/InsightList.svelte';
-	import FrequencyChart from '../../components/FrequencyChart.svelte';
+	import Chart from '../../components/Chart.svelte';
 	import RankedList from '../../components/RankedList.svelte';
 
 	// Page state
@@ -65,7 +65,7 @@
 	<InsightList insights={insights} onselect={handleInsightClick} />
 
 	<!-- Primary Trend Graph -->
-	<FrequencyChart data={chartSeries} onseriesclick={handleSeriesClick} />
+	<Chart data={chartSeries} onseriesclick={handleSeriesClick} />
 
 	<!-- Top Logged Items -->
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-4">

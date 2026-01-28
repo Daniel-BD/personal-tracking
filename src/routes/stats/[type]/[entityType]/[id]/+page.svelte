@@ -17,7 +17,7 @@
 		getAvailableEntities
 	} from '$lib/analysis';
 	import TimeRangeSelector from '../../../../../components/TimeRangeSelector.svelte';
-	import FrequencyChart from '../../../../../components/FrequencyChart.svelte';
+	import Chart from '../../../../../components/Chart.svelte';
 	import StatsRow from '../../../../../components/StatsRow.svelte';
 	import ComparisonSelector from '../../../../../components/ComparisonSelector.svelte';
 
@@ -228,7 +228,7 @@
 	</div>
 
 	<!-- Primary Chart -->
-	<FrequencyChart
+	<Chart
 		data={chartData}
 		chartType={effectiveChartType}
 		{grouping}
