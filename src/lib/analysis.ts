@@ -5,6 +5,42 @@ export interface DateRange {
 	end: string;
 }
 
+// Time range types for analytics
+export type TimeRangeType = '7d' | '30d' | '90d' | 'all' | 'custom';
+
+export interface TimeRange {
+	type: TimeRangeType;
+	startDate?: string;
+	endDate?: string;
+}
+
+export interface ChartDataPoint {
+	date: string;
+	value: number;
+}
+
+export interface ChartSeries {
+	id: string;
+	label: string;
+	points: ChartDataPoint[];
+}
+
+export interface Insight {
+	id: string;
+	text: string;
+	target?: {
+		type: 'activity' | 'food';
+		entityType: 'item' | 'category';
+		entityId: string;
+	};
+}
+
+export interface RankedItem {
+	id: string;
+	label: string;
+	count: number;
+}
+
 export function getMonthRange(date: Date = new Date()): DateRange {
 	const year = date.getFullYear();
 	const month = date.getMonth();
@@ -215,4 +251,357 @@ export function formatMonthYear(date: Date = new Date()): string {
 		month: 'long',
 		year: 'numeric'
 	});
+}
+
+// ============================================
+// Analytics Utilities for Stats Page
+// ============================================
+
+/**
+ * Convert a TimeRange to a DateRange
+ */
+export function getDateRangeFromTimeRange(timeRange: TimeRange): DateRange | null {
+	const today = new Date();
+	const todayStr = today.toISOString().split('T')[0];
+
+	switch (timeRange.type) {
+		case '7d': {
+			const start = new Date(today);
+			start.setDate(start.getDate() - 6);
+			return {
+				start: start.toISOString().split('T')[0],
+				end: todayStr
+			};
+		}
+		case '30d': {
+			const start = new Date(today);
+			start.setDate(start.getDate() - 29);
+			return {
+				start: start.toISOString().split('T')[0],
+				end: todayStr
+			};
+		}
+		case '90d': {
+			const start = new Date(today);
+			start.setDate(start.getDate() - 89);
+			return {
+				start: start.toISOString().split('T')[0],
+				end: todayStr
+			};
+		}
+		case 'custom': {
+			if (timeRange.startDate && timeRange.endDate) {
+				return {
+					start: timeRange.startDate,
+					end: timeRange.endDate
+				};
+			}
+			return null;
+		}
+		case 'all':
+		default:
+			return null;
+	}
+}
+
+/**
+ * Get the previous period of equal length for comparison
+ */
+export function getPreviousPeriodRange(timeRange: TimeRange): DateRange | null {
+	const currentRange = getDateRangeFromTimeRange(timeRange);
+	if (!currentRange) return null;
+
+	const start = new Date(currentRange.start + 'T00:00:00');
+	const end = new Date(currentRange.end + 'T00:00:00');
+	const daysDiff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+	const prevEnd = new Date(start);
+	prevEnd.setDate(prevEnd.getDate() - 1);
+	const prevStart = new Date(prevEnd);
+	prevStart.setDate(prevStart.getDate() - daysDiff + 1);
+
+	return {
+		start: prevStart.toISOString().split('T')[0],
+		end: prevEnd.toISOString().split('T')[0]
+	};
+}
+
+/**
+ * Get the Monday of a given week
+ */
+function getWeekStart(date: Date): string {
+	const d = new Date(date);
+	const day = d.getDay();
+	const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+	d.setDate(diff);
+	return d.toISOString().split('T')[0];
+}
+
+/**
+ * Group entries by week and return chart data points
+ */
+export function groupEntriesByWeek(entries: Entry[], range: DateRange | null): ChartDataPoint[] {
+	const weekCounts = new Map<string, number>();
+
+	// If we have a range, generate all weeks in the range first
+	if (range) {
+		const start = new Date(range.start + 'T00:00:00');
+		const end = new Date(range.end + 'T00:00:00');
+		const current = new Date(start);
+
+		while (current <= end) {
+			const weekStart = getWeekStart(current);
+			if (!weekCounts.has(weekStart)) {
+				weekCounts.set(weekStart, 0);
+			}
+			current.setDate(current.getDate() + 7);
+		}
+	}
+
+	// Count entries per week
+	entries.forEach((entry) => {
+		const entryDate = new Date(entry.date + 'T00:00:00');
+		const weekStart = getWeekStart(entryDate);
+		weekCounts.set(weekStart, (weekCounts.get(weekStart) || 0) + 1);
+	});
+
+	// Convert to sorted array
+	return Array.from(weekCounts.entries())
+		.sort((a, b) => a[0].localeCompare(b[0]))
+		.map(([date, value]) => ({ date, value }));
+}
+
+/**
+ * Get frequency chart data with separate series for activities and food
+ */
+export function getFrequencyChartData(
+	entries: Entry[],
+	timeRange: TimeRange
+): { activities: ChartSeries; food: ChartSeries } {
+	const range = getDateRangeFromTimeRange(timeRange);
+	const filteredEntries = range ? filterEntriesByDateRange(entries, range) : entries;
+
+	const activityEntries = filterEntriesByType(filteredEntries, 'activity');
+	const foodEntries = filterEntriesByType(filteredEntries, 'food');
+
+	return {
+		activities: {
+			id: 'activities',
+			label: 'Activities',
+			points: groupEntriesByWeek(activityEntries, range)
+		},
+		food: {
+			id: 'food',
+			label: 'Food',
+			points: groupEntriesByWeek(foodEntries, range)
+		}
+	};
+}
+
+/**
+ * Get top logged items for a given type
+ */
+export function selectTopEntities(
+	entries: Entry[],
+	items: (ActivityItem | FoodItem)[],
+	type: EntryType,
+	limit: number = 5
+): RankedItem[] {
+	const typeEntries = filterEntriesByType(entries, type);
+	const counts = countEntriesByItem(typeEntries);
+
+	return items
+		.map((item) => ({
+			id: item.id,
+			label: item.name,
+			count: counts.get(item.id) || 0
+		}))
+		.filter((item) => item.count > 0)
+		.sort((a, b) => b.count - a.count)
+		.slice(0, limit);
+}
+
+/**
+ * Compare periods and generate insights
+ */
+export function selectInsights(
+	entries: Entry[],
+	data: TrackerData,
+	timeRange: TimeRange,
+	threshold: number = 0.1
+): Insight[] {
+	const insights: Insight[] = [];
+	const currentRange = getDateRangeFromTimeRange(timeRange);
+	const previousRange = getPreviousPeriodRange(timeRange);
+
+	// Can't generate insights for "all time" or without valid ranges
+	if (!currentRange || !previousRange) {
+		return [];
+	}
+
+	const currentEntries = filterEntriesByDateRange(entries, currentRange);
+	const previousEntries = filterEntriesByDateRange(entries, previousRange);
+
+	// Overall activity change
+	const currentActivities = filterEntriesByType(currentEntries, 'activity').length;
+	const previousActivities = filterEntriesByType(previousEntries, 'activity').length;
+
+	if (previousActivities > 0) {
+		const activityChange = (currentActivities - previousActivities) / previousActivities;
+		if (Math.abs(activityChange) >= threshold) {
+			const direction = activityChange > 0 ? 'up' : 'down';
+			const percent = Math.abs(Math.round(activityChange * 100));
+			insights.push({
+				id: 'activity-overall',
+				text: `Activity logging is ${direction} ${percent}% compared to the previous period`
+			});
+		}
+	} else if (currentActivities > 0) {
+		insights.push({
+			id: 'activity-new',
+			text: `You started logging activities this period (${currentActivities} entries)`
+		});
+	}
+
+	// Overall food change
+	const currentFood = filterEntriesByType(currentEntries, 'food').length;
+	const previousFood = filterEntriesByType(previousEntries, 'food').length;
+
+	if (previousFood > 0) {
+		const foodChange = (currentFood - previousFood) / previousFood;
+		if (Math.abs(foodChange) >= threshold) {
+			const direction = foodChange > 0 ? 'up' : 'down';
+			const percent = Math.abs(Math.round(foodChange * 100));
+			insights.push({
+				id: 'food-overall',
+				text: `Food logging is ${direction} ${percent}% compared to the previous period`
+			});
+		}
+	} else if (currentFood > 0) {
+		insights.push({
+			id: 'food-new',
+			text: `You started logging food this period (${currentFood} entries)`
+		});
+	}
+
+	// Find biggest item changes (activity items)
+	const currentActivityCounts = countEntriesByItem(filterEntriesByType(currentEntries, 'activity'));
+	const previousActivityCounts = countEntriesByItem(
+		filterEntriesByType(previousEntries, 'activity')
+	);
+
+	for (const item of data.activityItems) {
+		const current = currentActivityCounts.get(item.id) || 0;
+		const previous = previousActivityCounts.get(item.id) || 0;
+
+		if (previous > 0 && current > 0) {
+			const change = (current - previous) / previous;
+			if (Math.abs(change) >= threshold * 2) {
+				// Higher threshold for individual items
+				const direction = change > 0 ? 'up' : 'down';
+				const percent = Math.abs(Math.round(change * 100));
+				insights.push({
+					id: `activity-item-${item.id}`,
+					text: `"${item.name}" is ${direction} ${percent}% (${previous} → ${current})`,
+					target: {
+						type: 'activity',
+						entityType: 'item',
+						entityId: item.id
+					}
+				});
+			}
+		} else if (previous === 0 && current >= 3) {
+			// New item with significant usage
+			insights.push({
+				id: `activity-item-new-${item.id}`,
+				text: `New activity: "${item.name}" logged ${current} times`,
+				target: {
+					type: 'activity',
+					entityType: 'item',
+					entityId: item.id
+				}
+			});
+		}
+	}
+
+	// Find biggest item changes (food items)
+	const currentFoodCounts = countEntriesByItem(filterEntriesByType(currentEntries, 'food'));
+	const previousFoodCounts = countEntriesByItem(filterEntriesByType(previousEntries, 'food'));
+
+	for (const item of data.foodItems) {
+		const current = currentFoodCounts.get(item.id) || 0;
+		const previous = previousFoodCounts.get(item.id) || 0;
+
+		if (previous > 0 && current > 0) {
+			const change = (current - previous) / previous;
+			if (Math.abs(change) >= threshold * 2) {
+				const direction = change > 0 ? 'up' : 'down';
+				const percent = Math.abs(Math.round(change * 100));
+				insights.push({
+					id: `food-item-${item.id}`,
+					text: `"${item.name}" is ${direction} ${percent}% (${previous} → ${current})`,
+					target: {
+						type: 'food',
+						entityType: 'item',
+						entityId: item.id
+					}
+				});
+			}
+		} else if (previous === 0 && current >= 3) {
+			insights.push({
+				id: `food-item-new-${item.id}`,
+				text: `New food: "${item.name}" logged ${current} times`,
+				target: {
+					type: 'food',
+					entityType: 'item',
+					entityId: item.id
+				}
+			});
+		}
+	}
+
+	// Sort by significance (overall changes first, then by absolute change)
+	insights.sort((a, b) => {
+		// Overall changes come first
+		if (a.id.includes('overall') && !b.id.includes('overall')) return -1;
+		if (!a.id.includes('overall') && b.id.includes('overall')) return 1;
+		return 0;
+	});
+
+	// Return top 3
+	return insights.slice(0, 3);
+}
+
+/**
+ * Format a week start date for display
+ */
+export function formatWeekLabel(dateString: string): string {
+	const date = new Date(dateString + 'T00:00:00');
+	return date.toLocaleDateString('en-US', {
+		month: 'short',
+		day: 'numeric'
+	});
+}
+
+/**
+ * Get display label for a time range
+ */
+export function getTimeRangeLabel(timeRange: TimeRange): string {
+	switch (timeRange.type) {
+		case '7d':
+			return 'Last 7 days';
+		case '30d':
+			return 'Last 30 days';
+		case '90d':
+			return 'Last 90 days';
+		case 'all':
+			return 'All time';
+		case 'custom':
+			if (timeRange.startDate && timeRange.endDate) {
+				return `${formatDate(timeRange.startDate)} - ${formatDate(timeRange.endDate)}`;
+			}
+			return 'Custom range';
+		default:
+			return '';
+	}
 }
