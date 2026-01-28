@@ -1,7 +1,10 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { base } from '$app/paths';
 	import { entries, activityItems, foodItems, trackerData } from '$lib/store';
 	import {
 		type TimeRange,
+		type Insight,
 		getFrequencyChartData,
 		selectTopEntities,
 		selectInsights
@@ -30,26 +33,23 @@
 	}
 
 	function handleSeriesClick(seriesId: string) {
-		// Navigate to filtered view (Part 2 - Individual Page)
-		// For now, just log it
-		console.log('Series clicked:', seriesId);
+		// Series clicks on overview chart don't navigate to individual pages
+		// They represent aggregate data (all activities or all food)
 	}
 
-	function handleInsightClick(insight: { target?: { type: string; entityId: string } }) {
-		// Navigate to individual item page (Part 2)
+	function handleInsightClick(insight: Insight) {
 		if (insight.target) {
-			console.log('Insight clicked:', insight.target);
+			const { type, entityType, entityId } = insight.target;
+			goto(`${base}/stats/${type}/${entityType}/${entityId}`);
 		}
 	}
 
 	function handleActivitySelect(item: { id: string }) {
-		// Navigate to individual item page (Part 2)
-		console.log('Activity selected:', item.id);
+		goto(`${base}/stats/activity/item/${item.id}`);
 	}
 
 	function handleFoodSelect(item: { id: string }) {
-		// Navigate to individual item page (Part 2)
-		console.log('Food selected:', item.id);
+		goto(`${base}/stats/food/item/${item.id}`);
 	}
 </script>
 

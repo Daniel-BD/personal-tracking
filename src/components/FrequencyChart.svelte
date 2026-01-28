@@ -1,18 +1,32 @@
 <script lang="ts">
-	import type { ChartSeries } from '$lib/analysis';
-	import { formatWeekLabel } from '$lib/analysis';
+	import type { ChartSeries, Grouping } from '$lib/analysis';
+	import { formatDateLabel } from '$lib/analysis';
 
 	interface Props {
 		data: ChartSeries[];
+		chartType?: 'bar' | 'line';
+		grouping?: Grouping;
+		title?: string;
 		onseriesclick?: (seriesId: string) => void;
 	}
 
-	let { data, onseriesclick }: Props = $props();
+	let { data, chartType = 'bar', grouping = 'weekly', title = 'Weekly Activity', onseriesclick }: Props = $props();
 
 	// Chart dimensions
 	const chartHeight = 200;
 	const barGap = 4;
 	const groupGap = 12;
+	const padding = { left: 5, right: 5, top: 10, bottom: 0 };
+
+	// Predefined colors for series (up to 6 different series)
+	const seriesColors = [
+		'#3b82f6', // blue-500
+		'#22c55e', // green-500
+		'#f59e0b', // amber-500
+		'#ef4444', // red-500
+		'#8b5cf6', // violet-500
+		'#06b6d4'  // cyan-500
+	];
 
 	// Merge all dates from all series
 	const allDates = $derived(() => {
@@ -40,16 +54,12 @@
 	}
 
 	// Colors for series
-	function getSeriesColor(seriesId: string): string {
+	function getSeriesColor(seriesId: string, index: number): string {
+		// Special cases for the overview page
 		if (seriesId === 'activities') return '#3b82f6'; // blue-500
 		if (seriesId === 'food') return '#22c55e'; // green-500
-		return '#6b7280'; // gray-500
-	}
-
-	function getSeriesHoverColor(seriesId: string): string {
-		if (seriesId === 'activities') return '#2563eb'; // blue-600
-		if (seriesId === 'food') return '#16a34a'; // green-600
-		return '#4b5563'; // gray-600
+		// Use color palette for individual page comparisons
+		return seriesColors[index % seriesColors.length];
 	}
 
 	function handleSeriesClick(seriesId: string) {
@@ -67,10 +77,54 @@
 		const usableWidth = totalGroupWidth - (groupGap / 3); // percentage
 		return Math.max(8, (usableWidth - barGap * (numBars - 1)) / numBars);
 	});
+
+	// Generate line path for a series
+	function getLinePath(series: ChartSeries, seriesIndex: number): string {
+		const dates = allDates();
+		if (dates.length === 0) return '';
+
+		const points = dates.map((date, i) => {
+			const x = padding.left + ((i + 0.5) / dates.length) * (100 - padding.left - padding.right);
+			const value = getValue(series, date);
+			const y = chartHeight - (value / maxValue()) * chartHeight;
+			return { x, y };
+		});
+
+		if (points.length === 0) return '';
+
+		return points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+	}
+
+	// Get dynamic chart title based on grouping
+	const chartTitle = $derived(() => {
+		if (title !== 'Weekly Activity') return title;
+		switch (grouping) {
+			case 'daily':
+				return 'Daily Activity';
+			case 'monthly':
+				return 'Monthly Activity';
+			default:
+				return 'Weekly Activity';
+		}
+	});
+
+	// Format label for x-axis
+	function formatLabel(date: string): string {
+		return formatDateLabel(date, grouping);
+	}
+
+	// Calculate how many labels to skip to avoid crowding
+	const labelSkip = $derived(() => {
+		const dates = allDates();
+		if (dates.length <= 6) return 1;
+		if (dates.length <= 12) return 2;
+		if (dates.length <= 24) return 4;
+		return Math.ceil(dates.length / 6);
+	});
 </script>
 
 <div class="bg-white rounded-lg shadow p-4">
-	<h3 class="text-sm font-medium text-gray-500 mb-3">Weekly Activity</h3>
+	<h3 class="text-sm font-medium text-gray-500 mb-3">{chartTitle()}</h3>
 
 	{#if allDates().length === 0}
 		<div class="flex items-center justify-center h-48 text-gray-400 text-sm">
@@ -78,8 +132,8 @@
 		</div>
 	{:else}
 		<!-- Legend -->
-		<div class="flex gap-4 mb-4">
-			{#each data as series}
+		<div class="flex flex-wrap gap-4 mb-4">
+			{#each data as series, index}
 				<button
 					type="button"
 					onclick={() => handleSeriesClick(series.id)}
@@ -87,7 +141,7 @@
 				>
 					<span
 						class="w-3 h-3 rounded"
-						style="background-color: {getSeriesColor(series.id)}"
+						style="background-color: {getSeriesColor(series.id, index)}"
 					></span>
 					<span class="text-gray-600">{series.label}</span>
 				</button>
@@ -114,43 +168,80 @@
 					/>
 				{/each}
 
-				<!-- Bars -->
-				{#each allDates() as date, dateIndex}
-					{@const groupX = (dateIndex / allDates().length) * 100 + groupGap / 6}
+				{#if chartType === 'bar'}
+					<!-- Bars -->
+					{#each allDates() as date, dateIndex}
+						{@const groupX = (dateIndex / allDates().length) * 100 + groupGap / 6}
+						{#each data as series, seriesIndex}
+							{@const value = getValue(series, date)}
+							{@const barHeight = (value / maxValue()) * chartHeight}
+							{@const barX = groupX + seriesIndex * (barWidth() + barGap / 3)}
+							<rect
+								x={barX}
+								y={chartHeight - barHeight}
+								width={barWidth()}
+								height={Math.max(barHeight, 0)}
+								fill={getSeriesColor(series.id, seriesIndex)}
+								rx="1"
+								role="button"
+								tabindex="0"
+								aria-label="{series.label}: {value} entries for {formatLabel(date)}"
+								class="cursor-pointer transition-colors hover:opacity-80 focus:outline-none focus:opacity-70"
+								onclick={() => handleSeriesClick(series.id)}
+								onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSeriesClick(series.id); }}
+							>
+								<title>{series.label}: {value} ({formatLabel(date)})</title>
+							</rect>
+						{/each}
+					{/each}
+				{:else}
+					<!-- Lines -->
 					{#each data as series, seriesIndex}
-						{@const value = getValue(series, date)}
-						{@const barHeight = (value / maxValue()) * chartHeight}
-						{@const barX = groupX + seriesIndex * (barWidth() + barGap / 3)}
-						<rect
-							x={barX}
-							y={chartHeight - barHeight}
-							width={barWidth()}
-							height={Math.max(barHeight, 0)}
-							fill={getSeriesColor(series.id)}
-							rx="1"
+						<path
+							d={getLinePath(series, seriesIndex)}
+							fill="none"
+							stroke={getSeriesColor(series.id, seriesIndex)}
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="cursor-pointer hover:opacity-80"
 							role="button"
 							tabindex="0"
-							aria-label="{series.label}: {value} entries for week of {formatWeekLabel(date)}"
-							class="cursor-pointer transition-colors hover:opacity-80 focus:outline-none focus:opacity-70"
+							aria-label="{series.label} trend line"
 							onclick={() => handleSeriesClick(series.id)}
 							onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSeriesClick(series.id); }}
-						>
-							<title>{series.label}: {value} ({formatWeekLabel(date)})</title>
-						</rect>
+						/>
+						<!-- Data points on the line -->
+						{#each allDates() as date, dateIndex}
+							{@const x = padding.left + ((dateIndex + 0.5) / allDates().length) * (100 - padding.left - padding.right)}
+							{@const value = getValue(series, date)}
+							{@const y = chartHeight - (value / maxValue()) * chartHeight}
+							<circle
+								cx={x}
+								cy={y}
+								r="2"
+								fill={getSeriesColor(series.id, seriesIndex)}
+								class="cursor-pointer hover:opacity-80"
+							>
+								<title>{series.label}: {value} ({formatLabel(date)})</title>
+							</circle>
+						{/each}
 					{/each}
-				{/each}
+				{/if}
 
 				<!-- X-axis labels -->
 				{#each allDates() as date, dateIndex}
-					{@const x = (dateIndex / allDates().length) * 100 + 50 / allDates().length}
-					<text
-						x={x}
-						y={chartHeight + 15}
-						text-anchor="middle"
-						class="text-[8px] fill-gray-500"
-					>
-						{formatWeekLabel(date)}
-					</text>
+					{#if dateIndex % labelSkip() === 0}
+						{@const x = (dateIndex / allDates().length) * 100 + 50 / allDates().length}
+						<text
+							x={x}
+							y={chartHeight + 15}
+							text-anchor="middle"
+							class="text-[8px] fill-gray-500"
+						>
+							{formatLabel(date)}
+						</text>
+					{/if}
 				{/each}
 			</svg>
 
