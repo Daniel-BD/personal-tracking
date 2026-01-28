@@ -605,3 +605,313 @@ export function getTimeRangeLabel(timeRange: TimeRange): string {
 			return '';
 	}
 }
+
+// ============================================
+// Part 2: Individual Item/Category Analytics
+// ============================================
+
+export type Grouping = 'daily' | 'weekly' | 'monthly';
+export type ChartType = 'bar' | 'line';
+export type RollingAverageWindow = 'off' | '7d' | '30d';
+
+export interface EntityRef {
+	type: EntryType;
+	entityType: 'item' | 'category';
+	id: string;
+}
+
+export interface EntityStats {
+	total: number;
+	averagePerWeek: number;
+	allTimeTotal: number;
+}
+
+/**
+ * Get entries for a specific entity (item or category)
+ */
+export function getEntriesForEntity(
+	entries: Entry[],
+	entity: EntityRef,
+	data: TrackerData
+): Entry[] {
+	const typeFiltered = filterEntriesByType(entries, entity.type);
+
+	if (entity.entityType === 'item') {
+		return filterEntriesByItem(typeFiltered, entity.id);
+	} else {
+		return filterEntriesByCategory(typeFiltered, entity.id, data);
+	}
+}
+
+/**
+ * Get entity name for display
+ */
+export function getEntityName(entity: EntityRef, data: TrackerData): string {
+	if (entity.entityType === 'item') {
+		const items = entity.type === 'activity' ? data.activityItems : data.foodItems;
+		const item = items.find((i) => i.id === entity.id);
+		return item?.name || 'Unknown';
+	} else {
+		return getCategoryNameById(entity.id, data) || 'Unknown';
+	}
+}
+
+/**
+ * Group entries by day and return chart data points
+ */
+export function groupEntriesByDay(entries: Entry[], range: DateRange | null): ChartDataPoint[] {
+	const dayCounts = new Map<string, number>();
+
+	// If we have a range, generate all days in the range first
+	if (range) {
+		const start = new Date(range.start + 'T00:00:00');
+		const end = new Date(range.end + 'T00:00:00');
+		const current = new Date(start);
+
+		while (current <= end) {
+			const dayStr = current.toISOString().split('T')[0];
+			dayCounts.set(dayStr, 0);
+			current.setDate(current.getDate() + 1);
+		}
+	}
+
+	// Count entries per day
+	entries.forEach((entry) => {
+		dayCounts.set(entry.date, (dayCounts.get(entry.date) || 0) + 1);
+	});
+
+	// Convert to sorted array
+	return Array.from(dayCounts.entries())
+		.sort((a, b) => a[0].localeCompare(b[0]))
+		.map(([date, value]) => ({ date, value }));
+}
+
+/**
+ * Get the first day of a month
+ */
+function getMonthStart(date: Date): string {
+	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
+}
+
+/**
+ * Group entries by month and return chart data points
+ */
+export function groupEntriesByMonth(entries: Entry[], range: DateRange | null): ChartDataPoint[] {
+	const monthCounts = new Map<string, number>();
+
+	// If we have a range, generate all months in the range first
+	if (range) {
+		const start = new Date(range.start + 'T00:00:00');
+		const end = new Date(range.end + 'T00:00:00');
+		const current = new Date(start.getFullYear(), start.getMonth(), 1);
+
+		while (current <= end) {
+			const monthStart = getMonthStart(current);
+			if (!monthCounts.has(monthStart)) {
+				monthCounts.set(monthStart, 0);
+			}
+			current.setMonth(current.getMonth() + 1);
+		}
+	}
+
+	// Count entries per month
+	entries.forEach((entry) => {
+		const entryDate = new Date(entry.date + 'T00:00:00');
+		const monthStart = getMonthStart(entryDate);
+		monthCounts.set(monthStart, (monthCounts.get(monthStart) || 0) + 1);
+	});
+
+	// Convert to sorted array
+	return Array.from(monthCounts.entries())
+		.sort((a, b) => a[0].localeCompare(b[0]))
+		.map(([date, value]) => ({ date, value }));
+}
+
+/**
+ * Get time series data for a specific entity
+ */
+export function selectTimeSeries(
+	entries: Entry[],
+	entity: EntityRef,
+	data: TrackerData,
+	timeRange: TimeRange,
+	grouping: Grouping = 'weekly'
+): ChartSeries {
+	const range = getDateRangeFromTimeRange(timeRange);
+	const entityEntries = getEntriesForEntity(entries, entity, data);
+	const filteredEntries = range ? filterEntriesByDateRange(entityEntries, range) : entityEntries;
+	const entityName = getEntityName(entity, data);
+
+	let points: ChartDataPoint[];
+	switch (grouping) {
+		case 'daily':
+			points = groupEntriesByDay(filteredEntries, range);
+			break;
+		case 'monthly':
+			points = groupEntriesByMonth(filteredEntries, range);
+			break;
+		case 'weekly':
+		default:
+			points = groupEntriesByWeek(filteredEntries, range);
+			break;
+	}
+
+	return {
+		id: `${entity.type}-${entity.entityType}-${entity.id}`,
+		label: entityName,
+		points
+	};
+}
+
+/**
+ * Get summary statistics for an entity
+ */
+export function selectStats(
+	entries: Entry[],
+	entity: EntityRef,
+	data: TrackerData,
+	timeRange: TimeRange
+): EntityStats {
+	const range = getDateRangeFromTimeRange(timeRange);
+	const entityEntries = getEntriesForEntity(entries, entity, data);
+	const filteredEntries = range ? filterEntriesByDateRange(entityEntries, range) : entityEntries;
+
+	const total = filteredEntries.length;
+	const allTimeTotal = entityEntries.length;
+
+	// Calculate average per week
+	let weeks = 1;
+	if (range) {
+		const start = new Date(range.start + 'T00:00:00');
+		const end = new Date(range.end + 'T00:00:00');
+		const days = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+		weeks = Math.max(1, days / 7);
+	} else if (entityEntries.length > 0) {
+		// For "all time", use the span of actual entries
+		const dates = entityEntries.map((e) => e.date).sort();
+		const first = new Date(dates[0] + 'T00:00:00');
+		const last = new Date(dates[dates.length - 1] + 'T00:00:00');
+		const days = Math.floor((last.getTime() - first.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+		weeks = Math.max(1, days / 7);
+	}
+
+	const averagePerWeek = Math.round((total / weeks) * 10) / 10;
+
+	return {
+		total,
+		averagePerWeek,
+		allTimeTotal
+	};
+}
+
+/**
+ * Convert a time series to cumulative values
+ */
+export function selectCumulativeSeries(series: ChartSeries): ChartSeries {
+	let cumulative = 0;
+	const cumulativePoints = series.points.map((point) => {
+		cumulative += point.value;
+		return { date: point.date, value: cumulative };
+	});
+
+	return {
+		id: series.id + '-cumulative',
+		label: series.label + ' (Cumulative)',
+		points: cumulativePoints
+	};
+}
+
+/**
+ * Calculate rolling average for a time series
+ */
+export function selectRollingAverage(
+	series: ChartSeries,
+	window: RollingAverageWindow
+): ChartSeries {
+	if (window === 'off') {
+		return series;
+	}
+
+	const windowDays = window === '7d' ? 7 : 30;
+	const points = series.points;
+
+	// For weekly/monthly grouped data, we need to adjust the window
+	// Calculate average based on surrounding data points
+	const windowSize = window === '7d' ? 1 : 4; // 1 week or ~4 weeks for monthly
+
+	const smoothedPoints = points.map((point, index) => {
+		const start = Math.max(0, index - windowSize);
+		const end = Math.min(points.length - 1, index + windowSize);
+		let sum = 0;
+		let count = 0;
+
+		for (let i = start; i <= end; i++) {
+			sum += points[i].value;
+			count++;
+		}
+
+		return {
+			date: point.date,
+			value: Math.round((sum / count) * 10) / 10
+		};
+	});
+
+	return {
+		id: series.id + '-rolling',
+		label: `${series.label} (${windowDays}d avg)`,
+		points: smoothedPoints
+	};
+}
+
+/**
+ * Format date label based on grouping
+ */
+export function formatDateLabel(dateString: string, grouping: Grouping): string {
+	const date = new Date(dateString + 'T00:00:00');
+
+	switch (grouping) {
+		case 'daily':
+			return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+		case 'monthly':
+			return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+		case 'weekly':
+		default:
+			return formatWeekLabel(dateString);
+	}
+}
+
+/**
+ * Get all entities of a given type for comparison selection
+ */
+export function getAvailableEntities(
+	data: TrackerData,
+	type: EntryType,
+	excludeId?: string
+): Array<{ ref: EntityRef; name: string }> {
+	const items = type === 'activity' ? data.activityItems : data.foodItems;
+	const categories = type === 'activity' ? data.activityCategories : data.foodCategories;
+
+	const result: Array<{ ref: EntityRef; name: string }> = [];
+
+	// Add items
+	items.forEach((item) => {
+		if (item.id !== excludeId) {
+			result.push({
+				ref: { type, entityType: 'item', id: item.id },
+				name: item.name
+			});
+		}
+	});
+
+	// Add categories
+	categories.forEach((category) => {
+		if (category.id !== excludeId) {
+			result.push({
+				ref: { type, entityType: 'category', id: category.id },
+				name: `[Category] ${category.name}`
+			});
+		}
+	});
+
+	return result.sort((a, b) => a.name.localeCompare(b.name));
+}
