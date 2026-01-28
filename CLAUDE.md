@@ -13,6 +13,7 @@ A personal activity and food tracking PWA (Progressive Web App) built for mobile
 - **Language**: TypeScript (strict mode)
 - **Build**: Vite 7
 - **Storage**: LocalStorage + optional GitHub Gist sync
+- **Charts**: LayerChart with D3 scales
 
 ## Project Structure
 
@@ -21,12 +22,18 @@ src/
 ├── app.css              # Global styles, CSS component classes
 ├── app.d.ts             # SvelteKit type declarations
 ├── components/          # Reusable UI components
-│   ├── CategoryPicker.svelte # Category selection with create-on-the-fly
-│   ├── EntryForm.svelte      # Form for logging entries (activity/food)
-│   ├── EntryList.svelte      # Displays logged entries grouped by date
-│   └── ItemPicker.svelte     # Search/select dropdown for items
+│   ├── CategoryPicker.svelte     # Category selection with create-on-the-fly
+│   ├── Chart.svelte              # Bar/line charts using LayerChart
+│   ├── ComparisonSelector.svelte # Entity comparison picker
+│   ├── EntryForm.svelte          # Form for logging entries (activity/food)
+│   ├── EntryList.svelte          # Displays logged entries grouped by date
+│   ├── InsightList.svelte        # Displays analytics insights/highlights
+│   ├── ItemPicker.svelte         # Search/select dropdown for items
+│   ├── RankedList.svelte         # Displays ranked items with bar visualization
+│   ├── StatsRow.svelte           # Summary stats display (total, avg, all-time)
+│   └── TimeRangeSelector.svelte  # Time range picker (7d, 30d, 90d, all, custom)
 ├── lib/
-│   ├── analysis.ts      # Date filtering, statistics, grouping utilities
+│   ├── analysis.ts      # Date filtering, statistics, charting utilities
 │   ├── github.ts        # GitHub Gist API integration
 │   ├── index.ts         # Library exports
 │   ├── store.ts         # Svelte stores, CRUD operations, sync logic
@@ -38,7 +45,9 @@ src/
     ├── library/         # Manage items and categories (CRUD)
     ├── log/             # Full log view with filtering and entry history
     ├── settings/        # GitHub Gist sync configuration
-    └── stats/           # Statistics: totals, comparisons, filtering
+    └── stats/           # Statistics dashboard and individual entity pages
+        ├── +page.svelte                    # Main stats overview
+        └── [type]/[entityType]/[id]/       # Individual item/category stats
 ```
 
 ## Key Data Types
@@ -80,6 +89,56 @@ interface TrackerData {
   foodCategories: Category[];
   entries: Entry[];
 }
+
+// Analytics Types (from analysis.ts)
+type TimeRangeType = '7d' | '30d' | '90d' | 'all' | 'custom';
+
+interface TimeRange {
+  type: TimeRangeType;
+  startDate?: string;  // For 'custom' type
+  endDate?: string;    // For 'custom' type
+}
+
+interface ChartDataPoint {
+  date: string;
+  value: number;
+}
+
+interface ChartSeries {
+  id: string;
+  label: string;
+  points: ChartDataPoint[];
+}
+
+interface EntityRef {
+  type: EntryType;
+  entityType: 'item' | 'category';
+  id: string;
+}
+
+interface EntityStats {
+  total: number;
+  averagePerWeek: number;
+  allTimeTotal: number;
+}
+
+interface RankedItem {
+  id: string;
+  label: string;
+  count: number;
+}
+
+interface Insight {
+  id: string;
+  text: string;
+  target?: {
+    type: 'activity' | 'food';
+    entityType: 'item' | 'category';
+    entityId: string;
+  };
+}
+
+type Grouping = 'daily' | 'weekly' | 'monthly';
 ```
 
 ## Component Props Reference
@@ -119,6 +178,61 @@ interface Props {
   categories: Category[];       // Available categories
   onchange: (categoryIds: string[]) => void;
   type?: EntryType;            // Required to enable creating new categories
+}
+```
+
+### Chart
+```typescript
+interface Props {
+  data: ChartSeries[];          // Array of series to display
+  chartType?: 'bar' | 'line';   // Chart type (default: 'bar')
+  grouping?: Grouping;          // 'daily' | 'weekly' | 'monthly' (default: 'weekly')
+  title?: string;               // Chart title
+  onseriesclick?: (seriesId: string) => void;
+}
+```
+
+### TimeRangeSelector
+```typescript
+interface Props {
+  value: TimeRange;             // Current time range selection
+  onchange: (timeRange: TimeRange) => void;
+}
+```
+
+### RankedList
+```typescript
+interface Props {
+  title: string;                // Section title
+  items: RankedItem[];          // Items to display with counts
+  accentColor?: 'blue' | 'green';  // Bar color (default: 'blue')
+  onselect?: (item: RankedItem) => void;  // Click handler
+}
+```
+
+### ComparisonSelector
+```typescript
+interface Props {
+  availableEntities: Array<{ ref: EntityRef; name: string }>;
+  selectedEntities: EntityRef[];
+  maxSelections?: number;       // Max comparisons (default: 2)
+  onchange: (entities: EntityRef[]) => void;
+}
+```
+
+### StatsRow
+```typescript
+interface Props {
+  stats: EntityStats;           // Stats to display
+  showAllTime?: boolean;        // Show all-time total (default: true)
+}
+```
+
+### InsightList
+```typescript
+interface Props {
+  insights: Insight[];          // Insights to display
+  onselect?: (insight: Insight) => void;  // Click handler for insights with targets
 }
 ```
 
@@ -241,12 +355,15 @@ All data mutations go through `src/lib/store.ts`:
 - `getMonthRange(date?)` - Get start/end of month
 - `getPreviousMonthRange(date?)` - Get previous month range
 - `getWeekRange(date?)` - Get current week range
+- `getDateRangeFromTimeRange(timeRange)` - Convert TimeRange to DateRange
+- `getPreviousPeriodRange(timeRange)` - Get previous period for comparison
 
 **Filtering:**
 - `filterEntriesByDateRange(entries, range)`
 - `filterEntriesByType(entries, type)`
 - `filterEntriesByItem(entries, itemId)`
 - `filterEntriesByCategory(entries, categoryId, data)`
+- `getEntriesForEntity(entries, entityRef, data)` - Get entries for item or category
 
 **Statistics:**
 - `countEntries(entries)`
@@ -257,14 +374,34 @@ All data mutations go through `src/lib/store.ts`:
 - `compareMonths(entries, date?)` - Month-over-month comparison
 - `compareMonthsForItem(entries, itemId, date?)`
 
+**Chart Data:**
+- `getFrequencyChartData(entries, timeRange)` - Get activities/food series
+- `groupEntriesByDay(entries, range)` - Daily chart data points
+- `groupEntriesByWeek(entries, range)` - Weekly chart data points
+- `groupEntriesByMonth(entries, range)` - Monthly chart data points
+- `selectTimeSeries(entries, entityRef, data, timeRange, grouping)` - Time series for entity
+- `selectCumulativeSeries(series)` - Convert to cumulative values
+- `selectRollingAverage(series, window)` - Apply rolling average ('7d' | '30d')
+
+**Analytics:**
+- `selectStats(entries, entityRef, data, timeRange)` - Get EntityStats
+- `selectTopEntities(entries, items, type, limit)` - Get top RankedItems
+- `selectInsights(entries, data, timeRange, threshold)` - Generate Insights
+- `getAvailableEntities(data, type, excludeId?)` - Get entities for comparison
+
 **Formatting:**
 - `formatDate(dateString)` - "Mon, Jan 15" format
 - `formatMonthYear(date?)` - "January 2025" format
+- `formatWeekLabel(dateString)` - "Jan 15" format for chart labels
+- `formatDateLabel(dateString, grouping)` - Format based on grouping type
+- `getTimeRangeLabel(timeRange)` - Human-readable range label
 - `getEntriesGroupedByDate(entries)` - Groups by date, sorted newest first
 
-**Category Helpers:**
+**Entity Helpers:**
 - `getEntryCategoryIds(entry, data)` - Get effective category IDs
 - `getEntryCategoryNames(entry, data)` - Get category names for display
+- `getEntityName(entityRef, data)` - Get display name for item or category
+- `getCategoryNameById(categoryId, data)` - Get category name by ID
 
 ### Date/Time Formats
 
@@ -311,6 +448,37 @@ Categories are stored separately from items and referenced by ID:
 - Items store category IDs in their `categories` array
 - Entries can override categories via `categoryOverrides`
 - Deleting a category removes it from all items and entries
+
+### Working with Charts
+
+The app uses LayerChart for visualizations:
+
+```svelte
+<script lang="ts">
+  import Chart from '$components/Chart.svelte';
+  import { getFrequencyChartData } from '$lib/analysis';
+
+  const { activities, food } = getFrequencyChartData($entries, timeRange);
+  const chartData = [activities, food];
+</script>
+
+<Chart data={chartData} chartType="bar" grouping="weekly" />
+```
+
+Chart patterns:
+- Use `getFrequencyChartData()` for overview charts with activities/food series
+- Use `selectTimeSeries()` for single entity time series
+- Combine multiple `ChartSeries` in the `data` array for comparison charts
+- Grouping options: `'daily'`, `'weekly'`, `'monthly'`
+- Chart types: `'bar'` for discrete periods, `'line'` for trends
+
+### Working with Stats Pages
+
+Individual item/category stats use dynamic routes:
+- Route: `/stats/[type]/[entityType]/[id]`
+- Example: `/stats/activity/item/abc123` or `/stats/food/category/xyz789`
+- Use `EntityRef` to reference entities: `{ type, entityType, id }`
+- Use `getAvailableEntities()` to populate comparison selectors
 
 ## Known Quirks
 
