@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { BarChart, LineChart } from 'layerchart';
-	import { scaleBand, scaleTime } from 'd3-scale';
+	import { scaleBand, scaleTime, scaleLinear } from 'd3-scale';
 	import type { ChartSeries, Grouping } from '$lib/analysis';
 	import { formatDateLabel } from '$lib/analysis';
 
@@ -40,9 +40,21 @@
 		return Array.from(dateSet).sort();
 	});
 
-	// Transform data into format LayerChart expects
-	// Each data point has: date, and a value for each series
-	const chartData = $derived(() => {
+	// Transform data for bar chart: unified data array with each series as a property
+	const barChartData = $derived(() => {
+		const dates = allDates();
+		return dates.map(date => {
+			const point: Record<string, string | number> = { date };
+			data.forEach((series) => {
+				const seriesPoint = series.points.find(p => p.date === date);
+				point[series.id] = seriesPoint?.value ?? 0;
+			});
+			return point;
+		});
+	});
+
+	// Transform data for line chart: unified data with Date objects for time scale
+	const lineChartData = $derived(() => {
 		const dates = allDates();
 		return dates.map(date => {
 			const point: Record<string, string | number | Date> = {
@@ -57,12 +69,32 @@
 		});
 	});
 
-	// Create series configuration for LayerChart
-	const layerChartSeries = $derived(() => {
+	// Calculate max value for explicit y-domain
+	const maxValue = $derived(() => {
+		let max = 0;
+		barChartData().forEach(point => {
+			data.forEach(series => {
+				const val = point[series.id] as number;
+				if (val > max) max = val;
+			});
+		});
+		return Math.max(max, 1); // Minimum of 1 to avoid empty chart
+	});
+
+	// Create series configuration for BarChart
+	const barChartSeries = $derived(() => {
 		return data.map((series, index) => ({
 			key: series.id,
 			label: series.label,
-			value: (d: Record<string, unknown>) => d[series.id] as number,
+			color: getSeriesColor(series.id, index)
+		}));
+	});
+
+	// Create series configuration for LineChart
+	const lineChartSeries = $derived(() => {
+		return data.map((series, index) => ({
+			key: series.id,
+			label: series.label,
 			color: getSeriesColor(series.id, index)
 		}));
 	});
@@ -116,10 +148,13 @@
 		<div class="h-64">
 			{#if chartType === 'bar'}
 				<BarChart
-					data={chartData()}
+					data={barChartData()}
 					x="date"
 					xScale={scaleBand().padding(0.3)}
-					series={layerChartSeries()}
+					yScale={scaleLinear()}
+					yDomain={[0, maxValue()]}
+					yNice
+					series={barChartSeries()}
 					seriesLayout="group"
 					props={{
 						xAxis: {
@@ -135,10 +170,10 @@
 				/>
 			{:else}
 				<LineChart
-					data={chartData()}
+					data={lineChartData()}
 					x="dateObj"
 					xScale={scaleTime()}
-					series={layerChartSeries()}
+					series={lineChartSeries()}
 					props={{
 						xAxis: {
 							ticks: tickCount(),
@@ -149,7 +184,6 @@
 						}
 					}}
 					legend
-					points
 					tooltip={{ mode: 'bisect-x' }}
 				/>
 			{/if}
