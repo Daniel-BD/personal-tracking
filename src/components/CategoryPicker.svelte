@@ -22,6 +22,7 @@
 			removeCategory(categoryId);
 		} else {
 			onchange([...selected, categoryId]);
+			searchText = '';
 		}
 	}
 
