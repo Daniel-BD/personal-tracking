@@ -915,3 +915,83 @@ export function getAvailableEntities(
 
 	return result.sort((a, b) => a.name.localeCompare(b.name));
 }
+
+export interface EntityListItem {
+	id: string;
+	name: string;
+	entityType: 'item' | 'category';
+	count: number;
+	previousCount: number;
+	percentChange: number | null;
+}
+
+/**
+ * Get a list of all entities with their counts and period comparison
+ */
+export function getEntityListWithComparison(
+	entries: Entry[],
+	data: TrackerData,
+	type: EntryType,
+	entityType: 'item' | 'category',
+	timeRange: TimeRange
+): EntityListItem[] {
+	const currentRange = getDateRangeFromTimeRange(timeRange);
+	const previousRange = getPreviousPeriodRange(timeRange);
+
+	const currentEntries = currentRange
+		? filterEntriesByDateRange(filterEntriesByType(entries, type), currentRange)
+		: filterEntriesByType(entries, type);
+	const previousEntries = previousRange
+		? filterEntriesByDateRange(filterEntriesByType(entries, type), previousRange)
+		: [];
+
+	const results: EntityListItem[] = [];
+
+	if (entityType === 'item') {
+		const items = type === 'activity' ? data.activityItems : data.foodItems;
+		const currentCounts = countEntriesByItem(currentEntries);
+		const previousCounts = countEntriesByItem(previousEntries);
+
+		items.forEach((item) => {
+			const count = currentCounts.get(item.id) || 0;
+			const previousCount = previousCounts.get(item.id) || 0;
+			const percentChange =
+				previousCount > 0 ? Math.round(((count - previousCount) / previousCount) * 100) : null;
+
+			results.push({
+				id: item.id,
+				name: item.name,
+				entityType: 'item',
+				count,
+				previousCount,
+				percentChange
+			});
+		});
+	} else {
+		const categories = type === 'activity' ? data.activityCategories : data.foodCategories;
+
+		categories.forEach((category) => {
+			const categoryEntries = filterEntriesByCategory(currentEntries, category.id, data);
+			const previousCategoryEntries = filterEntriesByCategory(
+				previousEntries,
+				category.id,
+				data
+			);
+			const count = categoryEntries.length;
+			const previousCount = previousCategoryEntries.length;
+			const percentChange =
+				previousCount > 0 ? Math.round(((count - previousCount) / previousCount) * 100) : null;
+
+			results.push({
+				id: category.id,
+				name: category.name,
+				entityType: 'category',
+				count,
+				previousCount,
+				percentChange
+			});
+		});
+	}
+
+	return results;
+}
