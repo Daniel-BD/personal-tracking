@@ -5,10 +5,13 @@
 @source "../node_modules/svelte-ux/**/*.{svelte,js}";
 
 :root {
-	--color-primary: #3b82f6;
-	--color-primary-dark: #2563eb;
-	--color-success: #22c55e;
-	--color-danger: #ef4444;
+	/* LayerChart theme colors - space-separated HSL values for use with hsl() */
+	--color-primary: 217 91% 60%;
+	--color-secondary: 215 20% 65%;
+	--color-surface-100: 0 0% 100%;
+	--color-surface-200: 220 14% 96%;
+	--color-surface-300: 220 13% 91%;
+	--color-surface-content: 224 71% 4%;
 }
 
 html {
