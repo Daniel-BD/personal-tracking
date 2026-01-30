@@ -1,0 +1,277 @@
+<script lang="ts">
+	import type { ActivityItem, FoodItem, EntryType } from '$lib/types';
+	import { getTodayDate, getCurrentTime } from '$lib/types';
+	import {
+		activityItems,
+		foodItems,
+		activityCategories,
+		foodCategories,
+		addEntry,
+		addActivityItem,
+		addFoodItem
+	} from '$lib/store';
+	import UnifiedItemPicker from './UnifiedItemPicker.svelte';
+	import CategoryPicker from './CategoryPicker.svelte';
+
+	interface UnifiedItem {
+		item: ActivityItem | FoodItem;
+		type: EntryType;
+	}
+
+	interface Props {
+		onsave?: () => void;
+	}
+
+	let { onsave }: Props = $props();
+
+	// Form state
+	let selectedUnified = $state<UnifiedItem | null>(null);
+	let date = $state(getTodayDate());
+	let time = $state<string | null>(getCurrentTime());
+	let notes = $state('');
+	let useOverrides = $state(false);
+	let categoryOverrides = $state<string[]>([]);
+
+	// New item creation state
+	let showNewItemForm = $state(false);
+	let newItemType = $state<EntryType | null>(null);
+	let newItemName = $state('');
+	let newItemCategories = $state<string[]>([]);
+
+	const categories = $derived(
+		selectedUnified
+			? selectedUnified.type === 'activity'
+				? $activityCategories
+				: $foodCategories
+			: []
+	);
+
+	const newItemCategoriesOptions = $derived(
+		newItemType === 'activity' ? $activityCategories : $foodCategories
+	);
+
+	function handleItemSelect(unified: UnifiedItem) {
+		if (unified.item.id) {
+			selectedUnified = unified;
+			categoryOverrides = [...unified.item.categories];
+		} else {
+			selectedUnified = null;
+		}
+	}
+
+	function handleCreateNew(prefillName: string = '') {
+		showNewItemForm = true;
+		newItemType = null;
+		newItemName = prefillName;
+		newItemCategories = [];
+	}
+
+	function handleSelectNewItemType(type: EntryType) {
+		newItemType = type;
+	}
+
+	function handleSaveNewItem() {
+		if (!newItemName.trim() || !newItemType) return;
+
+		const newItem =
+			newItemType === 'activity'
+				? addActivityItem(newItemName.trim(), newItemCategories)
+				: addFoodItem(newItemName.trim(), newItemCategories);
+
+		selectedUnified = { item: newItem, type: newItemType };
+		categoryOverrides = [...newItemCategories];
+		showNewItemForm = false;
+		newItemType = null;
+	}
+
+	function handleCancelNewItem() {
+		showNewItemForm = false;
+		newItemType = null;
+	}
+
+	function handleSubmit() {
+		if (!selectedUnified?.item.id) return;
+
+		addEntry(
+			selectedUnified.type,
+			selectedUnified.item.id,
+			date,
+			time,
+			notes.trim() || null,
+			useOverrides ? categoryOverrides : null
+		);
+
+		// Reset form
+		selectedUnified = null;
+		date = getTodayDate();
+		time = getCurrentTime();
+		notes = '';
+		useOverrides = false;
+		categoryOverrides = [];
+
+		onsave?.();
+	}
+
+	function clearTime() {
+		time = null;
+	}
+
+	function handleCategoryChange(categoryIds: string[]) {
+		categoryOverrides = categoryIds;
+	}
+
+	function handleNewItemCategoryChange(categoryIds: string[]) {
+		newItemCategories = categoryIds;
+	}
+
+	function getTypeColor(type: EntryType): string {
+		return type === 'activity' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white';
+	}
+
+	function getTypeLabel(type: EntryType): string {
+		return type === 'activity' ? 'Activity' : 'Food';
+	}
+</script>
+
+<div class="bg-white rounded-lg shadow p-4 space-y-4">
+	{#if showNewItemForm}
+		<div class="space-y-4">
+			{#if !newItemType}
+				<h3 class="font-semibold text-gray-800">What type of item?</h3>
+				<div class="flex gap-2">
+					<button
+						type="button"
+						onclick={() => handleSelectNewItemType('activity')}
+						class="flex-1 py-3 px-4 rounded-lg font-medium text-lg bg-blue-600 text-white hover:bg-blue-700"
+					>
+						🏃 Activity
+					</button>
+					<button
+						type="button"
+						onclick={() => handleSelectNewItemType('food')}
+						class="flex-1 py-3 px-4 rounded-lg font-medium text-lg bg-green-600 text-white hover:bg-green-700"
+					>
+						🍽️ Food
+					</button>
+				</div>
+				<button type="button" onclick={handleCancelNewItem} class="w-full btn-secondary">
+					Cancel
+				</button>
+			{:else}
+				<h3 class="font-semibold text-gray-800">
+					Create New {newItemType === 'activity' ? 'Activity' : 'Food'} Item
+				</h3>
+
+				<div>
+					<label for="newItemName" class="form-label">Name</label>
+					<input
+						id="newItemName"
+						type="text"
+						bind:value={newItemName}
+						placeholder="Enter name..."
+						class="form-input"
+					/>
+				</div>
+
+				<div>
+					<label class="form-label">Categories</label>
+					<CategoryPicker
+						selected={newItemCategories}
+						categories={newItemCategoriesOptions}
+						onchange={handleNewItemCategoryChange}
+						type={newItemType}
+					/>
+				</div>
+
+				<div class="flex gap-2">
+					<button
+						type="button"
+						onclick={handleSaveNewItem}
+						disabled={!newItemName.trim()}
+						class="flex-1 btn-primary"
+					>
+						Create & Select
+					</button>
+					<button type="button" onclick={handleCancelNewItem} class="flex-1 btn-secondary">
+						Cancel
+					</button>
+				</div>
+			{/if}
+		</div>
+	{:else}
+		<div>
+			<label class="form-label">Item</label>
+			<UnifiedItemPicker
+				activityItems={$activityItems}
+				foodItems={$foodItems}
+				activityCategories={$activityCategories}
+				foodCategories={$foodCategories}
+				selectedItem={selectedUnified}
+				onselect={handleItemSelect}
+				oncreate={handleCreateNew}
+				placeholder="Search or create..."
+			/>
+		</div>
+
+		{#if selectedUnified?.item.id}
+			<div>
+				<label for="date" class="form-label">Date</label>
+				<input id="date" type="date" bind:value={date} class="form-input" />
+			</div>
+
+			<div>
+				<label for="time" class="form-label">
+					Time <span class="text-gray-400 font-normal">(optional)</span>
+				</label>
+				<div class="relative">
+					<input id="time" type="time" bind:value={time} class="form-input {time ? 'pr-8' : ''}" />
+					{#if time}
+						<button
+							type="button"
+							onclick={clearTime}
+							class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg"
+							aria-label="Clear time"
+						>
+							&times;
+						</button>
+					{/if}
+				</div>
+			</div>
+
+			<div>
+				<label for="notes" class="form-label">
+					Notes <span class="text-gray-400 font-normal">(optional)</span>
+				</label>
+				<input
+					id="notes"
+					type="text"
+					bind:value={notes}
+					placeholder="Add a note..."
+					class="form-input"
+				/>
+			</div>
+
+			<div>
+				<label class="flex items-center gap-2 text-sm text-gray-700">
+					<input type="checkbox" bind:checked={useOverrides} class="rounded" />
+					<span>Override categories for this entry</span>
+				</label>
+
+				{#if useOverrides}
+					<div class="mt-2">
+						<CategoryPicker
+							selected={categoryOverrides}
+							{categories}
+							onchange={handleCategoryChange}
+							type={selectedUnified.type}
+						/>
+					</div>
+				{/if}
+			</div>
+
+			<button type="button" onclick={handleSubmit} class="w-full btn-lg {getTypeColor(selectedUnified.type)}">
+				Log {getTypeLabel(selectedUnified.type)}
+			</button>
+		{/if}
+	{/if}
+</div>
