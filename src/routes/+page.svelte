@@ -1,27 +1,84 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
+	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 	import { isConfigured } from '$lib/github';
-	import { initializeStore, entries, forceRefresh, syncStatus } from '$lib/store';
+	import {
+		initializeStore,
+		entries,
+		forceRefresh,
+		syncStatus,
+		activityItems,
+		foodItems,
+		addEntry
+	} from '$lib/store';
 	import {
 		filterEntriesByDateRange,
 		getMonthRange,
 		compareMonths,
 		filterEntriesByType
 	} from '$lib/analysis';
+	import { getTodayDate, getCurrentTime } from '$lib/types';
 	import QuickLogForm from '../components/QuickLogForm.svelte';
 
 	let configured = $state(false);
 	let showSuccess = $state(false);
+	let successMessage = $state('Entry logged successfully!');
+	let errorMessage = $state<string | null>(null);
+
+	function handleUrlAddParam() {
+		const addParam = $page.url.searchParams.get('add');
+		if (!addParam) return;
+
+		const searchName = addParam.toLowerCase();
+
+		// Find exact case-insensitive matches
+		const activityMatch = $activityItems.find(
+			(item) => item.name.toLowerCase() === searchName
+		);
+		const foodMatch = $foodItems.find((item) => item.name.toLowerCase() === searchName);
+
+		// Clear the URL parameter
+		goto(base || '/', { replaceState: true });
+
+		if (activityMatch && foodMatch) {
+			// Found in both - show error
+			errorMessage = `"${addParam}" exists in both Activities and Food. Please log manually.`;
+			setTimeout(() => (errorMessage = null), 4000);
+		} else if (activityMatch) {
+			// Log activity
+			addEntry('activity', activityMatch.id, getTodayDate(), getCurrentTime());
+			successMessage = `Logged "${activityMatch.name}" as activity!`;
+			showSuccess = true;
+			setTimeout(() => (showSuccess = false), 2000);
+		} else if (foodMatch) {
+			// Log food
+			addEntry('food', foodMatch.id, getTodayDate(), getCurrentTime());
+			successMessage = `Logged "${foodMatch.name}" as food!`;
+			showSuccess = true;
+			setTimeout(() => (showSuccess = false), 2000);
+		} else {
+			// Not found - show error
+			errorMessage = `No item named "${addParam}" found in your library.`;
+			setTimeout(() => (errorMessage = null), 4000);
+		}
+	}
 
 	onMount(() => {
 		configured = isConfigured();
 		if (configured) {
 			initializeStore();
+			// Small delay to let store load before checking URL param
+			setTimeout(handleUrlAddParam, 100);
+		} else {
+			// Even if not configured, check for URL param to show appropriate message
+			handleUrlAddParam();
 		}
 	});
 
 	function handleSave() {
+		successMessage = 'Entry logged successfully!';
 		showSuccess = true;
 		setTimeout(() => (showSuccess = false), 2000);
 	}
@@ -64,7 +121,13 @@
 
 		{#if showSuccess}
 			<div class="bg-green-50 border border-green-200 rounded-lg p-3 text-green-800 text-sm">
-				Entry logged successfully!
+				{successMessage}
+			</div>
+		{/if}
+
+		{#if errorMessage}
+			<div class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-800 text-sm">
+				{errorMessage}
 			</div>
 		{/if}
 
