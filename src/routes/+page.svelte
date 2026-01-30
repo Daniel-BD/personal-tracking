@@ -9,10 +9,9 @@
 		compareMonths,
 		filterEntriesByType
 	} from '$lib/analysis';
-	import EntryForm from '../components/EntryForm.svelte';
+	import QuickLogForm from '../components/QuickLogForm.svelte';
 
 	let configured = $state(false);
-	let activeType = $state<'activity' | 'food'>('food');
 	let showSuccess = $state(false);
 
 	onMount(() => {
@@ -69,26 +68,7 @@
 			</div>
 		{/if}
 
-		<div class="flex gap-2">
-			<button
-				onclick={() => (activeType = 'activity')}
-				class="flex-1 py-3 px-4 rounded-lg font-medium text-lg {activeType === 'activity'
-					? 'bg-blue-600 text-white'
-					: 'bg-gray-200 text-gray-700'}"
-			>
-				🏃 Activity
-			</button>
-			<button
-				onclick={() => (activeType = 'food')}
-				class="flex-1 py-3 px-4 rounded-lg font-medium text-lg {activeType === 'food'
-					? 'bg-green-600 text-white'
-					: 'bg-gray-200 text-gray-700'}"
-			>
-				🍽️ Food
-			</button>
-		</div>
-
-		<EntryForm type={activeType} onsave={handleSave} />
+		<QuickLogForm onsave={handleSave} />
 
 		<div class="grid grid-cols-2 gap-4">
 			<div class="bg-white rounded-lg shadow p-4">
