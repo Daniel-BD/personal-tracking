@@ -235,16 +235,33 @@ export function getCategoryTotals(
 export function getEntriesGroupedByDate(entries: Entry[]): Map<string, Entry[]> {
 	const grouped = new Map<string, Entry[]>();
 
-	entries
-		.slice()
-		.sort((a, b) => b.date.localeCompare(a.date))
-		.forEach((entry) => {
-			const existing = grouped.get(entry.date) || [];
-			// Prepend to show most recently logged entries first within each day
-			grouped.set(entry.date, [entry, ...existing]);
-		});
+	// Group entries by date
+	entries.forEach((entry) => {
+		const existing = grouped.get(entry.date) || [];
+		grouped.set(entry.date, [...existing, entry]);
+	});
 
-	return grouped;
+	// Sort entries within each day by time (latest first)
+	// Entries without time come after entries with time
+	for (const [date, dateEntries] of grouped) {
+		dateEntries.sort((a, b) => {
+			if (a.time && b.time) {
+				return b.time.localeCompare(a.time);
+			}
+			if (a.time && !b.time) return -1;
+			if (!a.time && b.time) return 1;
+			return 0;
+		});
+	}
+
+	// Sort date keys (newest first) and rebuild the map
+	const sortedDates = [...grouped.keys()].sort((a, b) => b.localeCompare(a));
+	const sortedGrouped = new Map<string, Entry[]>();
+	for (const date of sortedDates) {
+		sortedGrouped.set(date, grouped.get(date)!);
+	}
+
+	return sortedGrouped;
 }
 
 export function formatDate(dateString: string): string {
