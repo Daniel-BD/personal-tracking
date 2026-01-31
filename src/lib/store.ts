@@ -11,6 +11,38 @@ import type {
 import { createEmptyData, generateId } from './types';
 import { getConfig, fetchGist, updateGist, isConfigured } from './github';
 
+/**
+ * Merges two TrackerData objects to prevent data loss from stale tabs.
+ * Strategy: Union of all items by ID, with local taking precedence for conflicts.
+ * This ensures data added on other devices is never silently deleted.
+ */
+function mergeTrackerData(local: TrackerData, remote: TrackerData): TrackerData {
+	return {
+		activityItems: mergeById(local.activityItems, remote.activityItems),
+		foodItems: mergeById(local.foodItems, remote.foodItems),
+		activityCategories: mergeById(local.activityCategories, remote.activityCategories),
+		foodCategories: mergeById(local.foodCategories, remote.foodCategories),
+		entries: mergeById(local.entries, remote.entries)
+	};
+}
+
+/**
+ * Merges two arrays by ID, creating a union.
+ * Local items take precedence for items with the same ID.
+ */
+function mergeById<T extends { id: string }>(local: T[], remote: T[]): T[] {
+	const localMap = new Map(local.map((item) => [item.id, item]));
+	const merged = [...local];
+
+	for (const remoteItem of remote) {
+		if (!localMap.has(remoteItem.id)) {
+			merged.push(remoteItem);
+		}
+	}
+
+	return merged;
+}
+
 const LOCAL_STORAGE_KEY = 'tracker_data';
 
 function loadFromLocalStorage(): TrackerData {
@@ -87,7 +119,18 @@ async function pushToGist(): Promise<void> {
 
 	syncStatus.set('syncing');
 	try {
-		await updateGist(config.gistId, config.token, get(trackerData));
+		// Fetch current remote data first to prevent overwriting data from other devices
+		const remoteData = await fetchGist(config.gistId, config.token);
+		const localData = get(trackerData);
+
+		// Merge local and remote data - ensures we don't lose entries added elsewhere
+		const mergedData = mergeTrackerData(localData, remoteData);
+
+		// Update local store with merged data (adds any entries from remote we didn't have)
+		trackerData.set(mergedData);
+
+		// Push merged data to Gist
+		await updateGist(config.gistId, config.token, mergedData);
 		syncStatus.set('idle');
 	} catch (error) {
 		console.error('Failed to sync to Gist:', error);
