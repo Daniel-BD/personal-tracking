@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ActivityItem, FoodItem, Category, EntryType } from '$lib/types';
+	import { getTypeIcon, getTypeColorMuted } from '$lib/types';
 
 	interface UnifiedItem {
 		item: ActivityItem | FoodItem;
@@ -52,14 +53,6 @@
 			.join(', ');
 	}
 
-	function getTypeIcon(type: EntryType): string {
-		return type === 'activity' ? '🏃' : '🍽️';
-	}
-
-	function getTypeColor(type: EntryType): string {
-		return type === 'activity' ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200';
-	}
-
 	function handleSelect(unified: UnifiedItem) {
 		onselect(unified);
 		searchQuery = '';
@@ -83,7 +76,7 @@
 
 <div class="relative">
 	{#if selectedItem && selectedItem.item.id}
-		<div class="flex items-center justify-between p-3 {getTypeColor(selectedItem.type)} border rounded-md">
+		<div class="flex items-center justify-between p-3 {getTypeColorMuted(selectedItem.type)} border rounded-md">
 			<div class="flex items-center gap-2">
 				<span>{getTypeIcon(selectedItem.type)}</span>
 				<div>

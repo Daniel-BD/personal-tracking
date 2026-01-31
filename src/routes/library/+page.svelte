@@ -17,6 +17,7 @@
 		getCategoryNames
 	} from '$lib/store';
 	import CategoryPicker from '../../components/CategoryPicker.svelte';
+	import SegmentedControl from '../../components/SegmentedControl.svelte';
 
 	let activeTab = $state<'activity' | 'food'>('activity');
 	let activeSubTab = $state<'items' | 'categories'>('items');
@@ -149,44 +150,25 @@
 	<h2 class="text-2xl font-bold text-gray-900">Item Library</h2>
 
 	<!-- Primary tabs: Activity / Food -->
-	<div class="flex gap-2">
-		<button
-			onclick={() => (activeTab = 'activity')}
-			class="flex-1 py-2 px-4 rounded-md font-medium {activeTab === 'activity'
-				? 'bg-blue-600 text-white'
-				: 'bg-gray-200 text-gray-700'}"
-		>
-			Activities
-		</button>
-		<button
-			onclick={() => (activeTab = 'food')}
-			class="flex-1 py-2 px-4 rounded-md font-medium {activeTab === 'food'
-				? 'bg-green-600 text-white'
-				: 'bg-gray-200 text-gray-700'}"
-		>
-			Food
-		</button>
-	</div>
+	<SegmentedControl
+		options={[
+			{ value: 'activity', label: 'Activities', activeClass: 'bg-blue-600 text-white' },
+			{ value: 'food', label: 'Food', activeClass: 'bg-green-600 text-white' }
+		]}
+		value={activeTab}
+		onchange={(v) => (activeTab = v)}
+	/>
 
 	<!-- Secondary tabs: Items / Categories -->
-	<div class="flex gap-2">
-		<button
-			onclick={() => (activeSubTab = 'items')}
-			class="flex-1 py-1.5 px-3 rounded-md text-sm font-medium {activeSubTab === 'items'
-				? 'bg-gray-700 text-white'
-				: 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
-		>
-			Items ({currentItems.length})
-		</button>
-		<button
-			onclick={() => (activeSubTab = 'categories')}
-			class="flex-1 py-1.5 px-3 rounded-md text-sm font-medium {activeSubTab === 'categories'
-				? 'bg-gray-700 text-white'
-				: 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
-		>
-			Categories ({currentCategories.length})
-		</button>
-	</div>
+	<SegmentedControl
+		options={[
+			{ value: 'items', label: `Items (${currentItems.length})` },
+			{ value: 'categories', label: `Categories (${currentCategories.length})` }
+		]}
+		value={activeSubTab}
+		onchange={(v) => (activeSubTab = v)}
+		size="sm"
+	/>
 
 	{#if activeSubTab === 'items'}
 		<!-- Items view -->

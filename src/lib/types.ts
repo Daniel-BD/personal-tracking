@@ -70,3 +70,20 @@ export function getCurrentTime(): string {
 	const now = new Date();
 	return now.toTimeString().slice(0, 5); // HH:MM format
 }
+
+// Entry type display utilities
+export function getTypeColor(type: EntryType): string {
+	return type === 'activity' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white';
+}
+
+export function getTypeLabel(type: EntryType): string {
+	return type === 'activity' ? 'Activity' : 'Food';
+}
+
+export function getTypeIcon(type: EntryType): string {
+	return type === 'activity' ? '🏃' : '🍽️';
+}
+
+export function getTypeColorMuted(type: EntryType): string {
+	return type === 'activity' ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200';
+}
