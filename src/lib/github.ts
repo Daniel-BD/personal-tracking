@@ -7,24 +7,37 @@ const GITHUB_API_BASE = 'https://api.github.com';
 export interface GistConfig {
 	token: string;
 	gistId: string | null;
+	backupGistId: string | null;
 }
 
 export function getConfig(): GistConfig {
 	if (typeof localStorage === 'undefined') {
-		return { token: '', gistId: null };
+		return { token: '', gistId: null, backupGistId: null };
 	}
 	return {
 		token: localStorage.getItem('github_token') || '',
-		gistId: localStorage.getItem('gist_id') || null
+		gistId: localStorage.getItem('gist_id') || null,
+		backupGistId: localStorage.getItem('backup_gist_id') || null
 	};
 }
 
-export function saveConfig(config: GistConfig): void {
-	localStorage.setItem('github_token', config.token);
-	if (config.gistId) {
-		localStorage.setItem('gist_id', config.gistId);
-	} else {
-		localStorage.removeItem('gist_id');
+export function saveConfig(config: Partial<GistConfig>): void {
+	if (config.token !== undefined) {
+		localStorage.setItem('github_token', config.token);
+	}
+	if (config.gistId !== undefined) {
+		if (config.gistId) {
+			localStorage.setItem('gist_id', config.gistId);
+		} else {
+			localStorage.removeItem('gist_id');
+		}
+	}
+	if (config.backupGistId !== undefined) {
+		if (config.backupGistId) {
+			localStorage.setItem('backup_gist_id', config.backupGistId);
+		} else {
+			localStorage.removeItem('backup_gist_id');
+		}
 	}
 }
 

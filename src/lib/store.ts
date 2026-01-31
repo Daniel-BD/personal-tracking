@@ -11,6 +11,68 @@ import type {
 import { createEmptyData, generateId } from './types';
 import { getConfig, fetchGist, updateGist, isConfigured } from './github';
 
+/**
+ * Tracks IDs that have been deleted locally but not yet synced.
+ * This prevents deleted items from being restored during merge.
+ */
+interface PendingDeletions {
+	entries: Set<string>;
+	activityItems: Set<string>;
+	foodItems: Set<string>;
+	activityCategories: Set<string>;
+	foodCategories: Set<string>;
+}
+
+const pendingDeletions: PendingDeletions = {
+	entries: new Set(),
+	activityItems: new Set(),
+	foodItems: new Set(),
+	activityCategories: new Set(),
+	foodCategories: new Set()
+};
+
+function clearPendingDeletions(): void {
+	pendingDeletions.entries.clear();
+	pendingDeletions.activityItems.clear();
+	pendingDeletions.foodItems.clear();
+	pendingDeletions.activityCategories.clear();
+	pendingDeletions.foodCategories.clear();
+}
+
+/**
+ * Merges two TrackerData objects to prevent data loss from stale tabs.
+ * Strategy: Union of all items by ID, with local taking precedence for conflicts.
+ * Respects pending deletions - items deleted locally won't be restored from remote.
+ */
+function mergeTrackerData(local: TrackerData, remote: TrackerData): TrackerData {
+	return {
+		activityItems: mergeById(local.activityItems, remote.activityItems, pendingDeletions.activityItems),
+		foodItems: mergeById(local.foodItems, remote.foodItems, pendingDeletions.foodItems),
+		activityCategories: mergeById(local.activityCategories, remote.activityCategories, pendingDeletions.activityCategories),
+		foodCategories: mergeById(local.foodCategories, remote.foodCategories, pendingDeletions.foodCategories),
+		entries: mergeById(local.entries, remote.entries, pendingDeletions.entries)
+	};
+}
+
+/**
+ * Merges two arrays by ID, creating a union.
+ * Local items take precedence for items with the same ID.
+ * Items in excludeIds are filtered out from remote (they were deleted locally).
+ */
+function mergeById<T extends { id: string }>(local: T[], remote: T[], excludeIds: Set<string>): T[] {
+	const localMap = new Map(local.map((item) => [item.id, item]));
+	const merged = [...local];
+
+	for (const remoteItem of remote) {
+		// Skip if already in local, or if it was deleted locally
+		if (!localMap.has(remoteItem.id) && !excludeIds.has(remoteItem.id)) {
+			merged.push(remoteItem);
+		}
+	}
+
+	return merged;
+}
+
 const LOCAL_STORAGE_KEY = 'tracker_data';
 
 function loadFromLocalStorage(): TrackerData {
@@ -87,7 +149,23 @@ async function pushToGist(): Promise<void> {
 
 	syncStatus.set('syncing');
 	try {
-		await updateGist(config.gistId, config.token, get(trackerData));
+		// Fetch current remote data first to prevent overwriting data from other devices
+		const remoteData = await fetchGist(config.gistId, config.token);
+		const localData = get(trackerData);
+
+		// Merge local and remote data - ensures we don't lose entries added elsewhere
+		// Pending deletions are respected so deleted items don't come back
+		const mergedData = mergeTrackerData(localData, remoteData);
+
+		// Update local store with merged data (adds any entries from remote we didn't have)
+		trackerData.set(mergedData);
+
+		// Push merged data to Gist
+		await updateGist(config.gistId, config.token, mergedData);
+
+		// Clear pending deletions after successful sync
+		clearPendingDeletions();
+
 		syncStatus.set('idle');
 	} catch (error) {
 		console.error('Failed to sync to Gist:', error);
@@ -105,6 +183,8 @@ export async function loadFromGist(): Promise<void> {
 	try {
 		const data = await fetchGist(config.gistId, config.token);
 		trackerData.set(data);
+		// Clear pending deletions since we're accepting fresh remote data
+		clearPendingDeletions();
 		syncStatus.set('idle');
 	} catch (error) {
 		console.error('Failed to load from Gist:', error);
@@ -167,6 +247,13 @@ export function updateCategory(type: EntryType, id: string, name: string): void 
 }
 
 export function deleteCategory(type: EntryType, categoryId: string): void {
+	// Track deletion to prevent it from being restored during merge
+	if (type === 'activity') {
+		pendingDeletions.activityCategories.add(categoryId);
+	} else {
+		pendingDeletions.foodCategories.add(categoryId);
+	}
+
 	trackerData.update((data) => {
 		if (type === 'activity') {
 			return {
@@ -236,6 +323,15 @@ export function updateActivityItem(id: string, name: string, categoryIds: string
 }
 
 export function deleteActivityItem(id: string): void {
+	// Track deletion to prevent it from being restored during merge
+	pendingDeletions.activityItems.add(id);
+
+	// Also track deletion of related entries
+	const data = get(trackerData);
+	data.entries
+		.filter((e) => e.type === 'activity' && e.itemId === id)
+		.forEach((e) => pendingDeletions.entries.add(e.id));
+
 	trackerData.update((data) => ({
 		...data,
 		activityItems: data.activityItems.filter((item) => item.id !== id),
@@ -273,6 +369,15 @@ export function updateFoodItem(id: string, name: string, categoryIds: string[]):
 }
 
 export function deleteFoodItem(id: string): void {
+	// Track deletion to prevent it from being restored during merge
+	pendingDeletions.foodItems.add(id);
+
+	// Also track deletion of related entries
+	const data = get(trackerData);
+	data.entries
+		.filter((e) => e.type === 'food' && e.itemId === id)
+		.forEach((e) => pendingDeletions.entries.add(e.id));
+
 	trackerData.update((data) => ({
 		...data,
 		foodItems: data.foodItems.filter((item) => item.id !== id),
@@ -326,6 +431,9 @@ export function updateEntry(
 }
 
 export function deleteEntry(id: string): void {
+	// Track deletion to prevent it from being restored during merge
+	pendingDeletions.entries.add(id);
+
 	trackerData.update((data) => ({
 		...data,
 		entries: data.entries.filter((entry) => entry.id !== id)
@@ -346,4 +454,78 @@ export function initializeStore(): void {
 	if (isConfigured()) {
 		loadFromGist();
 	}
+}
+
+/**
+ * Export current data as a JSON file download.
+ */
+export function exportData(): void {
+	const data = get(trackerData);
+	const json = JSON.stringify(data, null, 2);
+	const blob = new Blob([json], { type: 'application/json' });
+	const url = URL.createObjectURL(blob);
+
+	const a = document.createElement('a');
+	a.href = url;
+	a.download = `tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+	document.body.appendChild(a);
+	a.click();
+	document.body.removeChild(a);
+	URL.revokeObjectURL(url);
+}
+
+/**
+ * Import data from a JSON file, replacing current data.
+ * Returns true if successful, false if the file is invalid.
+ */
+export function importData(jsonString: string): boolean {
+	try {
+		const data = JSON.parse(jsonString) as TrackerData;
+
+		// Basic validation - check required arrays exist
+		if (
+			!Array.isArray(data.entries) ||
+			!Array.isArray(data.activityItems) ||
+			!Array.isArray(data.foodItems) ||
+			!Array.isArray(data.activityCategories) ||
+			!Array.isArray(data.foodCategories)
+		) {
+			return false;
+		}
+
+		trackerData.set(data);
+		clearPendingDeletions();
+		pushToGist();
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Backup current data to a secondary Gist.
+ */
+export async function backupToGist(backupGistId: string): Promise<void> {
+	const config = getConfig();
+	if (!config.token || !backupGistId) {
+		throw new Error('Token and backup Gist ID are required');
+	}
+
+	await updateGist(backupGistId, config.token, get(trackerData));
+}
+
+/**
+ * Restore data from a backup Gist.
+ */
+export async function restoreFromBackupGist(backupGistId: string): Promise<void> {
+	const config = getConfig();
+	if (!config.token || !backupGistId) {
+		throw new Error('Token and backup Gist ID are required');
+	}
+
+	const data = await fetchGist(backupGistId, config.token);
+	trackerData.set(data);
+	clearPendingDeletions();
+	// Also sync to primary Gist
+	pushToGist();
 }

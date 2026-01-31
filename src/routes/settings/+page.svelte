@@ -1,13 +1,17 @@
 <script lang="ts">
 	import { getConfig, saveConfig, validateToken, createGist, listUserGists } from '$lib/github';
-	import { loadFromGist } from '$lib/store';
+	import { loadFromGist, exportData, importData, backupToGist, restoreFromBackupGist } from '$lib/store';
 
 	let token = $state(getConfig().token);
 	let gistId = $state(getConfig().gistId || '');
+	let backupGistId = $state(getConfig().backupGistId || '');
 	let status = $state<'idle' | 'validating' | 'valid' | 'invalid' | 'loading'>('idle');
 	let message = $state('');
 	let existingGists = $state<Array<{ id: string; description: string; files: string[] }>>([]);
 	let showGistList = $state(false);
+	let gistSelectMode = $state<'primary' | 'backup'>('primary');
+	let backupStatus = $state<'idle' | 'backing-up' | 'restoring' | 'success' | 'error'>('idle');
+	let backupMessage = $state('');
 
 	async function handleValidate() {
 		if (!token.trim()) {
@@ -36,6 +40,7 @@
 			return;
 		}
 
+		gistSelectMode = 'primary';
 		status = 'loading';
 		try {
 			existingGists = await listUserGists(token.trim());
@@ -48,11 +53,127 @@
 	}
 
 	function selectGist(id: string) {
-		gistId = id;
+		if (gistSelectMode === 'primary') {
+			gistId = id;
+			saveConfig({ gistId });
+			message = 'Gist selected! Loading data...';
+			loadFromGist();
+		} else {
+			backupGistId = id;
+			saveConfig({ backupGistId });
+			backupMessage = 'Backup Gist selected!';
+			backupStatus = 'success';
+		}
 		showGistList = false;
-		saveConfig({ token: token.trim(), gistId });
-		message = 'Gist selected! Loading data...';
-		loadFromGist();
+	}
+
+	function handleBrowseGistsForBackup() {
+		gistSelectMode = 'backup';
+		handleLoadGists();
+	}
+
+	async function handleBackupNow() {
+		if (!backupGistId.trim()) {
+			backupMessage = 'Please set a backup Gist ID first';
+			backupStatus = 'error';
+			return;
+		}
+
+		backupStatus = 'backing-up';
+		backupMessage = '';
+		try {
+			await backupToGist(backupGistId.trim());
+			backupMessage = 'Backup complete!';
+			backupStatus = 'success';
+		} catch {
+			backupMessage = 'Backup failed';
+			backupStatus = 'error';
+		}
+	}
+
+	async function handleRestoreFromBackup() {
+		if (!backupGistId.trim()) {
+			backupMessage = 'Please set a backup Gist ID first';
+			backupStatus = 'error';
+			return;
+		}
+
+		if (!confirm('This will replace all current data with the backup. Are you sure?')) {
+			return;
+		}
+
+		backupStatus = 'restoring';
+		backupMessage = '';
+		try {
+			await restoreFromBackupGist(backupGistId.trim());
+			backupMessage = 'Restore complete!';
+			backupStatus = 'success';
+		} catch {
+			backupMessage = 'Restore failed';
+			backupStatus = 'error';
+		}
+	}
+
+	function handleExport() {
+		exportData();
+	}
+
+	let fileInput: HTMLInputElement;
+
+	function handleImportClick() {
+		fileInput?.click();
+	}
+
+	function handleFileSelect(event: Event) {
+		const input = event.target as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+
+		if (!confirm('This will replace all current data. Are you sure?')) {
+			input.value = '';
+			return;
+		}
+
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			const content = e.target?.result as string;
+			const success = importData(content);
+			if (success) {
+				message = 'Import successful!';
+				status = 'valid';
+			} else {
+				message = 'Import failed: Invalid file format';
+				status = 'invalid';
+			}
+			input.value = '';
+		};
+		reader.readAsText(file);
+	}
+
+	async function handleCreateBackupGist() {
+		if (!token.trim()) {
+			backupMessage = 'Please enter and validate a token first';
+			backupStatus = 'error';
+			return;
+		}
+
+		backupStatus = 'backing-up';
+		try {
+			const newGistId = await createGist(token.trim());
+			backupGistId = newGistId;
+			saveConfig({ backupGistId: newGistId });
+			backupMessage = 'Backup gist created!';
+			backupStatus = 'success';
+		} catch {
+			backupMessage = 'Failed to create backup gist';
+			backupStatus = 'error';
+		}
+	}
+
+	function handleSaveBackupGistId() {
+		saveConfig({ backupGistId: backupGistId.trim() || null });
+		backupMessage = 'Backup Gist ID saved!';
+		backupStatus = 'success';
 	}
 
 	async function handleCreateGist() {
@@ -153,7 +274,9 @@
 
 		{#if showGistList && existingGists.length > 0}
 			<div class="border-t pt-4">
-				<h4 class="text-sm font-medium text-gray-700 mb-2">Your Gists</h4>
+				<h4 class="text-sm font-medium text-gray-700 mb-2">
+					{gistSelectMode === 'primary' ? 'Your Gists' : 'Select Backup Gist'}
+				</h4>
 				<div class="max-h-60 overflow-y-auto space-y-2">
 					{#each existingGists as gist}
 						<button
@@ -187,6 +310,107 @@
 			</p>
 		{/if}
 	</div>
+
+	<!-- Export/Import Section -->
+	<div class="bg-white rounded-lg shadow p-6 space-y-4">
+		<h3 class="text-lg font-semibold text-gray-800">Export & Import</h3>
+		<p class="text-sm text-gray-600">
+			Download your data as a JSON file for safekeeping, or restore from a previous backup.
+		</p>
+		<div class="flex gap-2">
+			<button
+				onclick={handleExport}
+				class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+			>
+				Export JSON
+			</button>
+			<button
+				onclick={handleImportClick}
+				class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700"
+			>
+				Import JSON
+			</button>
+		</div>
+		<input
+			type="file"
+			accept=".json,application/json"
+			class="hidden"
+			bind:this={fileInput}
+			onchange={handleFileSelect}
+		/>
+	</div>
+
+	<!-- Backup Gist Section -->
+	{#if token}
+		<div class="bg-white rounded-lg shadow p-6 space-y-4">
+			<h3 class="text-lg font-semibold text-gray-800">Backup Gist</h3>
+			<p class="text-sm text-gray-600">
+				Configure a secondary Gist for manual backups. Use this before making major changes.
+			</p>
+
+			<div class="space-y-2">
+				<label for="backupGistId" class="block text-sm font-medium text-gray-700">
+					Backup Gist ID
+				</label>
+				<input
+					id="backupGistId"
+					type="text"
+					bind:value={backupGistId}
+					placeholder="Enter backup Gist ID"
+					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				/>
+				<div class="flex gap-2">
+					<button
+						onclick={handleSaveBackupGistId}
+						class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700"
+					>
+						Save
+					</button>
+					<button
+						onclick={handleBrowseGistsForBackup}
+						class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700"
+					>
+						Browse
+					</button>
+					<button
+						onclick={handleCreateBackupGist}
+						class="flex-1 bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700"
+					>
+						Create New
+					</button>
+				</div>
+			</div>
+
+			{#if backupGistId}
+				<div class="border-t pt-4 space-y-2">
+					<div class="flex gap-2">
+						<button
+							onclick={handleBackupNow}
+							disabled={backupStatus === 'backing-up' || backupStatus === 'restoring'}
+							class="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 disabled:opacity-50"
+						>
+							{backupStatus === 'backing-up' ? 'Backing up...' : 'Backup Now'}
+						</button>
+						<button
+							onclick={handleRestoreFromBackup}
+							disabled={backupStatus === 'backing-up' || backupStatus === 'restoring'}
+							class="flex-1 bg-orange-600 text-white py-2 px-4 rounded-md hover:bg-orange-700 disabled:opacity-50"
+						>
+							{backupStatus === 'restoring' ? 'Restoring...' : 'Restore from Backup'}
+						</button>
+					</div>
+				</div>
+			{/if}
+
+			{#if backupMessage}
+				<p
+					class="text-sm {backupStatus === 'error' ? 'text-red-600' : 'text-green-600'}"
+				>
+					{backupMessage}
+				</p>
+			{/if}
+		</div>
+	{/if}
 
 	<div class="bg-white rounded-lg shadow p-6">
 		<h3 class="text-lg font-semibold text-gray-800 mb-4">How to get a GitHub Token</h3>
