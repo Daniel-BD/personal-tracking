@@ -228,31 +228,29 @@
 	</div>
 
 	<!-- Entries List -->
-	<div class="bg-white rounded-lg shadow p-4">
-		{#if !hasItems}
-			<div class="text-center py-8">
-				<p class="text-gray-500 mb-4">No items yet</p>
-				<a href="{base}/library" class="text-blue-600 hover:underline">
-					Add some in the Library
-				</a>
-			</div>
-		{:else if filteredEntries().length === 0}
-			<div class="text-center py-8">
-				<p class="text-gray-500 mb-2">No entries match your filters</p>
-				{#if activeFilterCount > 0}
-					<button
-						type="button"
-						onclick={clearAllFilters}
-						class="text-blue-600 hover:underline"
-					>
-						Clear all filters
-					</button>
-				{:else}
-					<p class="text-gray-400 text-sm">Log entries from the Home page</p>
-				{/if}
-			</div>
-		{:else}
-			<EntryList entries={filteredEntries()} showType={typeFilter === 'all'} />
-		{/if}
-	</div>
+	{#if !hasItems}
+		<div class="text-center py-8">
+			<p class="text-gray-500 mb-4">No items yet</p>
+			<a href="{base}/library" class="text-blue-600 hover:underline">
+				Add some in the Library
+			</a>
+		</div>
+	{:else if filteredEntries().length === 0}
+		<div class="text-center py-8">
+			<p class="text-gray-500 mb-2">No entries match your filters</p>
+			{#if activeFilterCount > 0}
+				<button
+					type="button"
+					onclick={clearAllFilters}
+					class="text-blue-600 hover:underline"
+				>
+					Clear all filters
+				</button>
+			{:else}
+				<p class="text-gray-400 text-sm">Log entries from the Home page</p>
+			{/if}
+		</div>
+	{:else}
+		<EntryList entries={filteredEntries()} showType={typeFilter === 'all'} />
+	{/if}
 </div>
