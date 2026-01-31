@@ -101,6 +101,11 @@ export function filterEntriesByItem(entries: Entry[], itemId: string): Entry[] {
 	return entries.filter((entry) => entry.itemId === itemId);
 }
 
+export function filterEntriesByItems(entries: Entry[], itemIds: string[]): Entry[] {
+	if (itemIds.length === 0) return entries;
+	return entries.filter((entry) => itemIds.includes(entry.itemId));
+}
+
 export function filterEntriesByCategory(
 	entries: Entry[],
 	categoryId: string,
@@ -114,6 +119,25 @@ export function filterEntriesByCategory(
 		const items = entry.type === 'activity' ? data.activityItems : data.foodItems;
 		const item = items.find((i) => i.id === entry.itemId);
 		return item?.categories.includes(categoryId) ?? false;
+	});
+}
+
+export function filterEntriesByCategories(
+	entries: Entry[],
+	categoryIds: string[],
+	data: TrackerData
+): Entry[] {
+	if (categoryIds.length === 0) return entries;
+	return entries.filter((entry) => {
+		const entryCategoryIds = entry.categoryOverrides
+			? entry.categoryOverrides
+			: (() => {
+					const items = entry.type === 'activity' ? data.activityItems : data.foodItems;
+					const item = items.find((i) => i.id === entry.itemId);
+					return item?.categories ?? [];
+				})();
+
+		return categoryIds.some((catId) => entryCategoryIds.includes(catId));
 	});
 }
 
