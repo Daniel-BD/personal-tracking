@@ -21,6 +21,7 @@
 
 	let activeTab = $state<'activity' | 'food'>('activity');
 	let activeSubTab = $state<'items' | 'categories'>('items');
+	let searchQuery = $state('');
 	let editingItem = $state<(ActivityItem | FoodItem) | null>(null);
 	let showAddForm = $state(false);
 	let newItemName = $state('');
@@ -127,22 +128,38 @@
 	}
 
 	function getItemCountForCategory(categoryId: string): number {
-		return currentItems.filter((item) => item.categories.includes(categoryId)).length;
+		return allItems.filter((item) => item.categories.includes(categoryId)).length;
 	}
 
 	function getCategoryNamesForItem(item: ActivityItem | FoodItem): string[] {
 		return getCategoryNames(activeTab, item.categories);
 	}
 
-	const currentItems = $derived(
+	const allItems = $derived(
 		(activeTab === 'activity' ? $activityItems : $foodItems)
 			.slice()
 			.sort((a, b) => a.name.localeCompare(b.name))
 	);
-	const currentCategories = $derived(
+	const allCategories = $derived(
 		(activeTab === 'activity' ? $activityCategories : $foodCategories)
 			.slice()
 			.sort((a, b) => a.name.localeCompare(b.name))
+	);
+
+	// Filter by search query
+	const currentItems = $derived(
+		searchQuery.trim()
+			? allItems.filter((item) =>
+					item.name.toLowerCase().includes(searchQuery.toLowerCase())
+				)
+			: allItems
+	);
+	const currentCategories = $derived(
+		searchQuery.trim()
+			? allCategories.filter((cat) =>
+					cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+				)
+			: allCategories
 	);
 </script>
 
@@ -162,13 +179,38 @@
 	<!-- Secondary tabs: Items / Categories -->
 	<SegmentedControl
 		options={[
-			{ value: 'items', label: `Items (${currentItems.length})` },
-			{ value: 'categories', label: `Categories (${currentCategories.length})` }
+			{ value: 'items', label: `Items (${allItems.length})` },
+			{ value: 'categories', label: `Categories (${allCategories.length})` }
 		]}
 		value={activeSubTab}
 		onchange={(v) => (activeSubTab = v)}
 		size="sm"
 	/>
+
+	<!-- Search -->
+	<div class="relative">
+		<svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+		</svg>
+		<input
+			type="text"
+			bind:value={searchQuery}
+			placeholder="Search {activeSubTab}..."
+			class="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+		/>
+		{#if searchQuery}
+			<button
+				type="button"
+				onclick={() => (searchQuery = '')}
+				class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+				aria-label="Clear search"
+			>
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+				</svg>
+			</button>
+		{/if}
+	</div>
 
 	{#if activeSubTab === 'items'}
 		<!-- Items view -->
@@ -290,7 +332,11 @@
 				{/if}
 			{:else}
 				<p class="text-center text-gray-500 py-8">
-					No {activeTab === 'activity' ? 'activities' : 'food items'} yet. Add one above!
+					{#if searchQuery.trim()}
+						No {activeTab === 'activity' ? 'activities' : 'food items'} match "{searchQuery}"
+					{:else}
+						No {activeTab === 'activity' ? 'activities' : 'food items'} yet. Add one above!
+					{/if}
 				</p>
 			{/each}
 		</div>
@@ -391,7 +437,11 @@
 				{/if}
 			{:else}
 				<p class="text-center text-gray-500 py-8">
-					No categories for {activeTab === 'activity' ? 'activities' : 'food'} yet. Add one above!
+					{#if searchQuery.trim()}
+						No categories match "{searchQuery}"
+					{:else}
+						No categories for {activeTab === 'activity' ? 'activities' : 'food'} yet. Add one above!
+					{/if}
 				</p>
 			{/each}
 		</div>
