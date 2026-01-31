@@ -5,13 +5,10 @@
 	import EntryForm from '../../components/EntryForm.svelte';
 	import EntryList from '../../components/EntryList.svelte';
 
-	const PAGE_SIZE = 50;
-
 	let activeTab = $state<'all' | 'activity' | 'food'>('all');
 	let showForm = $state(false);
 	let formType = $state<'activity' | 'food'>('activity');
 	let showSuccess = $state(false);
-	let displayCount = $state(PAGE_SIZE);
 
 	function handleSave() {
 		showSuccess = true;
@@ -28,22 +25,9 @@
 		showForm = false;
 	}
 
-	function showMore() {
-		displayCount += PAGE_SIZE;
-	}
-
-	// Reset display count when tab changes
-	$effect(() => {
-		activeTab;
-		displayCount = PAGE_SIZE;
-	});
-
 	const filteredEntries = $derived(
 		activeTab === 'all' ? $entries : filterEntriesByType($entries, activeTab)
 	);
-	const displayedEntries = $derived(filteredEntries.slice(0, displayCount));
-	const hasMoreEntries = $derived(filteredEntries.length > displayCount);
-	const remainingCount = $derived(filteredEntries.length - displayCount);
 
 	const hasItems = $derived($activityItems.length > 0 || $foodItems.length > 0);
 	const hasActivityItems = $derived($activityItems.length > 0);
@@ -167,18 +151,7 @@
 				</a>
 			</div>
 		{:else}
-			<EntryList entries={displayedEntries} />
-
-			{#if hasMoreEntries}
-				<div class="mt-4 text-center">
-					<button
-						onclick={showMore}
-						class="text-blue-600 hover:text-blue-800 font-medium"
-					>
-						Show more ({remainingCount} remaining)
-					</button>
-				</div>
-			{/if}
+			<EntryList entries={filteredEntries} />
 		{/if}
 	</div>
 </div>
