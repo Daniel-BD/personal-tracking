@@ -9,6 +9,7 @@
 		getEntityListWithComparison
 	} from '$lib/analysis';
 	import TimeRangeSelector from '../../components/TimeRangeSelector.svelte';
+	import SegmentedControl from '../../components/SegmentedControl.svelte';
 
 	// Page state
 	let timeRange = $state<TimeRange>({ type: '30d' });
@@ -65,52 +66,28 @@
 	<TimeRangeSelector value={timeRange} onchange={handleTimeRangeChange} />
 
 	<!-- Type Switcher (Activity / Food) -->
-	<div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-		<button
-			type="button"
-			onclick={() => (selectedType = 'activity')}
-			class="flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors {selectedType ===
-			'activity'
-				? 'bg-white text-gray-900 shadow-sm'
-				: 'text-gray-600 hover:text-gray-900'}"
-		>
-			Activity
-		</button>
-		<button
-			type="button"
-			onclick={() => (selectedType = 'food')}
-			class="flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors {selectedType ===
-			'food'
-				? 'bg-white text-gray-900 shadow-sm'
-				: 'text-gray-600 hover:text-gray-900'}"
-		>
-			Food
-		</button>
-	</div>
+	<SegmentedControl
+		options={[
+			{ value: 'activity', label: 'Activity' },
+			{ value: 'food', label: 'Food' }
+		]}
+		value={selectedType}
+		onchange={(v) => (selectedType = v)}
+		variant="segment"
+		size="sm"
+	/>
 
 	<!-- Entity Type Switcher (Items / Categories) -->
-	<div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-		<button
-			type="button"
-			onclick={() => (selectedEntityType = 'item')}
-			class="flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors {selectedEntityType ===
-			'item'
-				? 'bg-white text-gray-900 shadow-sm'
-				: 'text-gray-600 hover:text-gray-900'}"
-		>
-			Items
-		</button>
-		<button
-			type="button"
-			onclick={() => (selectedEntityType = 'category')}
-			class="flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors {selectedEntityType ===
-			'category'
-				? 'bg-white text-gray-900 shadow-sm'
-				: 'text-gray-600 hover:text-gray-900'}"
-		>
-			Categories
-		</button>
-	</div>
+	<SegmentedControl
+		options={[
+			{ value: 'item', label: 'Items' },
+			{ value: 'category', label: 'Categories' }
+		]}
+		value={selectedEntityType}
+		onchange={(v) => (selectedEntityType = v)}
+		variant="segment"
+		size="sm"
+	/>
 
 	<!-- Sort Options -->
 	<div class="flex items-center gap-2">

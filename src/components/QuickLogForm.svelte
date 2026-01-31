@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ActivityItem, FoodItem, EntryType } from '$lib/types';
-	import { getTodayDate, getCurrentTime } from '$lib/types';
+	import { getTodayDate, getCurrentTime, getTypeColor, getTypeLabel } from '$lib/types';
 	import {
 		activityItems,
 		foodItems,
@@ -122,14 +122,6 @@
 
 	function handleNewItemCategoryChange(categoryIds: string[]) {
 		newItemCategories = categoryIds;
-	}
-
-	function getTypeColor(type: EntryType): string {
-		return type === 'activity' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white';
-	}
-
-	function getTypeLabel(type: EntryType): string {
-		return type === 'activity' ? 'Activity' : 'Food';
 	}
 </script>
 

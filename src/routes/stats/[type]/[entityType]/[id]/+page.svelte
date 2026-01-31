@@ -20,6 +20,7 @@
 	import Chart from '../../../../../components/Chart.svelte';
 	import StatsRow from '../../../../../components/StatsRow.svelte';
 	import ComparisonSelector from '../../../../../components/ComparisonSelector.svelte';
+	import SegmentedControl from '../../../../../components/SegmentedControl.svelte';
 
 	// Extract route params
 	const entityType = $derived(($page.params.type ?? 'activity') as 'activity' | 'food');
@@ -154,45 +155,33 @@
 			<!-- Grouping selector -->
 			<div class="flex items-center gap-2">
 				<span class="text-sm text-gray-500">Group by:</span>
-				<div class="flex gap-1 bg-gray-100 rounded-lg p-1">
-					{#each ['daily', 'weekly', 'monthly'] as option}
-						<button
-							type="button"
-							onclick={() => (grouping = option as Grouping)}
-							class="px-2 py-1 text-xs font-medium rounded transition-colors {grouping === option
-								? 'bg-white text-gray-900 shadow-sm'
-								: 'text-gray-600 hover:text-gray-900'}"
-						>
-							{option.charAt(0).toUpperCase() + option.slice(1)}
-						</button>
-					{/each}
-				</div>
+				<SegmentedControl
+					options={[
+						{ value: 'daily', label: 'Daily' },
+						{ value: 'weekly', label: 'Weekly' },
+						{ value: 'monthly', label: 'Monthly' }
+					]}
+					value={grouping}
+					onchange={(v) => (grouping = v)}
+					variant="segment"
+					size="xs"
+				/>
 			</div>
 
 			<!-- Chart type toggle (only when not cumulative) -->
 			{#if !isCumulative}
 				<div class="flex items-center gap-2">
 					<span class="text-sm text-gray-500">Chart:</span>
-					<div class="flex gap-1 bg-gray-100 rounded-lg p-1">
-						<button
-							type="button"
-							onclick={() => (chartType = 'bar')}
-							class="px-2 py-1 text-xs font-medium rounded transition-colors {chartType === 'bar'
-								? 'bg-white text-gray-900 shadow-sm'
-								: 'text-gray-600 hover:text-gray-900'}"
-						>
-							Bar
-						</button>
-						<button
-							type="button"
-							onclick={() => (chartType = 'line')}
-							class="px-2 py-1 text-xs font-medium rounded transition-colors {chartType === 'line'
-								? 'bg-white text-gray-900 shadow-sm'
-								: 'text-gray-600 hover:text-gray-900'}"
-						>
-							Line
-						</button>
-					</div>
+					<SegmentedControl
+						options={[
+							{ value: 'bar', label: 'Bar' },
+							{ value: 'line', label: 'Line' }
+						]}
+						value={chartType}
+						onchange={(v) => (chartType = v)}
+						variant="segment"
+						size="xs"
+					/>
 				</div>
 			{/if}
 		</div>
