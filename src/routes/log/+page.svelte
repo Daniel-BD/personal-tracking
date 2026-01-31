@@ -1,14 +1,17 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { entries, activityItems, foodItems } from '$lib/store';
-	import { filterEntriesByType, getMonthRange, filterEntriesByDateRange } from '$lib/analysis';
+	import { filterEntriesByType } from '$lib/analysis';
 	import EntryForm from '../../components/EntryForm.svelte';
 	import EntryList from '../../components/EntryList.svelte';
+
+	const PAGE_SIZE = 50;
 
 	let activeTab = $state<'all' | 'activity' | 'food'>('all');
 	let showForm = $state(false);
 	let formType = $state<'activity' | 'food'>('activity');
 	let showSuccess = $state(false);
+	let displayCount = $state(PAGE_SIZE);
 
 	function handleSave() {
 		showSuccess = true;
@@ -25,16 +28,22 @@
 		showForm = false;
 	}
 
+	function showMore() {
+		displayCount += PAGE_SIZE;
+	}
+
+	// Reset display count when tab changes
+	$effect(() => {
+		activeTab;
+		displayCount = PAGE_SIZE;
+	});
+
 	const filteredEntries = $derived(
 		activeTab === 'all' ? $entries : filterEntriesByType($entries, activeTab)
 	);
-	const thisMonthRange = $derived(getMonthRange());
-	const thisMonthEntries = $derived(filterEntriesByDateRange(filteredEntries, thisMonthRange));
-	const olderEntries = $derived(
-		filteredEntries.filter(
-			(e) => e.date < thisMonthRange.start || e.date > thisMonthRange.end
-		)
-	);
+	const displayedEntries = $derived(filteredEntries.slice(0, displayCount));
+	const hasMoreEntries = $derived(filteredEntries.length > displayCount);
+	const remainingCount = $derived(filteredEntries.length - displayCount);
 
 	const hasItems = $derived($activityItems.length > 0 || $foodItems.length > 0);
 	const hasActivityItems = $derived($activityItems.length > 0);
@@ -132,8 +141,8 @@
 
 	<div class="bg-white rounded-lg shadow p-4">
 		<div class="flex justify-between items-center mb-4">
-			<h3 class="font-semibold text-gray-800">This Month</h3>
-			<span class="text-sm text-gray-500">{thisMonthEntries.length} {entryLabel}</span>
+			<h3 class="font-semibold text-gray-800">Recent Entries</h3>
+			<span class="text-sm text-gray-500">{filteredEntries.length} {entryLabel}</span>
 		</div>
 
 		{#if !hasItems}
@@ -158,18 +167,18 @@
 				</a>
 			</div>
 		{:else}
-			<EntryList entries={thisMonthEntries} />
+			<EntryList entries={displayedEntries} />
+
+			{#if hasMoreEntries}
+				<div class="mt-4 text-center">
+					<button
+						onclick={showMore}
+						class="text-blue-600 hover:text-blue-800 font-medium"
+					>
+						Show more ({remainingCount} remaining)
+					</button>
+				</div>
+			{/if}
 		{/if}
 	</div>
-
-	{#if olderEntries.length > 0}
-		<details class="bg-white rounded-lg shadow">
-			<summary class="p-4 cursor-pointer font-semibold text-gray-800">
-				Older entries ({olderEntries.length})
-			</summary>
-			<div class="px-4 pb-4">
-				<EntryList entries={olderEntries} />
-			</div>
-		</details>
-	{/if}
 </div>

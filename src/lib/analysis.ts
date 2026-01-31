@@ -5,6 +5,16 @@ export interface DateRange {
 	end: string;
 }
 
+/**
+ * Format a Date object to YYYY-MM-DD string in local timezone (not UTC)
+ */
+function formatDateLocal(date: Date): string {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, '0');
+	const day = String(date.getDate()).padStart(2, '0');
+	return `${year}-${month}-${day}`;
+}
+
 // Time range types for analytics
 export type TimeRangeType = '7d' | '30d' | '90d' | 'all' | 'custom';
 
@@ -48,8 +58,8 @@ export function getMonthRange(date: Date = new Date()): DateRange {
 	const end = new Date(year, month + 1, 0);
 
 	return {
-		start: start.toISOString().split('T')[0],
-		end: end.toISOString().split('T')[0]
+		start: formatDateLocal(start),
+		end: formatDateLocal(end)
 	};
 }
 
@@ -60,8 +70,8 @@ export function getPreviousMonthRange(date: Date = new Date()): DateRange {
 	const end = new Date(year, month + 1, 0);
 
 	return {
-		start: start.toISOString().split('T')[0],
-		end: end.toISOString().split('T')[0]
+		start: formatDateLocal(start),
+		end: formatDateLocal(end)
 	};
 }
 
@@ -74,8 +84,8 @@ export function getWeekRange(date: Date = new Date()): DateRange {
 	end.setDate(start.getDate() + 6);
 
 	return {
-		start: start.toISOString().split('T')[0],
-		end: end.toISOString().split('T')[0]
+		start: formatDateLocal(start),
+		end: formatDateLocal(end)
 	};
 }
 
@@ -262,14 +272,14 @@ export function formatMonthYear(date: Date = new Date()): string {
  */
 export function getDateRangeFromTimeRange(timeRange: TimeRange): DateRange | null {
 	const today = new Date();
-	const todayStr = today.toISOString().split('T')[0];
+	const todayStr = formatDateLocal(today);
 
 	switch (timeRange.type) {
 		case '7d': {
 			const start = new Date(today);
 			start.setDate(start.getDate() - 6);
 			return {
-				start: start.toISOString().split('T')[0],
+				start: formatDateLocal(start),
 				end: todayStr
 			};
 		}
@@ -277,7 +287,7 @@ export function getDateRangeFromTimeRange(timeRange: TimeRange): DateRange | nul
 			const start = new Date(today);
 			start.setDate(start.getDate() - 29);
 			return {
-				start: start.toISOString().split('T')[0],
+				start: formatDateLocal(start),
 				end: todayStr
 			};
 		}
@@ -285,7 +295,7 @@ export function getDateRangeFromTimeRange(timeRange: TimeRange): DateRange | nul
 			const start = new Date(today);
 			start.setDate(start.getDate() - 89);
 			return {
-				start: start.toISOString().split('T')[0],
+				start: formatDateLocal(start),
 				end: todayStr
 			};
 		}
@@ -321,8 +331,8 @@ export function getPreviousPeriodRange(timeRange: TimeRange): DateRange | null {
 	prevStart.setDate(prevStart.getDate() - daysDiff + 1);
 
 	return {
-		start: prevStart.toISOString().split('T')[0],
-		end: prevEnd.toISOString().split('T')[0]
+		start: formatDateLocal(prevStart),
+		end: formatDateLocal(prevEnd)
 	};
 }
 
@@ -334,7 +344,7 @@ function getWeekStart(date: Date): string {
 	const day = d.getDay();
 	const diff = d.getDate() - day + (day === 0 ? -6 : 1);
 	d.setDate(diff);
-	return d.toISOString().split('T')[0];
+	return formatDateLocal(d);
 }
 
 /**
@@ -669,7 +679,7 @@ export function groupEntriesByDay(entries: Entry[], range: DateRange | null): Ch
 		const current = new Date(start);
 
 		while (current <= end) {
-			const dayStr = current.toISOString().split('T')[0];
+			const dayStr = formatDateLocal(current);
 			dayCounts.set(dayStr, 0);
 			current.setDate(current.getDate() + 1);
 		}
