@@ -487,5 +487,5 @@ Individual item/category stats use dynamic routes:
   - Explicit CSS rules for `input[type='date']`, `input[type='time']`, `input[type='datetime-local']` that reset `min-width: 0` and `max-width: 100%`
 - **GitHub Gist sync** is fire-and-forget (no conflict resolution)
 - **LocalStorage** is the source of truth; Gist is backup only
-- **Entry grouping** shows most recently logged entries first within each day (reverse insertion order)
+- **Entry grouping** shows entries sorted by time within each day (latest time first), entries without time come after entries with time
 - **ID generation** uses timestamp + random string (`generateId()` in types.ts)
