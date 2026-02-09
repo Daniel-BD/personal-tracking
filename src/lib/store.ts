@@ -1,14 +1,13 @@
 import { writable, derived, get } from 'svelte/store';
 import type {
 	TrackerData,
-	ActivityItem,
-	FoodItem,
+	Item,
 	Entry,
 	SyncStatus,
 	EntryType,
 	Category
 } from './types';
-import { createEmptyData, generateId } from './types';
+import { createEmptyData, generateId, getItems, getCategories, getItemsKey, getCategoriesKey } from './types';
 import { getConfig, fetchGist, updateGist, isConfigured } from './github';
 
 /**
@@ -123,8 +122,7 @@ export function getCategoryById(
 	categoryId: string
 ): Category | undefined {
 	const data = get(trackerData);
-	const categories = type === 'activity' ? data.activityCategories : data.foodCategories;
-	return categories.find((c) => c.id === categoryId);
+	return getCategories(data, type).find((c) => c.id === categoryId);
 }
 
 // Helper to get category name by ID
@@ -136,8 +134,7 @@ export function getCategoryName(type: EntryType, categoryId: string): string {
 // Helper to get multiple category names by IDs
 export function getCategoryNames(type: EntryType, categoryIds: string[]): string[] {
 	const data = get(trackerData);
-	const categories = type === 'activity' ? data.activityCategories : data.foodCategories;
-	const categoryMap = new Map(categories.map((c) => [c.id, c.name]));
+	const categoryMap = new Map(getCategories(data, type).map((c) => [c.id, c.name]));
 	return categoryIds.map((id) => categoryMap.get(id) ?? '').filter(Boolean);
 }
 
@@ -204,19 +201,11 @@ export function addCategory(type: EntryType, name: string): Category {
 		name: name.trim()
 	};
 
-	trackerData.update((data) => {
-		if (type === 'activity') {
-			return {
-				...data,
-				activityCategories: [...data.activityCategories, category]
-			};
-		} else {
-			return {
-				...data,
-				foodCategories: [...data.foodCategories, category]
-			};
-		}
-	});
+	const key = getCategoriesKey(type);
+	trackerData.update((data) => ({
+		...data,
+		[key]: [...data[key], category]
+	}));
 
 	pushToGist();
 	return category;
@@ -225,96 +214,64 @@ export function addCategory(type: EntryType, name: string): Category {
 export function updateCategory(type: EntryType, id: string, name: string): void {
 	if (!name.trim()) return;
 
-	trackerData.update((data) => {
-		if (type === 'activity') {
-			return {
-				...data,
-				activityCategories: data.activityCategories.map((c) =>
-					c.id === id ? { ...c, name: name.trim() } : c
-				)
-			};
-		} else {
-			return {
-				...data,
-				foodCategories: data.foodCategories.map((c) =>
-					c.id === id ? { ...c, name: name.trim() } : c
-				)
-			};
-		}
-	});
+	const key = getCategoriesKey(type);
+	trackerData.update((data) => ({
+		...data,
+		[key]: data[key].map((c) => (c.id === id ? { ...c, name: name.trim() } : c))
+	}));
 
 	pushToGist();
 }
 
 export function deleteCategory(type: EntryType, categoryId: string): void {
 	// Track deletion to prevent it from being restored during merge
-	if (type === 'activity') {
-		pendingDeletions.activityCategories.add(categoryId);
-	} else {
-		pendingDeletions.foodCategories.add(categoryId);
-	}
+	pendingDeletions[getCategoriesKey(type)].add(categoryId);
 
-	trackerData.update((data) => {
-		if (type === 'activity') {
+	const catKey = getCategoriesKey(type);
+	const itemsKey = getItemsKey(type);
+	trackerData.update((data) => ({
+		...data,
+		[catKey]: data[catKey].filter((c) => c.id !== categoryId),
+		[itemsKey]: data[itemsKey].map((item) => ({
+			...item,
+			categories: item.categories.filter((id) => id !== categoryId)
+		})),
+		entries: data.entries.map((entry) => {
+			if (entry.type !== type || !entry.categoryOverrides) return entry;
 			return {
-				...data,
-				activityCategories: data.activityCategories.filter((c) => c.id !== categoryId),
-				activityItems: data.activityItems.map((item) => ({
-					...item,
-					categories: item.categories.filter((id) => id !== categoryId)
-				})),
-				entries: data.entries.map((entry) => {
-					if (entry.type !== 'activity' || !entry.categoryOverrides) return entry;
-					return {
-						...entry,
-						categoryOverrides: entry.categoryOverrides.filter((id) => id !== categoryId)
-					};
-				})
+				...entry,
+				categoryOverrides: entry.categoryOverrides.filter((id) => id !== categoryId)
 			};
-		} else {
-			return {
-				...data,
-				foodCategories: data.foodCategories.filter((c) => c.id !== categoryId),
-				foodItems: data.foodItems.map((item) => ({
-					...item,
-					categories: item.categories.filter((id) => id !== categoryId)
-				})),
-				entries: data.entries.map((entry) => {
-					if (entry.type !== 'food' || !entry.categoryOverrides) return entry;
-					return {
-						...entry,
-						categoryOverrides: entry.categoryOverrides.filter((id) => id !== categoryId)
-					};
-				})
-			};
-		}
-	});
+		})
+	}));
 
 	pushToGist();
 }
 
 // Item CRUD operations (categories param is now array of category IDs)
 
-export function addActivityItem(name: string, categoryIds: string[]): ActivityItem {
-	const item: ActivityItem = {
+export function addItem(type: EntryType, name: string, categoryIds: string[]): Item {
+	const item: Item = {
 		id: generateId(),
 		name,
 		categories: categoryIds
 	};
 
+	const key = getItemsKey(type);
 	trackerData.update((data) => ({
 		...data,
-		activityItems: [...data.activityItems, item]
+		[key]: [...data[key], item]
 	}));
 
 	pushToGist();
 	return item;
 }
 
-export function updateActivityItem(id: string, name: string, categoryIds: string[]): void {
+export function updateItem(type: EntryType, id: string, name: string, categoryIds: string[]): void {
+	const key = getItemsKey(type);
 	trackerData.update((data) => ({
 		...data,
-		activityItems: data.activityItems.map((item) =>
+		[key]: data[key].map((item) =>
 			item.id === id ? { ...item, name, categories: categoryIds } : item
 		)
 	}));
@@ -322,66 +279,21 @@ export function updateActivityItem(id: string, name: string, categoryIds: string
 	pushToGist();
 }
 
-export function deleteActivityItem(id: string): void {
+export function deleteItem(type: EntryType, id: string): void {
 	// Track deletion to prevent it from being restored during merge
-	pendingDeletions.activityItems.add(id);
+	pendingDeletions[getItemsKey(type)].add(id);
 
 	// Also track deletion of related entries
 	const data = get(trackerData);
 	data.entries
-		.filter((e) => e.type === 'activity' && e.itemId === id)
+		.filter((e) => e.type === type && e.itemId === id)
 		.forEach((e) => pendingDeletions.entries.add(e.id));
 
+	const key = getItemsKey(type);
 	trackerData.update((data) => ({
 		...data,
-		activityItems: data.activityItems.filter((item) => item.id !== id),
-		entries: data.entries.filter((e) => !(e.type === 'activity' && e.itemId === id))
-	}));
-
-	pushToGist();
-}
-
-export function addFoodItem(name: string, categoryIds: string[]): FoodItem {
-	const item: FoodItem = {
-		id: generateId(),
-		name,
-		categories: categoryIds
-	};
-
-	trackerData.update((data) => ({
-		...data,
-		foodItems: [...data.foodItems, item]
-	}));
-
-	pushToGist();
-	return item;
-}
-
-export function updateFoodItem(id: string, name: string, categoryIds: string[]): void {
-	trackerData.update((data) => ({
-		...data,
-		foodItems: data.foodItems.map((item) =>
-			item.id === id ? { ...item, name, categories: categoryIds } : item
-		)
-	}));
-
-	pushToGist();
-}
-
-export function deleteFoodItem(id: string): void {
-	// Track deletion to prevent it from being restored during merge
-	pendingDeletions.foodItems.add(id);
-
-	// Also track deletion of related entries
-	const data = get(trackerData);
-	data.entries
-		.filter((e) => e.type === 'food' && e.itemId === id)
-		.forEach((e) => pendingDeletions.entries.add(e.id));
-
-	trackerData.update((data) => ({
-		...data,
-		foodItems: data.foodItems.filter((item) => item.id !== id),
-		entries: data.entries.filter((e) => !(e.type === 'food' && e.itemId === id))
+		[key]: data[key].filter((item) => item.id !== id),
+		entries: data.entries.filter((e) => !(e.type === type && e.itemId === id))
 	}));
 
 	pushToGist();
@@ -442,12 +354,9 @@ export function deleteEntry(id: string): void {
 	pushToGist();
 }
 
-export function getItemById(type: EntryType, itemId: string): ActivityItem | FoodItem | undefined {
+export function getItemById(type: EntryType, itemId: string): Item | undefined {
 	const data = get(trackerData);
-	if (type === 'activity') {
-		return data.activityItems.find((item) => item.id === itemId);
-	}
-	return data.foodItems.find((item) => item.id === itemId);
+	return getItems(data, type).find((item) => item.id === itemId);
 }
 
 export function initializeStore(): void {

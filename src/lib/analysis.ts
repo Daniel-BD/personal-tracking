@@ -1,4 +1,5 @@
-import type { Entry, TrackerData, EntryType, ActivityItem, FoodItem } from './types';
+import type { Entry, TrackerData, EntryType, Item } from './types';
+import { getItems, getCategories } from './types';
 
 export interface DateRange {
 	start: string;
@@ -112,13 +113,7 @@ export function filterEntriesByCategory(
 	data: TrackerData
 ): Entry[] {
 	return entries.filter((entry) => {
-		if (entry.categoryOverrides) {
-			return entry.categoryOverrides.includes(categoryId);
-		}
-
-		const items = entry.type === 'activity' ? data.activityItems : data.foodItems;
-		const item = items.find((i) => i.id === entry.itemId);
-		return item?.categories.includes(categoryId) ?? false;
+		return getEntryCategoryIds(entry, data).includes(categoryId);
 	});
 }
 
@@ -129,15 +124,8 @@ export function filterEntriesByCategories(
 ): Entry[] {
 	if (categoryIds.length === 0) return entries;
 	return entries.filter((entry) => {
-		const entryCategoryIds = entry.categoryOverrides
-			? entry.categoryOverrides
-			: (() => {
-					const items = entry.type === 'activity' ? data.activityItems : data.foodItems;
-					const item = items.find((i) => i.id === entry.itemId);
-					return item?.categories ?? [];
-				})();
-
-		return categoryIds.some((catId) => entryCategoryIds.includes(catId));
+		const entryCatIds = getEntryCategoryIds(entry, data);
+		return categoryIds.some((catId) => entryCatIds.includes(catId));
 	});
 }
 
@@ -158,8 +146,7 @@ export function getEntryCategoryIds(entry: Entry, data: TrackerData): string[] {
 		return entry.categoryOverrides;
 	}
 
-	const items = entry.type === 'activity' ? data.activityItems : data.foodItems;
-	const item = items.find((i) => i.id === entry.itemId);
+	const item = getItems(data, entry.type).find((i) => i.id === entry.itemId);
 	return item?.categories ?? [];
 }
 
@@ -228,9 +215,9 @@ export function compareMonthsForItem(
 
 export function getItemTotals(
 	entries: Entry[],
-	items: (ActivityItem | FoodItem)[],
+	items: Item[],
 	range?: DateRange
-): Array<{ item: ActivityItem | FoodItem; count: number }> {
+): Array<{ item: Item; count: number }> {
 	const filteredEntries = range ? filterEntriesByDateRange(entries, range) : entries;
 	const counts = countEntriesByItem(filteredEntries);
 
@@ -454,7 +441,7 @@ export function getFrequencyChartData(
  */
 export function selectTopEntities(
 	entries: Entry[],
-	items: (ActivityItem | FoodItem)[],
+	items: Item[],
 	type: EntryType,
 	limit: number = 5
 ): RankedItem[] {
@@ -493,121 +480,60 @@ export function selectInsights(
 	const currentEntries = filterEntriesByDateRange(entries, currentRange);
 	const previousEntries = filterEntriesByDateRange(entries, previousRange);
 
-	// Overall activity change
-	const currentActivities = filterEntriesByType(currentEntries, 'activity').length;
-	const previousActivities = filterEntriesByType(previousEntries, 'activity').length;
+	const typeLabels: Record<EntryType, string> = { activity: 'Activity', food: 'Food' };
+	const typePluralLabels: Record<EntryType, string> = { activity: 'activities', food: 'food' };
 
-	if (previousActivities > 0) {
-		const activityChange = (currentActivities - previousActivities) / previousActivities;
-		if (Math.abs(activityChange) >= threshold) {
-			const direction = activityChange > 0 ? 'up' : 'down';
-			const percent = Math.abs(Math.round(activityChange * 100));
-			insights.push({
-				id: 'activity-overall',
-				text: `Activity logging is ${direction} ${percent}% compared to the previous period`
-			});
-		}
-	} else if (currentActivities > 0) {
-		insights.push({
-			id: 'activity-new',
-			text: `You started logging activities this period (${currentActivities} entries)`
-		});
-	}
+	for (const type of ['activity', 'food'] as EntryType[]) {
+		const label = typeLabels[type];
+		const pluralLabel = typePluralLabels[type];
 
-	// Overall food change
-	const currentFood = filterEntriesByType(currentEntries, 'food').length;
-	const previousFood = filterEntriesByType(previousEntries, 'food').length;
+		// Overall change
+		const currentCount = filterEntriesByType(currentEntries, type).length;
+		const previousCount = filterEntriesByType(previousEntries, type).length;
 
-	if (previousFood > 0) {
-		const foodChange = (currentFood - previousFood) / previousFood;
-		if (Math.abs(foodChange) >= threshold) {
-			const direction = foodChange > 0 ? 'up' : 'down';
-			const percent = Math.abs(Math.round(foodChange * 100));
-			insights.push({
-				id: 'food-overall',
-				text: `Food logging is ${direction} ${percent}% compared to the previous period`
-			});
-		}
-	} else if (currentFood > 0) {
-		insights.push({
-			id: 'food-new',
-			text: `You started logging food this period (${currentFood} entries)`
-		});
-	}
-
-	// Find biggest item changes (activity items)
-	const currentActivityCounts = countEntriesByItem(filterEntriesByType(currentEntries, 'activity'));
-	const previousActivityCounts = countEntriesByItem(
-		filterEntriesByType(previousEntries, 'activity')
-	);
-
-	for (const item of data.activityItems) {
-		const current = currentActivityCounts.get(item.id) || 0;
-		const previous = previousActivityCounts.get(item.id) || 0;
-
-		if (previous > 0 && current > 0) {
-			const change = (current - previous) / previous;
-			if (Math.abs(change) >= threshold * 2) {
-				// Higher threshold for individual items
+		if (previousCount > 0) {
+			const change = (currentCount - previousCount) / previousCount;
+			if (Math.abs(change) >= threshold) {
 				const direction = change > 0 ? 'up' : 'down';
 				const percent = Math.abs(Math.round(change * 100));
 				insights.push({
-					id: `activity-item-${item.id}`,
-					text: `"${item.name}" is ${direction} ${percent}% (${previous} → ${current})`,
-					target: {
-						type: 'activity',
-						entityType: 'item',
-						entityId: item.id
-					}
+					id: `${type}-overall`,
+					text: `${label} logging is ${direction} ${percent}% compared to the previous period`
 				});
 			}
-		} else if (previous === 0 && current >= 3) {
-			// New item with significant usage
+		} else if (currentCount > 0) {
 			insights.push({
-				id: `activity-item-new-${item.id}`,
-				text: `New activity: "${item.name}" logged ${current} times`,
-				target: {
-					type: 'activity',
-					entityType: 'item',
-					entityId: item.id
-				}
+				id: `${type}-new`,
+				text: `You started logging ${pluralLabel} this period (${currentCount} entries)`
 			});
 		}
-	}
 
-	// Find biggest item changes (food items)
-	const currentFoodCounts = countEntriesByItem(filterEntriesByType(currentEntries, 'food'));
-	const previousFoodCounts = countEntriesByItem(filterEntriesByType(previousEntries, 'food'));
+		// Find biggest item changes
+		const currentCounts = countEntriesByItem(filterEntriesByType(currentEntries, type));
+		const previousCounts = countEntriesByItem(filterEntriesByType(previousEntries, type));
 
-	for (const item of data.foodItems) {
-		const current = currentFoodCounts.get(item.id) || 0;
-		const previous = previousFoodCounts.get(item.id) || 0;
+		for (const item of getItems(data, type)) {
+			const current = currentCounts.get(item.id) || 0;
+			const previous = previousCounts.get(item.id) || 0;
 
-		if (previous > 0 && current > 0) {
-			const change = (current - previous) / previous;
-			if (Math.abs(change) >= threshold * 2) {
-				const direction = change > 0 ? 'up' : 'down';
-				const percent = Math.abs(Math.round(change * 100));
+			if (previous > 0 && current > 0) {
+				const change = (current - previous) / previous;
+				if (Math.abs(change) >= threshold * 2) {
+					const direction = change > 0 ? 'up' : 'down';
+					const percent = Math.abs(Math.round(change * 100));
+					insights.push({
+						id: `${type}-item-${item.id}`,
+						text: `"${item.name}" is ${direction} ${percent}% (${previous} → ${current})`,
+						target: { type, entityType: 'item', entityId: item.id }
+					});
+				}
+			} else if (previous === 0 && current >= 3) {
 				insights.push({
-					id: `food-item-${item.id}`,
-					text: `"${item.name}" is ${direction} ${percent}% (${previous} → ${current})`,
-					target: {
-						type: 'food',
-						entityType: 'item',
-						entityId: item.id
-					}
+					id: `${type}-item-new-${item.id}`,
+					text: `New ${type}: "${item.name}" logged ${current} times`,
+					target: { type, entityType: 'item', entityId: item.id }
 				});
 			}
-		} else if (previous === 0 && current >= 3) {
-			insights.push({
-				id: `food-item-new-${item.id}`,
-				text: `New food: "${item.name}" logged ${current} times`,
-				target: {
-					type: 'food',
-					entityType: 'item',
-					entityId: item.id
-				}
-			});
 		}
 	}
 
@@ -699,8 +625,7 @@ export function getEntriesForEntity(
  */
 export function getEntityName(entity: EntityRef, data: TrackerData): string {
 	if (entity.entityType === 'item') {
-		const items = entity.type === 'activity' ? data.activityItems : data.foodItems;
-		const item = items.find((i) => i.id === entity.id);
+		const item = getItems(data, entity.type).find((i) => i.id === entity.id);
 		return item?.name || 'Unknown';
 	} else {
 		return getCategoryNameById(entity.id, data) || 'Unknown';
@@ -939,8 +864,8 @@ export function getAvailableEntities(
 	type: EntryType,
 	excludeId?: string
 ): Array<{ ref: EntityRef; name: string }> {
-	const items = type === 'activity' ? data.activityItems : data.foodItems;
-	const categories = type === 'activity' ? data.activityCategories : data.foodCategories;
+	const items = getItems(data, type);
+	const categories = getCategories(data, type);
 
 	const result: Array<{ ref: EntityRef; name: string }> = [];
 
@@ -999,7 +924,7 @@ export function getEntityListWithComparison(
 	const results: EntityListItem[] = [];
 
 	if (entityType === 'item') {
-		const items = type === 'activity' ? data.activityItems : data.foodItems;
+		const items = getItems(data, type);
 		const currentCounts = countEntriesByItem(currentEntries);
 		const previousCounts = countEntriesByItem(previousEntries);
 
@@ -1019,9 +944,7 @@ export function getEntityListWithComparison(
 			});
 		});
 	} else {
-		const categories = type === 'activity' ? data.activityCategories : data.foodCategories;
-
-		categories.forEach((category) => {
+		getCategories(data, type).forEach((category) => {
 			const categoryEntries = filterEntriesByCategory(currentEntries, category.id, data);
 			const previousCategoryEntries = filterEntriesByCategory(
 				previousEntries,

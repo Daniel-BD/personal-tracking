@@ -3,17 +3,13 @@ export interface Category {
 	name: string;
 }
 
-export interface ActivityItem {
+export interface Item {
 	id: string;
 	name: string;
 	categories: string[]; // Array of category IDs
 }
-
-export interface FoodItem {
-	id: string;
-	name: string;
-	categories: string[]; // Array of category IDs
-}
+export type ActivityItem = Item;
+export type FoodItem = Item;
 
 export type EntryType = 'activity' | 'food';
 
@@ -86,4 +82,21 @@ export function getTypeIcon(type: EntryType): string {
 
 export function getTypeColorMuted(type: EntryType): string {
 	return type === 'activity' ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200';
+}
+
+// Collection accessor helpers
+export function getItems(data: TrackerData, type: EntryType): Item[] {
+	return type === 'activity' ? data.activityItems : data.foodItems;
+}
+
+export function getCategories(data: TrackerData, type: EntryType): Category[] {
+	return type === 'activity' ? data.activityCategories : data.foodCategories;
+}
+
+export function getItemsKey(type: EntryType): 'activityItems' | 'foodItems' {
+	return type === 'activity' ? 'activityItems' : 'foodItems';
+}
+
+export function getCategoriesKey(type: EntryType): 'activityCategories' | 'foodCategories' {
+	return type === 'activity' ? 'activityCategories' : 'foodCategories';
 }
