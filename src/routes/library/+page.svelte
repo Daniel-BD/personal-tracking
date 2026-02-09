@@ -1,16 +1,13 @@
 <script lang="ts">
-	import type { ActivityItem, FoodItem, Category } from '$lib/types';
+	import type { Item, Category } from '$lib/types';
 	import {
 		activityItems,
 		foodItems,
 		activityCategories,
 		foodCategories,
-		addActivityItem,
-		addFoodItem,
-		updateActivityItem,
-		updateFoodItem,
-		deleteActivityItem,
-		deleteFoodItem,
+		addItem,
+		updateItem,
+		deleteItem,
 		addCategory,
 		updateCategory,
 		deleteCategory,
@@ -22,7 +19,7 @@
 	let activeTab = $state<'activity' | 'food'>('activity');
 	let activeSubTab = $state<'items' | 'categories'>('items');
 	let searchQuery = $state('');
-	let editingItem = $state<(ActivityItem | FoodItem) | null>(null);
+	let editingItem = $state<Item | null>(null);
 	let showAddForm = $state(false);
 	let newItemName = $state('');
 	let newItemCategories = $state<string[]>([]); // Array of category IDs
@@ -36,29 +33,21 @@
 	function handleAddItem() {
 		if (!newItemName.trim()) return;
 
-		if (activeTab === 'activity') {
-			addActivityItem(newItemName.trim(), newItemCategories);
-		} else {
-			addFoodItem(newItemName.trim(), newItemCategories);
-		}
+		addItem(activeTab, newItemName.trim(), newItemCategories);
 
 		newItemName = '';
 		newItemCategories = [];
 		showAddForm = false;
 	}
 
-	function handleEditItem(item: ActivityItem | FoodItem) {
+	function handleEditItem(item: Item) {
 		editingItem = { ...item };
 	}
 
 	function handleSaveEdit() {
 		if (!editingItem || !editingItem.name.trim()) return;
 
-		if (activeTab === 'activity') {
-			updateActivityItem(editingItem.id, editingItem.name.trim(), editingItem.categories);
-		} else {
-			updateFoodItem(editingItem.id, editingItem.name.trim(), editingItem.categories);
-		}
+		updateItem(activeTab, editingItem.id, editingItem.name.trim(), editingItem.categories);
 
 		editingItem = null;
 	}
@@ -70,11 +59,7 @@
 	function handleDeleteItem(id: string) {
 		if (!confirm('Delete this item and all its entries?')) return;
 
-		if (activeTab === 'activity') {
-			deleteActivityItem(id);
-		} else {
-			deleteFoodItem(id);
-		}
+		deleteItem(activeTab, id);
 	}
 
 	function handleCategoryChange(categoryIds: string[]) {
@@ -131,7 +116,7 @@
 		return allItems.filter((item) => item.categories.includes(categoryId)).length;
 	}
 
-	function getCategoryNamesForItem(item: ActivityItem | FoodItem): string[] {
+	function getCategoryNamesForItem(item: Item): string[] {
 		return getCategoryNames(activeTab, item.categories);
 	}
 

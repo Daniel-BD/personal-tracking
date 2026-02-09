@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ActivityItem, FoodItem, EntryType } from '$lib/types';
+	import type { Item, EntryType } from '$lib/types';
 	import { getTodayDate, getCurrentTime, getTypeColor, getTypeLabel } from '$lib/types';
 	import {
 		activityItems,
@@ -7,14 +7,13 @@
 		activityCategories,
 		foodCategories,
 		addEntry,
-		addActivityItem,
-		addFoodItem
+		addItem
 	} from '$lib/store';
 	import UnifiedItemPicker from './UnifiedItemPicker.svelte';
 	import CategoryPicker from './CategoryPicker.svelte';
 
 	interface UnifiedItem {
-		item: ActivityItem | FoodItem;
+		item: Item;
 		type: EntryType;
 	}
 
@@ -73,10 +72,7 @@
 	function handleSaveNewItem() {
 		if (!newItemName.trim() || !newItemType) return;
 
-		const newItem =
-			newItemType === 'activity'
-				? addActivityItem(newItemName.trim(), newItemCategories)
-				: addFoodItem(newItemName.trim(), newItemCategories);
+		const newItem = addItem(newItemType, newItemName.trim(), newItemCategories);
 
 		selectedUnified = { item: newItem, type: newItemType };
 		categoryOverrides = [...newItemCategories];

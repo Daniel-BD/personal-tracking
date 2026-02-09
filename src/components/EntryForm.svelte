@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { ActivityItem, FoodItem, EntryType } from '$lib/types';
+	import type { Item, EntryType } from '$lib/types';
 	import { getTodayDate, getCurrentTime } from '$lib/types';
-	import { activityItems, foodItems, activityCategories, foodCategories, addEntry, addActivityItem, addFoodItem } from '$lib/store';
+	import { activityItems, foodItems, activityCategories, foodCategories, addEntry, addItem } from '$lib/store';
 	import ItemPicker from './ItemPicker.svelte';
 	import CategoryPicker from './CategoryPicker.svelte';
 
@@ -12,7 +12,7 @@
 
 	let { type, onsave }: Props = $props();
 
-	let selectedItem = $state<ActivityItem | FoodItem | null>(null);
+	let selectedItem = $state<Item | null>(null);
 	let date = $state(getTodayDate());
 	let time = $state<string | null>(getCurrentTime());
 	let notes = $state('');
@@ -25,7 +25,7 @@
 	const items = $derived(type === 'activity' ? $activityItems : $foodItems);
 	const categories = $derived(type === 'activity' ? $activityCategories : $foodCategories);
 
-	function handleItemSelect(item: ActivityItem | FoodItem) {
+	function handleItemSelect(item: Item) {
 		if (item.id) {
 			selectedItem = item;
 			categoryOverrides = [...item.categories];
@@ -43,9 +43,7 @@
 	function handleSaveNewItem() {
 		if (!newItemName.trim()) return;
 
-		const newItem = type === 'activity'
-			? addActivityItem(newItemName.trim(), newItemCategories)
-			: addFoodItem(newItemName.trim(), newItemCategories);
+		const newItem = addItem(type, newItemName.trim(), newItemCategories);
 
 		selectedItem = newItem;
 		categoryOverrides = [...newItemCategories];
