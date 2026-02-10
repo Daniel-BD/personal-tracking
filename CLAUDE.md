@@ -46,6 +46,7 @@ All data lives in a single `TrackerData` object containing items, categories, an
 
 - **Two parallel type hierarchies**: Activity and food share identical structures (`ActivityItem`/`FoodItem`, separate category lists) but are kept separate throughout. Functions often take an `EntryType` ('activity' | 'food') parameter to select the right list.
 - **Category overrides**: Entries can override their item's default categories via `categoryOverrides`. Use `getEntryCategoryIds()` from `analysis.ts` to get effective categories.
+- **Category sentiment**: Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`, defined as `CategorySentiment` in `types.ts`). Defaults to `'neutral'`. Set via a `SentimentPicker` in the Library page when creating or editing categories. Categories created inline via `CategoryPicker` default to neutral. Non-neutral sentiments display as colored badges (green for positive, red for limit) next to the category name. Existing data without the field is handled via `?? 'neutral'` fallback.
 - **External store pattern**: Instead of React Context, the store uses a module-level singleton with `useSyncExternalStore` for reactivity. This allows store functions (CRUD operations) to be called from anywhere without prop drilling.
 
 ### Routes
