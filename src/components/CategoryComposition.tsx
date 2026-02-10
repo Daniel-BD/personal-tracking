@@ -31,6 +31,7 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 	const chartData = useMemo(() => {
 		return weeklyData.map((week) => {
 			const grouped = groupCategoriesForWeek(week, topCategoryIds);
+			const totalCategoryCount = grouped.reduce((sum, c) => sum + c.count, 0);
 			const dataPoint: Record<string, number | string> = {
 				week: formatWeekLabel(week.start),
 				weekKey: week.weekKey,
@@ -38,8 +39,7 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 			};
 
 			grouped.forEach((cat) => {
-				const total = week.totalCount;
-				dataPoint[cat.categoryId] = total > 0 ? (cat.count / total) * 100 : 0;
+				dataPoint[cat.categoryId] = totalCategoryCount > 0 ? (cat.count / totalCategoryCount) * 100 : 0;
 			});
 
 			return dataPoint;
@@ -49,6 +49,19 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 	const allCategoryIds = useMemo(() => {
 		return [...topCategoryIds, 'OTHER'];
 	}, [topCategoryIds]);
+
+	const categoryNameMap = useMemo(() => {
+		const map = new Map<string, string>();
+		weeklyData.forEach((week) => {
+			week.categories.forEach((cat) => {
+				if (!map.has(cat.categoryId)) {
+					map.set(cat.categoryId, cat.categoryName);
+				}
+			});
+		});
+		map.set('OTHER', 'Other');
+		return map;
+	}, [weeklyData]);
 
 	const handleBarClick = (data: any) => {
 		const week = weeklyData.find((w) => w.weekKey === data.weekKey);
@@ -95,7 +108,7 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 								dataKey={catId}
 								stackId="categories"
 								fill={colorMap.get(catId) || '#d1d5db'}
-								name={catId === 'OTHER' ? 'Other' : catId}
+								name={categoryNameMap.get(catId) || catId}
 								isAnimationActive={false}
 							>
 								{chartData.map((entry, index) => (
