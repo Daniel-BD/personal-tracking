@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTrackerData } from '../lib/hooks';
 import BalanceOverview from '../components/BalanceOverview';
 import CategoryComposition from '../components/CategoryComposition';
+import GoalDashboard from '../components/GoalDashboard';
 import { getLastNWeeks, processFoodEntriesByWeek } from '../lib/stats';
 
 type PeriodType = 'weekly' | 'monthly';
@@ -66,6 +67,11 @@ export default function StatsPage() {
 			{/* Content */}
 			{hasData && (
 				<>
+					{/* Section 0: Goal Dashboard */}
+					<GoalDashboard />
+
+					<hr className="border-[var(--border-default)]" />
+
 					{/* Section 1: Balance Overview */}
 					<BalanceOverview weeklyData={weeklyData} />
 

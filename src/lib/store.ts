@@ -5,7 +5,8 @@ import type {
 	SyncStatus,
 	EntryType,
 	Category,
-	CategorySentiment
+	CategorySentiment,
+	DashboardCard
 } from './types';
 import { createEmptyData, generateId, getItems, getCategories, getItemsKey, getCategoriesKey } from './types';
 import { getConfig, fetchGist, updateGist, isConfigured } from './github';
@@ -20,6 +21,7 @@ interface PendingDeletions {
 	foodItems: Set<string>;
 	activityCategories: Set<string>;
 	foodCategories: Set<string>;
+	dashboardCards: Set<string>;
 }
 
 const pendingDeletions: PendingDeletions = {
@@ -27,7 +29,8 @@ const pendingDeletions: PendingDeletions = {
 	activityItems: new Set(),
 	foodItems: new Set(),
 	activityCategories: new Set(),
-	foodCategories: new Set()
+	foodCategories: new Set(),
+	dashboardCards: new Set()
 };
 
 function clearPendingDeletions(): void {
@@ -36,6 +39,7 @@ function clearPendingDeletions(): void {
 	pendingDeletions.foodItems.clear();
 	pendingDeletions.activityCategories.clear();
 	pendingDeletions.foodCategories.clear();
+	pendingDeletions.dashboardCards.clear();
 }
 
 /**
@@ -44,12 +48,30 @@ function clearPendingDeletions(): void {
  * Respects pending deletions - items deleted locally won't be restored from remote.
  */
 function mergeTrackerData(local: TrackerData, remote: TrackerData): TrackerData {
+	const localCards = local.dashboardCards || [];
+	const remoteCards = remote.dashboardCards || [];
+
+	// Merge dashboard cards by categoryId, respecting pending deletions
+	const cardMap = new Map<string, DashboardCard>();
+
+	// Add remote cards first if not deleted locally
+	remoteCards.forEach((c) => {
+		if (!pendingDeletions.dashboardCards.has(c.categoryId)) {
+			cardMap.set(c.categoryId, c);
+		}
+	});
+
+	// Local cards take precedence
+	localCards.forEach((c) => cardMap.set(c.categoryId, c));
+
 	return {
 		activityItems: mergeById(local.activityItems, remote.activityItems, pendingDeletions.activityItems),
 		foodItems: mergeById(local.foodItems, remote.foodItems, pendingDeletions.foodItems),
 		activityCategories: mergeById(local.activityCategories, remote.activityCategories, pendingDeletions.activityCategories),
 		foodCategories: mergeById(local.foodCategories, remote.foodCategories, pendingDeletions.foodCategories),
-		entries: mergeById(local.entries, remote.entries, pendingDeletions.entries)
+		entries: mergeById(local.entries, remote.entries, pendingDeletions.entries),
+		dashboardCards: Array.from(cardMap.values()),
+		dashboardInitialized: local.dashboardInitialized || remote.dashboardInitialized
 	};
 }
 
@@ -68,6 +90,33 @@ function mergeById<T extends { id: string }>(local: T[], remote: T[], excludeIds
 
 const LOCAL_STORAGE_KEY = 'tracker_data';
 
+function initializeDefaultDashboardCards(data: TrackerData): TrackerData {
+	if (data.dashboardInitialized) {
+		return data;
+	}
+
+	const defaultNames = ['Fruit', 'Vegetables', 'Sugary drinks'];
+	const allCategories = [...data.foodCategories, ...data.activityCategories];
+	const cards: DashboardCard[] = [];
+
+	for (const name of defaultNames) {
+		const category = allCategories.find((c) => c.name.toLowerCase() === name.toLowerCase());
+		if (category) {
+			cards.push({
+				categoryId: category.id,
+				baseline: 'rolling_4_week_avg',
+				comparison: 'last_week'
+			});
+		}
+	}
+
+	return {
+		...data,
+		dashboardCards: cards.length > 0 ? cards : (data.dashboardCards || []),
+		dashboardInitialized: true
+	};
+}
+
 function loadFromLocalStorage(): TrackerData {
 	if (typeof localStorage === 'undefined') {
 		return createEmptyData();
@@ -75,7 +124,8 @@ function loadFromLocalStorage(): TrackerData {
 	const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
 	if (stored) {
 		try {
-			return JSON.parse(stored) as TrackerData;
+			const data = JSON.parse(stored) as TrackerData;
+			return initializeDefaultDashboardCards(data);
 		} catch {
 			return createEmptyData();
 		}
@@ -109,8 +159,9 @@ function notifySyncListeners() {
 }
 
 function setData(data: TrackerData) {
-	currentData = data;
-	saveToLocalStorage(data);
+	const dataWithDashboard = initializeDefaultDashboardCards(data);
+	currentData = dataWithDashboard;
+	saveToLocalStorage(dataWithDashboard);
 	notifyListeners();
 }
 
@@ -297,6 +348,36 @@ export function deleteItem(type: EntryType, id: string): void {
 		...data,
 		[key]: data[key].filter((item) => item.id !== id),
 		entries: data.entries.filter((e) => !(e.type === type && e.itemId === id))
+	}));
+
+	pushToGist();
+}
+
+// ============================================================
+// Dashboard Card CRUD
+// ============================================================
+
+export function addDashboardCard(categoryId: string): void {
+	const card: DashboardCard = {
+		categoryId,
+		baseline: 'rolling_4_week_avg',
+		comparison: 'last_week'
+	};
+
+	updateData((data) => ({
+		...data,
+		dashboardCards: [...(data.dashboardCards || []), card]
+	}));
+
+	pushToGist();
+}
+
+export function removeDashboardCard(categoryId: string): void {
+	pendingDeletions.dashboardCards.add(categoryId);
+
+	updateData((data) => ({
+		...data,
+		dashboardCards: (data.dashboardCards || []).filter((c) => c.categoryId !== categoryId)
 	}));
 
 	pushToGist();
