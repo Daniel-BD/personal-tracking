@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { isConfigured } from '../lib/github';
 import {
@@ -7,12 +7,6 @@ import {
 	addEntry
 } from '../lib/store';
 import { useTrackerData, useSyncStatus } from '../lib/hooks';
-import {
-	filterEntriesByDateRange,
-	getMonthRange,
-	compareMonths,
-	filterEntriesByType
-} from '../lib/analysis';
 import { getTodayDate, getCurrentTime } from '../lib/types';
 import QuickLogForm from '../components/QuickLogForm';
 
@@ -78,20 +72,6 @@ export default function HomePage() {
 		await forceRefresh();
 	}
 
-	const thisMonthRange = useMemo(() => getMonthRange(), []);
-	const thisMonthEntries = useMemo(
-		() => filterEntriesByDateRange(data.entries, thisMonthRange),
-		[data.entries, thisMonthRange]
-	);
-	const activityComparison = useMemo(
-		() => compareMonths(filterEntriesByType(data.entries, 'activity')),
-		[data.entries]
-	);
-	const foodComparison = useMemo(
-		() => compareMonths(filterEntriesByType(data.entries, 'food')),
-		[data.entries]
-	);
-
 	return (
 		<div className="space-y-6">
 			{!configured ? (
@@ -134,31 +114,6 @@ export default function HomePage() {
 					)}
 
 					<QuickLogForm onsave={handleSave} />
-
-					<div className="grid grid-cols-2 gap-4">
-						<div className="card p-4">
-							<div className="text-sm text-label">Activities this month</div>
-							<div className="text-2xl font-bold text-[var(--color-activity)]">{activityComparison.current}</div>
-							{activityComparison.difference !== 0 && (
-								<div className="text-xs" style={{ color: `var(${activityComparison.difference > 0 ? '--color-success' : '--color-danger'})` }}>
-									{activityComparison.difference > 0 ? '+' : ''}{activityComparison.difference} vs last month
-								</div>
-							)}
-						</div>
-						<div className="card p-4">
-							<div className="text-sm text-label">Food logged this month</div>
-							<div className="text-2xl font-bold text-[var(--color-food)]">{foodComparison.current}</div>
-							{foodComparison.difference !== 0 && (
-								<div className="text-xs" style={{ color: `var(${foodComparison.difference > 0 ? '--color-success' : '--color-danger'})` }}>
-									{foodComparison.difference > 0 ? '+' : ''}{foodComparison.difference} vs last month
-								</div>
-							)}
-						</div>
-					</div>
-
-					<div className="text-center text-sm text-label">
-						{thisMonthEntries.length} total entries this month
-					</div>
 				</>
 			)}
 		</div>
