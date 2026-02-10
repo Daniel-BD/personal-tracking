@@ -20,7 +20,7 @@ export default function StatsPage() {
 	}, [weeklyData]);
 
 	return (
-		<div className="space-y-6 pb-6">
+		<div className="space-y-4 sm:space-y-6 pb-6">
 			{/* Header */}
 			<div className="space-y-2">
 				<h1 className="text-2xl font-bold">Eating patterns</h1>

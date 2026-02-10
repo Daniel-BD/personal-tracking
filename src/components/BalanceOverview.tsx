@@ -6,6 +6,7 @@ import {
 	getScoreChange,
 	formatWeekLabel
 } from '../lib/stats';
+import { useIsMobile } from '../lib/hooks';
 
 interface BalanceOverviewProps {
 	weeklyData: WeeklyData[];
@@ -46,10 +47,12 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 		return getScoreChange(currentScore, previousScore);
 	}, [currentScore, previousScore]);
 
+	const isMobile = useIsMobile();
+
 	return (
-		<div className="space-y-6">
+		<div className="space-y-4 sm:space-y-6">
 			{/* Score Card */}
-			<div className="card p-6 space-y-4">
+			<div className="card p-4 sm:p-6 space-y-4">
 				<div className="flex items-baseline justify-between">
 					<h3 className="text-lg font-semibold">Balance Score</h3>
 					<div className="flex items-center gap-2">
@@ -89,19 +92,22 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 			</div>
 
 			{/* Weekly breakdown chart */}
-			<div className="card p-6 space-y-4">
+			<div className="card p-4 sm:p-6 space-y-4">
 				<h3 className="text-lg font-semibold">Weekly Breakdown</h3>
 				<ResponsiveContainer width="100%" height={280}>
 					<BarChart
 						data={data}
 						layout="vertical"
-						margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+						margin={isMobile
+							? { top: 5, right: 10, left: 5, bottom: 5 }
+							: { top: 5, right: 30, left: 80, bottom: 5 }
+						}
 					>
 						<XAxis type="number" domain={[0, 100]} hide />
 						<YAxis
 							dataKey="week"
 							type="category"
-							width={75}
+							width={isMobile ? 50 : 75}
 							tick={{ fontSize: 12 }}
 						/>
 						<Tooltip
