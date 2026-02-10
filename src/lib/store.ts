@@ -1,4 +1,3 @@
-import { writable, derived, get } from 'svelte/store';
 import type {
 	TrackerData,
 	Item,
@@ -53,17 +52,11 @@ function mergeTrackerData(local: TrackerData, remote: TrackerData): TrackerData 
 	};
 }
 
-/**
- * Merges two arrays by ID, creating a union.
- * Local items take precedence for items with the same ID.
- * Items in excludeIds are filtered out from remote (they were deleted locally).
- */
 function mergeById<T extends { id: string }>(local: T[], remote: T[], excludeIds: Set<string>): T[] {
 	const localMap = new Map(local.map((item) => [item.id, item]));
 	const merged = [...local];
 
 	for (const remoteItem of remote) {
-		// Skip if already in local, or if it was deleted locally
 		if (!localMap.has(remoteItem.id) && !excludeIds.has(remoteItem.id)) {
 			merged.push(remoteItem);
 		}
@@ -95,48 +88,63 @@ function saveToLocalStorage(data: TrackerData): void {
 	}
 }
 
-export const trackerData = writable<TrackerData>(loadFromLocalStorage());
-export const syncStatus = writable<SyncStatus>('idle');
+// ============================================================
+// Singleton store — useSyncExternalStore-compatible
+// ============================================================
 
-trackerData.subscribe((data) => {
+type Listener = () => void;
+
+let currentData: TrackerData = loadFromLocalStorage();
+let currentSyncStatus: SyncStatus = 'idle';
+const listeners = new Set<Listener>();
+const syncListeners = new Set<Listener>();
+
+function notifyListeners() {
+	listeners.forEach((l) => l());
+}
+
+function notifySyncListeners() {
+	syncListeners.forEach((l) => l());
+}
+
+function setData(data: TrackerData) {
+	currentData = data;
 	saveToLocalStorage(data);
-});
-
-export const activityItems = derived(trackerData, ($data) => $data.activityItems);
-export const foodItems = derived(trackerData, ($data) => $data.foodItems);
-export const entries = derived(trackerData, ($data) => $data.entries);
-
-// Category stores - return Category arrays
-export const activityCategories = derived(trackerData, ($data) => $data.activityCategories);
-export const foodCategories = derived(trackerData, ($data) => $data.foodCategories);
-
-// Combined categories for suggestions (returns Category arrays)
-export const allCategories = derived(trackerData, ($data) => [
-	...$data.activityCategories,
-	...$data.foodCategories
-]);
-
-// Helper to get category by ID
-export function getCategoryById(
-	type: EntryType,
-	categoryId: string
-): Category | undefined {
-	const data = get(trackerData);
-	return getCategories(data, type).find((c) => c.id === categoryId);
+	notifyListeners();
 }
 
-// Helper to get category name by ID
-export function getCategoryName(type: EntryType, categoryId: string): string {
-	const category = getCategoryById(type, categoryId);
-	return category?.name ?? '';
+function updateData(updater: (data: TrackerData) => TrackerData) {
+	setData(updater(currentData));
 }
 
-// Helper to get multiple category names by IDs
-export function getCategoryNames(type: EntryType, categoryIds: string[]): string[] {
-	const data = get(trackerData);
-	const categoryMap = new Map(getCategories(data, type).map((c) => [c.id, c.name]));
-	return categoryIds.map((id) => categoryMap.get(id) ?? '').filter(Boolean);
+function setSyncStatus(status: SyncStatus) {
+	currentSyncStatus = status;
+	notifySyncListeners();
 }
+
+export const dataStore = {
+	subscribe(listener: Listener) {
+		listeners.add(listener);
+		return () => { listeners.delete(listener); };
+	},
+	getSnapshot(): TrackerData {
+		return currentData;
+	}
+};
+
+export const syncStatusStore = {
+	subscribe(listener: Listener) {
+		syncListeners.add(listener);
+		return () => { syncListeners.delete(listener); };
+	},
+	getSnapshot(): SyncStatus {
+		return currentSyncStatus;
+	}
+};
+
+// ============================================================
+// Gist sync
+// ============================================================
 
 async function pushToGist(): Promise<void> {
 	if (!isConfigured()) return;
@@ -144,29 +152,18 @@ async function pushToGist(): Promise<void> {
 	const config = getConfig();
 	if (!config.gistId || !config.token) return;
 
-	syncStatus.set('syncing');
+	setSyncStatus('syncing');
 	try {
-		// Fetch current remote data first to prevent overwriting data from other devices
 		const remoteData = await fetchGist(config.gistId, config.token);
-		const localData = get(trackerData);
-
-		// Merge local and remote data - ensures we don't lose entries added elsewhere
-		// Pending deletions are respected so deleted items don't come back
+		const localData = currentData;
 		const mergedData = mergeTrackerData(localData, remoteData);
-
-		// Update local store with merged data (adds any entries from remote we didn't have)
-		trackerData.set(mergedData);
-
-		// Push merged data to Gist
+		setData(mergedData);
 		await updateGist(config.gistId, config.token, mergedData);
-
-		// Clear pending deletions after successful sync
 		clearPendingDeletions();
-
-		syncStatus.set('idle');
+		setSyncStatus('idle');
 	} catch (error) {
 		console.error('Failed to sync to Gist:', error);
-		syncStatus.set('error');
+		setSyncStatus('error');
 	}
 }
 
@@ -176,16 +173,15 @@ export async function loadFromGist(): Promise<void> {
 	const config = getConfig();
 	if (!config.gistId || !config.token) return;
 
-	syncStatus.set('syncing');
+	setSyncStatus('syncing');
 	try {
 		const data = await fetchGist(config.gistId, config.token);
-		trackerData.set(data);
-		// Clear pending deletions since we're accepting fresh remote data
+		setData(data);
 		clearPendingDeletions();
-		syncStatus.set('idle');
+		setSyncStatus('idle');
 	} catch (error) {
 		console.error('Failed to load from Gist:', error);
-		syncStatus.set('error');
+		setSyncStatus('error');
 	}
 }
 
@@ -193,7 +189,9 @@ export async function forceRefresh(): Promise<void> {
 	await loadFromGist();
 }
 
-// Category CRUD operations
+// ============================================================
+// Category CRUD
+// ============================================================
 
 export function addCategory(type: EntryType, name: string): Category {
 	const category: Category = {
@@ -202,7 +200,7 @@ export function addCategory(type: EntryType, name: string): Category {
 	};
 
 	const key = getCategoriesKey(type);
-	trackerData.update((data) => ({
+	updateData((data) => ({
 		...data,
 		[key]: [...data[key], category]
 	}));
@@ -215,7 +213,7 @@ export function updateCategory(type: EntryType, id: string, name: string): void 
 	if (!name.trim()) return;
 
 	const key = getCategoriesKey(type);
-	trackerData.update((data) => ({
+	updateData((data) => ({
 		...data,
 		[key]: data[key].map((c) => (c.id === id ? { ...c, name: name.trim() } : c))
 	}));
@@ -224,12 +222,11 @@ export function updateCategory(type: EntryType, id: string, name: string): void 
 }
 
 export function deleteCategory(type: EntryType, categoryId: string): void {
-	// Track deletion to prevent it from being restored during merge
 	pendingDeletions[getCategoriesKey(type)].add(categoryId);
 
 	const catKey = getCategoriesKey(type);
 	const itemsKey = getItemsKey(type);
-	trackerData.update((data) => ({
+	updateData((data) => ({
 		...data,
 		[catKey]: data[catKey].filter((c) => c.id !== categoryId),
 		[itemsKey]: data[itemsKey].map((item) => ({
@@ -248,7 +245,9 @@ export function deleteCategory(type: EntryType, categoryId: string): void {
 	pushToGist();
 }
 
-// Item CRUD operations (categories param is now array of category IDs)
+// ============================================================
+// Item CRUD
+// ============================================================
 
 export function addItem(type: EntryType, name: string, categoryIds: string[]): Item {
 	const item: Item = {
@@ -258,7 +257,7 @@ export function addItem(type: EntryType, name: string, categoryIds: string[]): I
 	};
 
 	const key = getItemsKey(type);
-	trackerData.update((data) => ({
+	updateData((data) => ({
 		...data,
 		[key]: [...data[key], item]
 	}));
@@ -269,7 +268,7 @@ export function addItem(type: EntryType, name: string, categoryIds: string[]): I
 
 export function updateItem(type: EntryType, id: string, name: string, categoryIds: string[]): void {
 	const key = getItemsKey(type);
-	trackerData.update((data) => ({
+	updateData((data) => ({
 		...data,
 		[key]: data[key].map((item) =>
 			item.id === id ? { ...item, name, categories: categoryIds } : item
@@ -280,17 +279,14 @@ export function updateItem(type: EntryType, id: string, name: string, categoryId
 }
 
 export function deleteItem(type: EntryType, id: string): void {
-	// Track deletion to prevent it from being restored during merge
 	pendingDeletions[getItemsKey(type)].add(id);
 
-	// Also track deletion of related entries
-	const data = get(trackerData);
-	data.entries
+	currentData.entries
 		.filter((e) => e.type === type && e.itemId === id)
 		.forEach((e) => pendingDeletions.entries.add(e.id));
 
 	const key = getItemsKey(type);
-	trackerData.update((data) => ({
+	updateData((data) => ({
 		...data,
 		[key]: data[key].filter((item) => item.id !== id),
 		entries: data.entries.filter((e) => !(e.type === type && e.itemId === id))
@@ -299,7 +295,9 @@ export function deleteItem(type: EntryType, id: string): void {
 	pushToGist();
 }
 
-// Entry CRUD operations
+// ============================================================
+// Entry CRUD
+// ============================================================
 
 export function addEntry(
 	type: EntryType,
@@ -319,7 +317,7 @@ export function addEntry(
 		categoryOverrides
 	};
 
-	trackerData.update((data) => ({
+	updateData((data) => ({
 		...data,
 		entries: [...data.entries, entry]
 	}));
@@ -332,7 +330,7 @@ export function updateEntry(
 	id: string,
 	updates: Partial<Omit<Entry, 'id' | 'type' | 'itemId'>>
 ): void {
-	trackerData.update((data) => ({
+	updateData((data) => ({
 		...data,
 		entries: data.entries.map((entry) =>
 			entry.id === id ? { ...entry, ...updates } : entry
@@ -343,10 +341,9 @@ export function updateEntry(
 }
 
 export function deleteEntry(id: string): void {
-	// Track deletion to prevent it from being restored during merge
 	pendingDeletions.entries.add(id);
 
-	trackerData.update((data) => ({
+	updateData((data) => ({
 		...data,
 		entries: data.entries.filter((entry) => entry.id !== id)
 	}));
@@ -354,9 +351,30 @@ export function deleteEntry(id: string): void {
 	pushToGist();
 }
 
+// ============================================================
+// Accessors
+// ============================================================
+
 export function getItemById(type: EntryType, itemId: string): Item | undefined {
-	const data = get(trackerData);
-	return getItems(data, type).find((item) => item.id === itemId);
+	return getItems(currentData, type).find((item) => item.id === itemId);
+}
+
+export function getCategoryById(
+	type: EntryType,
+	categoryId: string
+): Category | undefined {
+	return getCategories(currentData, type).find((c) => c.id === categoryId);
+}
+
+export function getCategoryName(type: EntryType, categoryId: string): string {
+	const category = getCategoryById(type, categoryId);
+	return category?.name ?? '';
+}
+
+export function getCategoryNames(type: EntryType, categoryIds: string[]): string[] {
+	const data = currentData;
+	const categoryMap = new Map(getCategories(data, type).map((c) => [c.id, c.name]));
+	return categoryIds.map((id) => categoryMap.get(id) ?? '').filter(Boolean);
 }
 
 export function initializeStore(): void {
@@ -365,11 +383,12 @@ export function initializeStore(): void {
 	}
 }
 
-/**
- * Export current data as a JSON file download.
- */
+// ============================================================
+// Export / Import
+// ============================================================
+
 export function exportData(): void {
-	const data = get(trackerData);
+	const data = currentData;
 	const json = JSON.stringify(data, null, 2);
 	const blob = new Blob([json], { type: 'application/json' });
 	const url = URL.createObjectURL(blob);
@@ -383,15 +402,10 @@ export function exportData(): void {
 	URL.revokeObjectURL(url);
 }
 
-/**
- * Import data from a JSON file, replacing current data.
- * Returns true if successful, false if the file is invalid.
- */
 export function importData(jsonString: string): boolean {
 	try {
 		const data = JSON.parse(jsonString) as TrackerData;
 
-		// Basic validation - check required arrays exist
 		if (
 			!Array.isArray(data.entries) ||
 			!Array.isArray(data.activityItems) ||
@@ -402,7 +416,7 @@ export function importData(jsonString: string): boolean {
 			return false;
 		}
 
-		trackerData.set(data);
+		setData(data);
 		clearPendingDeletions();
 		pushToGist();
 		return true;
@@ -411,21 +425,19 @@ export function importData(jsonString: string): boolean {
 	}
 }
 
-/**
- * Backup current data to a secondary Gist.
- */
+// ============================================================
+// Backup operations
+// ============================================================
+
 export async function backupToGist(backupGistId: string): Promise<void> {
 	const config = getConfig();
 	if (!config.token || !backupGistId) {
 		throw new Error('Token and backup Gist ID are required');
 	}
 
-	await updateGist(backupGistId, config.token, get(trackerData));
+	await updateGist(backupGistId, config.token, currentData);
 }
 
-/**
- * Restore data from a backup Gist.
- */
 export async function restoreFromBackupGist(backupGistId: string): Promise<void> {
 	const config = getConfig();
 	if (!config.token || !backupGistId) {
@@ -433,8 +445,7 @@ export async function restoreFromBackupGist(backupGistId: string): Promise<void>
 	}
 
 	const data = await fetchGist(backupGistId, config.token);
-	trackerData.set(data);
+	setData(data);
 	clearPendingDeletions();
-	// Also sync to primary Gist
 	pushToGist();
 }

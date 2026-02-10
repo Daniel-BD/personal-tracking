@@ -1,7 +1,8 @@
-import { sveltekit } from '@sveltejs/kit/vite';
+import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-	plugins: [sveltekit(), tailwindcss()]
+	plugins: [react(), tailwindcss()],
+	base: process.env.BASE_PATH || '/'
 });

@@ -1,9 +1,5 @@
 @import 'tailwindcss';
 
-/* Include LayerChart and svelte-ux component styles */
-@source "../node_modules/layerchart/**/*.{svelte,js}";
-@source "../node_modules/svelte-ux/**/*.{svelte,js}";
-
 /* Dark mode custom variant for Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -68,14 +64,6 @@
 	/* Shadows */
 	--shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
 	--shadow-elevated: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
-
-	/* LayerChart theme colors - space-separated HSL values for use with hsl() */
-	--color-primary: 217 91% 60%;
-	--color-secondary: 215 20% 65%;
-	--color-surface-100: 0 0% 100%;
-	--color-surface-200: 220 14% 96%;
-	--color-surface-300: 220 13% 91%;
-	--color-surface-content: 224 71% 4%;
 }
 
 .dark {
@@ -136,14 +124,6 @@
 	/* Shadows */
 	--shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.2);
 	--shadow-elevated: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
-
-	/* LayerChart dark */
-	--color-primary: 217 91% 70%;
-	--color-secondary: 215 20% 50%;
-	--color-surface-100: 222 47% 8%;
-	--color-surface-200: 217 33% 12%;
-	--color-surface-300: 215 28% 17%;
-	--color-surface-content: 210 40% 96%;
 }
 
 /* ============================================================
