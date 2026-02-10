@@ -4,7 +4,8 @@ import type {
 	Entry,
 	SyncStatus,
 	EntryType,
-	Category
+	Category,
+	CategorySentiment
 } from './types';
 import { createEmptyData, generateId, getItems, getCategories, getItemsKey, getCategoriesKey } from './types';
 import { getConfig, fetchGist, updateGist, isConfigured } from './github';
@@ -193,10 +194,11 @@ export async function forceRefresh(): Promise<void> {
 // Category CRUD
 // ============================================================
 
-export function addCategory(type: EntryType, name: string): Category {
+export function addCategory(type: EntryType, name: string, sentiment: CategorySentiment = 'neutral'): Category {
 	const category: Category = {
 		id: generateId(),
-		name: name.trim()
+		name: name.trim(),
+		sentiment
 	};
 
 	const key = getCategoriesKey(type);
@@ -209,13 +211,18 @@ export function addCategory(type: EntryType, name: string): Category {
 	return category;
 }
 
-export function updateCategory(type: EntryType, id: string, name: string): void {
+export function updateCategory(type: EntryType, id: string, name: string, sentiment?: CategorySentiment): void {
 	if (!name.trim()) return;
 
 	const key = getCategoriesKey(type);
 	updateData((data) => ({
 		...data,
-		[key]: data[key].map((c) => (c.id === id ? { ...c, name: name.trim() } : c))
+		[key]: data[key].map((c) => {
+			if (c.id !== id) return c;
+			const updated = { ...c, name: name.trim() };
+			if (sentiment !== undefined) updated.sentiment = sentiment;
+			return updated;
+		})
 	}));
 
 	pushToGist();
