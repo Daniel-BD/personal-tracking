@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import LogPage from './pages/LogPage';
 import LibraryPage from './pages/LibraryPage';
 import SettingsPage from './pages/SettingsPage';
+import StatsPage from './pages/StatsPage';
 
 function NavIcon({ icon }: { icon: string }) {
 	if (icon === 'home') {
@@ -28,6 +29,13 @@ function NavIcon({ icon }: { icon: string }) {
 			</svg>
 		);
 	}
+	if (icon === 'chart') {
+		return (
+			<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+				<path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 12c-.621 0-1.125.504-1.125 1.125v6.75c0 .621.504 1.125 1.125 1.125h2.25c.621 0 1.125-.504 1.125-1.125v-6.75c0-.621-.504-1.125-1.125-1.125h-2.25zm7.5-1.875c-.621 0-1.125.504-1.125 1.125v8.625c0 .621.504 1.125 1.125 1.125h2.25c.621 0 1.125-.504 1.125-1.125V10.875c0-.621-.504-1.125-1.125-1.125h-2.25z" />
+			</svg>
+		);
+	}
 	if (icon === 'settings') {
 		return (
 			<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
@@ -42,6 +50,7 @@ function NavIcon({ icon }: { icon: string }) {
 const navItems = [
 	{ to: '/', label: 'Home', icon: 'home' },
 	{ to: '/log', label: 'Log', icon: 'list' },
+	{ to: '/stats', label: 'Stats', icon: 'chart' },
 	{ to: '/library', label: 'Library', icon: 'book' },
 	{ to: '/settings', label: 'Settings', icon: 'settings' }
 ];
@@ -68,6 +77,7 @@ export default function App() {
 				<Routes>
 					<Route path="/" element={<HomePage />} />
 					<Route path="/log" element={<LogPage />} />
+					<Route path="/stats" element={<StatsPage />} />
 					<Route path="/library" element={<LibraryPage />} />
 					<Route path="/settings" element={<SettingsPage />} />
 				</Routes>
