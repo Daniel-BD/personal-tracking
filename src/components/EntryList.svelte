@@ -84,21 +84,21 @@
 <div class="space-y-4">
 	{#each [...groupedEntries.entries()] as [dateStr, dateEntries]}
 		<div>
-			<h3 class="text-sm font-semibold text-gray-500 mb-2">{formatDate(dateStr)}</h3>
+			<h3 class="text-sm font-semibold text-label mb-2">{formatDate(dateStr)}</h3>
 			<div class="space-y-2">
 				{#each dateEntries as entry}
 					{@const categories = getEntryCategoryNames(entry, $trackerData)}
-					<div class="bg-white rounded-lg shadow-sm p-3">
+					<div class="card p-3">
 						{#if editingEntryId === entry.id}
 							<!-- Edit mode -->
 							<div class="space-y-3">
 								<div class="flex items-center gap-2">
 									{#if showType}
-										<span class="text-sm {entry.type === 'activity' ? 'text-blue-600' : 'text-green-600'}">
+										<span class="text-sm" style="color: var({entry.type === 'activity' ? '--color-activity' : '--color-food'});">
 											{entry.type === 'activity' ? '🏃' : '🍽️'}
 										</span>
 									{/if}
-									<span class="font-medium">{getItemName(entry.type, entry.itemId)}</span>
+									<span class="font-medium text-heading">{getItemName(entry.type, entry.itemId)}</span>
 								</div>
 
 								<div class="grid grid-cols-2 gap-2">
@@ -161,22 +161,22 @@
 								<div class="flex-1">
 									<div class="flex items-center gap-2">
 										{#if showType}
-											<span class="text-sm {entry.type === 'activity' ? 'text-blue-600' : 'text-green-600'}">
+											<span class="text-sm" style="color: var({entry.type === 'activity' ? '--color-activity' : '--color-food'});">
 												{entry.type === 'activity' ? '🏃' : '🍽️'}
 											</span>
 										{/if}
-										<span class="font-medium">{getItemName(entry.type, entry.itemId)}</span>
+										<span class="font-medium text-heading">{getItemName(entry.type, entry.itemId)}</span>
 										{#if entry.time}
-											<span class="text-xs text-gray-400">{formatTime(entry.time)}</span>
+											<span class="text-xs text-subtle">{formatTime(entry.time)}</span>
 										{/if}
 									</div>
 									{#if entry.notes}
-										<p class="text-sm text-gray-600 mt-1">{entry.notes}</p>
+										<p class="text-sm text-body mt-1">{entry.notes}</p>
 									{/if}
 									{#if categories.length > 0}
 										<div class="flex flex-wrap gap-1 mt-1">
 											{#each categories as category}
-												<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+												<span class="text-xs bg-[var(--bg-inset)] text-label px-2 py-0.5 rounded">
 													{category}
 												</span>
 											{/each}
@@ -186,14 +186,14 @@
 								<div class="flex gap-1">
 									<button
 										onclick={() => startEdit(entry)}
-										class="text-gray-400 hover:text-blue-500 p-1"
+										class="text-subtle hover:text-[var(--color-activity)] p-1"
 										aria-label="Edit entry"
 									>
 										✏️
 									</button>
 									<button
 										onclick={() => handleDelete(entry.id)}
-										class="text-gray-400 hover:text-red-500 p-1"
+										class="text-subtle hover:text-[var(--color-danger)] p-1"
 										aria-label="Delete entry"
 									>
 										🗑️
@@ -206,6 +206,6 @@
 			</div>
 		</div>
 	{:else}
-		<p class="text-center text-gray-500 py-8">No entries yet</p>
+		<p class="text-center text-label py-8">No entries yet</p>
 	{/each}
 </div>

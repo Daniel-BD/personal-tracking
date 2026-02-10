@@ -131,19 +131,19 @@
 </script>
 
 <div class="space-y-4">
-	<h2 class="text-2xl font-bold text-gray-900">Log</h2>
+	<h2 class="text-2xl font-bold text-heading">Log</h2>
 
 	<!-- Filters Section -->
-	<div class="bg-white rounded-lg shadow">
+	<div class="card">
 		<!-- Type Filter & Filter Toggle -->
-		<div class="p-3 border-b border-gray-100">
+		<div class="p-3 border-b border-[var(--border-subtle)]">
 			<div class="flex items-center gap-3">
 				<div class="flex-1">
 					<SegmentedControl
 						options={[
-							{ value: 'all', label: 'All', activeClass: 'bg-gray-700 text-white' },
-							{ value: 'activity', label: 'Activities', activeClass: 'bg-blue-600 text-white' },
-							{ value: 'food', label: 'Food', activeClass: 'bg-green-600 text-white' }
+							{ value: 'all', label: 'All', activeClass: 'bg-[var(--text-secondary)] text-white' },
+							{ value: 'activity', label: 'Activities', activeClass: 'type-activity' },
+							{ value: 'food', label: 'Food', activeClass: 'type-food' }
 						]}
 						value={typeFilter}
 						onchange={(v) => handleTypeChange(v)}
@@ -152,14 +152,14 @@
 				<button
 					type="button"
 					onclick={() => (showFilters = !showFilters)}
-					class="relative flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-colors {showFilters || activeFilterCount > 0 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'}"
+					class="relative flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-colors {showFilters || activeFilterCount > 0 ? 'bg-[var(--color-activity-bg)] border-[var(--color-activity-border)] text-[var(--color-activity-text)]' : 'bg-[var(--bg-inset)] border-[var(--border-default)] text-label hover:bg-[var(--bg-card-hover)]'}"
 				>
 					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
 					</svg>
 					<span class="text-sm font-medium">Filters</span>
 					{#if activeFilterCount > 0}
-						<span class="flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-blue-600 rounded-full">
+						<span class="flex items-center justify-center w-5 h-5 text-xs font-bold text-white rounded-full" style="background: var(--color-activity);">
 							{activeFilterCount}
 						</span>
 					{/if}
@@ -169,13 +169,13 @@
 
 		<!-- Expandable Filter Panel -->
 		{#if showFilters}
-			<div class="p-3 space-y-4 border-b border-gray-100 bg-gray-50">
+			<div class="p-3 space-y-4 border-b border-[var(--border-subtle)] bg-[var(--bg-inset)]">
 				{#if activeFilterCount > 0}
 					<div class="flex justify-end">
 						<button
 							type="button"
 							onclick={clearAllFilters}
-							class="text-sm text-blue-600 hover:text-blue-800"
+							class="text-sm text-[var(--color-activity)] hover:text-[var(--color-activity-hover)]"
 						>
 							Clear all filters
 						</button>
@@ -205,21 +205,21 @@
 				{/if}
 
 				{#if categoryOptions.length === 0 && itemOptions.length === 0}
-					<p class="text-sm text-gray-500 text-center py-2">
-						No categories or items to filter by. <a href="{base}/library" class="text-blue-600 hover:underline">Add some in the Library</a>
+					<p class="text-sm text-label text-center py-2">
+						No categories or items to filter by. <a href="{base}/library" class="text-[var(--color-activity)] hover:underline">Add some in the Library</a>
 					</p>
 				{/if}
 			</div>
 		{/if}
 
 		<!-- Results Count -->
-		<div class="px-3 py-2 flex items-center justify-between text-sm text-gray-500">
+		<div class="px-3 py-2 flex items-center justify-between text-sm text-label">
 			<span>{filteredEntries().length} {entryLabel}</span>
 			{#if activeFilterCount > 0 && !showFilters}
 				<button
 					type="button"
 					onclick={clearAllFilters}
-					class="text-blue-600 hover:text-blue-800"
+					class="text-[var(--color-activity)] hover:text-[var(--color-activity-hover)]"
 				>
 					Clear filters
 				</button>
@@ -230,24 +230,24 @@
 	<!-- Entries List -->
 	{#if !hasItems}
 		<div class="text-center py-8">
-			<p class="text-gray-500 mb-4">No items yet</p>
-			<a href="{base}/library" class="text-blue-600 hover:underline">
+			<p class="text-label mb-4">No items yet</p>
+			<a href="{base}/library" class="text-[var(--color-activity)] hover:underline">
 				Add some in the Library
 			</a>
 		</div>
 	{:else if filteredEntries().length === 0}
 		<div class="text-center py-8">
-			<p class="text-gray-500 mb-2">No entries match your filters</p>
+			<p class="text-label mb-2">No entries match your filters</p>
 			{#if activeFilterCount > 0}
 				<button
 					type="button"
 					onclick={clearAllFilters}
-					class="text-blue-600 hover:underline"
+					class="text-[var(--color-activity)] hover:underline"
 				>
 					Clear all filters
 				</button>
 			{:else}
-				<p class="text-gray-400 text-sm">Log entries from the Home page</p>
+				<p class="text-subtle text-sm">Log entries from the Home page</p>
 			{/if}
 		</div>
 	{:else}

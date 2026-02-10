@@ -69,7 +69,7 @@ export function getCurrentTime(): string {
 
 // Entry type display utilities
 export function getTypeColor(type: EntryType): string {
-	return type === 'activity' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white';
+	return type === 'activity' ? 'type-activity' : 'type-food';
 }
 
 export function getTypeLabel(type: EntryType): string {
@@ -81,7 +81,7 @@ export function getTypeIcon(type: EntryType): string {
 }
 
 export function getTypeColorMuted(type: EntryType): string {
-	return type === 'activity' ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200';
+	return type === 'activity' ? 'type-activity-muted' : 'type-food-muted';
 }
 
 // Collection accessor helpers

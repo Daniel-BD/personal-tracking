@@ -45,15 +45,15 @@
 </script>
 
 <div class="space-y-2">
-	<div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+	<div class="flex items-center gap-1 bg-[var(--bg-inset)] rounded-lg p-1">
 		{#each options as option}
 			<button
 				type="button"
 				onclick={() => selectPreset(option.type)}
 				class="flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors {value.type ===
 				option.type
-					? 'bg-white text-gray-900 shadow-sm'
-					: 'text-gray-600 hover:text-gray-900'}"
+					? 'bg-[var(--bg-card)] text-heading shadow-sm'
+					: 'text-label hover:text-heading'}"
 			>
 				{option.label}
 			</button>
@@ -62,21 +62,21 @@
 			type="button"
 			onclick={toggleCustom}
 			class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors {value.type === 'custom'
-				? 'bg-white text-gray-900 shadow-sm'
-				: 'text-gray-600 hover:text-gray-900'}"
+				? 'bg-[var(--bg-card)] text-heading shadow-sm'
+				: 'text-label hover:text-heading'}"
 		>
 			Custom
 		</button>
 	</div>
 
 	{#if showCustom}
-		<div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+		<div class="flex items-center gap-2 p-3 bg-[var(--bg-inset)] rounded-lg">
 			<input
 				type="date"
 				bind:value={customStart}
 				class="form-input-sm flex-1"
 			/>
-			<span class="text-gray-400">to</span>
+			<span class="text-subtle">to</span>
 			<input
 				type="date"
 				bind:value={customEnd}

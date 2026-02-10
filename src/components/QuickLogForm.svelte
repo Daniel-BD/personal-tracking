@@ -121,23 +121,23 @@
 	}
 </script>
 
-<div class="bg-white rounded-lg shadow p-4 space-y-4">
+<div class="card p-4 space-y-4">
 	{#if showNewItemForm}
 		<div class="space-y-4">
 			{#if !newItemType}
-				<h3 class="font-semibold text-gray-800">What type of item?</h3>
+				<h3 class="font-semibold text-heading">What type of item?</h3>
 				<div class="flex gap-2">
 					<button
 						type="button"
 						onclick={() => handleSelectNewItemType('activity')}
-						class="flex-1 py-3 px-4 rounded-lg font-medium text-lg bg-blue-600 text-white hover:bg-blue-700"
+						class="flex-1 py-3 px-4 rounded-lg font-medium text-lg type-activity hover:opacity-90"
 					>
 						🏃 Activity
 					</button>
 					<button
 						type="button"
 						onclick={() => handleSelectNewItemType('food')}
-						class="flex-1 py-3 px-4 rounded-lg font-medium text-lg bg-green-600 text-white hover:bg-green-700"
+						class="flex-1 py-3 px-4 rounded-lg font-medium text-lg type-food hover:opacity-90"
 					>
 						🍽️ Food
 					</button>
@@ -146,7 +146,7 @@
 					Cancel
 				</button>
 			{:else}
-				<h3 class="font-semibold text-gray-800">
+				<h3 class="font-semibold text-heading">
 					Create New {newItemType === 'activity' ? 'Activity' : 'Food'} Item
 				</h3>
 
@@ -209,7 +209,7 @@
 
 			<div>
 				<label for="time" class="form-label">
-					Time <span class="text-gray-400 font-normal">(optional)</span>
+					Time <span class="text-subtle font-normal">(optional)</span>
 				</label>
 				<div class="relative">
 					<input id="time" type="time" bind:value={time} class="form-input {time ? 'pr-8' : ''}" />
@@ -217,7 +217,7 @@
 						<button
 							type="button"
 							onclick={clearTime}
-							class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg"
+							class="absolute right-2 top-1/2 -translate-y-1/2 text-subtle hover:text-body text-lg"
 							aria-label="Clear time"
 						>
 							&times;
@@ -228,7 +228,7 @@
 
 			<div>
 				<label for="notes" class="form-label">
-					Notes <span class="text-gray-400 font-normal">(optional)</span>
+					Notes <span class="text-subtle font-normal">(optional)</span>
 				</label>
 				<input
 					id="notes"
@@ -240,7 +240,7 @@
 			</div>
 
 			<div>
-				<label class="flex items-center gap-2 text-sm text-gray-700">
+				<label class="flex items-center gap-2 text-sm text-body">
 					<input type="checkbox" bind:checked={useOverrides} class="rounded" />
 					<span>Override categories for this entry</span>
 				</label>
@@ -257,7 +257,7 @@
 				{/if}
 			</div>
 
-			<button type="button" onclick={handleSubmit} class="w-full btn-lg {getTypeColor(selectedUnified.type)}">
+			<button type="button" onclick={handleSubmit} class="w-full btn-lg rounded-md font-medium transition-colors {getTypeColor(selectedUnified.type)}">
 				Log {getTypeLabel(selectedUnified.type)}
 			</button>
 		{/if}

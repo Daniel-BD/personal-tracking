@@ -94,12 +94,12 @@
 	{#if selectedCategories.length > 0}
 		<div class="flex flex-wrap gap-2">
 			{#each selectedCategories as category}
-				<span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+				<span class="inline-flex items-center gap-1 bg-[var(--color-activity-bg-strong)] text-[var(--color-activity-text)] px-2 py-1 rounded-full text-sm">
 					{category.name}
 					<button
 						type="button"
 						onclick={() => removeCategory(category.id)}
-						class="hover:text-blue-600"
+						class="hover:text-[var(--color-activity)]"
 					>
 						×
 					</button>
@@ -134,15 +134,15 @@
 				<button
 					type="button"
 					onclick={() => toggleCategory(category.id)}
-					class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs hover:bg-gray-200"
+					class="px-2 py-1 bg-[var(--bg-inset)] text-label rounded text-xs hover:bg-[var(--bg-card-hover)]"
 				>
 					+ {category.name}
 				</button>
 			{/each}
 		</div>
 	{:else if selectedCategories.length === 0 && !type}
-		<p class="text-xs text-gray-400">No categories available. Create categories in the Library.</p>
+		<p class="text-xs text-subtle">No categories available. Create categories in the Library.</p>
 	{:else if searchText.trim() && filteredCategories.length === 0}
-		<p class="text-xs text-gray-400">No matching categories. Click "Add" to create "{searchText.trim()}".</p>
+		<p class="text-xs text-subtle">No matching categories. Click "Add" to create "{searchText.trim()}".</p>
 	{/if}
 </div>

@@ -80,9 +80,9 @@
 			<div class="flex items-center gap-2">
 				<span>{getTypeIcon(selectedItem.type)}</span>
 				<div>
-					<span class="font-medium">{selectedItem.item.name}</span>
+					<span class="font-medium text-heading">{selectedItem.item.name}</span>
 					{#if selectedItem.item.categories.length > 0}
-						<div class="text-xs text-gray-500 mt-0.5">
+						<div class="text-xs text-label mt-0.5">
 							{getCategoryNames(selectedItem.item.categories, selectedItem.type)}
 						</div>
 					{/if}
@@ -91,7 +91,7 @@
 			<button
 				type="button"
 				onclick={handleClear}
-				class="text-gray-400 hover:text-gray-600 text-xl"
+				class="text-subtle hover:text-body text-xl"
 			>
 				&times;
 			</button>
@@ -107,19 +107,19 @@
 		/>
 
 		{#if showDropdown}
-			<div class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+			<div class="absolute z-10 w-full mt-1 bg-[var(--bg-elevated)] border border-[var(--border-default)] rounded-md shadow-[var(--shadow-elevated)] max-h-60 overflow-y-auto">
 				{#each filteredItems as unified}
 					<button
 						type="button"
 						onclick={() => handleSelect(unified)}
-						class="w-full text-left px-3 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+						class="w-full text-left px-3 py-2 hover:bg-[var(--bg-card-hover)] border-b border-[var(--border-subtle)] last:border-b-0"
 					>
 						<div class="flex items-center gap-2">
 							<span class="text-sm">{getTypeIcon(unified.type)}</span>
 							<div class="flex-1 min-w-0">
-								<div class="font-medium">{unified.item.name}</div>
+								<div class="font-medium text-heading">{unified.item.name}</div>
 								{#if unified.item.categories.length > 0}
-									<div class="text-xs text-gray-500 truncate">
+									<div class="text-xs text-label truncate">
 										{getCategoryNames(unified.item.categories, unified.type)}
 									</div>
 								{/if}
@@ -132,7 +132,7 @@
 					<button
 						type="button"
 						onclick={() => oncreate(searchQuery)}
-						class="w-full text-left px-3 py-2 text-blue-600 hover:bg-blue-50 flex items-center gap-2"
+						class="w-full text-left px-3 py-2 text-[var(--color-activity)] hover:bg-[var(--color-activity-bg)] flex items-center gap-2"
 					>
 						<span>+</span>
 						<span>Create new item{searchQuery ? `: "${searchQuery}"` : ''}</span>

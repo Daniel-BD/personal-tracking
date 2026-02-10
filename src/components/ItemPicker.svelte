@@ -50,11 +50,11 @@
 
 <div class="relative">
 	{#if selectedItem}
-		<div class="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-md">
+		<div class="flex items-center justify-between p-3 bg-[var(--color-activity-bg)] border border-[var(--color-activity-border)] rounded-md">
 			<div>
-				<span class="font-medium">{selectedItem.name}</span>
+				<span class="font-medium text-heading">{selectedItem.name}</span>
 				{#if selectedItem.categories.length > 0}
-					<div class="text-xs text-gray-500 mt-1">
+					<div class="text-xs text-label mt-1">
 						{getCategoryNames(selectedItem.categories)}
 					</div>
 				{/if}
@@ -62,7 +62,7 @@
 			<button
 				type="button"
 				onclick={() => onselect({ id: '', name: '', categories: [] } as ActivityItem)}
-				class="text-gray-400 hover:text-gray-600"
+				class="text-subtle hover:text-body"
 			>
 				×
 			</button>
@@ -78,16 +78,16 @@
 		/>
 
 		{#if showDropdown}
-			<div class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+			<div class="absolute z-10 w-full mt-1 bg-[var(--bg-elevated)] border border-[var(--border-default)] rounded-md shadow-[var(--shadow-elevated)] max-h-60 overflow-y-auto">
 				{#each filteredItems as item}
 					<button
 						type="button"
 						onclick={() => handleSelect(item)}
-						class="w-full text-left px-3 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+						class="w-full text-left px-3 py-2 hover:bg-[var(--bg-card-hover)] border-b border-[var(--border-subtle)] last:border-b-0"
 					>
-						<div class="font-medium">{item.name}</div>
+						<div class="font-medium text-heading">{item.name}</div>
 						{#if item.categories.length > 0}
-							<div class="text-xs text-gray-500">
+							<div class="text-xs text-label">
 								{getCategoryNames(item.categories)}
 							</div>
 						{/if}
@@ -98,7 +98,7 @@
 					<button
 						type="button"
 						onclick={() => oncreate(searchQuery)}
-						class="w-full text-left px-3 py-2 text-blue-600 hover:bg-blue-50 flex items-center gap-2"
+						class="w-full text-left px-3 py-2 text-[var(--color-activity)] hover:bg-[var(--color-activity-bg)] flex items-center gap-2"
 					>
 						<span>+</span>
 						<span>Create new item{searchQuery ? `: "${searchQuery}"` : ''}</span>
