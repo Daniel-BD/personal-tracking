@@ -3,7 +3,6 @@ import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 
 import type { WeeklyData } from '../lib/stats';
 import {
 	calculateBalanceScore,
-	calculateAverageBalanceScore,
 	getScoreChange,
 	formatWeekLabel
 } from '../lib/stats';

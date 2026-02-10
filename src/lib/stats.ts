@@ -1,6 +1,6 @@
 import type { Entry, TrackerData } from './types';
 import { getCategories } from './types';
-import { getCategoryNameById, getEntryCategoryIds, filterEntriesByType } from './analysis';
+import { getCategoryNameById, getEntryCategoryIds, filterEntriesByType, formatWeekLabel as formatWeekLabelFromString } from './analysis';
 
 export type PeriodType = 'weekly' | 'monthly';
 
@@ -161,43 +161,12 @@ export function processFoodEntriesByWeek(
 }
 
 /**
- * Get percentage distribution for sentiment groups
- */
-export function calculateSentimentRatios(
-	weeklyData: WeeklyData
-): { positive: number; neutral: number; limit: number } {
-	const total =
-		weeklyData.sentimentCounts.positive +
-		weeklyData.sentimentCounts.neutral +
-		weeklyData.sentimentCounts.limit;
-
-	if (total === 0) {
-		return { positive: 0, neutral: 0, limit: 0 };
-	}
-
-	return {
-		positive: (weeklyData.sentimentCounts.positive / total) * 100,
-		neutral: (weeklyData.sentimentCounts.neutral / total) * 100,
-		limit: (weeklyData.sentimentCounts.limit / total) * 100
-	};
-}
-
-/**
  * Calculate balance score for a week
  */
 export function calculateBalanceScore(weeklyData: WeeklyData): number {
 	const { positive, limit } = weeklyData.sentimentCounts;
 	if (positive + limit === 0) return 0;
 	return (positive / (positive + limit)) * 100;
-}
-
-/**
- * Calculate average balance score across weeks
- */
-export function calculateAverageBalanceScore(allWeeklyData: WeeklyData[]): number {
-	if (allWeeklyData.length === 0) return 0;
-	const scores = allWeeklyData.map(calculateBalanceScore);
-	return scores.reduce((a, b) => a + b, 0) / scores.length;
 }
 
 /**
@@ -237,19 +206,6 @@ export function getTopCategories(
 		.map(([catId]) => catId);
 }
 
-/**
- * Generate a deterministic color for a category
- */
-function hashCode(str: string): number {
-	let hash = 0;
-	for (let i = 0; i < str.length; i++) {
-		const char = str.charCodeAt(i);
-		hash = (hash << 5) - hash + char;
-		hash = hash & hash;
-	}
-	return Math.abs(hash);
-}
-
 const COLOR_PALETTE = [
 	'#3b82f6', // blue
 	'#ef4444', // red
@@ -263,20 +219,14 @@ const COLOR_PALETTE = [
 ];
 
 /**
- * Assign a persistent color to a category based on its ID
- */
-export function getCategoryColor(categoryId: string): string {
-	const hash = hashCode(categoryId);
-	return COLOR_PALETTE[hash % COLOR_PALETTE.length];
-}
-
-/**
- * Get all unique categories for coloring
+ * Assign colors to top categories by rank order to guarantee unique colors.
+ * Categories are ordered by frequency (from getTopCategories), so the most
+ * common category always gets the first palette color.
  */
 export function buildCategoryColorMap(topCategoryIds: string[]): Map<string, string> {
 	const map = new Map<string, string>();
-	topCategoryIds.forEach((catId) => {
-		map.set(catId, getCategoryColor(catId));
+	topCategoryIds.forEach((catId, index) => {
+		map.set(catId, COLOR_PALETTE[index % COLOR_PALETTE.length]);
 	});
 	map.set('OTHER', '#d1d5db'); // gray for "Other"
 	return map;
@@ -323,8 +273,8 @@ export function groupCategoriesForWeek(
  * Format week label like "Jan 15"
  */
 export function formatWeekLabel(start: Date): string {
-	return start.toLocaleDateString('en-US', {
-		month: 'short',
-		day: 'numeric'
-	});
+	const year = start.getFullYear();
+	const month = String(start.getMonth() + 1).padStart(2, '0');
+	const day = String(start.getDate()).padStart(2, '0');
+	return formatWeekLabelFromString(`${year}-${month}-${day}`);
 }
