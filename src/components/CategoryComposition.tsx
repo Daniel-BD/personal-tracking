@@ -7,6 +7,7 @@ import {
 	groupCategoriesForWeek,
 	formatWeekLabel
 } from '../lib/stats';
+import { useIsMobile } from '../lib/hooks';
 
 interface CategoryCompositionProps {
 	weeklyData: WeeklyData[];
@@ -63,6 +64,8 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 		return map;
 	}, [weeklyData]);
 
+	const isMobile = useIsMobile();
+
 	const handleBarClick = (data: any) => {
 		const week = weeklyData.find((w) => w.weekKey === data.weekKey);
 		if (week) {
@@ -72,13 +75,16 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 
 	return (
 		<>
-			<div className="card p-6 space-y-4">
+			<div className="card p-4 sm:p-6 space-y-4">
 				<h3 className="text-lg font-semibold">Category Composition</h3>
 				<ResponsiveContainer width="100%" height={280}>
 					<BarChart
 						data={chartData}
 						layout="vertical"
-						margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+						margin={isMobile
+							? { top: 5, right: 10, left: 5, bottom: 5 }
+							: { top: 5, right: 30, left: 80, bottom: 5 }
+						}
 						onClick={(state) => {
 							if (state.isTooltipActive && typeof state.activeTooltipIndex === 'number') {
 								handleBarClick(chartData[state.activeTooltipIndex]);
@@ -89,7 +95,7 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 						<YAxis
 							dataKey="week"
 							type="category"
-							width={75}
+							width={isMobile ? 50 : 75}
 							tick={{ fontSize: 12 }}
 						/>
 						<Tooltip
