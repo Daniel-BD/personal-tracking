@@ -1,6 +1,9 @@
+export type CategorySentiment = 'positive' | 'neutral' | 'limit';
+
 export interface Category {
 	id: string;
 	name: string;
+	sentiment: CategorySentiment;
 }
 
 export interface Item {

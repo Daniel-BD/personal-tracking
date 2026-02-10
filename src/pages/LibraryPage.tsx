@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import type { Item, Category } from '../lib/types';
+import type { Item, Category, CategorySentiment } from '../lib/types';
 import { useTrackerData } from '../lib/hooks';
 import {
 	addItem,
@@ -12,6 +12,37 @@ import {
 } from '../lib/store';
 import CategoryPicker from '../components/CategoryPicker';
 import SegmentedControl from '../components/SegmentedControl';
+
+const SENTIMENT_OPTIONS: { value: CategorySentiment; label: string }[] = [
+	{ value: 'positive', label: 'Positive' },
+	{ value: 'neutral', label: 'Neutral' },
+	{ value: 'limit', label: 'Limit' },
+];
+
+function SentimentPicker({ value, onChange }: { value: CategorySentiment; onChange: (s: CategorySentiment) => void }) {
+	return (
+		<div className="flex gap-1">
+			{SENTIMENT_OPTIONS.map((opt) => (
+				<button
+					key={opt.value}
+					type="button"
+					onClick={() => onChange(opt.value)}
+					className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+						value === opt.value
+							? opt.value === 'positive'
+								? 'bg-green-600 text-white'
+								: opt.value === 'limit'
+									? 'bg-red-600 text-white'
+									: 'bg-[var(--bg-inset)] text-heading ring-1 ring-[var(--border-input)]'
+							: 'bg-[var(--bg-inset)] text-label hover:bg-[var(--bg-card-hover)]'
+					}`}
+				>
+					{opt.label}
+				</button>
+			))}
+		</div>
+	);
+}
 
 export default function LibraryPage() {
 	const data = useTrackerData();
@@ -26,8 +57,10 @@ export default function LibraryPage() {
 
 	const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
 	const [editingCategoryName, setEditingCategoryName] = useState('');
+	const [editingCategorySentiment, setEditingCategorySentiment] = useState<CategorySentiment>('neutral');
 	const [showAddCategoryForm, setShowAddCategoryForm] = useState(false);
 	const [newCategoryName, setNewCategoryName] = useState('');
+	const [newCategorySentiment, setNewCategorySentiment] = useState<CategorySentiment>('neutral');
 
 	function handleAddItem() {
 		if (!newItemName.trim()) return;
@@ -58,26 +91,30 @@ export default function LibraryPage() {
 
 	function handleAddCategory_() {
 		if (!newCategoryName.trim()) return;
-		addCategory(activeTab, newCategoryName.trim());
+		addCategory(activeTab, newCategoryName.trim(), newCategorySentiment);
 		setNewCategoryName('');
+		setNewCategorySentiment('neutral');
 		setShowAddCategoryForm(false);
 	}
 
 	function handleEditCategory(category: Category) {
 		setEditingCategoryId(category.id);
 		setEditingCategoryName(category.name);
+		setEditingCategorySentiment(category.sentiment ?? 'neutral');
 	}
 
 	function handleSaveCategoryEdit() {
 		if (!editingCategoryId || !editingCategoryName.trim()) return;
-		updateCategory(activeTab, editingCategoryId, editingCategoryName.trim());
+		updateCategory(activeTab, editingCategoryId, editingCategoryName.trim(), editingCategorySentiment);
 		setEditingCategoryId(null);
 		setEditingCategoryName('');
+		setEditingCategorySentiment('neutral');
 	}
 
 	function handleCancelCategoryEdit() {
 		setEditingCategoryId(null);
 		setEditingCategoryName('');
+		setEditingCategorySentiment('neutral');
 	}
 
 	function handleDeleteCategory_(categoryId: string) {
@@ -323,6 +360,11 @@ export default function LibraryPage() {
 								/>
 							</div>
 
+							<div>
+								<label className="form-label">Sentiment</label>
+								<SentimentPicker value={newCategorySentiment} onChange={setNewCategorySentiment} />
+							</div>
+
 							<div className="flex gap-2">
 								<button
 									onClick={handleAddCategory_}
@@ -365,6 +407,10 @@ export default function LibraryPage() {
 											onChange={(e) => setEditingCategoryName(e.target.value)}
 											className="form-input"
 										/>
+										<div>
+											<label className="form-label">Sentiment</label>
+											<SentimentPicker value={editingCategorySentiment} onChange={setEditingCategorySentiment} />
+										</div>
 										<div className="flex gap-2">
 											<button
 												onClick={handleSaveCategoryEdit}
@@ -381,7 +427,18 @@ export default function LibraryPage() {
 								) : (
 									<div key={category.id} className="card p-4 flex items-start justify-between">
 										<div className="flex-1">
-											<div className="font-medium text-heading">{category.name}</div>
+											<div className="font-medium text-heading">
+												{category.name}
+												{category.sentiment && category.sentiment !== 'neutral' && (
+													<span className={`ml-2 text-xs font-medium px-1.5 py-0.5 rounded-full ${
+														category.sentiment === 'positive'
+															? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+															: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+													}`}>
+														{category.sentiment}
+													</span>
+												)}
+											</div>
 											<div className="text-xs text-subtle mt-1">
 												Used by {getItemCountForCategory(category.id)} item{getItemCountForCategory(category.id) !== 1 ? 's' : ''}
 											</div>
