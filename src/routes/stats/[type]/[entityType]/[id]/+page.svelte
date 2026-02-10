@@ -133,14 +133,14 @@
 <div class="space-y-6">
 	<!-- Header -->
 	<div>
-		<a href="{base}/stats" class="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-flex items-center gap-1">
+		<a href="{base}/stats" class="text-sm text-label hover:text-body mb-2 inline-flex items-center gap-1">
 			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
 			</svg>
 			Back to Overview
 		</a>
-		<h2 class="text-2xl font-bold text-gray-900">{entityName}</h2>
-		<p class="text-sm text-gray-500">{subtitle()}</p>
+		<h2 class="text-2xl font-bold text-heading">{entityName}</h2>
+		<p class="text-sm text-label">{subtitle()}</p>
 	</div>
 
 	<!-- Time Range Selector -->
@@ -150,11 +150,11 @@
 	<StatsRow {stats} />
 
 	<!-- Chart Controls -->
-	<div class="bg-white rounded-lg shadow p-4 space-y-4">
+	<div class="card p-4 space-y-4">
 		<div class="flex flex-wrap gap-4 items-center justify-between">
 			<!-- Grouping selector -->
 			<div class="flex items-center gap-2">
-				<span class="text-sm text-gray-500">Group by:</span>
+				<span class="text-sm text-label">Group by:</span>
 				<SegmentedControl
 					options={[
 						{ value: 'daily', label: 'Daily' },
@@ -171,7 +171,7 @@
 			<!-- Chart type toggle (only when not cumulative) -->
 			{#if !isCumulative}
 				<div class="flex items-center gap-2">
-					<span class="text-sm text-gray-500">Chart:</span>
+					<span class="text-sm text-label">Chart:</span>
 					<SegmentedControl
 						options={[
 							{ value: 'bar', label: 'Bar' },
@@ -194,15 +194,15 @@
 					type="checkbox"
 					checked={isCumulative}
 					onchange={handleCumulativeToggle}
-					class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+					class="w-4 h-4 rounded border-[var(--border-input)] text-[var(--color-activity)] focus:ring-[var(--color-activity)]"
 				/>
-				<span class="text-sm text-gray-700">Show cumulative</span>
+				<span class="text-sm text-body">Show cumulative</span>
 			</label>
 
 			<!-- Rolling average toggle (only for line charts) -->
 			{#if effectiveChartType === 'line'}
 				<div class="flex items-center gap-2">
-					<span class="text-sm text-gray-500">Smooth trend:</span>
+					<span class="text-sm text-label">Smooth trend:</span>
 					<select
 						bind:value={rollingAverage}
 						class="form-input-sm py-1"
@@ -225,8 +225,8 @@
 	/>
 
 	<!-- Comparison Section -->
-	<div class="bg-white rounded-lg shadow p-4">
-		<h3 class="text-sm font-medium text-gray-500 mb-3">Compare</h3>
+	<div class="card p-4">
+		<h3 class="text-sm font-medium text-label mb-3">Compare</h3>
 		<ComparisonSelector
 			availableEntities={availableForComparison}
 			selectedEntities={comparisonEntities}
@@ -234,7 +234,7 @@
 			onchange={handleComparisonChange}
 		/>
 		{#if comparisonEntities.length === 0}
-			<p class="text-sm text-gray-400 mt-2">
+			<p class="text-sm text-subtle mt-2">
 				Select other items or categories to compare with {entityName}
 			</p>
 		{/if}

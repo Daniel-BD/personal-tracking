@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { getConfig, saveConfig, validateToken, createGist, listUserGists } from '$lib/github';
 	import { loadFromGist, exportData, importData, backupToGist, restoreFromBackupGist } from '$lib/store';
+	import { getStoredTheme, storeTheme, applyTheme, type ThemePreference } from '$lib/theme';
+	import SegmentedControl from '../../components/SegmentedControl.svelte';
 
 	let token = $state(getConfig().token);
 	let gistId = $state(getConfig().gistId || '');
@@ -12,6 +14,13 @@
 	let gistSelectMode = $state<'primary' | 'backup'>('primary');
 	let backupStatus = $state<'idle' | 'backing-up' | 'restoring' | 'success' | 'error'>('idle');
 	let backupMessage = $state('');
+	let themePreference = $state<ThemePreference>(getStoredTheme());
+
+	function handleThemeChange(value: ThemePreference) {
+		themePreference = value;
+		storeTheme(value);
+		applyTheme(value);
+	}
 
 	async function handleValidate() {
 		if (!token.trim()) {
@@ -208,18 +217,34 @@
 </script>
 
 <div class="space-y-6">
-	<h2 class="text-2xl font-bold text-gray-900">Settings</h2>
+	<h2 class="text-2xl font-bold text-heading">Settings</h2>
 
-	<div class="bg-white rounded-lg shadow p-6 space-y-4">
-		<h3 class="text-lg font-semibold text-gray-800">GitHub Gist Configuration</h3>
+	<!-- Theme Section -->
+	<div class="card p-6 space-y-4">
+		<h3 class="text-lg font-semibold text-heading">Appearance</h3>
+		<p class="text-sm text-body">Choose your preferred color scheme.</p>
+		<SegmentedControl
+			options={[
+				{ value: 'light', label: 'Light' },
+				{ value: 'dark', label: 'Dark' },
+				{ value: 'system', label: 'System' }
+			]}
+			value={themePreference}
+			onchange={handleThemeChange}
+			variant="segment"
+		/>
+	</div>
 
-		<p class="text-sm text-gray-600">
+	<div class="card p-6 space-y-4">
+		<h3 class="text-lg font-semibold text-heading">GitHub Gist Configuration</h3>
+
+		<p class="text-sm text-body">
 			Your data is stored in a private GitHub Gist. You'll need a GitHub Personal Access Token with
-			<code class="bg-gray-100 px-1 rounded">gist</code> scope.
+			<code class="bg-[var(--bg-inset)] px-1 rounded text-heading">gist</code> scope.
 		</p>
 
 		<div class="space-y-2">
-			<label for="token" class="block text-sm font-medium text-gray-700">
+			<label for="token" class="form-label">
 				GitHub Personal Access Token
 			</label>
 			<input
@@ -227,44 +252,44 @@
 				type="password"
 				bind:value={token}
 				placeholder="ghp_xxxxxxxxxxxx"
-				class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				class="form-input"
 			/>
 			<button
 				onclick={handleValidate}
 				disabled={status === 'validating'}
-				class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
+				class="w-full btn-primary"
 			>
 				{status === 'validating' ? 'Validating...' : 'Validate Token'}
 			</button>
 		</div>
 
 		{#if status === 'valid' || gistId}
-			<div class="border-t pt-4 space-y-2">
-				<label for="gistId" class="block text-sm font-medium text-gray-700"> Gist ID </label>
+			<div class="border-t border-[var(--border-default)] pt-4 space-y-2">
+				<label for="gistId" class="form-label">Gist ID</label>
 				<input
 					id="gistId"
 					type="text"
 					bind:value={gistId}
 					placeholder="Enter Gist ID or select/create below"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="form-input"
 				/>
 
 				<div class="flex gap-2">
 					<button
 						onclick={handleSaveGistId}
-						class="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700"
+						class="flex-1 btn-success"
 					>
 						Save & Load
 					</button>
 					<button
 						onclick={handleLoadGists}
-						class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700"
+						class="flex-1 btn-secondary"
 					>
 						Browse Gists
 					</button>
 					<button
 						onclick={handleCreateGist}
-						class="flex-1 bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700"
+						class="flex-1 btn-primary"
 					>
 						Create New
 					</button>
@@ -273,28 +298,28 @@
 		{/if}
 
 		{#if showGistList && existingGists.length > 0}
-			<div class="border-t pt-4">
-				<h4 class="text-sm font-medium text-gray-700 mb-2">
+			<div class="border-t border-[var(--border-default)] pt-4">
+				<h4 class="text-sm font-medium text-body mb-2">
 					{gistSelectMode === 'primary' ? 'Your Gists' : 'Select Backup Gist'}
 				</h4>
 				<div class="max-h-60 overflow-y-auto space-y-2">
 					{#each existingGists as gist}
 						<button
 							onclick={() => selectGist(gist.id)}
-							class="w-full text-left p-3 border rounded-md hover:bg-gray-50 {gist.files.includes(
+							class="w-full text-left p-3 border rounded-md hover:bg-[var(--bg-card-hover)] transition-colors {gist.files.includes(
 								'tracker-data.json'
 							)
-								? 'border-green-300 bg-green-50'
-								: 'border-gray-200'}"
+								? 'border-[var(--color-success-border)] bg-[var(--color-success-bg)]'
+								: 'border-[var(--border-default)]'}"
 						>
-							<div class="text-sm font-medium truncate">{gist.description}</div>
-							<div class="text-xs text-gray-500">{gist.id}</div>
-							<div class="text-xs text-gray-400">
+							<div class="text-sm font-medium truncate text-heading">{gist.description}</div>
+							<div class="text-xs text-label">{gist.id}</div>
+							<div class="text-xs text-subtle">
 								Files: {gist.files.slice(0, 3).join(', ')}
 								{gist.files.length > 3 ? '...' : ''}
 							</div>
 							{#if gist.files.includes('tracker-data.json')}
-								<span class="text-xs text-green-600">Contains tracker data</span>
+								<span class="text-xs" style="color: var(--color-success);">Contains tracker data</span>
 							{/if}
 						</button>
 					{/each}
@@ -304,7 +329,8 @@
 
 		{#if message}
 			<p
-				class="text-sm {status === 'invalid' ? 'text-red-600' : 'text-green-600'}"
+				class="text-sm"
+				style="color: var({status === 'invalid' ? '--color-danger' : '--color-success'});"
 			>
 				{message}
 			</p>
@@ -312,21 +338,21 @@
 	</div>
 
 	<!-- Export/Import Section -->
-	<div class="bg-white rounded-lg shadow p-6 space-y-4">
-		<h3 class="text-lg font-semibold text-gray-800">Export & Import</h3>
-		<p class="text-sm text-gray-600">
+	<div class="card p-6 space-y-4">
+		<h3 class="text-lg font-semibold text-heading">Export & Import</h3>
+		<p class="text-sm text-body">
 			Download your data as a JSON file for safekeeping, or restore from a previous backup.
 		</p>
 		<div class="flex gap-2">
 			<button
 				onclick={handleExport}
-				class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+				class="flex-1 btn-primary"
 			>
 				Export JSON
 			</button>
 			<button
 				onclick={handleImportClick}
-				class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700"
+				class="flex-1 btn-secondary"
 			>
 				Import JSON
 			</button>
@@ -342,14 +368,14 @@
 
 	<!-- Backup Gist Section -->
 	{#if token}
-		<div class="bg-white rounded-lg shadow p-6 space-y-4">
-			<h3 class="text-lg font-semibold text-gray-800">Backup Gist</h3>
-			<p class="text-sm text-gray-600">
+		<div class="card p-6 space-y-4">
+			<h3 class="text-lg font-semibold text-heading">Backup Gist</h3>
+			<p class="text-sm text-body">
 				Configure a secondary Gist for manual backups. Use this before making major changes.
 			</p>
 
 			<div class="space-y-2">
-				<label for="backupGistId" class="block text-sm font-medium text-gray-700">
+				<label for="backupGistId" class="form-label">
 					Backup Gist ID
 				</label>
 				<input
@@ -357,24 +383,24 @@
 					type="text"
 					bind:value={backupGistId}
 					placeholder="Enter backup Gist ID"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="form-input"
 				/>
 				<div class="flex gap-2">
 					<button
 						onclick={handleSaveBackupGistId}
-						class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700"
+						class="flex-1 btn-secondary"
 					>
 						Save
 					</button>
 					<button
 						onclick={handleBrowseGistsForBackup}
-						class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700"
+						class="flex-1 btn-secondary"
 					>
 						Browse
 					</button>
 					<button
 						onclick={handleCreateBackupGist}
-						class="flex-1 bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700"
+						class="flex-1 btn-primary"
 					>
 						Create New
 					</button>
@@ -382,19 +408,19 @@
 			</div>
 
 			{#if backupGistId}
-				<div class="border-t pt-4 space-y-2">
+				<div class="border-t border-[var(--border-default)] pt-4 space-y-2">
 					<div class="flex gap-2">
 						<button
 							onclick={handleBackupNow}
 							disabled={backupStatus === 'backing-up' || backupStatus === 'restoring'}
-							class="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 disabled:opacity-50"
+							class="flex-1 btn-success"
 						>
 							{backupStatus === 'backing-up' ? 'Backing up...' : 'Backup Now'}
 						</button>
 						<button
 							onclick={handleRestoreFromBackup}
 							disabled={backupStatus === 'backing-up' || backupStatus === 'restoring'}
-							class="flex-1 bg-orange-600 text-white py-2 px-4 rounded-md hover:bg-orange-700 disabled:opacity-50"
+							class="flex-1 btn-danger"
 						>
 							{backupStatus === 'restoring' ? 'Restoring...' : 'Restore from Backup'}
 						</button>
@@ -404,7 +430,8 @@
 
 			{#if backupMessage}
 				<p
-					class="text-sm {backupStatus === 'error' ? 'text-red-600' : 'text-green-600'}"
+					class="text-sm"
+					style="color: var({backupStatus === 'error' ? '--color-danger' : '--color-success'});"
 				>
 					{backupMessage}
 				</p>
@@ -412,9 +439,9 @@
 		</div>
 	{/if}
 
-	<div class="bg-white rounded-lg shadow p-6">
-		<h3 class="text-lg font-semibold text-gray-800 mb-4">How to get a GitHub Token</h3>
-		<ol class="text-sm text-gray-600 space-y-2 list-decimal list-inside">
+	<div class="card p-6">
+		<h3 class="text-lg font-semibold text-heading mb-4">How to get a GitHub Token</h3>
+		<ol class="text-sm text-body space-y-2 list-decimal list-inside">
 			<li>Go to GitHub Settings → Developer settings → Personal access tokens → Fine-grained tokens</li>
 			<li>Click "Generate new token"</li>
 			<li>Give it a name like "Activity Tracker"</li>

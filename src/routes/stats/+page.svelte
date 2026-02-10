@@ -97,8 +97,8 @@
 
 	const typeOptions = [
 		{ value: 'all' as const, label: 'All' },
-		{ value: 'activity' as const, label: 'Activities', activeClass: 'bg-blue-600 text-white' },
-		{ value: 'food' as const, label: 'Food', activeClass: 'bg-green-600 text-white' }
+		{ value: 'activity' as const, label: 'Activities', activeClass: 'type-activity' },
+		{ value: 'food' as const, label: 'Food', activeClass: 'type-food' }
 	];
 </script>
 
@@ -118,22 +118,22 @@
 	<!-- Period Summary Cards -->
 	<div class="grid grid-cols-2 gap-3">
 		{#if typeFilter !== 'food'}
-			<div class="bg-white rounded-lg shadow p-4">
-				<p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Activities</p>
-				<p class="text-2xl font-bold text-blue-600 mt-1">{activityCount}</p>
+			<div class="card p-4">
+				<p class="text-xs font-medium text-label uppercase tracking-wide">Activities</p>
+				<p class="text-2xl font-bold text-[var(--color-activity)] mt-1">{activityCount}</p>
 				{#if hasPreviousPeriod}
-					<p class="text-xs text-gray-500 mt-1">
+					<p class="text-xs text-label mt-1">
 						{formatChange(activityCount, prevActivityCount)} vs prev
 					</p>
 				{/if}
 			</div>
 		{/if}
 		{#if typeFilter !== 'activity'}
-			<div class="bg-white rounded-lg shadow p-4">
-				<p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Food</p>
-				<p class="text-2xl font-bold text-green-600 mt-1">{foodCount}</p>
+			<div class="card p-4">
+				<p class="text-xs font-medium text-label uppercase tracking-wide">Food</p>
+				<p class="text-2xl font-bold text-[var(--color-food)] mt-1">{foodCount}</p>
 				{#if hasPreviousPeriod}
-					<p class="text-xs text-gray-500 mt-1">
+					<p class="text-xs text-label mt-1">
 						{formatChange(foodCount, prevFoodCount)} vs prev
 					</p>
 				{/if}
@@ -158,35 +158,33 @@
 
 	<!-- Biggest Movers -->
 	{#if timeRange.type !== 'all' && movers().length > 0}
-		<div class="bg-white rounded-lg shadow p-4">
-			<h3 class="text-sm font-medium text-gray-500 mb-3">Biggest Movers</h3>
+		<div class="card p-4">
+			<h3 class="text-sm font-medium text-label mb-3">Biggest Movers</h3>
 			<ul class="space-y-2">
 				{#each movers() as mover}
 					<li>
 						<button
 							type="button"
 							onclick={() => navigateToEntity(mover.type, 'item', mover.id)}
-							class="w-full flex items-center gap-3 text-left p-2 -mx-2 rounded hover:bg-gray-50 transition-colors"
+							class="w-full flex items-center gap-3 text-left p-2 -mx-2 rounded hover:bg-[var(--bg-card-hover)] transition-colors"
 						>
 							<span
-								class="w-2.5 h-2.5 rounded-full shrink-0 {mover.type === 'activity'
-									? 'bg-blue-600'
-									: 'bg-green-600'}"
+								class="w-2.5 h-2.5 rounded-full shrink-0"
+								style="background: var({mover.type === 'activity' ? '--color-activity' : '--color-food'});"
 							></span>
-							<span class="flex-1 text-sm font-medium text-gray-900 truncate">{mover.name}</span>
-							<span class="text-xs text-gray-500 tabular-nums">
+							<span class="flex-1 text-sm font-medium text-heading truncate">{mover.name}</span>
+							<span class="text-xs text-label tabular-nums">
 								{mover.previousCount} → {mover.count}
 							</span>
 							{#if mover.percentChange !== null}
 								<span
-									class="text-xs font-medium tabular-nums {mover.percentChange >= 0
-										? 'text-green-600'
-										: 'text-red-500'}"
+									class="text-xs font-medium tabular-nums"
+									style="color: var({mover.percentChange >= 0 ? '--color-success' : '--color-danger'});"
 								>
 									{mover.percentChange >= 0 ? '+' : ''}{mover.percentChange}%
 								</span>
 							{:else}
-								<span class="text-xs font-medium text-blue-500">new</span>
+								<span class="text-xs font-medium text-[var(--color-activity)]">new</span>
 							{/if}
 						</button>
 					</li>

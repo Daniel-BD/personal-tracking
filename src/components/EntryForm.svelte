@@ -90,10 +90,10 @@
 	}
 </script>
 
-<div class="bg-white rounded-lg shadow p-4 space-y-4">
+<div class="card p-4 space-y-4">
 	{#if showNewItemForm}
 		<div class="space-y-4">
-			<h3 class="font-semibold text-gray-800">
+			<h3 class="font-semibold text-heading">
 				Create New {type === 'activity' ? 'Activity' : 'Food'} Item
 			</h3>
 
@@ -164,7 +164,7 @@
 
 			<div>
 				<label for="time" class="form-label">
-					Time <span class="text-gray-400 font-normal">(optional)</span>
+					Time <span class="text-subtle font-normal">(optional)</span>
 				</label>
 				<div class="relative">
 					<input
@@ -177,7 +177,7 @@
 						<button
 							type="button"
 							onclick={clearTime}
-							class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg"
+							class="absolute right-2 top-1/2 -translate-y-1/2 text-subtle hover:text-body text-lg"
 							aria-label="Clear time"
 						>
 							&times;
@@ -188,7 +188,7 @@
 
 			<div>
 				<label for="notes" class="form-label">
-					Notes <span class="text-gray-400 font-normal">(optional)</span>
+					Notes <span class="text-subtle font-normal">(optional)</span>
 				</label>
 				<input
 					id="notes"
@@ -200,7 +200,7 @@
 			</div>
 
 			<div>
-				<label class="flex items-center gap-2 text-sm text-gray-700">
+				<label class="flex items-center gap-2 text-sm text-body">
 					<input type="checkbox" bind:checked={useOverrides} class="rounded" />
 					<span>Override categories for this entry</span>
 				</label>

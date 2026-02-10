@@ -2,7 +2,7 @@
 	interface Option {
 		value: T;
 		label: string;
-		activeClass?: string; // Optional per-option active class (e.g., 'bg-blue-600 text-white')
+		activeClass?: string; // Optional per-option active class (e.g., 'type-activity')
 	}
 
 	interface Props {
@@ -26,21 +26,21 @@
 
 		if (variant === 'pill') {
 			if (isActive) {
-				return `${baseClass} ${option.activeClass || 'bg-gray-700 text-white'}`;
+				return `${baseClass} ${option.activeClass || 'bg-[var(--text-secondary)] text-white'}`;
 			}
-			return `${baseClass} bg-gray-200 text-gray-700`;
+			return `${baseClass} bg-[var(--bg-inset)] text-body`;
 		}
 
 		// segment variant
 		if (isActive) {
-			return `${baseClass} bg-white text-gray-900 shadow-sm`;
+			return `${baseClass} bg-[var(--bg-card)] text-heading shadow-sm`;
 		}
-		return `${baseClass} text-gray-600 hover:text-gray-900`;
+		return `${baseClass} text-label hover:text-heading`;
 	}
 </script>
 
 {#if variant === 'segment'}
-	<div class="flex gap-1 bg-gray-100 rounded-lg p-1">
+	<div class="flex gap-1 bg-[var(--bg-inset)] rounded-lg p-1">
 		{#each options as option}
 			<button
 				type="button"

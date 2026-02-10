@@ -95,38 +95,39 @@
 
 <div class="space-y-6">
 	{#if !configured}
-		<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-			<h2 class="font-semibold text-yellow-800">Setup Required</h2>
-			<p class="text-sm text-yellow-700 mt-1">
+		<div class="card p-4" style="background: var(--color-warning-bg); border-color: var(--color-warning-border);">
+			<h2 class="font-semibold" style="color: var(--color-warning-text);">Setup Required</h2>
+			<p class="text-sm mt-1" style="color: var(--color-warning-text); opacity: 0.85;">
 				Configure your GitHub token to start tracking.
 			</p>
 			<a
 				href="{base}/settings"
-				class="inline-block mt-2 bg-yellow-600 text-white px-4 py-2 rounded-md text-sm hover:bg-yellow-700"
+				class="inline-block mt-2 px-4 py-2 rounded-md text-sm font-medium text-white transition-colors"
+				style="background: var(--color-warning);"
 			>
 				Go to Settings
 			</a>
 		</div>
 	{:else}
 		<div class="flex justify-between items-center">
-			<h2 class="text-2xl font-bold text-gray-900">Quick Log</h2>
+			<h2 class="text-2xl font-bold text-heading">Quick Log</h2>
 			<button
 				onclick={handleRefresh}
 				disabled={$syncStatus === 'syncing'}
-				class="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50"
+				class="text-sm text-[var(--color-activity)] hover:text-[var(--color-activity-hover)] disabled:opacity-50"
 			>
 				{$syncStatus === 'syncing' ? 'Syncing...' : 'Refresh'}
 			</button>
 		</div>
 
 		{#if showSuccess}
-			<div class="bg-green-50 border border-green-200 rounded-lg p-3 text-green-800 text-sm">
+			<div class="card p-3 text-sm" style="background: var(--color-success-bg); border-color: var(--color-success-border); color: var(--color-success-text);">
 				{successMessage}
 			</div>
 		{/if}
 
 		{#if errorMessage}
-			<div class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-800 text-sm">
+			<div class="card p-3 text-sm" style="background: var(--color-danger-bg); border-color: var(--color-danger-border); color: var(--color-danger-text);">
 				{errorMessage}
 			</div>
 		{/if}
@@ -134,27 +135,27 @@
 		<QuickLogForm onsave={handleSave} />
 
 		<div class="grid grid-cols-2 gap-4">
-			<div class="bg-white rounded-lg shadow p-4">
-				<div class="text-sm text-gray-500">Activities this month</div>
-				<div class="text-2xl font-bold text-blue-600">{activityComparison.current}</div>
+			<div class="card p-4">
+				<div class="text-sm text-label">Activities this month</div>
+				<div class="text-2xl font-bold text-[var(--color-activity)]">{activityComparison.current}</div>
 				{#if activityComparison.difference !== 0}
-					<div class="text-xs {activityComparison.difference > 0 ? 'text-green-600' : 'text-red-600'}">
+					<div class="text-xs" style="color: var({activityComparison.difference > 0 ? '--color-success' : '--color-danger'});">
 						{activityComparison.difference > 0 ? '+' : ''}{activityComparison.difference} vs last month
 					</div>
 				{/if}
 			</div>
-			<div class="bg-white rounded-lg shadow p-4">
-				<div class="text-sm text-gray-500">Food logged this month</div>
-				<div class="text-2xl font-bold text-green-600">{foodComparison.current}</div>
+			<div class="card p-4">
+				<div class="text-sm text-label">Food logged this month</div>
+				<div class="text-2xl font-bold text-[var(--color-food)]">{foodComparison.current}</div>
 				{#if foodComparison.difference !== 0}
-					<div class="text-xs {foodComparison.difference > 0 ? 'text-green-600' : 'text-red-600'}">
+					<div class="text-xs" style="color: var({foodComparison.difference > 0 ? '--color-success' : '--color-danger'});">
 						{foodComparison.difference > 0 ? '+' : ''}{foodComparison.difference} vs last month
 					</div>
 				{/if}
 			</div>
 		</div>
 
-		<div class="text-center text-sm text-gray-500">
+		<div class="text-center text-sm text-label">
 			{thisMonthEntries.length} total entries this month
 		</div>
 	{/if}

@@ -76,12 +76,12 @@
 						e.ref.id === entity.id
 				)}
 				{#if entityInfo}
-					<span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+					<span class="inline-flex items-center gap-1 bg-[var(--color-activity-bg-strong)] text-[var(--color-activity-text)] px-2 py-1 rounded-full text-sm">
 						{entityInfo.name}
 						<button
 							type="button"
 							onclick={() => toggleEntity(entityInfo)}
-							class="hover:text-blue-600"
+							class="hover:text-[var(--color-activity)]"
 							aria-label="Remove {entityInfo.name} from comparison"
 						>
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,16 +109,16 @@
 	</button>
 
 	{#if isOpen}
-		<div class="absolute z-10 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 p-3">
+		<div class="absolute z-10 mt-2 w-72 bg-[var(--bg-elevated)] rounded-lg shadow-[var(--shadow-elevated)] border border-[var(--border-default)] p-3">
 			<div class="flex items-center justify-between mb-2">
-				<span class="text-sm font-medium text-gray-700">
+				<span class="text-sm font-medium text-body">
 					Compare with ({selectedEntities.length}/{maxSelections})
 				</span>
 				{#if selectedEntities.length > 0}
 					<button
 						type="button"
 						onclick={clearComparisons}
-						class="text-xs text-gray-500 hover:text-gray-700"
+						class="text-xs text-label hover:text-body"
 					>
 						Clear all
 					</button>
@@ -134,7 +134,7 @@
 
 			<div class="max-h-48 overflow-y-auto">
 				{#if filteredEntities().length === 0}
-					<p class="text-sm text-gray-400 py-2">No matching items</p>
+					<p class="text-sm text-subtle py-2">No matching items</p>
 				{:else}
 					<ul class="space-y-1">
 						{#each filteredEntities() as entity}
@@ -147,14 +147,14 @@
 									disabled={disabled}
 									class="w-full text-left px-2 py-1.5 rounded text-sm transition-colors
 										{selected
-											? 'bg-blue-50 text-blue-700 border border-blue-200'
+											? 'bg-[var(--color-activity-bg)] text-[var(--color-activity-text)] border border-[var(--color-activity-border)]'
 											: disabled
-												? 'text-gray-400 cursor-not-allowed'
-												: 'hover:bg-gray-50 text-gray-700'}"
+												? 'text-subtle cursor-not-allowed'
+												: 'hover:bg-[var(--bg-card-hover)] text-body'}"
 								>
 									<span class="flex items-center gap-2">
 										{#if selected}
-											<svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+											<svg class="w-4 h-4 text-[var(--color-activity)]" fill="currentColor" viewBox="0 0 20 20">
 												<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
 											</svg>
 										{:else}
@@ -169,7 +169,7 @@
 				{/if}
 			</div>
 
-			<div class="mt-2 pt-2 border-t border-gray-100">
+			<div class="mt-2 pt-2 border-t border-[var(--border-subtle)]">
 				<button
 					type="button"
 					onclick={closePanel}

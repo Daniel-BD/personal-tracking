@@ -14,21 +14,24 @@
 
 	let { data, chartType = 'bar', grouping = 'weekly', title = 'Weekly Activity', onseriesclick }: Props = $props();
 
-	// Predefined colors for series
-	const seriesColors = [
-		'hsl(217, 91%, 60%)',  // blue-500
-		'hsl(142, 71%, 45%)',  // green-500
-		'hsl(38, 92%, 50%)',   // amber-500
-		'hsl(0, 84%, 60%)',    // red-500
-		'hsl(263, 70%, 50%)',  // violet-500
-		'hsl(187, 85%, 43%)'   // cyan-500
-	];
-
-	// Get color for a series
+	// Predefined colors for series — use CSS variables via getComputedStyle
 	function getSeriesColor(seriesId: string, index: number): string {
-		if (seriesId === 'activities') return 'hsl(217, 91%, 60%)'; // blue-500
-		if (seriesId === 'food') return 'hsl(142, 71%, 45%)'; // green-500
-		return seriesColors[index % seriesColors.length];
+		const style = typeof document !== 'undefined' ? getComputedStyle(document.documentElement) : null;
+		if (seriesId === 'activities') {
+			return style?.getPropertyValue('--color-activity').trim() || 'hsl(217, 91%, 60%)';
+		}
+		if (seriesId === 'food') {
+			return style?.getPropertyValue('--color-food').trim() || 'hsl(142, 71%, 45%)';
+		}
+		const fallbackColors = [
+			'hsl(217, 91%, 60%)',
+			'hsl(142, 71%, 45%)',
+			'hsl(38, 92%, 50%)',
+			'hsl(0, 84%, 60%)',
+			'hsl(263, 70%, 50%)',
+			'hsl(187, 85%, 43%)'
+		];
+		return fallbackColors[index % fallbackColors.length];
 	}
 
 	// Merge all dates from all series to create unified data points
@@ -137,11 +140,11 @@
 	const hasData = $derived(data.length > 0 && allDates().length > 0);
 </script>
 
-<div class="bg-white rounded-lg shadow p-4">
-	<h3 class="text-sm font-medium text-gray-500 mb-3">{chartTitle()}</h3>
+<div class="card p-4">
+	<h3 class="text-sm font-medium text-label mb-3">{chartTitle()}</h3>
 
 	{#if !hasData}
-		<div class="flex items-center justify-center h-48 text-gray-400 text-sm">
+		<div class="flex items-center justify-center h-48 text-subtle text-sm">
 			No data to display
 		</div>
 	{:else}

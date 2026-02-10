@@ -149,13 +149,13 @@
 </script>
 
 <div class="space-y-4">
-	<h2 class="text-2xl font-bold text-gray-900">Item Library</h2>
+	<h2 class="text-2xl font-bold text-heading">Item Library</h2>
 
 	<!-- Primary tabs: Activity / Food -->
 	<SegmentedControl
 		options={[
-			{ value: 'activity', label: 'Activities', activeClass: 'bg-blue-600 text-white' },
-			{ value: 'food', label: 'Food', activeClass: 'bg-green-600 text-white' }
+			{ value: 'activity', label: 'Activities', activeClass: 'type-activity' },
+			{ value: 'food', label: 'Food', activeClass: 'type-food' }
 		]}
 		value={activeTab}
 		onchange={(v) => (activeTab = v)}
@@ -174,20 +174,20 @@
 
 	<!-- Search -->
 	<div class="relative">
-		<svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
 		</svg>
 		<input
 			type="text"
 			bind:value={searchQuery}
 			placeholder="Search {activeSubTab}..."
-			class="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+			class="form-input pl-10 pr-8"
 		/>
 		{#if searchQuery}
 			<button
 				type="button"
 				onclick={() => (searchQuery = '')}
-				class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+				class="absolute right-3 top-1/2 -translate-y-1/2 text-subtle hover:text-body"
 				aria-label="Clear search"
 			>
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,24 +200,24 @@
 	{#if activeSubTab === 'items'}
 		<!-- Items view -->
 		{#if showAddForm}
-			<div class="bg-white rounded-lg shadow p-4 space-y-4">
-				<h3 class="font-semibold text-gray-800">
+			<div class="card p-4 space-y-4">
+				<h3 class="font-semibold text-heading">
 					Add New {activeTab === 'activity' ? 'Activity' : 'Food'} Item
 				</h3>
 
 				<div>
-					<label for="newName" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+					<label for="newName" class="form-label">Name</label>
 					<input
 						id="newName"
 						type="text"
 						bind:value={newItemName}
 						placeholder="Enter name..."
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="form-input"
 					/>
 				</div>
 
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Categories</label>
+					<label class="form-label">Categories</label>
 					<CategoryPicker
 						selected={newItemCategories}
 						categories={currentCategories}
@@ -230,13 +230,13 @@
 					<button
 						onclick={handleAddItem}
 						disabled={!newItemName.trim()}
-						class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
+						class="flex-1 btn-primary"
 					>
 						Add Item
 					</button>
 					<button
 						onclick={() => (showAddForm = false)}
-						class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300"
+						class="flex-1 btn-secondary"
 					>
 						Cancel
 					</button>
@@ -245,7 +245,7 @@
 		{:else}
 			<button
 				onclick={() => (showAddForm = true)}
-				class="w-full bg-white border-2 border-dashed border-gray-300 rounded-lg py-4 text-gray-500 hover:border-blue-400 hover:text-blue-600"
+				class="w-full bg-[var(--bg-card)] border-2 border-dashed border-[var(--border-input)] rounded-lg py-4 text-label hover:border-[var(--color-activity)] hover:text-[var(--color-activity)] transition-colors"
 			>
 				+ Add New {activeTab === 'activity' ? 'Activity' : 'Food'} Item
 			</button>
@@ -254,11 +254,11 @@
 		<div class="space-y-2">
 			{#each currentItems as item}
 				{#if editingItem?.id === item.id}
-					<div class="bg-white rounded-lg shadow p-4 space-y-3">
+					<div class="card p-4 space-y-3">
 						<input
 							type="text"
 							bind:value={editingItem.name}
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="form-input"
 						/>
 						<CategoryPicker
 							selected={editingItem.categories}
@@ -269,45 +269,45 @@
 						<div class="flex gap-2">
 							<button
 								onclick={handleSaveEdit}
-								class="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700"
+								class="flex-1 btn-success"
 							>
 								Save
 							</button>
 							<button
 								onclick={handleCancelEdit}
-								class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300"
+								class="flex-1 btn-secondary"
 							>
 								Cancel
 							</button>
 						</div>
 					</div>
 				{:else}
-					<div class="bg-white rounded-lg shadow p-4 flex items-start justify-between">
+					<div class="card p-4 flex items-start justify-between">
 						<div class="flex-1">
-							<div class="font-medium">{item.name}</div>
+							<div class="font-medium text-heading">{item.name}</div>
 							{#if item.categories.length > 0}
 								<div class="flex flex-wrap gap-1 mt-1">
 									{#each getCategoryNamesForItem(item) as categoryName}
-										<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+										<span class="text-xs bg-[var(--bg-inset)] text-label px-2 py-0.5 rounded">
 											{categoryName}
 										</span>
 									{/each}
 								</div>
 							{:else}
-								<div class="text-xs text-gray-400 mt-1">No categories</div>
+								<div class="text-xs text-subtle mt-1">No categories</div>
 							{/if}
 						</div>
 						<div class="flex gap-2">
 							<button
 								onclick={() => handleEditItem(item)}
-								class="text-gray-400 hover:text-blue-600 p-1"
+								class="text-subtle hover:text-[var(--color-activity)] p-1"
 								aria-label="Edit item"
 							>
 								✏️
 							</button>
 							<button
 								onclick={() => handleDeleteItem(item.id)}
-								class="text-gray-400 hover:text-red-500 p-1"
+								class="text-subtle hover:text-[var(--color-danger)] p-1"
 								aria-label="Delete item"
 							>
 								🗑️
@@ -316,7 +316,7 @@
 					</div>
 				{/if}
 			{:else}
-				<p class="text-center text-gray-500 py-8">
+				<p class="text-center text-label py-8">
 					{#if searchQuery.trim()}
 						No {activeTab === 'activity' ? 'activities' : 'food items'} match "{searchQuery}"
 					{:else}
@@ -328,19 +328,17 @@
 	{:else}
 		<!-- Categories view -->
 		{#if showAddCategoryForm}
-			<div class="bg-white rounded-lg shadow p-4 space-y-4">
-				<h3 class="font-semibold text-gray-800">Add New Category</h3>
+			<div class="card p-4 space-y-4">
+				<h3 class="font-semibold text-heading">Add New Category</h3>
 
 				<div>
-					<label for="newCategoryName" class="block text-sm font-medium text-gray-700 mb-1"
-						>Name</label
-					>
+					<label for="newCategoryName" class="form-label">Name</label>
 					<input
 						id="newCategoryName"
 						type="text"
 						bind:value={newCategoryName}
 						placeholder="Enter category name..."
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="form-input"
 					/>
 				</div>
 
@@ -348,13 +346,13 @@
 					<button
 						onclick={handleAddCategory}
 						disabled={!newCategoryName.trim()}
-						class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
+						class="flex-1 btn-primary"
 					>
 						Add Category
 					</button>
 					<button
 						onclick={() => (showAddCategoryForm = false)}
-						class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300"
+						class="flex-1 btn-secondary"
 					>
 						Cancel
 					</button>
@@ -363,7 +361,7 @@
 		{:else}
 			<button
 				onclick={() => (showAddCategoryForm = true)}
-				class="w-full bg-white border-2 border-dashed border-gray-300 rounded-lg py-4 text-gray-500 hover:border-blue-400 hover:text-blue-600"
+				class="w-full bg-[var(--bg-card)] border-2 border-dashed border-[var(--border-input)] rounded-lg py-4 text-label hover:border-[var(--color-activity)] hover:text-[var(--color-activity)] transition-colors"
 			>
 				+ Add New Category
 			</button>
@@ -372,47 +370,47 @@
 		<div class="space-y-2">
 			{#each currentCategories as category}
 				{#if editingCategoryId === category.id}
-					<div class="bg-white rounded-lg shadow p-4 space-y-3">
+					<div class="card p-4 space-y-3">
 						<input
 							type="text"
 							bind:value={editingCategoryName}
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="form-input"
 						/>
 						<div class="flex gap-2">
 							<button
 								onclick={handleSaveCategoryEdit}
 								disabled={!editingCategoryName.trim()}
-								class="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 disabled:opacity-50"
+								class="flex-1 btn-success"
 							>
 								Save
 							</button>
 							<button
 								onclick={handleCancelCategoryEdit}
-								class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300"
+								class="flex-1 btn-secondary"
 							>
 								Cancel
 							</button>
 						</div>
 					</div>
 				{:else}
-					<div class="bg-white rounded-lg shadow p-4 flex items-start justify-between">
+					<div class="card p-4 flex items-start justify-between">
 						<div class="flex-1">
-							<div class="font-medium">{category.name}</div>
-							<div class="text-xs text-gray-400 mt-1">
+							<div class="font-medium text-heading">{category.name}</div>
+							<div class="text-xs text-subtle mt-1">
 								Used by {getItemCountForCategory(category.id)} item{getItemCountForCategory(category.id) !== 1 ? 's' : ''}
 							</div>
 						</div>
 						<div class="flex gap-2">
 							<button
 								onclick={() => handleEditCategory(category)}
-								class="text-gray-400 hover:text-blue-600 p-1"
+								class="text-subtle hover:text-[var(--color-activity)] p-1"
 								aria-label="Edit category"
 							>
 								✏️
 							</button>
 							<button
 								onclick={() => handleDeleteCategory(category.id)}
-								class="text-gray-400 hover:text-red-500 p-1"
+								class="text-subtle hover:text-[var(--color-danger)] p-1"
 								aria-label="Delete category"
 							>
 								🗑️
@@ -421,7 +419,7 @@
 					</div>
 				{/if}
 			{:else}
-				<p class="text-center text-gray-500 py-8">
+				<p class="text-center text-label py-8">
 					{#if searchQuery.trim()}
 						No categories match "{searchQuery}"
 					{:else}
