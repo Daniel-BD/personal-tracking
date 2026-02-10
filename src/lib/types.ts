@@ -26,12 +26,20 @@ export interface Entry {
 	categoryOverrides: string[] | null; // Array of category IDs
 }
 
+export interface DashboardCard {
+	categoryId: string;
+	baseline: 'rolling_4_week_avg';
+	comparison: 'last_week';
+}
+
 export interface TrackerData {
 	activityItems: ActivityItem[];
 	foodItems: FoodItem[];
 	activityCategories: Category[];
 	foodCategories: Category[];
 	entries: Entry[];
+	dashboardCards?: DashboardCard[];
+	dashboardInitialized?: boolean;
 }
 
 export interface GistFile {
@@ -53,7 +61,9 @@ export function createEmptyData(): TrackerData {
 		foodItems: [],
 		activityCategories: [],
 		foodCategories: [],
-		entries: []
+		entries: [],
+		dashboardCards: [],
+		dashboardInitialized: false
 	};
 }
 
