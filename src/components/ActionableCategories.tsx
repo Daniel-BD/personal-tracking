@@ -40,7 +40,7 @@ export default function ActionableCategories({ data }: ActionableCategoriesProps
 	function handleFollow(categoryId: string, categoryName: string) {
 		if (followedIds.has(categoryId)) return;
 		if (cardCount >= MAX_DASHBOARD_CARDS) {
-			showToast('Remove one to add another');
+			showToast('Dashboard is full. Remove a category to add another.');
 			return;
 		}
 		addDashboardCard(categoryId);
@@ -88,7 +88,7 @@ interface PanelProps {
 
 function Panel({ title, subtitle, rows, accent, followedIds, onFollow }: PanelProps) {
 	const isMobile = useIsMobile();
-	const barColor = accent === 'limit' ? '#ef4444' : '#10b981';
+	const barColor = accent === 'limit' ? 'var(--color-danger)' : 'var(--color-food)';
 	const maxValue = Math.max(...rows.map((r) => r.value), 1);
 
 	return (

@@ -17,14 +17,23 @@ export default function ToastContainer() {
 	const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
 	useEffect(() => {
+		const timers = new Map<number, ReturnType<typeof setTimeout>>();
+
 		addToastFn = (msg) => {
 			const id = ++toastIdCounter;
 			setToasts((prev) => [...prev, { ...msg, id }]);
-			setTimeout(() => {
+			const timer = setTimeout(() => {
 				setToasts((prev) => prev.filter((t) => t.id !== id));
+				timers.delete(id);
 			}, 3500);
+			timers.set(id, timer);
 		};
-		return () => { addToastFn = null; };
+
+		return () => {
+			addToastFn = null;
+			timers.forEach((timer) => clearTimeout(timer));
+			timers.clear();
+		};
 	}, []);
 
 	if (toasts.length === 0) return null;

@@ -280,8 +280,49 @@ export interface ActionableCategoryRow {
 	value: number;
 	/** Human-readable secondary label, e.g. "32% of limit total" */
 	label: string;
-	/** For limit: count; for positive: not used */
+	/** Raw event count. Only populated for limit categories; undefined for positive categories. */
 	count?: number;
+}
+
+/**
+ * Collect food entries from the last 4 weeks and count occurrences for
+ * categories matching the given sentiment. Filters all entries once by
+ * date range instead of per-week for efficiency.
+ */
+function countCategoriesBySentiment(
+	entries: Entry[],
+	data: TrackerData,
+	weeks: Array<{ key: string; start: Date; end: Date }>,
+	sentiment: 'limit' | 'positive'
+): { counts: Map<string, number>; total: number; catIds: Set<string> } {
+	const foodCategories = getCategories(data, 'food');
+	const catIds = new Set(
+		foodCategories.filter((c) => c.sentiment === sentiment).map((c) => c.id)
+	);
+
+	const counts = new Map<string, number>();
+	let total = 0;
+
+	if (catIds.size === 0) return { counts, total, catIds };
+
+	// Determine the full date range from the last 4 weeks and filter once
+	const last4 = weeks.slice(-4);
+	const rangeStart = last4[0].start;
+	const rangeEnd = last4[last4.length - 1].end;
+	const foodEntries = filterEntriesByType(entries, 'food')
+		.filter((e) => isEntryInWeek(e, rangeStart, rangeEnd));
+
+	for (const entry of foodEntries) {
+		const entryCatIds = getEntryCategoryIds(entry, data);
+		for (const catId of entryCatIds) {
+			if (catIds.has(catId)) {
+				counts.set(catId, (counts.get(catId) || 0) + 1);
+				total++;
+			}
+		}
+	}
+
+	return { counts, total, catIds };
 }
 
 /**
@@ -294,41 +335,14 @@ export function getTopLimitCategories(
 	weeks: Array<{ key: string; start: Date; end: Date }>,
 	limit: number = 5
 ): ActionableCategoryRow[] {
-	const foodEntries = filterEntriesByType(entries, 'food');
-	const foodCategories = getCategories(data, 'food');
-	const limitCatIds = new Set(
-		foodCategories.filter((c) => c.sentiment === 'limit').map((c) => c.id)
-	);
-
-	if (limitCatIds.size === 0) return [];
-
-	// Use last 4 weeks
-	const last4 = weeks.slice(-4);
-
-	// Count limit-category occurrences
-	const counts = new Map<string, number>();
-	let totalLimitEvents = 0;
-
-	for (const week of last4) {
-		const weekEntries = foodEntries.filter((e) => isEntryInWeek(e, week.start, week.end));
-		for (const entry of weekEntries) {
-			const catIds = getEntryCategoryIds(entry, data);
-			for (const catId of catIds) {
-				if (limitCatIds.has(catId)) {
-					counts.set(catId, (counts.get(catId) || 0) + 1);
-					totalLimitEvents++;
-				}
-			}
-		}
-	}
-
-	if (totalLimitEvents === 0) return [];
+	const { counts, total } = countCategoriesBySentiment(entries, data, weeks, 'limit');
+	if (total === 0) return [];
 
 	return Array.from(counts.entries())
 		.sort((a, b) => b[1] - a[1])
 		.slice(0, limit)
 		.map(([catId, count]) => {
-			const share = Math.round((count / totalLimitEvents) * 100);
+			const share = Math.round((count / total) * 100);
 			const catName = getCategoryNameById(catId, data);
 			return {
 				categoryId: catId,
@@ -351,48 +365,21 @@ export function getLaggingPositiveCategories(
 	weeks: Array<{ key: string; start: Date; end: Date }>,
 	limit: number = 5
 ): ActionableCategoryRow[] {
-	const foodEntries = filterEntriesByType(entries, 'food');
-	const foodCategories = getCategories(data, 'food');
-	const positiveCatIds = new Set(
-		foodCategories.filter((c) => c.sentiment === 'positive').map((c) => c.id)
-	);
-
-	if (positiveCatIds.size === 0) return [];
-
-	const last4 = weeks.slice(-4);
-
-	// Count positive-category occurrences
-	const counts = new Map<string, number>();
-	let totalPositiveEvents = 0;
-
-	for (const week of last4) {
-		const weekEntries = foodEntries.filter((e) => isEntryInWeek(e, week.start, week.end));
-		for (const entry of weekEntries) {
-			const catIds = getEntryCategoryIds(entry, data);
-			for (const catId of catIds) {
-				if (positiveCatIds.has(catId)) {
-					counts.set(catId, (counts.get(catId) || 0) + 1);
-					totalPositiveEvents++;
-				}
-			}
-		}
-	}
-
-	if (totalPositiveEvents === 0) return [];
+	const { counts, total, catIds } = countCategoriesBySentiment(entries, data, weeks, 'positive');
+	if (total === 0) return [];
 
 	// Ensure every positive category appears (even with 0 count)
-	for (const catId of positiveCatIds) {
+	for (const catId of catIds) {
 		if (!counts.has(catId)) {
 			counts.set(catId, 0);
 		}
 	}
 
-	const numPositiveCategories = positiveCatIds.size;
-	const avgShare = 1 / numPositiveCategories;
+	const avgShare = 1 / catIds.size;
 
 	return Array.from(counts.entries())
 		.map(([catId, count]) => {
-			const share = count / totalPositiveEvents;
+			const share = count / total;
 			const gap = avgShare - share;
 			return { catId, count, share, gap };
 		})
