@@ -1,6 +1,6 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
-import type { EntryType, Entry, Item } from '../lib/types';
-import { getTodayDate, getCurrentTime, getTypeIcon, getCategories as getTypeCategories } from '../lib/types';
+import { useState, useMemo, useRef } from 'react';
+import type { EntryType, Item } from '../lib/types';
+import { getTodayDate, getTypeIcon } from '../lib/types';
 import { useTrackerData } from '../lib/hooks';
 import { addEntry, addItem, deleteEntry, getItemById } from '../lib/store';
 import { showToast } from './Toast';
@@ -8,16 +8,12 @@ import BottomSheet from './BottomSheet';
 import SegmentedControl from './SegmentedControl';
 import CategoryPicker from './CategoryPicker';
 
-interface Props {
-	onsave?: () => void;
-}
-
 interface UnifiedItem {
 	item: Item;
 	type: EntryType;
 }
 
-export default function QuickLogForm({ onsave }: Props) {
+export default function QuickLogForm() {
 	const data = useTrackerData();
 	const inputRef = useRef<HTMLInputElement>(null);
 
@@ -167,8 +163,6 @@ export default function QuickLogForm({ onsave }: Props) {
 				showToast('Entry undone');
 			}
 		});
-
-		onsave?.();
 	}
 
 	function resetForm() {
@@ -243,10 +237,6 @@ export default function QuickLogForm({ onsave }: Props) {
 								<span className="text-sm font-bold">+</span>
 								<span>Create &ldquo;{query.trim()}&rdquo;</span>
 							</button>
-						)}
-
-						{searchResults.length === 0 && !query.trim() && (
-							<div className="px-4 py-3 text-sm text-subtle">No items found</div>
 						)}
 					</div>
 				)}
@@ -377,7 +367,7 @@ export default function QuickLogForm({ onsave }: Props) {
 										selected={logCategories}
 										categories={categoriesForType}
 										onchange={setLogCategories}
-										type={sheetMode === 'create' ? itemType : selectedItem?.type}
+										type={sheetMode === 'create' ? itemType : (selectedItem?.type ?? itemType)}
 									/>
 								</div>
 

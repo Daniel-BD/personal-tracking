@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useId, type ReactNode } from 'react';
 
 interface Props {
 	open: boolean;
@@ -9,24 +9,34 @@ interface Props {
 
 export default function BottomSheet({ open, onclose, children, title }: Props) {
 	const sheetRef = useRef<HTMLDivElement>(null);
+	const titleId = useId();
 
+	// Save and restore original body overflow
 	useEffect(() => {
 		if (open) {
+			const originalOverflow = document.body.style.overflow;
 			document.body.style.overflow = 'hidden';
-		} else {
-			document.body.style.overflow = '';
+			return () => { document.body.style.overflow = originalOverflow; };
 		}
-		return () => { document.body.style.overflow = ''; };
 	}, [open]);
 
+	// Keyboard handling + focus management
 	useEffect(() => {
+		if (!open) return;
+
 		function handleKeyDown(e: KeyboardEvent) {
 			if (e.key === 'Escape') onclose();
 		}
-		if (open) {
-			document.addEventListener('keydown', handleKeyDown);
-			return () => document.removeEventListener('keydown', handleKeyDown);
-		}
+
+		document.addEventListener('keydown', handleKeyDown);
+
+		// Move focus into the sheet when it opens
+		const firstFocusable = sheetRef.current?.querySelector<HTMLElement>(
+			'input, button, [tabindex]:not([tabindex="-1"])'
+		);
+		firstFocusable?.focus();
+
+		return () => document.removeEventListener('keydown', handleKeyDown);
 	}, [open, onclose]);
 
 	if (!open) return null;
@@ -42,6 +52,9 @@ export default function BottomSheet({ open, onclose, children, title }: Props) {
 			{/* Sheet */}
 			<div
 				ref={sheetRef}
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby={title ? titleId : undefined}
 				className="relative w-full max-w-lg bg-[var(--bg-card)] rounded-t-2xl shadow-[var(--shadow-elevated)] animate-slide-up max-h-[85vh] flex flex-col"
 				style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
 			>
@@ -52,7 +65,7 @@ export default function BottomSheet({ open, onclose, children, title }: Props) {
 
 				{title && (
 					<div className="px-5 pb-3 flex-shrink-0">
-						<h3 className="text-lg font-semibold text-heading">{title}</h3>
+						<h3 id={titleId} className="text-lg font-semibold text-heading">{title}</h3>
 					</div>
 				)}
 
