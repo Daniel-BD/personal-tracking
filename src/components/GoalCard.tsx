@@ -1,51 +1,56 @@
 import { useMemo } from 'react';
-import { LineChart, Line, ResponsiveContainer, Dot } from 'recharts';
+import { LineChart, Line, ResponsiveContainer, ReferenceLine, Dot } from 'recharts';
+import type { CategorySentiment } from '../lib/types';
+
+const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
+	positive: 'var(--color-success)',
+	limit: 'var(--color-danger)',
+	neutral: 'var(--color-neutral)'
+};
 
 interface GoalCardProps {
 	categoryName: string;
-	categoryColor: string;
+	sentiment: CategorySentiment;
 	sparklineData: { week: string; count: number }[];
-	delta: number;
+	currentCount: number;
+	baselineAvg: number;
 	deltaPercent: number;
 	onRemove: () => void;
 }
 
 export default function GoalCard({
 	categoryName,
-	categoryColor,
+	sentiment,
 	sparklineData,
-	delta,
+	currentCount,
+	baselineAvg,
 	deltaPercent,
 	onRemove
 }: GoalCardProps) {
-	const direction = useMemo(() => {
-		if (Math.abs(deltaPercent) < 0.1) return 'stable';
-		return deltaPercent > 0 ? 'up' : 'down';
-	}, [deltaPercent]);
+	const color = SENTIMENT_COLORS[sentiment];
 
-	const indicator = {
-		up: { icon: '↑', label: 'Increase' },
-		down: { icon: '↓', label: 'Decrease' },
-		stable: { icon: '→', label: 'No change' }
-	}[direction];
+	const isStable = Math.abs(deltaPercent) < 0.1;
+	const absPercent = Math.round(Math.abs(deltaPercent) * 100);
 
-	const deltaText = useMemo(() => {
-		const absDelta = Math.abs(delta);
-		const absPercent = Math.round(Math.abs(deltaPercent) * 100);
+	const changeText = useMemo(() => {
+		if (isStable) return 'No meaningful change';
+		const sign = deltaPercent > 0 ? '+' : '−';
+		return `${sign}${absPercent}%`;
+	}, [isStable, deltaPercent, absPercent]);
 
-		if (direction === 'stable') {
-			return `No meaningful change vs baseline`;
-		}
+	const deltaEvents = useMemo(() => {
+		if (isStable) return null;
+		const raw = currentCount - baselineAvg;
+		const sign = raw >= 0 ? '+' : '−';
+		const abs = Math.abs(raw);
+		const formatted = Number.isInteger(abs) ? abs.toString() : abs.toFixed(1);
+		const unit = abs === 1 ? 'event' : 'events';
+		return `(${sign}${formatted} ${unit})`;
+	}, [isStable, currentCount, baselineAvg]);
 
-		return `${indicator.icon} ${absPercent}% vs 4-week average`;
-	}, [direction, delta, deltaPercent, indicator.icon]);
-
-	const subText = useMemo(() => {
-		const absDelta = Math.abs(delta);
-		const unit = absDelta === 1 ? 'event' : 'events';
-		if (direction === 'stable') return '';
-		return `${indicator.icon} ${absDelta.toFixed(1)} ${unit} vs baseline`;
-	}, [direction, delta, indicator.icon]);
+	const avgFormatted = Number.isInteger(baselineAvg)
+		? baselineAvg.toString()
+		: baselineAvg.toFixed(1);
 
 	return (
 		<div className="card p-4 flex flex-col justify-between relative group h-full min-h-[160px]">
@@ -60,57 +65,88 @@ export default function GoalCard({
 				</svg>
 			</button>
 
-			<div className="space-y-1">
-				<div className="flex items-center gap-1.5">
-					<div
-						className="w-2 h-2 rounded-full"
-						style={{ backgroundColor: categoryColor }}
-					/>
-					<span className="text-xs font-medium text-label truncate max-w-[120px]">
-						{categoryName}
-					</span>
-				</div>
+			{/* 1. Category name + sentiment dot */}
+			<div className="flex items-center gap-1.5">
+				<div
+					className="w-2 h-2 rounded-full"
+					style={{ backgroundColor: color }}
+				/>
+				<span className="text-xs font-medium text-label truncate max-w-[120px]">
+					{categoryName}
+				</span>
+			</div>
 
-				<div className="flex items-center gap-2">
-					<span className="text-2xl font-bold" style={{ color: categoryColor }}>
-						{indicator.icon}
-					</span>
-					<span className="text-sm font-medium text-heading">
-						{direction === 'up' ? 'Increase' : direction === 'down' ? 'Decrease' : 'No change'}
-					</span>
+			{/* 2. Current value block — explicit values */}
+			<div className="mt-1.5 space-y-0">
+				<div className="text-sm font-semibold text-heading">
+					This week: {currentCount} {currentCount === 1 ? 'event' : 'events'}
+				</div>
+				<div className="text-xs text-label">
+					4-week avg: {avgFormatted} {avgFormatted === '1' ? 'event' : 'events'}
 				</div>
 			</div>
 
-			<div className="h-12 w-full -mx-2">
+			{/* 3. Primary change metric */}
+			<div className="mt-1 flex items-baseline gap-1.5">
+				<span
+					className="text-lg font-bold"
+					style={{ color: isStable ? undefined : color }}
+				>
+					{changeText}
+				</span>
+				{deltaEvents && (
+					<span className="text-[10px] text-label">
+						{deltaEvents}
+					</span>
+				)}
+			</div>
+
+			{/* 4. Sparkline */}
+			<div className="h-12 w-full -mx-2 mt-1">
 				<ResponsiveContainer width="100%" height="100%">
 					<LineChart data={sparklineData}>
+						<ReferenceLine
+							y={baselineAvg}
+							stroke="var(--border-default)"
+							strokeDasharray="3 3"
+							strokeWidth={1}
+						/>
 						<Line
 							type="monotone"
 							dataKey="count"
-							stroke={categoryColor}
+							stroke={color}
 							strokeWidth={2}
-							dot={(props) => {
-								const { cx, cy, payload, index } = props;
-								if (index === sparklineData.length - 1) {
-									return <Dot cx={cx} cy={cy} r={3} fill={categoryColor} stroke="none" />;
+							dot={(props: { cx?: number; cy?: number; index?: number }) => {
+								const { cx, cy, index } = props;
+								if (cx == null || cy == null || index == null) return <></>;
+								const isLast = index === sparklineData.length - 1;
+								if (isLast) {
+									return (
+										<Dot
+											cx={cx}
+											cy={cy}
+											r={4}
+											fill={color}
+											stroke="var(--bg-card)"
+											strokeWidth={2}
+										/>
+									);
 								}
-								return <></>;
+								return (
+									<Dot
+										cx={cx}
+										cy={cy}
+										r={2}
+										fill={color}
+										stroke="none"
+										opacity={0.35}
+									/>
+								);
 							}}
 							isAnimationActive={false}
 						/>
 					</LineChart>
 				</ResponsiveContainer>
-			</div>
-
-			<div className="space-y-0.5">
-				<div className="text-[10px] font-medium text-body leading-tight">
-					{deltaText}
-				</div>
-				{subText && (
-					<div className="text-[10px] text-label leading-tight">
-						{subText}
-					</div>
-				)}
 			</div>
 		</div>
 	);
