@@ -103,6 +103,7 @@ src/
 │   ├── BalanceOverview.tsx          # Balance score meter + weekly sentiment bar chart
 │   ├── ActionableCategories.tsx     # Top limit & lagging positive category lists
 │   ├── CategoryComposition.tsx      # Weekly stacked category composition chart
+│   ├── NativePickerInput.tsx        # iOS-safe date/time picker (styled button + hidden native input)
 │   └── Toast.tsx                    # Toast notification system (module-level showToast())
 └── vite-env.d.ts
 ```
@@ -150,6 +151,7 @@ Use these instead of repeating Tailwind utilities:
 
 ## Known Quirks
 
+- **iOS date/time inputs**: iOS Safari enforces native control sizing on `<input type="date|time">` that CSS cannot override. The `NativePickerInput` component works around this by rendering a styled `<button>` with a hidden native input, triggering the OS picker via `showPicker()`. Used in `QuickLogForm` and `EntryList` for all date/time fields. Supports optional `onClear` prop for clearable time fields.
 - **HTML5 date/time input width**: Browsers set intrinsic minimum widths that can cause overflow. Handled in `app.css` with `min-width: 0` and `max-width: 100%` overrides on date/time inputs.
 - **Gist sync**: Fire-and-forget with merge logic. LocalStorage is always the source of truth. The store tracks `pendingDeletions` (by entity type) to prevent deleted items from being restored during merge.
 - **Entry sorting**: Within each day, entries sort by time (latest first); entries without time come after entries with time.

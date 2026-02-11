@@ -7,6 +7,7 @@ import { showToast } from './Toast';
 import BottomSheet from './BottomSheet';
 import SegmentedControl from './SegmentedControl';
 import CategoryPicker from './CategoryPicker';
+import NativePickerInput from './NativePickerInput';
 
 interface UnifiedItem {
 	item: Item;
@@ -301,37 +302,24 @@ export default function QuickLogForm() {
 					{/* Date */}
 					<div>
 						<label htmlFor="sheet-date" className="form-label">Date</label>
-						<input
+						<NativePickerInput
 							id="sheet-date"
 							type="date"
 							value={logDate}
-							onChange={(e) => setLogDate(e.target.value)}
-							className="form-input"
+							onChange={setLogDate}
 						/>
 					</div>
 
 					{/* Time */}
 					<div>
 						<label htmlFor="sheet-time" className="form-label">Time</label>
-						<div className="relative">
-							<input
-								id="sheet-time"
-								type="time"
-								value={logTime ?? ''}
-								onChange={(e) => setLogTime(e.target.value || null)}
-								className={`form-input ${logTime ? 'pr-8' : ''}`}
-							/>
-							{logTime && (
-								<button
-									type="button"
-									onClick={() => setLogTime(null)}
-									className="absolute right-2 top-1/2 -translate-y-1/2 text-subtle hover:text-body text-lg"
-									aria-label="Clear time"
-								>
-									&times;
-								</button>
-							)}
-						</div>
+						<NativePickerInput
+							id="sheet-time"
+							type="time"
+							value={logTime ?? ''}
+							onChange={(val) => setLogTime(val || null)}
+							onClear={() => setLogTime(null)}
+						/>
 					</div>
 
 					{/* Categories */}

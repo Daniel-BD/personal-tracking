@@ -4,6 +4,7 @@ import { getItemById, deleteEntry, updateEntry } from '../lib/store';
 import { useTrackerData } from '../lib/hooks';
 import { getEntriesGroupedByDate, formatDate, getEntryCategoryNames, getEntryCategoryIds } from '../lib/analysis';
 import CategoryPicker from './CategoryPicker';
+import NativePickerInput from './NativePickerInput';
 
 interface Props {
 	entries: Entry[];
@@ -107,20 +108,18 @@ export default function EntryList({ entries, showType = false }: Props) {
 											<div className="grid grid-cols-2 gap-2">
 												<div>
 													<label className="form-label">Date</label>
-													<input
+													<NativePickerInput
 														type="date"
 														value={editDate}
-														onChange={(e) => setEditDate(e.target.value)}
-														className="form-input"
+														onChange={setEditDate}
 													/>
 												</div>
 												<div>
 													<label className="form-label">Time</label>
-													<input
+													<NativePickerInput
 														type="time"
 														value={editTime}
-														onChange={(e) => setEditTime(e.target.value)}
-														className="form-input"
+														onChange={setEditTime}
 													/>
 												</div>
 											</div>
