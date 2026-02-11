@@ -269,6 +269,148 @@ export function groupCategoriesForWeek(
 	});
 }
 
+// ============================================================
+// Actionable Categories — used by the stats "Follow" section
+// ============================================================
+
+export interface ActionableCategoryRow {
+	categoryId: string;
+	categoryName: string;
+	/** Primary metric value (count for limit, gap for positive) */
+	value: number;
+	/** Human-readable secondary label, e.g. "32% of limit total" */
+	label: string;
+	/** For limit: count; for positive: not used */
+	count?: number;
+}
+
+/**
+ * Top Limit Categories (last 4 weeks)
+ * Ranked by total_count descending. Bar = share of all limit events.
+ */
+export function getTopLimitCategories(
+	entries: Entry[],
+	data: TrackerData,
+	weeks: Array<{ key: string; start: Date; end: Date }>,
+	limit: number = 5
+): ActionableCategoryRow[] {
+	const foodEntries = filterEntriesByType(entries, 'food');
+	const foodCategories = getCategories(data, 'food');
+	const limitCatIds = new Set(
+		foodCategories.filter((c) => c.sentiment === 'limit').map((c) => c.id)
+	);
+
+	if (limitCatIds.size === 0) return [];
+
+	// Use last 4 weeks
+	const last4 = weeks.slice(-4);
+
+	// Count limit-category occurrences
+	const counts = new Map<string, number>();
+	let totalLimitEvents = 0;
+
+	for (const week of last4) {
+		const weekEntries = foodEntries.filter((e) => isEntryInWeek(e, week.start, week.end));
+		for (const entry of weekEntries) {
+			const catIds = getEntryCategoryIds(entry, data);
+			for (const catId of catIds) {
+				if (limitCatIds.has(catId)) {
+					counts.set(catId, (counts.get(catId) || 0) + 1);
+					totalLimitEvents++;
+				}
+			}
+		}
+	}
+
+	if (totalLimitEvents === 0) return [];
+
+	return Array.from(counts.entries())
+		.sort((a, b) => b[1] - a[1])
+		.slice(0, limit)
+		.map(([catId, count]) => {
+			const share = Math.round((count / totalLimitEvents) * 100);
+			const catName = getCategoryNameById(catId, data);
+			return {
+				categoryId: catId,
+				categoryName: catName,
+				value: share,
+				label: `${share}% of limit total`,
+				count
+			};
+		});
+}
+
+/**
+ * Lagging Positive Categories (last 4 weeks)
+ * Ranked by underrepresentation: (average_positive_share − category_share)
+ * where average_positive_share = 1/N and category_share = cat_count/total_positive
+ */
+export function getLaggingPositiveCategories(
+	entries: Entry[],
+	data: TrackerData,
+	weeks: Array<{ key: string; start: Date; end: Date }>,
+	limit: number = 5
+): ActionableCategoryRow[] {
+	const foodEntries = filterEntriesByType(entries, 'food');
+	const foodCategories = getCategories(data, 'food');
+	const positiveCatIds = new Set(
+		foodCategories.filter((c) => c.sentiment === 'positive').map((c) => c.id)
+	);
+
+	if (positiveCatIds.size === 0) return [];
+
+	const last4 = weeks.slice(-4);
+
+	// Count positive-category occurrences
+	const counts = new Map<string, number>();
+	let totalPositiveEvents = 0;
+
+	for (const week of last4) {
+		const weekEntries = foodEntries.filter((e) => isEntryInWeek(e, week.start, week.end));
+		for (const entry of weekEntries) {
+			const catIds = getEntryCategoryIds(entry, data);
+			for (const catId of catIds) {
+				if (positiveCatIds.has(catId)) {
+					counts.set(catId, (counts.get(catId) || 0) + 1);
+					totalPositiveEvents++;
+				}
+			}
+		}
+	}
+
+	if (totalPositiveEvents === 0) return [];
+
+	// Ensure every positive category appears (even with 0 count)
+	for (const catId of positiveCatIds) {
+		if (!counts.has(catId)) {
+			counts.set(catId, 0);
+		}
+	}
+
+	const numPositiveCategories = positiveCatIds.size;
+	const avgShare = 1 / numPositiveCategories;
+
+	return Array.from(counts.entries())
+		.map(([catId, count]) => {
+			const share = count / totalPositiveEvents;
+			const gap = avgShare - share;
+			return { catId, count, share, gap };
+		})
+		.filter((r) => r.gap > 0)
+		.sort((a, b) => b.gap - a.gap)
+		.slice(0, limit)
+		.map((r) => {
+			const catName = getCategoryNameById(r.catId, data);
+			const gapPercent = Math.round(r.gap * 100);
+			return {
+				categoryId: r.catId,
+				categoryName: catName,
+				value: gapPercent,
+				label: 'Below your positive average'
+			};
+		});
+}
+
 /**
  * Format week label like "Jan 15"
  */

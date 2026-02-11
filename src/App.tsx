@@ -6,6 +6,7 @@ import LogPage from './pages/LogPage';
 import LibraryPage from './pages/LibraryPage';
 import SettingsPage from './pages/SettingsPage';
 import StatsPage from './pages/StatsPage';
+import ToastContainer from './components/Toast';
 
 function NavIcon({ icon }: { icon: string }) {
 	if (icon === 'home') {
@@ -120,6 +121,8 @@ export default function App() {
 			</nav>
 
 			<div className="h-16" />
+
+			<ToastContainer />
 		</div>
 	);
 }
