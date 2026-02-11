@@ -1,270 +1,403 @@
-import { useState, useMemo } from 'react';
-import type { Item, EntryType } from '../lib/types';
-import { getTodayDate, getCurrentTime, getTypeColor, getTypeLabel } from '../lib/types';
+import { useState, useMemo, useRef } from 'react';
+import type { EntryType, Item } from '../lib/types';
+import { getTodayDate, getTypeIcon } from '../lib/types';
 import { useTrackerData } from '../lib/hooks';
-import { addEntry, addItem } from '../lib/store';
-import UnifiedItemPicker, { type UnifiedItem } from './UnifiedItemPicker';
+import { addEntry, addItem, deleteEntry, getItemById } from '../lib/store';
+import { showToast } from './Toast';
+import BottomSheet from './BottomSheet';
+import SegmentedControl from './SegmentedControl';
 import CategoryPicker from './CategoryPicker';
 
-interface Props {
-	onsave?: () => void;
+interface UnifiedItem {
+	item: Item;
+	type: EntryType;
 }
 
-export default function QuickLogForm({ onsave }: Props) {
+export default function QuickLogForm() {
 	const data = useTrackerData();
+	const inputRef = useRef<HTMLInputElement>(null);
 
-	const [selectedUnified, setSelectedUnified] = useState<UnifiedItem | null>(null);
-	const [date, setDate] = useState(getTodayDate());
-	const [time, setTime] = useState<string | null>(getCurrentTime());
-	const [notes, setNotes] = useState('');
-	const [useOverrides, setUseOverrides] = useState(false);
-	const [categoryOverrides, setCategoryOverrides] = useState<string[]>([]);
+	// Search state
+	const [query, setQuery] = useState('');
+	const [isFocused, setIsFocused] = useState(false);
 
-	const [showNewItemForm, setShowNewItemForm] = useState(false);
-	const [newItemType, setNewItemType] = useState<EntryType | null>(null);
-	const [newItemName, setNewItemName] = useState('');
-	const [newItemCategories, setNewItemCategories] = useState<string[]>([]);
+	// Create + Log sheet state
+	const [sheetOpen, setSheetOpen] = useState(false);
+	const [sheetMode, setSheetMode] = useState<'create' | 'log'>('create');
+	const [itemName, setItemName] = useState('');
+	const [itemType, setItemType] = useState<EntryType>('food');
+	const [logDate, setLogDate] = useState(getTodayDate());
+	const [showDetails, setShowDetails] = useState(false);
+	const [logTime, setLogTime] = useState<string | null>(null);
+	const [logNote, setLogNote] = useState('');
+	const [logCategories, setLogCategories] = useState<string[]>([]);
 
-	const categories = useMemo(
-		() => selectedUnified
-			? selectedUnified.type === 'activity'
-				? data.activityCategories
-				: data.foodCategories
-			: [],
-		[selectedUnified, data.activityCategories, data.foodCategories]
-	);
+	// Item being logged (for existing items tapped from search)
+	const [selectedItem, setSelectedItem] = useState<UnifiedItem | null>(null);
 
-	const newItemCategoriesOptions = useMemo(
-		() => newItemType === 'activity' ? data.activityCategories : data.foodCategories,
-		[newItemType, data.activityCategories, data.foodCategories]
-	);
+	// All items merged
+	const allItems = useMemo(() => {
+		const activities: UnifiedItem[] = data.activityItems.map((item) => ({ item, type: 'activity' as EntryType }));
+		const foods: UnifiedItem[] = data.foodItems.map((item) => ({ item, type: 'food' as EntryType }));
+		return [...activities, ...foods];
+	}, [data.activityItems, data.foodItems]);
 
-	function handleItemSelect(unified: UnifiedItem) {
-		if (unified.item.id) {
-			setSelectedUnified(unified);
-			setCategoryOverrides([...unified.item.categories]);
-		} else {
-			setSelectedUnified(null);
+	// Recent items from last entries
+	const recentItems = useMemo(() => {
+		const seen = new Set<string>();
+		const recents: UnifiedItem[] = [];
+
+		const sorted = [...data.entries].sort((a, b) => {
+			const dateComp = b.date.localeCompare(a.date);
+			if (dateComp !== 0) return dateComp;
+			if (a.time && b.time) return b.time.localeCompare(a.time);
+			if (b.time) return 1;
+			if (a.time) return -1;
+			return 0;
+		});
+
+		for (const entry of sorted) {
+			const key = `${entry.type}-${entry.itemId}`;
+			if (seen.has(key)) continue;
+			seen.add(key);
+
+			const item = getItemById(entry.type, entry.itemId);
+			if (item) {
+				recents.push({ item, type: entry.type });
+			}
+			if (recents.length >= 5) break;
 		}
+
+		return recents;
+	}, [data.entries]);
+
+	// Filtered search results
+	const searchResults = useMemo(() => {
+		if (!query.trim()) return [];
+		return allItems.filter((u) =>
+			u.item.name.toLowerCase().includes(query.toLowerCase())
+		);
+	}, [allItems, query]);
+
+	const showResults = isFocused && query.trim().length > 0;
+	const hasExactMatch = searchResults.some(
+		(u) => u.item.name.toLowerCase() === query.trim().toLowerCase()
+	);
+
+	function getCategoryNames(categoryIds: string[], type: EntryType): string {
+		const categories = type === 'activity' ? data.activityCategories : data.foodCategories;
+		return categoryIds
+			.map((id) => categories.find((c) => c.id === id)?.name)
+			.filter(Boolean)
+			.join(', ');
 	}
 
-	function handleCreateNew(prefillName: string = '') {
-		setShowNewItemForm(true);
-		setNewItemType(null);
-		setNewItemName(prefillName);
-		setNewItemCategories([]);
+	// --- Actions ---
+
+	function handleSelectExisting(unified: UnifiedItem) {
+		setSelectedItem(unified);
+		setSheetMode('log');
+		setItemName(unified.item.name);
+		setItemType(unified.type);
+		setLogDate(getTodayDate());
+		setLogTime(null);
+		setLogNote('');
+		setLogCategories([...unified.item.categories]);
+		setShowDetails(false);
+		setSheetOpen(true);
+		setQuery('');
+		setIsFocused(false);
+		inputRef.current?.blur();
 	}
 
-	function handleSaveNewItem() {
-		if (!newItemName.trim() || !newItemType) return;
-
-		const newItem = addItem(newItemType, newItemName.trim(), newItemCategories);
-		setSelectedUnified({ item: newItem, type: newItemType });
-		setCategoryOverrides([...newItemCategories]);
-		setShowNewItemForm(false);
-		setNewItemType(null);
+	function handleCreateTap() {
+		setSelectedItem(null);
+		setSheetMode('create');
+		setItemName(query.trim());
+		setItemType('food');
+		setLogDate(getTodayDate());
+		setLogTime(null);
+		setLogNote('');
+		setLogCategories([]);
+		setShowDetails(false);
+		setSheetOpen(true);
+		setQuery('');
+		setIsFocused(false);
+		inputRef.current?.blur();
 	}
 
-	function handleCancelNewItem() {
-		setShowNewItemForm(false);
-		setNewItemType(null);
-	}
+	function handleLog() {
+		let entryItemId: string;
+		let entryType: EntryType;
 
-	function handleSubmit() {
-		if (!selectedUnified?.item.id) return;
+		if (sheetMode === 'create') {
+			if (!itemName.trim()) return;
+			const newItem = addItem(itemType, itemName.trim(), logCategories);
+			entryItemId = newItem.id;
+			entryType = itemType;
+		} else {
+			if (!selectedItem) return;
+			entryItemId = selectedItem.item.id;
+			entryType = selectedItem.type;
+		}
 
-		addEntry(
-			selectedUnified.type,
-			selectedUnified.item.id,
-			date,
-			time,
-			notes.trim() || null,
-			useOverrides ? categoryOverrides : null
+		const entry = addEntry(
+			entryType,
+			entryItemId,
+			logDate,
+			logTime,
+			logNote.trim() || null,
+			showDetails && logCategories.length > 0
+				? logCategories
+				: null
 		);
 
-		setSelectedUnified(null);
-		setDate(getTodayDate());
-		setTime(getCurrentTime());
-		setNotes('');
-		setUseOverrides(false);
-		setCategoryOverrides([]);
+		setSheetOpen(false);
+		resetForm();
 
-		onsave?.();
+		const displayName = itemName.trim() || selectedItem?.item.name || 'item';
+		showToast(`Logged "${displayName}"`, {
+			label: 'Undo',
+			onClick: () => {
+				deleteEntry(entry.id);
+				showToast('Entry undone');
+			}
+		});
 	}
 
+	function resetForm() {
+		setQuery('');
+		setSelectedItem(null);
+		setItemName('');
+		setItemType('food');
+		setLogDate(getTodayDate());
+		setLogTime(null);
+		setLogNote('');
+		setLogCategories([]);
+		setShowDetails(false);
+	}
+
+	// Categories for current type
+	const categoriesForType = useMemo(
+		() => itemType === 'activity' ? data.activityCategories : data.foodCategories,
+		[itemType, data.activityCategories, data.foodCategories]
+	);
+
 	return (
-		<div className="card p-4 space-y-4">
-			{showNewItemForm ? (
-				<div className="space-y-4">
-					{!newItemType ? (
-						<>
-							<h3 className="font-semibold text-heading">What type of item?</h3>
-							<div className="flex gap-2">
-								<button
-									type="button"
-									onClick={() => setNewItemType('activity')}
-									className="flex-1 py-3 px-4 rounded-lg font-medium text-lg type-activity hover:opacity-90"
-								>
-									&#x1F3C3; Activity
-								</button>
-								<button
-									type="button"
-									onClick={() => setNewItemType('food')}
-									className="flex-1 py-3 px-4 rounded-lg font-medium text-lg type-food hover:opacity-90"
-								>
-									&#x1F37D;&#xFE0F; Food
-								</button>
-							</div>
-							<button type="button" onClick={handleCancelNewItem} className="w-full btn-secondary">
-								Cancel
-							</button>
-						</>
-					) : (
-						<>
-							<h3 className="font-semibold text-heading">
-								Create New {newItemType === 'activity' ? 'Activity' : 'Food'} Item
-							</h3>
-
-							<div>
-								<label htmlFor="newItemName" className="form-label">Name</label>
-								<input
-									id="newItemName"
-									type="text"
-									value={newItemName}
-									onChange={(e) => setNewItemName(e.target.value)}
-									placeholder="Enter name..."
-									className="form-input"
-								/>
-							</div>
-
-							<div>
-								<label className="form-label">Categories</label>
-								<CategoryPicker
-									selected={newItemCategories}
-									categories={newItemCategoriesOptions}
-									onchange={setNewItemCategories}
-									type={newItemType}
-								/>
-							</div>
-
-							<div className="flex gap-2">
-								<button
-									type="button"
-									onClick={handleSaveNewItem}
-									disabled={!newItemName.trim()}
-									className="flex-1 btn-primary"
-								>
-									Create &amp; Select
-								</button>
-								<button type="button" onClick={handleCancelNewItem} className="flex-1 btn-secondary">
-									Cancel
-								</button>
-							</div>
-						</>
-					)}
+		<>
+			{/* Search input — borderless, full-width */}
+			<div className="relative">
+				<div className="flex items-center gap-3 py-2">
+					<svg className="w-5 h-5 text-[var(--text-muted)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+						<path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+					</svg>
+					<input
+						ref={inputRef}
+						type="text"
+						value={query}
+						onChange={(e) => setQuery(e.target.value)}
+						onFocus={() => setIsFocused(true)}
+						onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+						placeholder="Search or create item..."
+						className="flex-1 bg-transparent text-heading text-base placeholder:text-[var(--text-muted)] outline-none"
+					/>
 				</div>
-			) : (
-				<>
+				<div className="h-px bg-[var(--border-subtle)]" />
+
+				{/* Search results */}
+				{showResults && (
+					<div className="absolute z-20 w-full mt-1 bg-[var(--bg-elevated)] rounded-lg shadow-[var(--shadow-elevated)] border border-[var(--border-default)] max-h-64 overflow-y-auto">
+						{searchResults.map((unified) => (
+							<button
+								key={`${unified.type}-${unified.item.id}`}
+								type="button"
+								onMouseDown={(e) => e.preventDefault()}
+								onClick={() => handleSelectExisting(unified)}
+								className="w-full text-left px-4 py-3 hover:bg-[var(--bg-card-hover)] flex items-center gap-3 border-b border-[var(--border-subtle)] last:border-b-0"
+							>
+								<span className="text-sm">{getTypeIcon(unified.type)}</span>
+								<div className="flex-1 min-w-0">
+									<div className="font-medium text-heading">{unified.item.name}</div>
+									{unified.item.categories.length > 0 && (
+										<div className="text-xs text-label truncate">
+											{getCategoryNames(unified.item.categories, unified.type)}
+										</div>
+									)}
+								</div>
+							</button>
+						))}
+
+						{!hasExactMatch && query.trim() && (
+							<button
+								type="button"
+								onMouseDown={(e) => e.preventDefault()}
+								onClick={handleCreateTap}
+								className="w-full text-left px-4 py-3 hover:bg-[var(--bg-card-hover)] flex items-center gap-3 text-[var(--color-activity)]"
+							>
+								<span className="text-sm font-bold">+</span>
+								<span>Create &ldquo;{query.trim()}&rdquo;</span>
+							</button>
+						)}
+					</div>
+				)}
+			</div>
+
+			{/* Recent items — shown when not searching */}
+			{!showResults && recentItems.length > 0 && (
+				<div className="mt-4">
+					<div className="text-xs font-medium text-label uppercase tracking-wide mb-2">Recent</div>
+					<div className="space-y-0.5">
+						{recentItems.map((unified) => (
+							<button
+								key={`${unified.type}-${unified.item.id}`}
+								type="button"
+								onClick={() => handleSelectExisting(unified)}
+								className="w-full text-left px-1 py-2.5 hover:bg-[var(--bg-card-hover)] rounded-md flex items-center gap-3 transition-colors"
+							>
+								<span className="text-sm">{getTypeIcon(unified.type)}</span>
+								<span className="text-body">{unified.item.name}</span>
+							</button>
+						))}
+					</div>
+				</div>
+			)}
+
+			{/* Create + Log bottom sheet */}
+			<BottomSheet
+				open={sheetOpen}
+				onclose={() => setSheetOpen(false)}
+				title={sheetMode === 'create' ? 'New item' : `Log ${selectedItem?.item.name ?? ''}`}
+			>
+				<div className="space-y-5">
+					{/* Item name — only for create mode */}
+					{sheetMode === 'create' && (
+						<div>
+							<label htmlFor="sheet-name" className="form-label">Name</label>
+							<input
+								id="sheet-name"
+								type="text"
+								value={itemName}
+								onChange={(e) => setItemName(e.target.value)}
+								placeholder="Item name"
+								className="form-input"
+								autoFocus
+							/>
+						</div>
+					)}
+
+					{/* Type selector — only for create mode */}
+					{sheetMode === 'create' && (
+						<div>
+							<label className="form-label">Type</label>
+							<SegmentedControl
+								options={[
+									{ value: 'activity' as EntryType, label: 'Activity', activeClass: 'type-activity' },
+									{ value: 'food' as EntryType, label: 'Food', activeClass: 'type-food' }
+								]}
+								value={itemType}
+								onchange={setItemType}
+								variant="segment"
+								size="sm"
+							/>
+						</div>
+					)}
+
+					{/* Date */}
 					<div>
-						<label className="form-label">Item</label>
-						<UnifiedItemPicker
-							activityItems={data.activityItems}
-							foodItems={data.foodItems}
-							activityCategories={data.activityCategories}
-							foodCategories={data.foodCategories}
-							selectedItem={selectedUnified}
-							onselect={handleItemSelect}
-							oncreate={handleCreateNew}
-							placeholder="Search or create..."
+						<label htmlFor="sheet-date" className="form-label">Date</label>
+						<input
+							id="sheet-date"
+							type="date"
+							value={logDate}
+							onChange={(e) => setLogDate(e.target.value)}
+							className="form-input"
 						/>
 					</div>
 
-					{selectedUnified?.item.id && (
-						<>
-							<div>
-								<label htmlFor="date" className="form-label">Date</label>
-								<input
-									id="date"
-									type="date"
-									value={date}
-									onChange={(e) => setDate(e.target.value)}
-									className="form-input"
-								/>
-							</div>
+					{/* Optional details */}
+					<div>
+						<button
+							type="button"
+							onClick={() => setShowDetails(!showDetails)}
+							className="flex items-center gap-2 text-sm text-label hover:text-body transition-colors"
+						>
+							<svg
+								className={`w-4 h-4 transition-transform ${showDetails ? 'rotate-90' : ''}`}
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								strokeWidth="2"
+							>
+								<path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+							</svg>
+							Optional details
+						</button>
 
-							<div>
-								<label htmlFor="time" className="form-label">
-									Time <span className="text-subtle font-normal">(optional)</span>
-								</label>
-								<div className="relative">
-									<input
-										id="time"
-										type="time"
-										value={time ?? ''}
-										onChange={(e) => setTime(e.target.value || null)}
-										className={`form-input ${time ? 'pr-8' : ''}`}
+						{showDetails && (
+							<div className="mt-3 space-y-4 animate-fade-in">
+								{/* Time */}
+								<div>
+									<label htmlFor="sheet-time" className="form-label">Time</label>
+									<div className="relative">
+										<input
+											id="sheet-time"
+											type="time"
+											value={logTime ?? ''}
+											onChange={(e) => setLogTime(e.target.value || null)}
+											className={`form-input ${logTime ? 'pr-8' : ''}`}
+											placeholder="Not set"
+										/>
+										{logTime && (
+											<button
+												type="button"
+												onClick={() => setLogTime(null)}
+												className="absolute right-2 top-1/2 -translate-y-1/2 text-subtle hover:text-body text-lg"
+												aria-label="Clear time"
+											>
+												&times;
+											</button>
+										)}
+									</div>
+								</div>
+
+								{/* Categories */}
+								<div>
+									<label className="form-label">Categories</label>
+									<CategoryPicker
+										selected={logCategories}
+										categories={categoriesForType}
+										onchange={setLogCategories}
+										type={sheetMode === 'create' ? itemType : (selectedItem?.type ?? itemType)}
 									/>
-									{time && (
-										<button
-											type="button"
-											onClick={() => setTime(null)}
-											className="absolute right-2 top-1/2 -translate-y-1/2 text-subtle hover:text-body text-lg"
-											aria-label="Clear time"
-										>
-											&times;
-										</button>
-									)}
+								</div>
+
+								{/* Note */}
+								<div>
+									<label htmlFor="sheet-note" className="form-label">Note</label>
+									<input
+										id="sheet-note"
+										type="text"
+										value={logNote}
+										onChange={(e) => setLogNote(e.target.value)}
+										placeholder="Add a note..."
+										className="form-input"
+									/>
 								</div>
 							</div>
+						)}
+					</div>
 
-							<div>
-								<label htmlFor="notes" className="form-label">
-									Notes <span className="text-subtle font-normal">(optional)</span>
-								</label>
-								<input
-									id="notes"
-									type="text"
-									value={notes}
-									onChange={(e) => setNotes(e.target.value)}
-									placeholder="Add a note..."
-									className="form-input"
-								/>
-							</div>
-
-							<div>
-								<label className="flex items-center gap-2 text-sm text-body">
-									<input
-										type="checkbox"
-										checked={useOverrides}
-										onChange={(e) => setUseOverrides(e.target.checked)}
-										className="rounded"
-									/>
-									<span>Override categories for this entry</span>
-								</label>
-
-								{useOverrides && (
-									<div className="mt-2">
-										<CategoryPicker
-											selected={categoryOverrides}
-											categories={categories}
-											onchange={setCategoryOverrides}
-											type={selectedUnified.type}
-										/>
-									</div>
-								)}
-							</div>
-
-							<button
-								type="button"
-								onClick={handleSubmit}
-								className={`w-full btn-lg rounded-md font-medium transition-colors ${getTypeColor(selectedUnified.type)}`}
-							>
-								Log {getTypeLabel(selectedUnified.type)}
-							</button>
-						</>
-					)}
-				</>
-			)}
-		</div>
+					{/* Log button — sticky at bottom */}
+					<button
+						type="button"
+						onClick={handleLog}
+						disabled={sheetMode === 'create' && !itemName.trim()}
+						className="w-full btn-lg rounded-lg font-medium transition-colors type-activity disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						Log
+					</button>
+				</div>
+			</BottomSheet>
+		</>
 	);
 }

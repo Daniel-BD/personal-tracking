@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Important Workflow Rules
 
 - **Always verify changes build successfully** before considering a task complete. Run `npm run build` after making changes and fix any errors before finishing.
+- **Always update this CLAUDE.md file** when making changes to the codebase (new components, changed patterns, modified architecture, renamed files, etc.) so it continues to accurately reflect the actual code.
 - You may need to run `npm install` first if `node_modules` is missing.
 
 ## Development Commands
@@ -51,12 +52,14 @@ All data lives in a single `TrackerData` object containing items, categories, en
 - **Category sentiment**: Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`, defined as `CategorySentiment` in `types.ts`). Defaults to `'neutral'`. Set via a `SentimentPicker` in the Library page when creating or editing categories. Categories created inline via `CategoryPicker` default to neutral. Non-neutral sentiments display as colored badges (green for positive, red for limit) next to the category name. Existing data without the field is handled via `?? 'neutral'` fallback.
 - **External store pattern**: Instead of React Context, the store uses a module-level singleton with `useSyncExternalStore` for reactivity. This allows store functions (CRUD operations) to be called from anywhere without prop drilling.
 - **Dashboard cards**: `TrackerData.dashboardCards` stores user-configured goal cards (each tied to a `categoryId`). Cards compare this week's count against a rolling 4-week baseline average. CRUD operations: `addDashboardCard()`, `removeDashboardCard()` in `store.ts`.
-- **Toast system**: `showToast()` from `components/Toast.tsx` is a module-level function (no provider needed). Toasts auto-dismiss after 3.5s and optionally include an action button.
-- **URL-based quick logging**: The Home page reads `?add=itemName` from the URL to instantly log an entry for a matching item name.
+- **Toast system**: `showToast()` from `components/Toast.tsx` is a module-level function (no provider needed). Toasts auto-dismiss after 3.5s and optionally include an action button. Used for Quick Log success feedback (with Undo action) and URL-based quick logging.
+- **URL-based quick logging**: The Home page reads `?add=itemName` from the URL to instantly log an entry for a matching item name. Feedback is shown via toast.
+- **Bottom sheet pattern**: `BottomSheet` component provides a slide-up sheet (~85vh max) with backdrop, handle bar, and escape-to-close. Used by Quick Log for the Create+Log flow. Locks body scroll when open.
+- **Quick Log flow**: Command-palette style — borderless search input at top, inline search results, recent items list (last 5 unique from entries). Tapping an item or "Create" opens a BottomSheet with type selector (create mode), date, collapsible optional details (time/categories/note), and a Log button. No blocking modals. Fast path: open → type → tap → Log (3 interactions).
 
 ### Routes
 
-- `/` — Home page with quick log form, summary stats, and URL-based quick logging
+- `/` — Home page with command-palette quick log, recent items, bottom sheet create+log, and demoted monthly stats
 - `/log` — Full log view with type/category/item filtering and entry history
 - `/stats` — Stats page: goal dashboard with sparkline cards, balance score, actionable categories (top limit & lagging positive), and category composition chart
 - `/library` — Manage items and categories (CRUD) with search, split into Items and Categories sub-tabs
@@ -80,15 +83,16 @@ src/
 │   ├── github.ts                    # GitHub Gist API client
 │   └── theme.ts                     # Theme (light/dark/system) persistence + application
 ├── pages/
-│   ├── HomePage.tsx                 # Quick log form + monthly summary cards
+│   ├── HomePage.tsx                 # Command-palette quick log + demoted monthly stats
 │   ├── LogPage.tsx                  # Filterable entry list
 │   ├── StatsPage.tsx                # Stats dashboard: goals, balance, composition
 │   ├── LibraryPage.tsx              # Item & category CRUD management
 │   └── SettingsPage.tsx             # Theme, Gist config, export/import, backup
 ├── components/
-│   ├── QuickLogForm.tsx             # Quick entry creation form (used on Home)
+│   ├── QuickLogForm.tsx             # Command-palette search + BottomSheet create/log (used on Home)
+│   ├── BottomSheet.tsx              # Reusable slide-up bottom sheet with backdrop
 │   ├── EntryList.tsx                # Grouped-by-date entry display with edit/delete
-│   ├── UnifiedItemPicker.tsx        # Searchable item picker across activity + food
+│   ├── UnifiedItemPicker.tsx        # Searchable item picker across activity + food (legacy, unused by Quick Log)
 │   ├── ItemPicker.tsx               # Single-type item picker
 │   ├── CategoryPicker.tsx           # Multi-select category chips with inline creation
 │   ├── AddCategoryModal.tsx         # Modal for adding categories to dashboard
@@ -135,7 +139,7 @@ Use these instead of repeating Tailwind utilities:
 - **Layout**: `.card` (background + border + rounded + shadow), `.bg-surface`, `.bg-inset`
 - **Text**: `.text-heading`, `.text-body`, `.text-label`, `.text-subtle`
 - **Type accents**: `.type-activity`, `.type-food` (solid bg), `.type-activity-muted`, `.type-food-muted` (light bg + border)
-- **Animation**: `.animate-fade-in`
+- **Animation**: `.animate-fade-in`, `.animate-slide-up`
 
 ### Color Conventions
 
