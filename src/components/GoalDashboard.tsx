@@ -18,7 +18,7 @@ export default function GoalDashboard() {
 		return data.dashboardCards.map((card) => {
 			const categoryId = card.categoryId;
 
-			// Find category and determine color/type
+			// Find category and determine color/type/sentiment
 			const foodCat = data.foodCategories.find(c => c.id === categoryId);
 			const activityCat = data.activityCategories.find(c => c.id === categoryId);
 			const category = foodCat || activityCat;
@@ -26,8 +26,7 @@ export default function GoalDashboard() {
 			if (!category) return null;
 
 			const categoryName = category.name;
-			const categoryType = foodCat ? 'food' : 'activity';
-			const categoryColor = categoryType === 'food' ? 'var(--color-food)' : 'var(--color-activity)';
+			const sentiment = category.sentiment ?? 'neutral';
 
 			// Calculate weekly counts
 			const sparklineData = weeks.map((week) => {
@@ -63,8 +62,10 @@ export default function GoalDashboard() {
 			return {
 				categoryId,
 				categoryName,
-				categoryColor,
+				sentiment,
 				sparklineData,
+				currentCount,
+				baselineAvg,
 				delta,
 				deltaPercent
 			};
@@ -92,9 +93,10 @@ export default function GoalDashboard() {
 					<GoalCard
 						key={card.categoryId}
 						categoryName={card.categoryName}
-						categoryColor={card.categoryColor}
+						sentiment={card.sentiment}
 						sparklineData={card.sparklineData}
-						delta={card.delta}
+						currentCount={card.currentCount}
+						baselineAvg={card.baselineAvg}
 						deltaPercent={card.deltaPercent}
 						onRemove={() => removeDashboardCard(card.categoryId)}
 					/>
