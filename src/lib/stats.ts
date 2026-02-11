@@ -228,7 +228,7 @@ export function buildCategoryColorMap(topCategoryIds: string[]): Map<string, str
 	topCategoryIds.forEach((catId, index) => {
 		map.set(catId, COLOR_PALETTE[index % COLOR_PALETTE.length]);
 	});
-	map.set('OTHER', '#d1d5db'); // gray for "Other"
+	map.set('OTHER', 'var(--color-neutral)');
 	return map;
 }
 

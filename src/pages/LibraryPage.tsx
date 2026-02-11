@@ -30,9 +30,9 @@ function SentimentPicker({ value, onChange }: { value: CategorySentiment; onChan
 					className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
 						value === opt.value
 							? opt.value === 'positive'
-								? 'bg-green-600 text-white'
+								? 'bg-[var(--color-success)] text-white'
 								: opt.value === 'limit'
-									? 'bg-red-600 text-white'
+									? 'bg-[var(--color-danger)] text-white'
 									: 'bg-[var(--bg-inset)] text-heading ring-1 ring-[var(--border-input)]'
 							: 'bg-[var(--bg-inset)] text-label hover:bg-[var(--bg-card-hover)]'
 					}`}
@@ -432,8 +432,8 @@ export default function LibraryPage() {
 												{category.sentiment && category.sentiment !== 'neutral' && (
 													<span className={`ml-2 text-xs font-medium px-1.5 py-0.5 rounded-full ${
 														category.sentiment === 'positive'
-															? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-															: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+															? 'bg-[var(--color-success-bg)] text-[var(--color-success-text)]'
+															: 'bg-[var(--color-danger-bg)] text-[var(--color-danger-text)]'
 													}`}>
 														{category.sentiment}
 													</span>

@@ -2,6 +2,8 @@ interface Option<T extends string> {
 	value: T;
 	label: string;
 	activeClass?: string;
+	disabled?: boolean;
+	title?: string;
 }
 
 interface Props<T extends string> {
@@ -25,6 +27,10 @@ function getButtonClass<T extends string>(
 	size: 'default' | 'sm' | 'xs'
 ): string {
 	const baseClass = `flex-1 rounded-md transition-colors ${sizeClasses[size]}`;
+
+	if (option.disabled) {
+		return `${baseClass} bg-[var(--bg-inset)] text-subtle cursor-not-allowed`;
+	}
 
 	if (variant === 'pill') {
 		if (isActive) {
@@ -54,6 +60,8 @@ export default function SegmentedControl<T extends string>({
 						key={option.value}
 						type="button"
 						onClick={() => onchange(option.value)}
+						disabled={option.disabled}
+						title={option.title}
 						className={getButtonClass(option, value === option.value, variant, size)}
 					>
 						{option.label}
@@ -70,6 +78,8 @@ export default function SegmentedControl<T extends string>({
 					key={option.value}
 					type="button"
 					onClick={() => onchange(option.value)}
+					disabled={option.disabled}
+					title={option.title}
 					className={getButtonClass(option, value === option.value, variant, size)}
 				>
 					{option.label}

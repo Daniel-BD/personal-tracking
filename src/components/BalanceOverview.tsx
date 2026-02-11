@@ -65,8 +65,8 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 								style={{
 									color:
 										scoreChange.direction === 'up'
-											? '#10b981'
-											: '#ef4444'
+											? 'var(--color-success)'
+											: 'var(--color-danger)'
 								}}
 							>
 								<span>{scoreChange.direction === 'up' ? '↑' : '↓'}</span>
@@ -77,16 +77,16 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 				</div>
 
 				{/* Score meter */}
-				<div className="bg-gray-200 rounded-full h-4 overflow-hidden dark:bg-gray-700">
+				<div className="bg-[var(--bg-inset)] rounded-full h-4 overflow-hidden">
 					<div
 						className="h-full transition-all duration-300"
 						style={{
 							width: `${currentScore}%`,
-							background: `linear-gradient(to right, #ef4444, #f59e0b, #10b981)`
+							background: `linear-gradient(to right, var(--color-danger), var(--color-warning), var(--color-success))`
 						}}
 					/>
 				</div>
-				<p className="text-xs text-gray-600 dark:text-gray-400">
+				<p className="text-xs text-body">
 					Positive ÷ (Positive + Limit)
 				</p>
 			</div>
@@ -121,7 +121,7 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 						<Bar
 							dataKey="positive"
 							stackId="sentiment"
-							fill="#10b981"
+							fill="var(--color-success)"
 							name="Positive"
 						>
 							{data.map((entry, index) => (
@@ -134,7 +134,7 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 						<Bar
 							dataKey="neutral"
 							stackId="sentiment"
-							fill="#d1d5db"
+							fill="var(--color-neutral)"
 							name="Neutral"
 						>
 							{data.map((entry, index) => (
@@ -147,7 +147,7 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 						<Bar
 							dataKey="limit"
 							stackId="sentiment"
-							fill="#ef4444"
+							fill="var(--color-danger)"
 							name="Limit"
 						>
 							{data.map((entry, index) => (
@@ -159,7 +159,7 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 						</Bar>
 					</BarChart>
 				</ResponsiveContainer>
-				<p className="text-xs text-gray-600 dark:text-gray-400">
+				<p className="text-xs text-body">
 					Faded weeks have less than 5 logged events
 				</p>
 			</div>

@@ -113,7 +113,7 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 								key={catId}
 								dataKey={catId}
 								stackId="categories"
-								fill={colorMap.get(catId) || '#d1d5db'}
+								fill={colorMap.get(catId) || 'var(--color-neutral)'}
 								name={categoryNameMap.get(catId) || catId}
 								isAnimationActive={false}
 							>
@@ -128,7 +128,7 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 						))}
 					</BarChart>
 				</ResponsiveContainer>
-				<p className="text-xs text-gray-600 dark:text-gray-400">
+				<p className="text-xs text-body">
 					Click a bar to see detailed category breakdown
 				</p>
 			</div>
@@ -161,23 +161,23 @@ function CategoryDetailModal({
 	}, [week.categories]);
 
 	return (
-		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-end z-50 sm:items-center">
+		<div className="fixed inset-0 bg-black/50 flex items-end z-50 sm:items-center">
 			<div
-				className="bg-white dark:bg-gray-900 w-full sm:w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 space-y-4 max-h-96 overflow-y-auto"
+				className="bg-[var(--bg-elevated)] w-full sm:w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 space-y-4 max-h-96 overflow-y-auto"
 				onClick={(e) => e.stopPropagation()}
 			>
-				<div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
+				<div className="flex justify-between items-center pb-4 border-b border-[var(--border-default)]">
 					<div>
-						<h3 className="font-semibold">
+						<h3 className="font-semibold text-heading">
 							Week of {formatWeekLabel(week.start)}
 						</h3>
-						<p className="text-sm text-gray-600 dark:text-gray-400">
+						<p className="text-sm text-body">
 							{week.totalCount} events
 						</p>
 					</div>
 					<button
 						onClick={onClose}
-						className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-xl"
+						className="text-label hover:text-heading text-xl"
 					>
 						✕
 					</button>
@@ -203,20 +203,20 @@ function CategoryDetailModal({
 												backgroundColor: color
 											}}
 										/>
-										<span className="font-medium truncate">
+										<span className="font-medium truncate text-heading">
 											{cat.categoryName}
 										</span>
 									</div>
 									<div className="flex items-center gap-2 ml-2 flex-shrink-0">
-										<span className="text-sm text-gray-600 dark:text-gray-400">
+										<span className="text-sm text-body">
 											{percentage}%
 										</span>
-										<span className="text-sm font-semibold">
+										<span className="text-sm font-semibold text-heading">
 											({cat.count})
 										</span>
 									</div>
 								</div>
-								<div className="bg-gray-200 rounded h-1.5 dark:bg-gray-700">
+								<div className="bg-[var(--bg-inset)] rounded h-1.5">
 									<div
 										className="h-full rounded transition-all"
 										style={{
