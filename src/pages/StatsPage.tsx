@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTrackerData } from '../lib/hooks';
 import BalanceOverview from '../components/BalanceOverview';
+import ActionableCategories from '../components/ActionableCategories';
 import CategoryComposition from '../components/CategoryComposition';
 import GoalDashboard from '../components/GoalDashboard';
 import { getLastNWeeks, processFoodEntriesByWeek } from '../lib/stats';
@@ -74,6 +75,9 @@ export default function StatsPage() {
 
 					{/* Section 1: Balance Overview */}
 					<BalanceOverview weeklyData={weeklyData} />
+
+					{/* Section 1.5: Actionable Categories (Focus Areas) */}
+					<ActionableCategories data={data} />
 
 					{/* Section 2: Category Composition */}
 					<CategoryComposition weeklyData={weeklyData} />

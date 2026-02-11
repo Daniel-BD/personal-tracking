@@ -269,6 +269,135 @@ export function groupCategoriesForWeek(
 	});
 }
 
+// ============================================================
+// Actionable Categories — used by the stats "Follow" section
+// ============================================================
+
+export interface ActionableCategoryRow {
+	categoryId: string;
+	categoryName: string;
+	/** Primary metric value (count for limit, gap for positive) */
+	value: number;
+	/** Human-readable secondary label, e.g. "32% of limit total" */
+	label: string;
+	/** Raw event count. Only populated for limit categories; undefined for positive categories. */
+	count?: number;
+}
+
+/**
+ * Collect food entries from the last 4 weeks and count occurrences for
+ * categories matching the given sentiment. Filters all entries once by
+ * date range instead of per-week for efficiency.
+ */
+function countCategoriesBySentiment(
+	entries: Entry[],
+	data: TrackerData,
+	weeks: Array<{ key: string; start: Date; end: Date }>,
+	sentiment: 'limit' | 'positive'
+): { counts: Map<string, number>; total: number; catIds: Set<string> } {
+	const foodCategories = getCategories(data, 'food');
+	const catIds = new Set(
+		foodCategories.filter((c) => c.sentiment === sentiment).map((c) => c.id)
+	);
+
+	const counts = new Map<string, number>();
+	let total = 0;
+
+	if (catIds.size === 0) return { counts, total, catIds };
+
+	// Determine the full date range from the last 4 weeks and filter once
+	const last4 = weeks.slice(-4);
+	const rangeStart = last4[0].start;
+	const rangeEnd = last4[last4.length - 1].end;
+	const foodEntries = filterEntriesByType(entries, 'food')
+		.filter((e) => isEntryInWeek(e, rangeStart, rangeEnd));
+
+	for (const entry of foodEntries) {
+		const entryCatIds = getEntryCategoryIds(entry, data);
+		for (const catId of entryCatIds) {
+			if (catIds.has(catId)) {
+				counts.set(catId, (counts.get(catId) || 0) + 1);
+				total++;
+			}
+		}
+	}
+
+	return { counts, total, catIds };
+}
+
+/**
+ * Top Limit Categories (last 4 weeks)
+ * Ranked by total_count descending. Bar = share of all limit events.
+ */
+export function getTopLimitCategories(
+	entries: Entry[],
+	data: TrackerData,
+	weeks: Array<{ key: string; start: Date; end: Date }>,
+	limit: number = 5
+): ActionableCategoryRow[] {
+	const { counts, total } = countCategoriesBySentiment(entries, data, weeks, 'limit');
+	if (total === 0) return [];
+
+	return Array.from(counts.entries())
+		.sort((a, b) => b[1] - a[1])
+		.slice(0, limit)
+		.map(([catId, count]) => {
+			const share = Math.round((count / total) * 100);
+			const catName = getCategoryNameById(catId, data);
+			return {
+				categoryId: catId,
+				categoryName: catName,
+				value: share,
+				label: `${share}% of limit total`,
+				count
+			};
+		});
+}
+
+/**
+ * Lagging Positive Categories (last 4 weeks)
+ * Ranked by underrepresentation: (average_positive_share − category_share)
+ * where average_positive_share = 1/N and category_share = cat_count/total_positive
+ */
+export function getLaggingPositiveCategories(
+	entries: Entry[],
+	data: TrackerData,
+	weeks: Array<{ key: string; start: Date; end: Date }>,
+	limit: number = 5
+): ActionableCategoryRow[] {
+	const { counts, total, catIds } = countCategoriesBySentiment(entries, data, weeks, 'positive');
+	if (total === 0) return [];
+
+	// Ensure every positive category appears (even with 0 count)
+	for (const catId of catIds) {
+		if (!counts.has(catId)) {
+			counts.set(catId, 0);
+		}
+	}
+
+	const avgShare = 1 / catIds.size;
+
+	return Array.from(counts.entries())
+		.map(([catId, count]) => {
+			const share = count / total;
+			const gap = avgShare - share;
+			return { catId, count, share, gap };
+		})
+		.filter((r) => r.gap > 0)
+		.sort((a, b) => b.gap - a.gap)
+		.slice(0, limit)
+		.map((r) => {
+			const catName = getCategoryNameById(r.catId, data);
+			const gapPercent = Math.round(r.gap * 100);
+			return {
+				categoryId: r.catId,
+				categoryName: catName,
+				value: gapPercent,
+				label: 'Below your positive average'
+			};
+		});
+}
+
 /**
  * Format week label like "Jan 15"
  */
