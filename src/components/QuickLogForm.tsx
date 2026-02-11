@@ -30,7 +30,6 @@ export default function QuickLogForm() {
 	const [logTime, setLogTime] = useState<string | null>(getCurrentTime());
 	const [logNote, setLogNote] = useState('');
 	const [logCategories, setLogCategories] = useState<string[]>([]);
-	const [dateExpanded, setDateExpanded] = useState(false);
 
 	// Item being logged (for existing items tapped from search)
 	const [selectedItem, setSelectedItem] = useState<UnifiedItem | null>(null);
@@ -103,7 +102,7 @@ export default function QuickLogForm() {
 		setLogTime(getCurrentTime());
 		setLogNote('');
 		setLogCategories([...unified.item.categories]);
-		setDateExpanded(false);
+
 		setSheetOpen(true);
 		setQuery('');
 		setIsFocused(false);
@@ -119,7 +118,7 @@ export default function QuickLogForm() {
 		setLogTime(getCurrentTime());
 		setLogNote('');
 		setLogCategories([]);
-		setDateExpanded(false);
+
 		setSheetOpen(true);
 		setQuery('');
 		setIsFocused(false);
@@ -299,39 +298,39 @@ export default function QuickLogForm() {
 						</div>
 					)}
 
-					{/* Date + Time */}
-					<div className="flex gap-3">
-						<div className="flex-1">
-							<label htmlFor="sheet-date" className="form-label">Date</label>
+					{/* Date */}
+					<div>
+						<label htmlFor="sheet-date" className="form-label">Date</label>
+						<input
+							id="sheet-date"
+							type="date"
+							value={logDate}
+							onChange={(e) => setLogDate(e.target.value)}
+							className="form-input"
+						/>
+					</div>
+
+					{/* Time */}
+					<div>
+						<label htmlFor="sheet-time" className="form-label">Time</label>
+						<div className="relative">
 							<input
-								id="sheet-date"
-								type="date"
-								value={logDate}
-								onChange={(e) => setLogDate(e.target.value)}
-								className="form-input"
+								id="sheet-time"
+								type="time"
+								value={logTime ?? ''}
+								onChange={(e) => setLogTime(e.target.value || null)}
+								className={`form-input ${logTime ? 'pr-8' : ''}`}
 							/>
-						</div>
-						<div className="flex-1">
-							<label htmlFor="sheet-time" className="form-label">Time</label>
-							<div className="relative">
-								<input
-									id="sheet-time"
-									type="time"
-									value={logTime ?? ''}
-									onChange={(e) => setLogTime(e.target.value || null)}
-									className={`form-input ${logTime ? 'pr-8' : ''}`}
-								/>
-								{logTime && (
-									<button
-										type="button"
-										onClick={() => setLogTime(null)}
-										className="absolute right-2 top-1/2 -translate-y-1/2 text-subtle hover:text-body text-lg"
-										aria-label="Clear time"
-									>
-										&times;
-									</button>
-								)}
-							</div>
+							{logTime && (
+								<button
+									type="button"
+									onClick={() => setLogTime(null)}
+									className="absolute right-2 top-1/2 -translate-y-1/2 text-subtle hover:text-body text-lg"
+									aria-label="Clear time"
+								>
+									&times;
+								</button>
+							)}
 						</div>
 					</div>
 
