@@ -61,6 +61,14 @@
 	--color-warning-text: #92400e;
 	--color-warning-border: #fde68a;
 
+	/* Neutral (for chart fills, muted indicators) */
+	--color-neutral: #d1d5db;          /* gray-300 */
+
+	/* Toast (inverted surface) */
+	--bg-toast: #111827;               /* gray-900 */
+	--text-toast: #ffffff;
+	--color-toast-action: #93c5fd;     /* blue-300 */
+
 	/* Shadows */
 	--shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
 	--shadow-elevated: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
@@ -120,6 +128,14 @@
 	--color-warning-bg: rgba(69, 26, 3, 0.5);
 	--color-warning-text: #fcd34d;
 	--color-warning-border: #92400e;
+
+	/* Neutral */
+	--color-neutral: #4b5563;          /* gray-600 */
+
+	/* Toast (inverted surface) */
+	--bg-toast: #f3f4f6;               /* gray-100 */
+	--text-toast: #111827;             /* gray-900 */
+	--color-toast-action: #2563eb;     /* blue-600 */
 
 	/* Shadows */
 	--shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.2);

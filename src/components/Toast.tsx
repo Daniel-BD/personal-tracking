@@ -43,13 +43,13 @@ export default function ToastContainer() {
 			{toasts.map((toast) => (
 				<div
 					key={toast.id}
-					className="pointer-events-auto bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-3 animate-fade-in"
+					className="pointer-events-auto bg-[var(--bg-toast)] text-[var(--text-toast)] text-sm font-medium px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-3 animate-fade-in"
 				>
 					<span>{toast.text}</span>
 					{toast.action && (
 						<button
 							onClick={toast.action.onClick}
-							className="text-blue-300 dark:text-blue-600 font-semibold hover:underline whitespace-nowrap"
+							className="text-[var(--color-toast-action)] font-semibold hover:underline whitespace-nowrap"
 						>
 							{toast.action.label}
 						</button>

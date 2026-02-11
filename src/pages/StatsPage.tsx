@@ -4,6 +4,7 @@ import BalanceOverview from '../components/BalanceOverview';
 import ActionableCategories from '../components/ActionableCategories';
 import CategoryComposition from '../components/CategoryComposition';
 import GoalDashboard from '../components/GoalDashboard';
+import SegmentedControl from '../components/SegmentedControl';
 import { getLastNWeeks, processFoodEntriesByWeek } from '../lib/stats';
 
 type PeriodType = 'weekly' | 'monthly';
@@ -26,40 +27,28 @@ export default function StatsPage() {
 			{/* Header */}
 			<div className="space-y-2">
 				<h1 className="text-2xl font-bold">Eating patterns</h1>
-				<p className="text-gray-600 dark:text-gray-400">
+				<p className="text-body">
 					What your eating events are made of
 				</p>
 			</div>
 
 			{/* Period toggle */}
-			<div className="flex gap-2">
-				<button
-					onClick={() => setPeriod('weekly')}
-					className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
-						period === 'weekly'
-							? 'bg-blue-600 text-white'
-							: 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-					}`}
-				>
-					Weekly
-				</button>
-				<button
-					onClick={() => setPeriod('monthly')}
-					disabled
-					className="flex-1 py-2 px-4 rounded-lg font-medium transition-colors bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500 cursor-not-allowed"
-					title="Monthly view coming soon"
-				>
-					Monthly
-				</button>
-			</div>
+			<SegmentedControl
+				options={[
+					{ value: 'weekly' as const, label: 'Weekly', activeClass: 'type-activity' },
+					{ value: 'monthly' as const, label: 'Monthly', disabled: true, title: 'Monthly view coming soon' }
+				]}
+				value={period}
+				onchange={setPeriod}
+			/>
 
 			{/* Empty state */}
 			{!hasData && (
 				<div className="card p-8 text-center space-y-2">
-					<p className="text-gray-600 dark:text-gray-400">
+					<p className="text-body">
 						No food entries logged yet
 					</p>
-					<p className="text-sm text-gray-500 dark:text-gray-500">
+					<p className="text-sm text-label">
 						Start logging food items to see your eating patterns
 					</p>
 				</div>
