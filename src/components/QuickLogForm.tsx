@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import type { EntryType, Item } from '../lib/types';
-import { getTodayDate, getTypeIcon } from '../lib/types';
+import { getTodayDate, getCurrentTime, getTypeIcon } from '../lib/types';
 import { useTrackerData } from '../lib/hooks';
 import { addEntry, addItem, deleteEntry, getItemById } from '../lib/store';
 import { showToast } from './Toast';
@@ -27,8 +27,7 @@ export default function QuickLogForm() {
 	const [itemName, setItemName] = useState('');
 	const [itemType, setItemType] = useState<EntryType>('food');
 	const [logDate, setLogDate] = useState(getTodayDate());
-	const [showDetails, setShowDetails] = useState(false);
-	const [logTime, setLogTime] = useState<string | null>(null);
+	const [logTime, setLogTime] = useState<string | null>(getCurrentTime());
 	const [logNote, setLogNote] = useState('');
 	const [logCategories, setLogCategories] = useState<string[]>([]);
 
@@ -100,10 +99,9 @@ export default function QuickLogForm() {
 		setItemName(unified.item.name);
 		setItemType(unified.type);
 		setLogDate(getTodayDate());
-		setLogTime(null);
+		setLogTime(getCurrentTime());
 		setLogNote('');
 		setLogCategories([...unified.item.categories]);
-		setShowDetails(false);
 		setSheetOpen(true);
 		setQuery('');
 		setIsFocused(false);
@@ -116,10 +114,9 @@ export default function QuickLogForm() {
 		setItemName(query.trim());
 		setItemType('food');
 		setLogDate(getTodayDate());
-		setLogTime(null);
+		setLogTime(getCurrentTime());
 		setLogNote('');
 		setLogCategories([]);
-		setShowDetails(false);
 		setSheetOpen(true);
 		setQuery('');
 		setIsFocused(false);
@@ -147,9 +144,7 @@ export default function QuickLogForm() {
 			logDate,
 			logTime,
 			logNote.trim() || null,
-			showDetails && logCategories.length > 0
-				? logCategories
-				: null
+			logCategories.length > 0 ? logCategories : null
 		);
 
 		setSheetOpen(false);
@@ -171,10 +166,9 @@ export default function QuickLogForm() {
 		setItemName('');
 		setItemType('food');
 		setLogDate(getTodayDate());
-		setLogTime(null);
+		setLogTime(getCurrentTime());
 		setLogNote('');
 		setLogCategories([]);
-		setShowDetails(false);
 	}
 
 	// Categories for current type
@@ -302,89 +296,64 @@ export default function QuickLogForm() {
 						</div>
 					)}
 
-					{/* Date */}
+					{/* Date + Time */}
+					<div className="flex gap-3">
+						<div className="flex-1">
+							<label htmlFor="sheet-date" className="form-label">Date</label>
+							<input
+								id="sheet-date"
+								type="date"
+								value={logDate}
+								onChange={(e) => setLogDate(e.target.value)}
+								className="form-input"
+							/>
+						</div>
+						<div className="flex-1">
+							<label htmlFor="sheet-time" className="form-label">Time</label>
+							<div className="relative">
+								<input
+									id="sheet-time"
+									type="time"
+									value={logTime ?? ''}
+									onChange={(e) => setLogTime(e.target.value || null)}
+									className={`form-input ${logTime ? 'pr-8' : ''}`}
+								/>
+								{logTime && (
+									<button
+										type="button"
+										onClick={() => setLogTime(null)}
+										className="absolute right-2 top-1/2 -translate-y-1/2 text-subtle hover:text-body text-lg"
+										aria-label="Clear time"
+									>
+										&times;
+									</button>
+								)}
+							</div>
+						</div>
+					</div>
+
+					{/* Categories */}
 					<div>
-						<label htmlFor="sheet-date" className="form-label">Date</label>
-						<input
-							id="sheet-date"
-							type="date"
-							value={logDate}
-							onChange={(e) => setLogDate(e.target.value)}
-							className="form-input"
+						<label className="form-label">Categories</label>
+						<CategoryPicker
+							selected={logCategories}
+							categories={categoriesForType}
+							onchange={setLogCategories}
+							type={sheetMode === 'create' ? itemType : (selectedItem?.type ?? itemType)}
 						/>
 					</div>
 
-					{/* Optional details */}
+					{/* Note */}
 					<div>
-						<button
-							type="button"
-							onClick={() => setShowDetails(!showDetails)}
-							className="flex items-center gap-2 text-sm text-label hover:text-body transition-colors"
-						>
-							<svg
-								className={`w-4 h-4 transition-transform ${showDetails ? 'rotate-90' : ''}`}
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								strokeWidth="2"
-							>
-								<path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-							</svg>
-							Optional details
-						</button>
-
-						{showDetails && (
-							<div className="mt-3 space-y-4 animate-fade-in">
-								{/* Time */}
-								<div>
-									<label htmlFor="sheet-time" className="form-label">Time</label>
-									<div className="relative">
-										<input
-											id="sheet-time"
-											type="time"
-											value={logTime ?? ''}
-											onChange={(e) => setLogTime(e.target.value || null)}
-											className={`form-input ${logTime ? 'pr-8' : ''}`}
-											placeholder="Not set"
-										/>
-										{logTime && (
-											<button
-												type="button"
-												onClick={() => setLogTime(null)}
-												className="absolute right-2 top-1/2 -translate-y-1/2 text-subtle hover:text-body text-lg"
-												aria-label="Clear time"
-											>
-												&times;
-											</button>
-										)}
-									</div>
-								</div>
-
-								{/* Categories */}
-								<div>
-									<label className="form-label">Categories</label>
-									<CategoryPicker
-										selected={logCategories}
-										categories={categoriesForType}
-										onchange={setLogCategories}
-										type={sheetMode === 'create' ? itemType : (selectedItem?.type ?? itemType)}
-									/>
-								</div>
-
-								{/* Note */}
-								<div>
-									<label htmlFor="sheet-note" className="form-label">Note</label>
-									<input
-										id="sheet-note"
-										type="text"
-										value={logNote}
-										onChange={(e) => setLogNote(e.target.value)}
-										placeholder="Add a note..."
-										className="form-input"
-									/>
-								</div>
-							</div>
-						)}
+						<label htmlFor="sheet-note" className="form-label">Note</label>
+						<input
+							id="sheet-note"
+							type="text"
+							value={logNote}
+							onChange={(e) => setLogNote(e.target.value)}
+							placeholder="Add a note..."
+							className="form-input"
+						/>
 					</div>
 
 					{/* Log button — sticky at bottom */}
