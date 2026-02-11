@@ -30,6 +30,7 @@ export default function QuickLogForm() {
 	const [logTime, setLogTime] = useState<string | null>(getCurrentTime());
 	const [logNote, setLogNote] = useState('');
 	const [logCategories, setLogCategories] = useState<string[]>([]);
+	const [dateExpanded, setDateExpanded] = useState(false);
 
 	// Item being logged (for existing items tapped from search)
 	const [selectedItem, setSelectedItem] = useState<UnifiedItem | null>(null);
@@ -102,6 +103,7 @@ export default function QuickLogForm() {
 		setLogTime(getCurrentTime());
 		setLogNote('');
 		setLogCategories([...unified.item.categories]);
+		setDateExpanded(false);
 		setSheetOpen(true);
 		setQuery('');
 		setIsFocused(false);
@@ -117,6 +119,7 @@ export default function QuickLogForm() {
 		setLogTime(getCurrentTime());
 		setLogNote('');
 		setLogCategories([]);
+		setDateExpanded(false);
 		setSheetOpen(true);
 		setQuery('');
 		setIsFocused(false);
