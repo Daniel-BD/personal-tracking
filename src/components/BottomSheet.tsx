@@ -30,9 +30,9 @@ export default function BottomSheet({ open, onclose, children, title }: Props) {
 
 		document.addEventListener('keydown', handleKeyDown);
 
-		// Move focus into the sheet when it opens
+		// Move focus into the sheet when it opens (skip date/time inputs to avoid native picker popup on mobile)
 		const firstFocusable = sheetRef.current?.querySelector<HTMLElement>(
-			'input, button, [tabindex]:not([tabindex="-1"])'
+			'input:not([type="date"]):not([type="time"]), button, [tabindex]:not([tabindex="-1"])'
 		);
 		firstFocusable?.focus();
 
