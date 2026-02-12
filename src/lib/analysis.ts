@@ -288,6 +288,13 @@ export function formatDate(dateString: string): string {
 	});
 }
 
+export function formatDateWithYear(dateString: string): string {
+	if (!dateString) return '';
+	const [year, month, day] = dateString.split('-').map(Number);
+	const date = new Date(year, month - 1, day);
+	return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
 export function formatMonthYear(date: Date = new Date()): string {
 	return date.toLocaleDateString('en-US', {
 		month: 'long',

@@ -40,7 +40,7 @@ All data lives in a single `TrackerData` object containing items, categories, en
 1. **`src/lib/types.ts`** — Data interfaces (`Entry`, `ActivityItem`, `FoodItem`, `Category`, `TrackerData`, `DashboardCard`) and utility functions (`generateId()`, `getTodayDate()`, `getCurrentTime()`, collection accessor helpers like `getItems()`, `getCategories()`).
 2. **`src/lib/store.ts`** — Singleton external store with `useSyncExternalStore`-compatible API (`dataStore`, `syncStatusStore`). All CRUD operations (items, categories, entries, dashboard cards), Gist sync/merge logic, data migration, and export/import (with field-level validation) live here. Every data mutation goes through this file. Store initialization is guarded by a module-level flag and invoked from `App.tsx`.
 3. **`src/lib/hooks.ts`** — React hooks (`useTrackerData()`, `useSyncStatus()`, `useIsMobile()`) that wrap the external store or browser APIs for use in components.
-4. **`src/lib/analysis.ts`** — Pure functions for date filtering, statistics, comparisons, time-series generation, and entity analytics. No side effects. Also contains shared formatting utilities (`formatTime`, `formatDateLocal`, `formatWeekLabel`), and chart data utilities (grouping by day/week/month, rolling averages, cumulative series).
+4. **`src/lib/analysis.ts`** — Pure functions for date filtering, statistics, comparisons, time-series generation, and entity analytics. No side effects. Also contains shared formatting utilities (`formatTime`, `formatDateWithYear`, `formatDateLocal`, `formatWeekLabel`), and chart data utilities (grouping by day/week/month, rolling averages, cumulative series).
 5. **`src/lib/stats.ts`** — Weekly food-analytics engine. Processes food entries by week, calculates balance scores (positive vs. limit sentiment), builds category composition data, and computes actionable category rankings (top limit categories, lagging positive categories).
 6. **`src/lib/github.ts`** — GitHub Gist API integration for backup sync.
 7. **`src/lib/theme.ts`** — Theme preference management (light/dark/system).
@@ -101,6 +101,7 @@ src/
 │   ├── BalanceOverview.tsx          # Balance score meter + weekly sentiment bar chart
 │   ├── ActionableCategories.tsx     # Top limit & lagging positive category lists
 │   ├── CategoryComposition.tsx      # Weekly stacked category composition chart
+│   ├── NavIcon.tsx                  # Navigation icon component (SVG icons for bottom nav)
 │   ├── NativePickerInput.tsx        # iOS-safe date/time picker (styled button + hidden native input)
 │   └── Toast.tsx                    # Toast notification system (module-level showToast())
 └── vite-env.d.ts

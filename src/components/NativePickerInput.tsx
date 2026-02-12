@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { formatTime } from '../lib/analysis';
+import { formatTime, formatDateWithYear } from '../lib/analysis';
 
 interface NativePickerInputProps {
 	type: 'date' | 'time';
@@ -9,17 +9,10 @@ interface NativePickerInputProps {
 	id?: string;
 }
 
-function formatDateDisplay(value: string): string {
-	if (!value) return '';
-	const [year, month, day] = value.split('-').map(Number);
-	const date = new Date(year, month - 1, day);
-	return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-}
-
 export default function NativePickerInput({ type, value, onChange, onClear, id }: NativePickerInputProps) {
 	const inputRef = useRef<HTMLInputElement>(null);
 
-	const displayValue = type === 'date' ? formatDateDisplay(value) : formatTime(value);
+	const displayValue = type === 'date' ? formatDateWithYear(value) : formatTime(value);
 	const placeholder = type === 'date' ? 'Select date' : 'Select time';
 	const showClear = onClear && value;
 
