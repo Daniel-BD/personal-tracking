@@ -8,10 +8,13 @@ import {
 	addCategory,
 	updateCategory,
 	deleteCategory,
-	getCategoryNames
+	getCategoryNames,
+	toggleFavorite,
+	isFavorite
 } from '../lib/store';
 import CategoryPicker from '../components/CategoryPicker';
 import SegmentedControl from '../components/SegmentedControl';
+import StarIcon from '../components/StarIcon';
 
 const SENTIMENT_OPTIONS: { value: CategorySentiment; label: string }[] = [
 	{ value: 'positive', label: 'Positive' },
@@ -321,6 +324,14 @@ export default function LibraryPage() {
 											)}
 										</div>
 										<div className="flex gap-2">
+											<button
+												type="button"
+												onClick={() => toggleFavorite(item.id)}
+												className="p-1"
+												aria-label={isFavorite(item.id) ? 'Remove from favorites' : 'Add to favorites'}
+											>
+												<StarIcon filled={isFavorite(item.id)} />
+											</button>
 											<button
 												onClick={() => handleEditItem(item)}
 												className="text-subtle hover:text-[var(--color-activity)] p-1"

@@ -1,7 +1,8 @@
 import { useState, useMemo, useRef, useCallback } from 'react';
 import type { TouchEvent as ReactTouchEvent } from 'react';
 import type { Entry, EntryType } from '../lib/types';
-import { getItemById, deleteEntry, updateEntry } from '../lib/store';
+import { getItemById, deleteEntry, updateEntry, toggleFavorite, isFavorite } from '../lib/store';
+import StarIcon from './StarIcon';
 import { useTrackerData } from '../lib/hooks';
 import { getEntriesGroupedByDate, formatDate, formatTime, getEntryCategoryNames, getEntryCategoryIds } from '../lib/analysis';
 import CategoryPicker from './CategoryPicker';
@@ -244,11 +245,21 @@ export default function EntryList({ entries, showType = false }: Props) {
 														<p className="text-xs text-subtle mt-0.5 truncate italic">{entry.notes}</p>
 													)}
 												</div>
-												{entry.time && (
-													<span className="text-xs text-subtle flex-shrink-0 tabular-nums">
-														{formatTime(entry.time)}
-													</span>
-												)}
+												<div className="flex items-center gap-2 flex-shrink-0">
+													{entry.time && (
+														<span className="text-xs text-subtle tabular-nums">
+															{formatTime(entry.time)}
+														</span>
+													)}
+													<button
+														type="button"
+														onClick={(e) => { e.stopPropagation(); toggleFavorite(entry.itemId); }}
+														className="p-0.5"
+														aria-label={isFavorite(entry.itemId) ? 'Remove from favorites' : 'Add to favorites'}
+													>
+														<StarIcon filled={isFavorite(entry.itemId)} className="w-4 h-4" />
+													</button>
+												</div>
 											</div>
 										</div>
 									</div>
