@@ -56,13 +56,15 @@ All data lives in a single `TrackerData` object containing items, categories, en
 - **Dashboard cards**: `TrackerData.dashboardCards` stores user-configured goal cards (each tied to a `categoryId`). Cards compare this week's count against a rolling 4-week baseline average. CRUD operations: `addDashboardCard()`, `removeDashboardCard()` in `store.ts`.
 - **Toast system**: `showToast()` from `components/Toast.tsx` is a module-level function (no provider needed). Toasts auto-dismiss after 3.5s and optionally include an action button. Used for Quick Log success feedback (with Undo action) and URL-based quick logging.
 - **URL-based quick logging**: The Home page reads `?add=itemName` from the URL to instantly log an entry for a matching item name. Feedback is shown via toast.
-- **Bottom sheet pattern**: `BottomSheet` component provides a slide-up sheet (~85vh max) with backdrop, handle bar, and escape-to-close. Used by Quick Log for the Create+Log flow. Locks body scroll when open.
+- **Bottom sheet pattern**: `BottomSheet` component provides a slide-up sheet (~85vh max) with backdrop, handle bar, and escape-to-close. Used by Quick Log for Create+Log flow, Log page for filters, and EntryList for editing entries. Locks body scroll when open.
+- **Log page design**: Minimal layout with title + entry count, segment-style type filter on page background (no card container), filter icon top-right opening a BottomSheet with category/item multi-select filters. Active filters shown as removable chips. Entry list uses grouped flat rows (no individual card styling), swipe-left for edit/delete actions, tap row to edit in a BottomSheet. Date headers are sticky, uppercase, muted.
+- **Swipe gestures**: EntryList implements touch-based swipe-left to reveal Edit (blue) and Delete (red) action buttons. Uses touch event handlers with a 70px threshold. Tapping a row opens edit in a BottomSheet.
 - **Quick Log flow**: Command-palette style — borderless search input at top, inline search results, recent items list (last 5 unique from entries). Tapping an item or "Create" opens a BottomSheet with type selector (create mode), date+time (defaulting to today/now), categories, note, and a Log button. All fields visible — no collapsible sections. No blocking modals. Fast path: open → type → tap → Log (3 interactions).
 
 ### Routes
 
 - `/` — Home page with command-palette quick log, recent items, bottom sheet create+log, and demoted monthly stats
-- `/log` — Full log view with type/category/item filtering and entry history
+- `/log` — Minimal log view with segment-style type filter, filter bottom sheet, swipeable entry list with tap-to-edit
 - `/stats` — Stats page: goal dashboard with sparkline cards, balance score, actionable categories (top limit & lagging positive), and category composition chart
 - `/library` — Manage items and categories (CRUD) with search, split into Items and Categories sub-tabs
 - `/settings` — Theme preferences, GitHub Gist sync configuration, export/import, and backup Gist management
@@ -89,14 +91,14 @@ src/
 │       └── gist-sync.test.ts        # Gist sync, merge, backup, CRUD→push
 ├── pages/
 │   ├── HomePage.tsx                 # Command-palette quick log + demoted monthly stats
-│   ├── LogPage.tsx                  # Filterable entry list
+│   ├── LogPage.tsx                  # Filterable entry list with filter bottom sheet
 │   ├── StatsPage.tsx                # Stats dashboard: goals, balance, composition
 │   ├── LibraryPage.tsx              # Item & category CRUD management
 │   └── SettingsPage.tsx             # Theme, Gist config, export/import, backup
 ├── components/
 │   ├── QuickLogForm.tsx             # Command-palette search + BottomSheet create/log (used on Home)
 │   ├── BottomSheet.tsx              # Reusable slide-up bottom sheet with backdrop
-│   ├── EntryList.tsx                # Grouped-by-date entry display with edit/delete
+│   ├── EntryList.tsx                # Grouped-by-date entry display with swipe actions + edit bottom sheet
 │   ├── CategoryPicker.tsx           # Multi-select category chips with inline creation
 │   ├── AddCategoryModal.tsx         # Modal for adding categories to dashboard
 │   ├── SegmentedControl.tsx         # Generic pill/segment toggle (used throughout)
