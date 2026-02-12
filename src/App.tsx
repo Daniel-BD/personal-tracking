@@ -48,7 +48,7 @@ export default function App() {
 			</main>
 
 			<nav
-				className="fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t"
+				className="fixed bottom-0 left-0 right-0 z-20 backdrop-blur-lg border-t"
 				style={{
 					background: 'color-mix(in srgb, var(--bg-card) 80%, transparent)',
 					borderColor: 'var(--border-default)',
