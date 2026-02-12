@@ -2,7 +2,7 @@ import { useState, useMemo, useRef } from 'react';
 import type { EntryType, Item } from '../lib/types';
 import { getTodayDate, getCurrentTime, getTypeIcon } from '../lib/types';
 import { useTrackerData } from '../lib/hooks';
-import { addEntry, addItem, deleteEntry, getItemById, getCategoryNames } from '../lib/store';
+import { addEntry, addItem, deleteEntry, getItemById, getCategoryNames, toggleFavorite, isFavorite } from '../lib/store';
 import { showToast } from './Toast';
 import BottomSheet from './BottomSheet';
 import SegmentedControl from './SegmentedControl';
@@ -42,34 +42,25 @@ export default function QuickLogForm() {
 		return [...activities, ...foods];
 	}, [data.activityItems, data.foodItems]);
 
-	// Recent items from last entries
-	const recentItems = useMemo(() => {
-		const seen = new Set<string>();
-		const recents: UnifiedItem[] = [];
+	// Favorite items
+	const favoriteItemsList = useMemo(() => {
+		const favorites = data.favoriteItems || [];
+		const result: UnifiedItem[] = [];
 
-		const sorted = [...data.entries].sort((a, b) => {
-			const dateComp = b.date.localeCompare(a.date);
-			if (dateComp !== 0) return dateComp;
-			if (a.time && b.time) return b.time.localeCompare(a.time);
-			if (b.time) return 1;
-			if (a.time) return -1;
-			return 0;
-		});
-
-		for (const entry of sorted) {
-			const key = `${entry.type}-${entry.itemId}`;
-			if (seen.has(key)) continue;
-			seen.add(key);
-
-			const item = getItemById(entry.type, entry.itemId);
-			if (item) {
-				recents.push({ item, type: entry.type });
+		for (const itemId of favorites) {
+			const actItem = data.activityItems.find((i) => i.id === itemId);
+			if (actItem) {
+				result.push({ item: actItem, type: 'activity' });
+				continue;
 			}
-			if (recents.length >= 5) break;
+			const foodItem = data.foodItems.find((i) => i.id === itemId);
+			if (foodItem) {
+				result.push({ item: foodItem, type: 'food' });
+			}
 		}
 
-		return recents;
-	}, [data.entries]);
+		return result;
+	}, [data.favoriteItems, data.activityItems, data.foodItems]);
 
 	// Filtered search results
 	const searchResults = useMemo(() => {
@@ -231,21 +222,35 @@ export default function QuickLogForm() {
 				)}
 			</div>
 
-			{/* Recent items — shown when not searching */}
-			{!showResults && recentItems.length > 0 && (
+			{/* Favorite items — shown when not searching */}
+			{!showResults && favoriteItemsList.length > 0 && (
 				<div className="mt-4">
-					<div className="text-xs font-medium text-label uppercase tracking-wide mb-2">Recent</div>
+					<div className="text-xs font-medium text-label uppercase tracking-wide mb-2">Favorites</div>
 					<div className="space-y-0.5">
-						{recentItems.map((unified) => (
-							<button
+						{favoriteItemsList.map((unified) => (
+							<div
 								key={`${unified.type}-${unified.item.id}`}
-								type="button"
-								onClick={() => handleSelectExisting(unified)}
-								className="w-full text-left px-1 py-2.5 hover:bg-[var(--bg-card-hover)] rounded-md flex items-center gap-3 transition-colors"
+								className="w-full px-1 py-2.5 hover:bg-[var(--bg-card-hover)] rounded-md flex items-center gap-3 transition-colors"
 							>
-								<span className="text-sm">{getTypeIcon(unified.type)}</span>
-								<span className="text-body">{unified.item.name}</span>
-							</button>
+								<button
+									type="button"
+									onClick={() => toggleFavorite(unified.item.id)}
+									className="flex-shrink-0 p-0"
+									aria-label="Remove from favorites"
+								>
+									<svg className="w-4 h-4" viewBox="0 0 24 24" fill="#FACC15" stroke="#FACC15" strokeWidth="1.5">
+										<path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.562.562 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+									</svg>
+								</button>
+								<button
+									type="button"
+									onClick={() => handleSelectExisting(unified)}
+									className="flex-1 text-left flex items-center gap-3"
+								>
+									<span className="text-sm">{getTypeIcon(unified.type)}</span>
+									<span className="text-body">{unified.item.name}</span>
+								</button>
+							</div>
 						))}
 					</div>
 				</div>

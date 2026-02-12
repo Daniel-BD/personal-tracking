@@ -40,6 +40,7 @@ export interface TrackerData {
 	entries: Entry[];
 	dashboardCards?: DashboardCard[];
 	dashboardInitialized?: boolean;
+	favoriteItems?: string[]; // Array of item IDs
 }
 
 export interface GistFile {
@@ -63,7 +64,8 @@ export function createEmptyData(): TrackerData {
 		foodCategories: [],
 		entries: [],
 		dashboardCards: [],
-		dashboardInitialized: false
+		dashboardInitialized: false,
+		favoriteItems: []
 	};
 }
 

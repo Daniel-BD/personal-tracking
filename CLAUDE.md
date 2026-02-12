@@ -57,11 +57,12 @@ All data lives in a single `TrackerData` object containing items, categories, en
 - **Toast system**: `showToast()` from `components/Toast.tsx` is a module-level function (no provider needed). Toasts auto-dismiss after 3.5s and optionally include an action button. Used for Quick Log success feedback (with Undo action) and URL-based quick logging.
 - **URL-based quick logging**: The Home page reads `?add=itemName` from the URL to instantly log an entry for a matching item name. Feedback is shown via toast.
 - **Bottom sheet pattern**: `BottomSheet` component provides a slide-up sheet (~85vh max) with backdrop, handle bar, and escape-to-close. Used by Quick Log for the Create+Log flow. Locks body scroll when open.
-- **Quick Log flow**: Command-palette style — borderless search input at top, inline search results, recent items list (last 5 unique from entries). Tapping an item or "Create" opens a BottomSheet with type selector (create mode), date+time (defaulting to today/now), categories, note, and a Log button. All fields visible — no collapsible sections. No blocking modals. Fast path: open → type → tap → Log (3 interactions).
+- **Favorites**: `TrackerData.favoriteItems` stores an array of item IDs. Items can be favorited/unfavorited via a star icon on the Library page (items tab) and on the Log page (entry rows). `toggleFavorite()` and `isFavorite()` in `store.ts` handle the logic. Favorites are cleaned up when items are deleted. On the Home page, the QuickLogForm shows favorited items instead of recent items.
+- **Quick Log flow**: Command-palette style — borderless search input at top, inline search results, favorites list (items starred by the user). Tapping an item or "Create" opens a BottomSheet with type selector (create mode), date+time (defaulting to today/now), categories, note, and a Log button. All fields visible — no collapsible sections. No blocking modals. Fast path: open → type → tap → Log (3 interactions).
 
 ### Routes
 
-- `/` — Home page with command-palette quick log, recent items, bottom sheet create+log, and demoted monthly stats
+- `/` — Home page with command-palette quick log, favorite items, bottom sheet create+log, and demoted monthly stats
 - `/log` — Full log view with type/category/item filtering and entry history
 - `/stats` — Stats page: goal dashboard with sparkline cards, balance score, actionable categories (top limit & lagging positive), and category composition chart
 - `/library` — Manage items and categories (CRUD) with search, split into Items and Categories sub-tabs

@@ -64,6 +64,9 @@ function mergeTrackerData(local: TrackerData, remote: TrackerData): TrackerData 
 	// Local cards take precedence
 	localCards.forEach((c) => cardMap.set(c.categoryId, c));
 
+	// Merge favorites: union of both sets
+	const favSet = new Set([...(local.favoriteItems || []), ...(remote.favoriteItems || [])]);
+
 	return {
 		activityItems: mergeById(local.activityItems, remote.activityItems, pendingDeletions.activityItems),
 		foodItems: mergeById(local.foodItems, remote.foodItems, pendingDeletions.foodItems),
@@ -71,7 +74,8 @@ function mergeTrackerData(local: TrackerData, remote: TrackerData): TrackerData 
 		foodCategories: mergeById(local.foodCategories, remote.foodCategories, pendingDeletions.foodCategories),
 		entries: mergeById(local.entries, remote.entries, pendingDeletions.entries),
 		dashboardCards: Array.from(cardMap.values()),
-		dashboardInitialized: local.dashboardInitialized || remote.dashboardInitialized
+		dashboardInitialized: local.dashboardInitialized || remote.dashboardInitialized,
+		favoriteItems: Array.from(favSet)
 	};
 }
 
@@ -370,7 +374,8 @@ export function deleteItem(type: EntryType, id: string): void {
 	updateData((data) => ({
 		...data,
 		[key]: data[key].filter((item) => item.id !== id),
-		entries: data.entries.filter((e) => !(e.type === type && e.itemId === id))
+		entries: data.entries.filter((e) => !(e.type === type && e.itemId === id)),
+		favoriteItems: (data.favoriteItems || []).filter((fid) => fid !== id)
 	}));
 
 	pushToGist();
@@ -404,6 +409,29 @@ export function removeDashboardCard(categoryId: string): void {
 	}));
 
 	pushToGist();
+}
+
+// ============================================================
+// Favorites
+// ============================================================
+
+export function toggleFavorite(itemId: string): void {
+	updateData((data) => {
+		const favorites = data.favoriteItems || [];
+		const isFav = favorites.includes(itemId);
+		return {
+			...data,
+			favoriteItems: isFav
+				? favorites.filter((id) => id !== itemId)
+				: [...favorites, itemId]
+		};
+	});
+
+	pushToGist();
+}
+
+export function isFavorite(itemId: string): boolean {
+	return (currentData.favoriteItems || []).includes(itemId);
 }
 
 // ============================================================
