@@ -269,6 +269,16 @@ describe('importData', () => {
 		expect(importData(JSON.stringify(data))).toBe(false);
 	});
 
+	it('rejects entries with non-string categoryOverride IDs', () => {
+		const data = {
+			...makeValidData(),
+			entries: [
+				{ id: 'e1', type: 'food', itemId: 'i1', date: '2025-01-15', categoryOverrides: [123] },
+			],
+		};
+		expect(importData(JSON.stringify(data))).toBe(false);
+	});
+
 	it('rejects items with non-string name', () => {
 		const data = makeValidData({
 			foodItems: [{ id: 'i1', name: 123 as unknown as string, categories: [] }],

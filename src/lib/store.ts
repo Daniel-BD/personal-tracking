@@ -528,7 +528,7 @@ function isValidEntry(e: unknown): e is Entry {
 	) return false;
 	if (obj.time != null && typeof obj.time !== 'string') return false;
 	if (obj.notes != null && typeof obj.notes !== 'string') return false;
-	if (obj.categoryOverrides != null && !Array.isArray(obj.categoryOverrides)) return false;
+	if (obj.categoryOverrides != null && (!Array.isArray(obj.categoryOverrides) || !obj.categoryOverrides.every((id: unknown) => typeof id === 'string'))) return false;
 	return true;
 }
 

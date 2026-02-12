@@ -78,6 +78,11 @@ export default function SettingsPage() {
 		setShowGistList(false);
 	}
 
+	function handleBrowsePrimaryGists() {
+		setGistSelectMode('primary');
+		handleLoadGists();
+	}
+
 	function handleBrowseGistsForBackup() {
 		setGistSelectMode('backup');
 		handleLoadGists();
@@ -279,7 +284,7 @@ export default function SettingsPage() {
 							<button onClick={handleSaveGistId} className="flex-1 btn-success">
 								Save &amp; Load
 							</button>
-							<button onClick={() => { setGistSelectMode('primary'); handleLoadGists(); }} className="flex-1 btn-secondary">
+							<button onClick={handleBrowsePrimaryGists} className="flex-1 btn-secondary">
 								Browse Gists
 							</button>
 							<button onClick={handleCreateGist} className="flex-1 btn-primary">

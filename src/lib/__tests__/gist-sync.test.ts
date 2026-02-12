@@ -228,7 +228,7 @@ describe('gist sync', () => {
 
 		it('merges dashboard cards and respects pending deletions', async () => {
 			(isConfigured as Mock).mockReturnValue(false);
-			const { removeDashboardCard, addDashboardCard } = await import('../store');
+			const { removeDashboardCard } = await import('../store');
 			importData(JSON.stringify(makeValidData({
 				foodCategories: [
 					{ id: 'cat1', name: 'Fruit', sentiment: 'positive' },
