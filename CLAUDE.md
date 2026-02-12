@@ -14,9 +14,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev          # Start dev server
 npm run build        # Production build (tsc + vite build — always run before finishing)
 npm run preview      # Preview production build
+npm run test         # Run tests once (vitest run)
+npm run test:watch   # Run tests in watch mode (vitest)
 ```
 
-No test framework is configured — there are no unit or integration tests.
+Tests use **Vitest** with **happy-dom** environment. Config is in `vitest.config.ts`. Test files live in `src/lib/__tests__/`.
 
 ## Project Overview
 
@@ -81,7 +83,10 @@ src/
 │   ├── analysis.ts                  # Date filtering, analytics, chart data utilities
 │   ├── stats.ts                     # Weekly food analytics, balance scores, actionable categories
 │   ├── github.ts                    # GitHub Gist API client
-│   └── theme.ts                     # Theme (light/dark/system) persistence + application
+│   ├── theme.ts                     # Theme (light/dark/system) persistence + application
+│   └── __tests__/                   # Vitest tests
+│       ├── import-export.test.ts    # importData validation, round-trip, rejection
+│       └── gist-sync.test.ts        # Gist sync, merge, backup, CRUD→push
 ├── pages/
 │   ├── HomePage.tsx                 # Command-palette quick log + demoted monthly stats
 │   ├── LogPage.tsx                  # Filterable entry list
