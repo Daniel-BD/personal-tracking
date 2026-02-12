@@ -51,7 +51,6 @@ export default function SettingsPage() {
 			return;
 		}
 
-		setGistSelectMode('primary');
 		setStatus('loading');
 		try {
 			const gists = await listUserGists(token.trim());
@@ -280,7 +279,7 @@ export default function SettingsPage() {
 							<button onClick={handleSaveGistId} className="flex-1 btn-success">
 								Save &amp; Load
 							</button>
-							<button onClick={handleLoadGists} className="flex-1 btn-secondary">
+							<button onClick={() => { setGistSelectMode('primary'); handleLoadGists(); }} className="flex-1 btn-secondary">
 								Browse Gists
 							</button>
 							<button onClick={handleCreateGist} className="flex-1 btn-primary">
