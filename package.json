@@ -6,7 +6,9 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc -b && vite build",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"test": "vitest run",
+		"test:watch": "vitest"
 	},
 	"dependencies": {
 		"react": "^19.1.0",
@@ -19,8 +21,10 @@
 		"@types/react": "^19.1.6",
 		"@types/react-dom": "^19.1.6",
 		"@vitejs/plugin-react": "^4.5.2",
+		"happy-dom": "^20.6.1",
 		"tailwindcss": "^4.1.18",
 		"typescript": "^5.9.3",
-		"vite": "^7.2.6"
+		"vite": "^7.2.6",
+		"vitest": "^4.0.18"
 	}
 }
