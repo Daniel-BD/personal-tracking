@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTrackerData } from '../lib/hooks';
 import { getLastNWeeks } from '../lib/stats';
-import { filterEntriesByCategory, filterEntriesByDateRange } from '../lib/analysis';
+import { filterEntriesByCategory, filterEntriesByDateRange, formatDateLocal } from '../lib/analysis';
 import GoalCard from './GoalCard';
 import { removeDashboardCard } from '../lib/store';
 import AddCategoryModal from './AddCategoryModal';
@@ -10,7 +10,8 @@ export default function GoalDashboard() {
 	const data = useTrackerData();
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
-	const weeks = useMemo(() => getLastNWeeks(8), []);
+	// Recalculate week boundaries when entries change (new entries may span a new week)
+	const weeks = useMemo(() => getLastNWeeks(8), [data.entries]);
 
 	const dashboardData = useMemo(() => {
 		if (!data.dashboardCards) return [];
@@ -26,13 +27,13 @@ export default function GoalDashboard() {
 			if (!category) return null;
 
 			const categoryName = category.name;
-			const sentiment = category.sentiment ?? 'neutral';
+			const sentiment = category.sentiment;
 
 			// Calculate weekly counts
 			const sparklineData = weeks.map((week) => {
 				const range = {
-					start: week.start.toISOString().split('T')[0],
-					end: week.end.toISOString().split('T')[0]
+					start: formatDateLocal(week.start),
+					end: formatDateLocal(week.end)
 				};
 				const weekEntries = filterEntriesByCategory(
 					filterEntriesByDateRange(data.entries, range),

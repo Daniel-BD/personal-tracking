@@ -117,6 +117,29 @@ function initializeDefaultDashboardCards(data: TrackerData): TrackerData {
 	};
 }
 
+/**
+ * Ensure all categories have a sentiment field (migration for data created before sentiment was added)
+ */
+function migrateData(data: TrackerData): TrackerData {
+	let migrated = false;
+	const migrateCategories = (cats: Category[]) =>
+		cats.map((c) => {
+			if (c.sentiment === undefined) {
+				migrated = true;
+				return { ...c, sentiment: 'neutral' as CategorySentiment };
+			}
+			return c;
+		});
+
+	const result = {
+		...data,
+		activityCategories: migrateCategories(data.activityCategories),
+		foodCategories: migrateCategories(data.foodCategories)
+	};
+
+	return migrated ? result : data;
+}
+
 function loadFromLocalStorage(): TrackerData {
 	if (typeof localStorage === 'undefined') {
 		return createEmptyData();
@@ -125,7 +148,7 @@ function loadFromLocalStorage(): TrackerData {
 	if (stored) {
 		try {
 			const data = JSON.parse(stored) as TrackerData;
-			return initializeDefaultDashboardCards(data);
+			return initializeDefaultDashboardCards(migrateData(data));
 		} catch {
 			return createEmptyData();
 		}
@@ -465,7 +488,11 @@ export function getCategoryNames(type: EntryType, categoryIds: string[]): string
 	return categoryIds.map((id) => categoryMap.get(id) ?? '').filter(Boolean);
 }
 
+let storeInitialized = false;
+
 export function initializeStore(): void {
+	if (storeInitialized) return;
+	storeInitialized = true;
 	if (isConfigured()) {
 		loadFromGist();
 	}
@@ -490,6 +517,42 @@ export function exportData(): void {
 	URL.revokeObjectURL(url);
 }
 
+function isValidEntry(e: unknown): e is Entry {
+	if (typeof e !== 'object' || e === null) return false;
+	const obj = e as Record<string, unknown>;
+	if (
+		typeof obj.id !== 'string' ||
+		(obj.type !== 'activity' && obj.type !== 'food') ||
+		typeof obj.itemId !== 'string' ||
+		typeof obj.date !== 'string'
+	) return false;
+	if (obj.time !== undefined && typeof obj.time !== 'string') return false;
+	if (obj.notes !== undefined && typeof obj.notes !== 'string') return false;
+	if (obj.categoryOverrides !== undefined && !Array.isArray(obj.categoryOverrides)) return false;
+	return true;
+}
+
+function isValidItem(i: unknown): i is Item {
+	if (typeof i !== 'object' || i === null) return false;
+	const obj = i as Record<string, unknown>;
+	return (
+		typeof obj.id === 'string' &&
+		typeof obj.name === 'string' &&
+		Array.isArray(obj.categories) &&
+		obj.categories.every((catId) => typeof catId === 'string')
+	);
+}
+
+const VALID_SENTIMENTS = new Set(['positive', 'neutral', 'limit']);
+
+function isValidCategory(c: unknown): c is Category {
+	if (typeof c !== 'object' || c === null) return false;
+	const obj = c as Record<string, unknown>;
+	if (typeof obj.id !== 'string' || typeof obj.name !== 'string') return false;
+	if (obj.sentiment !== undefined && !VALID_SENTIMENTS.has(obj.sentiment as string)) return false;
+	return true;
+}
+
 export function importData(jsonString: string): boolean {
 	try {
 		const data = JSON.parse(jsonString) as TrackerData;
@@ -504,7 +567,14 @@ export function importData(jsonString: string): boolean {
 			return false;
 		}
 
-		setData(data);
+		// Validate individual objects have required fields
+		if (!data.entries.every(isValidEntry)) return false;
+		if (!data.activityItems.every(isValidItem)) return false;
+		if (!data.foodItems.every(isValidItem)) return false;
+		if (!data.activityCategories.every(isValidCategory)) return false;
+		if (!data.foodCategories.every(isValidCategory)) return false;
+
+		setData(migrateData(data));
 		clearPendingDeletions();
 		pushToGist();
 		return true;

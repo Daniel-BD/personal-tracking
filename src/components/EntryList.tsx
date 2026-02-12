@@ -2,21 +2,13 @@ import { useState, useMemo } from 'react';
 import type { Entry, EntryType } from '../lib/types';
 import { getItemById, deleteEntry, updateEntry } from '../lib/store';
 import { useTrackerData } from '../lib/hooks';
-import { getEntriesGroupedByDate, formatDate, getEntryCategoryNames, getEntryCategoryIds } from '../lib/analysis';
+import { getEntriesGroupedByDate, formatDate, formatTime, getEntryCategoryNames, getEntryCategoryIds } from '../lib/analysis';
 import CategoryPicker from './CategoryPicker';
 import NativePickerInput from './NativePickerInput';
 
 interface Props {
 	entries: Entry[];
 	showType?: boolean;
-}
-
-function formatTime(time: string | null): string {
-	if (!time) return '';
-	const [hours, minutes] = time.split(':').map(Number);
-	const period = hours >= 12 ? 'PM' : 'AM';
-	const displayHours = hours % 12 || 12;
-	return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
 }
 
 export default function EntryList({ entries, showType = false }: Props) {

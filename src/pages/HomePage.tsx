@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { isConfigured } from '../lib/github';
 import {
-	initializeStore,
 	forceRefresh,
 	addEntry
 } from '../lib/store';
@@ -24,11 +23,7 @@ export default function HomePage() {
 	const [configured, setConfigured] = useState(false);
 
 	useEffect(() => {
-		const isConf = isConfigured();
-		setConfigured(isConf);
-		if (isConf) {
-			initializeStore();
-		}
+		setConfigured(isConfigured());
 	}, []);
 
 	// URL-based quick logging (?add=itemName)

@@ -89,7 +89,7 @@ export default function LibraryPage() {
 		deleteItem(activeTab, id);
 	}
 
-	function handleAddCategory_() {
+	function handleAddCategorySubmit() {
 		if (!newCategoryName.trim()) return;
 		addCategory(activeTab, newCategoryName.trim(), newCategorySentiment);
 		setNewCategoryName('');
@@ -100,7 +100,7 @@ export default function LibraryPage() {
 	function handleEditCategory(category: Category) {
 		setEditingCategoryId(category.id);
 		setEditingCategoryName(category.name);
-		setEditingCategorySentiment(category.sentiment ?? 'neutral');
+		setEditingCategorySentiment(category.sentiment);
 	}
 
 	function handleSaveCategoryEdit() {
@@ -117,7 +117,7 @@ export default function LibraryPage() {
 		setEditingCategorySentiment('neutral');
 	}
 
-	function handleDeleteCategory_(categoryId: string) {
+	function handleDeleteCategoryConfirm(categoryId: string) {
 		const itemCount = getItemCountForCategory(categoryId);
 		const category = currentCategories.find((c) => c.id === categoryId);
 		if (
@@ -367,7 +367,7 @@ export default function LibraryPage() {
 
 							<div className="flex gap-2">
 								<button
-									onClick={handleAddCategory_}
+									onClick={handleAddCategorySubmit}
 									disabled={!newCategoryName.trim()}
 									className="flex-1 btn-primary"
 								>
@@ -452,7 +452,7 @@ export default function LibraryPage() {
 												&#x270F;&#xFE0F;
 											</button>
 											<button
-												onClick={() => handleDeleteCategory_(category.id)}
+												onClick={() => handleDeleteCategoryConfirm(category.id)}
 												className="text-subtle hover:text-[var(--color-danger)] p-1"
 												aria-label="Delete category"
 											>
