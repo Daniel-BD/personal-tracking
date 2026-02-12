@@ -2,9 +2,10 @@ import { useState, useMemo, useRef } from 'react';
 import type { EntryType, Item } from '../lib/types';
 import { getTodayDate, getCurrentTime, getTypeIcon } from '../lib/types';
 import { useTrackerData } from '../lib/hooks';
-import { addEntry, addItem, deleteEntry, getItemById, getCategoryNames } from '../lib/store';
+import { addEntry, addItem, deleteEntry, getItemById, getCategoryNames, toggleFavorite, isFavorite } from '../lib/store';
 import { showToast } from './Toast';
 import BottomSheet from './BottomSheet';
+import StarIcon from './StarIcon';
 import SegmentedControl from './SegmentedControl';
 import CategoryPicker from './CategoryPicker';
 import NativePickerInput from './NativePickerInput';
@@ -42,34 +43,26 @@ export default function QuickLogForm() {
 		return [...activities, ...foods];
 	}, [data.activityItems, data.foodItems]);
 
-	// Recent items from last entries
-	const recentItems = useMemo(() => {
-		const seen = new Set<string>();
-		const recents: UnifiedItem[] = [];
+	// Favorite items — Map-based O(N+M) lookup
+	const favoriteItemsList = useMemo(() => {
+		const favorites = data.favoriteItems || [];
+		if (favorites.length === 0) return [];
 
-		const sorted = [...data.entries].sort((a, b) => {
-			const dateComp = b.date.localeCompare(a.date);
-			if (dateComp !== 0) return dateComp;
-			if (a.time && b.time) return b.time.localeCompare(a.time);
-			if (b.time) return 1;
-			if (a.time) return -1;
-			return 0;
-		});
-
-		for (const entry of sorted) {
-			const key = `${entry.type}-${entry.itemId}`;
-			if (seen.has(key)) continue;
-			seen.add(key);
-
-			const item = getItemById(entry.type, entry.itemId);
-			if (item) {
-				recents.push({ item, type: entry.type });
-			}
-			if (recents.length >= 5) break;
+		const itemMap = new Map<string, UnifiedItem>();
+		for (const item of data.activityItems) {
+			itemMap.set(item.id, { item, type: 'activity' });
+		}
+		for (const item of data.foodItems) {
+			itemMap.set(item.id, { item, type: 'food' });
 		}
 
-		return recents;
-	}, [data.entries]);
+		const result: UnifiedItem[] = [];
+		for (const itemId of favorites) {
+			const unified = itemMap.get(itemId);
+			if (unified) result.push(unified);
+		}
+		return result;
+	}, [data.favoriteItems, data.activityItems, data.foodItems]);
 
 	// Filtered search results
 	const searchResults = useMemo(() => {
@@ -231,21 +224,33 @@ export default function QuickLogForm() {
 				)}
 			</div>
 
-			{/* Recent items — shown when not searching */}
-			{!showResults && recentItems.length > 0 && (
+			{/* Favorite items — shown when not searching */}
+			{!showResults && favoriteItemsList.length > 0 && (
 				<div className="mt-4">
-					<div className="text-xs font-medium text-label uppercase tracking-wide mb-2">Recent</div>
+					<div className="text-xs font-medium text-label uppercase tracking-wide mb-2">Favorites</div>
 					<div className="space-y-0.5">
-						{recentItems.map((unified) => (
-							<button
+						{favoriteItemsList.map((unified) => (
+							<div
 								key={`${unified.type}-${unified.item.id}`}
-								type="button"
-								onClick={() => handleSelectExisting(unified)}
-								className="w-full text-left px-1 py-2.5 hover:bg-[var(--bg-card-hover)] rounded-md flex items-center gap-3 transition-colors"
+								className="w-full px-1 py-2.5 hover:bg-[var(--bg-card-hover)] rounded-md flex items-center gap-3 transition-colors"
 							>
-								<span className="text-sm">{getTypeIcon(unified.type)}</span>
-								<span className="text-body">{unified.item.name}</span>
-							</button>
+								<button
+									type="button"
+									onClick={() => toggleFavorite(unified.item.id)}
+									className="flex-shrink-0 p-1"
+									aria-label="Remove from favorites"
+								>
+									<StarIcon filled className="w-4 h-4" />
+								</button>
+								<button
+									type="button"
+									onClick={() => handleSelectExisting(unified)}
+									className="flex-1 text-left flex items-center gap-3"
+								>
+									<span className="text-sm">{getTypeIcon(unified.type)}</span>
+									<span className="text-body">{unified.item.name}</span>
+								</button>
+							</div>
 						))}
 					</div>
 				</div>

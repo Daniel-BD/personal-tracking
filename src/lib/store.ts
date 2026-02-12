@@ -64,14 +64,26 @@ function mergeTrackerData(local: TrackerData, remote: TrackerData): TrackerData 
 	// Local cards take precedence
 	localCards.forEach((c) => cardMap.set(c.categoryId, c));
 
+	const mergedActivityItems = mergeById(local.activityItems, remote.activityItems, pendingDeletions.activityItems);
+	const mergedFoodItems = mergeById(local.foodItems, remote.foodItems, pendingDeletions.foodItems);
+
+	// Merge favorites: union of both sets, filtered to only existing merged items
+	const mergedItemIds = new Set([
+		...mergedActivityItems.map((i) => i.id),
+		...mergedFoodItems.map((i) => i.id)
+	]);
+	const favSet = new Set([...(local.favoriteItems || []), ...(remote.favoriteItems || [])]);
+	const mergedFavorites = Array.from(favSet).filter((id) => mergedItemIds.has(id));
+
 	return {
-		activityItems: mergeById(local.activityItems, remote.activityItems, pendingDeletions.activityItems),
-		foodItems: mergeById(local.foodItems, remote.foodItems, pendingDeletions.foodItems),
+		activityItems: mergedActivityItems,
+		foodItems: mergedFoodItems,
 		activityCategories: mergeById(local.activityCategories, remote.activityCategories, pendingDeletions.activityCategories),
 		foodCategories: mergeById(local.foodCategories, remote.foodCategories, pendingDeletions.foodCategories),
 		entries: mergeById(local.entries, remote.entries, pendingDeletions.entries),
 		dashboardCards: Array.from(cardMap.values()),
-		dashboardInitialized: local.dashboardInitialized || remote.dashboardInitialized
+		dashboardInitialized: local.dashboardInitialized || remote.dashboardInitialized,
+		favoriteItems: mergedFavorites
 	};
 }
 
@@ -370,7 +382,8 @@ export function deleteItem(type: EntryType, id: string): void {
 	updateData((data) => ({
 		...data,
 		[key]: data[key].filter((item) => item.id !== id),
-		entries: data.entries.filter((e) => !(e.type === type && e.itemId === id))
+		entries: data.entries.filter((e) => !(e.type === type && e.itemId === id)),
+		favoriteItems: (data.favoriteItems || []).filter((fid) => fid !== id)
 	}));
 
 	pushToGist();
@@ -404,6 +417,29 @@ export function removeDashboardCard(categoryId: string): void {
 	}));
 
 	pushToGist();
+}
+
+// ============================================================
+// Favorites
+// ============================================================
+
+export function toggleFavorite(itemId: string): void {
+	updateData((data) => {
+		const favorites = data.favoriteItems || [];
+		const isFav = favorites.includes(itemId);
+		return {
+			...data,
+			favoriteItems: isFav
+				? favorites.filter((id) => id !== itemId)
+				: [...favorites, itemId]
+		};
+	});
+
+	pushToGist();
+}
+
+export function isFavorite(itemId: string): boolean {
+	return (currentData.favoriteItems || []).includes(itemId);
 }
 
 // ============================================================

@@ -6,6 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Always verify changes build successfully** before considering a task complete. Run `npm run build` after making changes and fix any errors before finishing.
 - **Always update this CLAUDE.md file** when making changes to the codebase (new components, changed patterns, modified architecture, renamed files, etc.) so it continues to accurately reflect the actual code.
+- **Add or update tests** when creating or modifying features. Keep tests focused and minimal — a few good tests that cover core logic and edge cases are better than many fragile tests that are expensive to maintain. Test files live in `src/lib/__tests__/`.
 - You may need to run `npm install` first if `node_modules` is missing.
 
 ## Development Commands
@@ -57,11 +58,12 @@ All data lives in a single `TrackerData` object containing items, categories, en
 - **Toast system**: `showToast()` from `components/Toast.tsx` is a module-level function (no provider needed). Toasts auto-dismiss after 3.5s and optionally include an action button. Used for Quick Log success feedback (with Undo action) and URL-based quick logging.
 - **URL-based quick logging**: The Home page reads `?add=itemName` from the URL to instantly log an entry for a matching item name. Feedback is shown via toast.
 - **Bottom sheet pattern**: `BottomSheet` component provides a slide-up sheet (~85vh max) with backdrop, handle bar, and escape-to-close. Used by Quick Log for the Create+Log flow. Locks body scroll when open.
-- **Quick Log flow**: Command-palette style — borderless search input at top, inline search results, recent items list (last 5 unique from entries). Tapping an item or "Create" opens a BottomSheet with type selector (create mode), date+time (defaulting to today/now), categories, note, and a Log button. All fields visible — no collapsible sections. No blocking modals. Fast path: open → type → tap → Log (3 interactions).
+- **Favorites**: `TrackerData.favoriteItems` stores an array of item IDs. Items can be favorited/unfavorited via a star icon on the Library page (items tab) and on the Log page (entry rows). `toggleFavorite()` and `isFavorite()` in `store.ts` handle the logic. Favorites are cleaned up when items are deleted. On the Home page, the QuickLogForm shows favorited items instead of recent items.
+- **Quick Log flow**: Command-palette style — borderless search input at top, inline search results, favorites list (items starred by the user). Tapping an item or "Create" opens a BottomSheet with type selector (create mode), date+time (defaulting to today/now), categories, note, and a Log button. All fields visible — no collapsible sections. No blocking modals. Fast path: open → type → tap → Log (3 interactions).
 
 ### Routes
 
-- `/` — Home page with command-palette quick log, recent items, bottom sheet create+log, and demoted monthly stats
+- `/` — Home page with command-palette quick log, favorite items, bottom sheet create+log, and demoted monthly stats
 - `/log` — Full log view with type/category/item filtering and entry history
 - `/stats` — Stats page: goal dashboard with sparkline cards, balance score, actionable categories (top limit & lagging positive), and category composition chart
 - `/library` — Manage items and categories (CRUD) with search, split into Items and Categories sub-tabs
@@ -86,7 +88,8 @@ src/
 │   ├── theme.ts                     # Theme (light/dark/system) persistence + application
 │   └── __tests__/                   # Vitest tests
 │       ├── import-export.test.ts    # importData validation, round-trip, rejection
-│       └── gist-sync.test.ts        # Gist sync, merge, backup, CRUD→push
+│       ├── gist-sync.test.ts        # Gist sync, merge, backup, CRUD→push
+│       └── favorites.test.ts        # Favorites toggle, cleanup on delete, merge behavior
 ├── pages/
 │   ├── HomePage.tsx                 # Command-palette quick log + demoted monthly stats
 │   ├── LogPage.tsx                  # Filterable entry list
@@ -108,6 +111,7 @@ src/
 │   ├── CategoryComposition.tsx      # Weekly stacked category composition chart
 │   ├── NavIcon.tsx                  # Navigation icon component (SVG icons for bottom nav)
 │   ├── NativePickerInput.tsx        # iOS-safe date/time picker (styled div + transparent native input overlay)
+│   ├── StarIcon.tsx                 # Reusable star icon (filled/unfilled) for favorites
 │   └── Toast.tsx                    # Toast notification system (module-level showToast())
 └── vite-env.d.ts
 ```

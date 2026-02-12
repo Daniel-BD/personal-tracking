@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { Entry, EntryType } from '../lib/types';
-import { getItemById, deleteEntry, updateEntry } from '../lib/store';
+import { getItemById, deleteEntry, updateEntry, toggleFavorite, isFavorite } from '../lib/store';
+import StarIcon from './StarIcon';
 import { useTrackerData } from '../lib/hooks';
 import { getEntriesGroupedByDate, formatDate, formatTime, getEntryCategoryNames, getEntryCategoryIds } from '../lib/analysis';
 import CategoryPicker from './CategoryPicker';
@@ -174,6 +175,14 @@ export default function EntryList({ entries, showType = false }: Props) {
 												)}
 											</div>
 											<div className="flex gap-1">
+												<button
+													type="button"
+													onClick={() => toggleFavorite(entry.itemId)}
+													className="p-1"
+													aria-label={isFavorite(entry.itemId) ? 'Remove from favorites' : 'Add to favorites'}
+												>
+													<StarIcon filled={isFavorite(entry.itemId)} className="w-4 h-4" />
+												</button>
 												<button
 													onClick={() => startEdit(entry)}
 													className="text-subtle hover:text-[var(--color-activity)] p-1"
