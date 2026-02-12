@@ -9,7 +9,7 @@ export interface DateRange {
 /**
  * Format a Date object to YYYY-MM-DD string in local timezone (not UTC)
  */
-function formatDateLocal(date: Date): string {
+export function formatDateLocal(date: Date): string {
 	const year = date.getFullYear();
 	const month = String(date.getMonth() + 1).padStart(2, '0');
 	const day = String(date.getDate()).padStart(2, '0');
@@ -129,10 +129,6 @@ export function filterEntriesByCategories(
 	});
 }
 
-export function countEntries(entries: Entry[]): number {
-	return entries.length;
-}
-
 export function countEntriesByItem(entries: Entry[]): Map<string, number> {
 	const counts = new Map<string, number>();
 	entries.forEach((entry) => {
@@ -190,8 +186,8 @@ export function compareMonths(entries: Entry[], currentDate: Date = new Date()):
 	const currentRange = getMonthRange(currentDate);
 	const previousRange = getPreviousMonthRange(currentDate);
 
-	const currentCount = countEntries(filterEntriesByDateRange(entries, currentRange));
-	const previousCount = countEntries(filterEntriesByDateRange(entries, previousRange));
+	const currentCount = filterEntriesByDateRange(entries, currentRange).length;
+	const previousCount = filterEntriesByDateRange(entries, previousRange).length;
 
 	const difference = currentCount - previousCount;
 	const percentChange = previousCount === 0 ? null : ((difference / previousCount) * 100);
@@ -273,6 +269,14 @@ export function getEntriesGroupedByDate(entries: Entry[]): Map<string, Entry[]> 
 	}
 
 	return sortedGrouped;
+}
+
+export function formatTime(time: string | null): string {
+	if (!time) return '';
+	const [hours, minutes] = time.split(':').map(Number);
+	const period = hours >= 12 ? 'PM' : 'AM';
+	const displayHours = hours % 12 || 12;
+	return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
 }
 
 export function formatDate(dateString: string): string {
@@ -410,33 +414,6 @@ export function groupEntriesByWeek(entries: Entry[], range: DateRange | null): C
 }
 
 /**
- * Get frequency chart data with separate series for activities and food
- */
-export function getFrequencyChartData(
-	entries: Entry[],
-	timeRange: TimeRange
-): { activities: ChartSeries; food: ChartSeries } {
-	const range = getDateRangeFromTimeRange(timeRange);
-	const filteredEntries = range ? filterEntriesByDateRange(entries, range) : entries;
-
-	const activityEntries = filterEntriesByType(filteredEntries, 'activity');
-	const foodEntries = filterEntriesByType(filteredEntries, 'food');
-
-	return {
-		activities: {
-			id: 'activities',
-			label: 'Activities',
-			points: groupEntriesByWeek(activityEntries, range)
-		},
-		food: {
-			id: 'food',
-			label: 'Food',
-			points: groupEntriesByWeek(foodEntries, range)
-		}
-	};
-}
-
-/**
  * Get top logged items for a given type
  */
 export function selectTopEntities(
@@ -550,10 +527,12 @@ export function selectInsights(
 }
 
 /**
- * Format a week start date for display
+ * Format a week start date for display. Accepts either a YYYY-MM-DD string or a Date object.
  */
-export function formatWeekLabel(dateString: string): string {
-	const date = new Date(dateString + 'T00:00:00');
+export function formatWeekLabel(dateOrString: string | Date): string {
+	const date = typeof dateOrString === 'string'
+		? new Date(dateOrString + 'T00:00:00')
+		: dateOrString;
 	return date.toLocaleDateString('en-US', {
 		month: 'short',
 		day: 'numeric'
@@ -854,42 +833,6 @@ export function formatDateLabel(dateString: string, grouping: Grouping): string 
 		default:
 			return formatWeekLabel(dateString);
 	}
-}
-
-/**
- * Get all entities of a given type for comparison selection
- */
-export function getAvailableEntities(
-	data: TrackerData,
-	type: EntryType,
-	excludeId?: string
-): Array<{ ref: EntityRef; name: string }> {
-	const items = getItems(data, type);
-	const categories = getCategories(data, type);
-
-	const result: Array<{ ref: EntityRef; name: string }> = [];
-
-	// Add items
-	items.forEach((item) => {
-		if (item.id !== excludeId) {
-			result.push({
-				ref: { type, entityType: 'item', id: item.id },
-				name: item.name
-			});
-		}
-	});
-
-	// Add categories
-	categories.forEach((category) => {
-		if (category.id !== excludeId) {
-			result.push({
-				ref: { type, entityType: 'category', id: category.id },
-				name: `[Category] ${category.name}`
-			});
-		}
-	});
-
-	return result.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export interface EntityListItem {

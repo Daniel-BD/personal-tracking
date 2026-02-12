@@ -1,6 +1,7 @@
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { getStoredTheme, applyTheme } from './lib/theme';
+import { initializeStore } from './lib/store';
 import HomePage from './pages/HomePage';
 import LogPage from './pages/LogPage';
 import LibraryPage from './pages/LibraryPage';
@@ -62,6 +63,7 @@ export default function App() {
 	useEffect(() => {
 		const pref = getStoredTheme();
 		applyTheme(pref);
+		initializeStore();
 
 		const mq = window.matchMedia('(prefers-color-scheme: dark)');
 		const handler = () => {

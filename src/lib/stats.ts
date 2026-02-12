@@ -1,6 +1,6 @@
 import type { Entry, TrackerData } from './types';
 import { getCategories } from './types';
-import { getCategoryNameById, getEntryCategoryIds, filterEntriesByType, formatWeekLabel as formatWeekLabelFromString } from './analysis';
+import { getCategoryNameById, getEntryCategoryIds, filterEntriesByType } from './analysis';
 
 export type PeriodType = 'weekly' | 'monthly';
 
@@ -398,12 +398,5 @@ export function getLaggingPositiveCategories(
 		});
 }
 
-/**
- * Format week label like "Jan 15"
- */
-export function formatWeekLabel(start: Date): string {
-	const year = start.getFullYear();
-	const month = String(start.getMonth() + 1).padStart(2, '0');
-	const day = String(start.getDate()).padStart(2, '0');
-	return formatWeekLabelFromString(`${year}-${month}-${day}`);
-}
+// Re-export formatWeekLabel from analysis (now accepts Date | string)
+export { formatWeekLabel } from './analysis';

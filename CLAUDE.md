@@ -38,9 +38,9 @@ A personal activity and food tracking PWA built for mobile-first usage. Users lo
 All data lives in a single `TrackerData` object containing items, categories, entries, and dashboard cards for both activity and food types. The architecture follows this pattern:
 
 1. **`src/lib/types.ts`** — Data interfaces (`Entry`, `ActivityItem`, `FoodItem`, `Category`, `TrackerData`, `DashboardCard`) and utility functions (`generateId()`, `getTodayDate()`, `getCurrentTime()`, collection accessor helpers like `getItems()`, `getCategories()`).
-2. **`src/lib/store.ts`** — Singleton external store with `useSyncExternalStore`-compatible API (`dataStore`, `syncStatusStore`). All CRUD operations (items, categories, entries, dashboard cards), Gist sync/merge logic, and export/import live here. Every data mutation goes through this file.
+2. **`src/lib/store.ts`** — Singleton external store with `useSyncExternalStore`-compatible API (`dataStore`, `syncStatusStore`). All CRUD operations (items, categories, entries, dashboard cards), Gist sync/merge logic, data migration, and export/import (with field-level validation) live here. Every data mutation goes through this file. Store initialization is guarded by a module-level flag and invoked from `App.tsx`.
 3. **`src/lib/hooks.ts`** — React hooks (`useTrackerData()`, `useSyncStatus()`, `useIsMobile()`) that wrap the external store or browser APIs for use in components.
-4. **`src/lib/analysis.ts`** — Pure functions for date filtering, statistics, comparisons, time-series generation, and entity analytics. No side effects. Also contains chart data utilities (grouping by day/week/month, rolling averages, cumulative series).
+4. **`src/lib/analysis.ts`** — Pure functions for date filtering, statistics, comparisons, time-series generation, and entity analytics. No side effects. Also contains shared formatting utilities (`formatTime`, `formatDateLocal`, `formatWeekLabel`), and chart data utilities (grouping by day/week/month, rolling averages, cumulative series).
 5. **`src/lib/stats.ts`** — Weekly food-analytics engine. Processes food entries by week, calculates balance scores (positive vs. limit sentiment), builds category composition data, and computes actionable category rankings (top limit categories, lagging positive categories).
 6. **`src/lib/github.ts`** — GitHub Gist API integration for backup sync.
 7. **`src/lib/theme.ts`** — Theme preference management (light/dark/system).
@@ -49,7 +49,7 @@ All data lives in a single `TrackerData` object containing items, categories, en
 
 - **Two parallel type hierarchies**: Activity and food share identical structures (`ActivityItem`/`FoodItem`, separate category lists) but are kept separate throughout. Functions often take an `EntryType` ('activity' | 'food') parameter to select the right list.
 - **Category overrides**: Entries can override their item's default categories via `categoryOverrides`. Use `getEntryCategoryIds()` from `analysis.ts` to get effective categories.
-- **Category sentiment**: Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`, defined as `CategorySentiment` in `types.ts`). Defaults to `'neutral'`. Set via a `SentimentPicker` in the Library page when creating or editing categories. Categories created inline via `CategoryPicker` default to neutral. Non-neutral sentiments display as colored badges (green for positive, red for limit) next to the category name. Existing data without the field is handled via `?? 'neutral'` fallback.
+- **Category sentiment**: Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`, defined as `CategorySentiment` in `types.ts`). Defaults to `'neutral'`. Set via a `SentimentPicker` in the Library page when creating or editing categories. Categories created inline via `CategoryPicker` default to neutral. Non-neutral sentiments display as colored badges (green for positive, red for limit) next to the category name. Legacy data without the field is auto-migrated to `'neutral'` on load via `migrateData()` in `store.ts`.
 - **External store pattern**: Instead of React Context, the store uses a module-level singleton with `useSyncExternalStore` for reactivity. This allows store functions (CRUD operations) to be called from anywhere without prop drilling.
 - **Dashboard cards**: `TrackerData.dashboardCards` stores user-configured goal cards (each tied to a `categoryId`). Cards compare this week's count against a rolling 4-week baseline average. CRUD operations: `addDashboardCard()`, `removeDashboardCard()` in `store.ts`.
 - **Toast system**: `showToast()` from `components/Toast.tsx` is a module-level function (no provider needed). Toasts auto-dismiss after 3.5s and optionally include an action button. Used for Quick Log success feedback (with Undo action) and URL-based quick logging.
@@ -71,12 +71,12 @@ Navigation uses a 5-tab bottom nav bar defined in `App.tsx` (Home, Log, Stats, L
 
 ```
 src/
-├── App.tsx                          # Root layout: routes + bottom nav bar + toast container
+├── App.tsx                          # Root layout: routes + bottom nav bar + toast container + store init
 ├── main.tsx                         # Entry point: BrowserRouter + StrictMode
 ├── app.css                          # Global CSS: color system, utility classes, dark mode
 ├── lib/
 │   ├── types.ts                     # All TypeScript interfaces + utility functions
-│   ├── store.ts                     # Singleton store: CRUD, sync, export/import, backup
+│   ├── store.ts                     # Singleton store: CRUD, sync, migration, export/import, backup
 │   ├── hooks.ts                     # useTrackerData, useSyncStatus, useIsMobile
 │   ├── analysis.ts                  # Date filtering, analytics, chart data utilities
 │   ├── stats.ts                     # Weekly food analytics, balance scores, actionable categories
@@ -92,8 +92,6 @@ src/
 │   ├── QuickLogForm.tsx             # Command-palette search + BottomSheet create/log (used on Home)
 │   ├── BottomSheet.tsx              # Reusable slide-up bottom sheet with backdrop
 │   ├── EntryList.tsx                # Grouped-by-date entry display with edit/delete
-│   ├── UnifiedItemPicker.tsx        # Searchable item picker across activity + food (legacy, unused by Quick Log)
-│   ├── ItemPicker.tsx               # Single-type item picker
 │   ├── CategoryPicker.tsx           # Multi-select category chips with inline creation
 │   ├── AddCategoryModal.tsx         # Modal for adding categories to dashboard
 │   ├── SegmentedControl.tsx         # Generic pill/segment toggle (used throughout)

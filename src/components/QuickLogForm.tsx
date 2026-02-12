@@ -2,7 +2,7 @@ import { useState, useMemo, useRef } from 'react';
 import type { EntryType, Item } from '../lib/types';
 import { getTodayDate, getCurrentTime, getTypeIcon } from '../lib/types';
 import { useTrackerData } from '../lib/hooks';
-import { addEntry, addItem, deleteEntry, getItemById } from '../lib/store';
+import { addEntry, addItem, deleteEntry, getItemById, getCategoryNames } from '../lib/store';
 import { showToast } from './Toast';
 import BottomSheet from './BottomSheet';
 import SegmentedControl from './SegmentedControl';
@@ -83,14 +83,6 @@ export default function QuickLogForm() {
 	const hasExactMatch = searchResults.some(
 		(u) => u.item.name.toLowerCase() === query.trim().toLowerCase()
 	);
-
-	function getCategoryNames(categoryIds: string[], type: EntryType): string {
-		const categories = type === 'activity' ? data.activityCategories : data.foodCategories;
-		return categoryIds
-			.map((id) => categories.find((c) => c.id === id)?.name)
-			.filter(Boolean)
-			.join(', ');
-	}
 
 	// --- Actions ---
 
@@ -217,7 +209,7 @@ export default function QuickLogForm() {
 									<div className="font-medium text-heading">{unified.item.name}</div>
 									{unified.item.categories.length > 0 && (
 										<div className="text-xs text-label truncate">
-											{getCategoryNames(unified.item.categories, unified.type)}
+											{getCategoryNames(unified.type, unified.item.categories).join(', ')}
 										</div>
 									)}
 								</div>
