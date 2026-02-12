@@ -75,15 +75,14 @@ export default function HomePage() {
 	return (
 		<div className="space-y-6">
 			{!configured ? (
-				<div className="card p-4" style={{ background: 'var(--color-warning-bg)', borderColor: 'var(--color-warning-border)' }}>
-					<h2 className="font-semibold" style={{ color: 'var(--color-warning-text)' }}>Setup Required</h2>
-					<p className="text-sm mt-1" style={{ color: 'var(--color-warning-text)', opacity: 0.85 }}>
+				<div className="card p-4 bg-[var(--color-warning-bg)] border-[var(--color-warning-border)]">
+					<h2 className="font-semibold text-[var(--color-warning-text)]">Setup Required</h2>
+					<p className="text-sm mt-1 text-[var(--color-warning-text)] opacity-85">
 						Configure your GitHub token to start tracking.
 					</p>
 					<a
 						href="/settings"
-						className="inline-block mt-2 px-4 py-2 rounded-md text-sm font-medium text-white transition-colors"
-						style={{ background: 'var(--color-warning)' }}
+						className="inline-block mt-2 px-4 py-2 rounded-md text-sm font-medium text-white transition-colors bg-[var(--color-warning)]"
 					>
 						Go to Settings
 					</a>

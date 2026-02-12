@@ -37,8 +37,8 @@ A personal activity and food tracking PWA built for mobile-first usage. Users lo
 
 All data lives in a single `TrackerData` object containing items, categories, entries, and dashboard cards for both activity and food types. The architecture follows this pattern:
 
-1. **`src/lib/types.ts`** — Data interfaces (`Entry`, `ActivityItem`, `FoodItem`, `Category`, `TrackerData`, `DashboardCard`) and utility functions (`generateId()`, `getTodayDate()`, `getCurrentTime()`, collection accessor helpers like `getItems()`, `getCategories()`).
-2. **`src/lib/store.ts`** — Singleton external store with `useSyncExternalStore`-compatible API (`dataStore`, `syncStatusStore`). All CRUD operations (items, categories, entries, dashboard cards), Gist sync/merge logic, and export/import live here. Every data mutation goes through this file.
+1. **`src/lib/types.ts`** — Data interfaces (`Entry`, `ActivityItem`, `FoodItem`, `Category`, `TrackerData`, `DashboardCard`) and utility functions (`generateId()`, `getTodayDate()`, `getCurrentTime()`, collection accessor helpers like `getItems()`, `getCategories()`, `getEntities()`).
+2. **`src/lib/store.ts`** — Singleton external store with `useSyncExternalStore`-compatible API (`dataStore`, `syncStatusStore`). All CRUD operations (items, categories, entries, dashboard cards), Gist sync/merge logic, and export/import live here. Every data mutation goes through this file. Uses `updateCollection` and `recordDeletion` helpers for consistent state updates.
 3. **`src/lib/hooks.ts`** — React hooks (`useTrackerData()`, `useSyncStatus()`, `useIsMobile()`) that wrap the external store or browser APIs for use in components.
 4. **`src/lib/analysis.ts`** — Pure functions for date filtering, statistics, comparisons, time-series generation, and entity analytics. No side effects. Also contains chart data utilities (grouping by day/week/month, rolling averages, cumulative series).
 5. **`src/lib/stats.ts`** — Weekly food-analytics engine. Processes food entries by week, calculates balance scores (positive vs. limit sentiment), builds category composition data, and computes actionable category rankings (top limit categories, lagging positive categories).
@@ -100,6 +100,8 @@ src/
 │   ├── MultiSelectFilter.tsx        # Searchable multi-select dropdown (used on Log page)
 │   ├── GoalDashboard.tsx            # Dashboard card grid with add/remove
 │   ├── GoalCard.tsx                 # Individual sparkline goal card (uses Recharts)
+│   ├── EntryForm.tsx                # Centralized form for creating and logging items
+│   ├── NavIcon.tsx                  # Navigation icon component
 │   ├── BalanceOverview.tsx          # Balance score meter + weekly sentiment bar chart
 │   ├── ActionableCategories.tsx     # Top limit & lagging positive category lists
 │   ├── CategoryComposition.tsx      # Weekly stacked category composition chart
