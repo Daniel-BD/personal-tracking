@@ -1,4 +1,3 @@
-import { useRef } from 'react';
 import { formatTime, formatDateWithYear } from '../lib/analysis';
 
 interface NativePickerInputProps {
@@ -10,53 +9,43 @@ interface NativePickerInputProps {
 }
 
 export default function NativePickerInput({ type, value, onChange, onClear, id }: NativePickerInputProps) {
-	const inputRef = useRef<HTMLInputElement>(null);
-
 	const displayValue = type === 'date' ? formatDateWithYear(value) : formatTime(value);
 	const placeholder = type === 'date' ? 'Select date' : 'Select time';
 	const showClear = onClear && value;
 
-	function handleOpen() {
-		const input = inputRef.current;
-		if (!input) return;
-		try {
-			input.showPicker();
-		} catch {
-			input.focus();
-		}
-	}
-
 	return (
 		<div className="relative">
-			{/* Hidden native input — triggers OS picker via showPicker() */}
-			<input
-				ref={inputRef}
-				type={type}
-				value={value}
-				onChange={(e) => onChange(e.target.value)}
-				className="absolute inset-0 opacity-0 pointer-events-none"
-				tabIndex={-1}
-				aria-hidden="true"
-			/>
-
-			{/* Visible styled trigger — matches form-input sizing exactly */}
-			<button
+			{/* Visible styled display */}
+			<div
 				id={id}
-				type="button"
-				onClick={handleOpen}
-				className={`form-input w-full text-left flex items-center cursor-pointer ${showClear ? 'pr-8' : ''}`}
+				className={`form-input w-full text-left flex items-center ${showClear ? 'pr-8' : ''}`}
 			>
 				<span className={value ? '' : 'text-[var(--text-muted)]'}>
 					{displayValue || placeholder}
 				</span>
-			</button>
+			</div>
 
-			{/* Clear button */}
+			{/* Native input — transparent overlay that captures taps directly.
+			    On iOS Safari, showPicker() is unreliable, so instead we let the
+			    user tap the native input itself (rendered over the styled display)
+			    which reliably opens the OS picker. */}
+			<input
+				type={type}
+				value={value}
+				onChange={(e) => onChange(e.target.value)}
+				className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+				aria-label={`${type === 'date' ? 'Date' : 'Time'} picker`}
+			/>
+
+			{/* Clear button — z-10 so it sits above the transparent input */}
 			{showClear && (
 				<button
 					type="button"
-					onClick={onClear}
-					className="absolute right-2 top-1/2 -translate-y-1/2 text-subtle hover:text-body text-lg"
+					onClick={(e) => {
+						e.preventDefault();
+						onClear();
+					}}
+					className="absolute right-2 top-1/2 -translate-y-1/2 text-subtle hover:text-body text-lg z-10"
 					aria-label={`Clear ${type}`}
 				>
 					&times;
