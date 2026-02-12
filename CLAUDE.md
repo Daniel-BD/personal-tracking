@@ -6,6 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Always verify changes build successfully** before considering a task complete. Run `npm run build` after making changes and fix any errors before finishing.
 - **Always update this CLAUDE.md file** when making changes to the codebase (new components, changed patterns, modified architecture, renamed files, etc.) so it continues to accurately reflect the actual code.
+- **Add or update tests** when creating or modifying features. Keep tests focused and minimal — a few good tests that cover core logic and edge cases are better than many fragile tests that are expensive to maintain. Test files live in `src/lib/__tests__/`.
 - You may need to run `npm install` first if `node_modules` is missing.
 
 ## Development Commands
@@ -87,7 +88,8 @@ src/
 │   ├── theme.ts                     # Theme (light/dark/system) persistence + application
 │   └── __tests__/                   # Vitest tests
 │       ├── import-export.test.ts    # importData validation, round-trip, rejection
-│       └── gist-sync.test.ts        # Gist sync, merge, backup, CRUD→push
+│       ├── gist-sync.test.ts        # Gist sync, merge, backup, CRUD→push
+│       └── favorites.test.ts        # Favorites toggle, cleanup on delete, merge behavior
 ├── pages/
 │   ├── HomePage.tsx                 # Command-palette quick log + demoted monthly stats
 │   ├── LogPage.tsx                  # Filterable entry list
@@ -109,6 +111,7 @@ src/
 │   ├── CategoryComposition.tsx      # Weekly stacked category composition chart
 │   ├── NavIcon.tsx                  # Navigation icon component (SVG icons for bottom nav)
 │   ├── NativePickerInput.tsx        # iOS-safe date/time picker (styled div + transparent native input overlay)
+│   ├── StarIcon.tsx                 # Reusable star icon (filled/unfilled) for favorites
 │   └── Toast.tsx                    # Toast notification system (module-level showToast())
 └── vite-env.d.ts
 ```
