@@ -5,9 +5,10 @@ interface Props {
 	onclose: () => void;
 	children: ReactNode;
 	title?: string;
+	headerAction?: ReactNode;
 }
 
-export default function BottomSheet({ open, onclose, children, title }: Props) {
+export default function BottomSheet({ open, onclose, children, title, headerAction }: Props) {
 	const sheetRef = useRef<HTMLDivElement>(null);
 	const titleId = useId();
 
@@ -62,9 +63,10 @@ export default function BottomSheet({ open, onclose, children, title }: Props) {
 					<div className="w-10 h-1 rounded-full bg-[var(--text-muted)] opacity-40" />
 				</div>
 
-				{title && (
-					<div className="px-5 pb-3 flex-shrink-0">
-						<h3 id={titleId} className="text-lg font-semibold text-heading">{title}</h3>
+				{(title || headerAction) && (
+					<div className="px-5 pb-3 flex-shrink-0 flex items-center justify-between gap-3">
+						{title && <h3 id={titleId} className="text-lg font-semibold text-heading">{title}</h3>}
+						{headerAction}
 					</div>
 				)}
 

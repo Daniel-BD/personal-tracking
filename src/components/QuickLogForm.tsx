@@ -165,6 +165,8 @@ export default function QuickLogForm() {
 		[itemType, data.activityCategories, data.foodCategories]
 	);
 
+	const isLogDisabled = sheetMode === 'create' && !itemName.trim();
+
 	return (
 		<>
 			{/* Search input — borderless, full-width */}
@@ -261,6 +263,16 @@ export default function QuickLogForm() {
 				open={sheetOpen}
 				onclose={() => setSheetOpen(false)}
 				title={sheetMode === 'create' ? 'New item' : `Log ${selectedItem?.item.name ?? ''}`}
+				headerAction={
+					<button
+						type="button"
+						onClick={handleLog}
+						disabled={isLogDisabled}
+						className="px-4 py-1.5 text-sm font-semibold rounded-full bg-[var(--color-activity)] text-white transition-colors hover:bg-[var(--color-activity-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
+					>
+						{sheetMode === 'create' ? 'Create' : 'Log'}
+					</button>
+				}
 			>
 				<div className="space-y-5">
 					{/* Item name — only for create mode */}
@@ -342,16 +354,6 @@ export default function QuickLogForm() {
 							className="form-input"
 						/>
 					</div>
-
-					{/* Log button — sticky at bottom */}
-					<button
-						type="button"
-						onClick={handleLog}
-						disabled={sheetMode === 'create' && !itemName.trim()}
-						className="w-full btn-lg rounded-lg font-medium transition-colors type-activity disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						Log
-					</button>
 				</div>
 			</BottomSheet>
 		</>
