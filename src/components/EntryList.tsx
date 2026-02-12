@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from 'react';
+import type { TouchEvent as ReactTouchEvent } from 'react';
 import type { Entry, EntryType } from '../lib/types';
 import { getItemById, deleteEntry, updateEntry } from '../lib/store';
 import { useTrackerData } from '../lib/hooks';
@@ -13,6 +14,8 @@ interface Props {
 }
 
 const SWIPE_THRESHOLD = 70;
+const ACTION_WIDTH = 70;
+const SWIPE_REVEAL = -(ACTION_WIDTH * 2);
 
 export default function EntryList({ entries, showType = false }: Props) {
 	const data = useTrackerData();
@@ -27,6 +30,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 	// Swipe state
 	const [swipedEntryId, setSwipedEntryId] = useState<string | null>(null);
 	const touchStartRef = useRef<{ x: number; y: number; id: string } | null>(null);
+	const didSwipeRef = useRef(false);
 	const [swipeOffset, setSwipeOffset] = useState(0);
 
 	function getItemName(type: EntryType, itemId: string): string {
@@ -39,10 +43,11 @@ export default function EntryList({ entries, showType = false }: Props) {
 			deleteEntry(id);
 			setSwipedEntryId(null);
 			setSwipeOffset(0);
+			cancelEdit();
 		}
 	}
 
-	function startEdit(entry: Entry) {
+	const startEdit = useCallback((entry: Entry) => {
 		setEditingEntry(entry);
 		setEditDate(entry.date);
 		setEditTime(entry.time ?? '');
@@ -50,7 +55,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 		setEditCategories(getEntryCategoryIds(entry, data));
 		setSwipedEntryId(null);
 		setSwipeOffset(0);
-	}
+	}, [data]);
 
 	function cancelEdit() {
 		setEditingEntry(null);
@@ -84,9 +89,10 @@ export default function EntryList({ entries, showType = false }: Props) {
 	}
 
 	// Swipe handlers
-	const handleTouchStart = useCallback((e: React.TouchEvent, entryId: string) => {
+	const handleTouchStart = useCallback((e: ReactTouchEvent, entryId: string) => {
 		const touch = e.touches[0];
 		touchStartRef.current = { x: touch.clientX, y: touch.clientY, id: entryId };
+		didSwipeRef.current = false;
 
 		// If a different entry was swiped, reset it
 		if (swipedEntryId && swipedEntryId !== entryId) {
@@ -95,7 +101,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 		}
 	}, [swipedEntryId]);
 
-	const handleTouchMove = useCallback((e: React.TouchEvent) => {
+	const handleTouchMove = useCallback((e: ReactTouchEvent) => {
 		if (!touchStartRef.current) return;
 		const touch = e.touches[0];
 		const deltaX = touch.clientX - touchStartRef.current.x;
@@ -106,9 +112,14 @@ export default function EntryList({ entries, showType = false }: Props) {
 			return;
 		}
 
+		// Mark that a swipe occurred (to prevent click from opening edit)
+		if (Math.abs(deltaX) > 5) {
+			didSwipeRef.current = true;
+		}
+
 		// Only allow left swipe (negative deltaX)
 		if (deltaX < 0) {
-			setSwipeOffset(Math.max(deltaX, -140));
+			setSwipeOffset(Math.max(deltaX, SWIPE_REVEAL));
 			setSwipedEntryId(touchStartRef.current.id);
 		}
 	}, []);
@@ -118,7 +129,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 
 		if (Math.abs(swipeOffset) > SWIPE_THRESHOLD) {
 			// Snap to reveal actions
-			setSwipeOffset(-140);
+			setSwipeOffset(SWIPE_REVEAL);
 		} else {
 			// Snap back
 			setSwipeOffset(0);
@@ -128,15 +139,19 @@ export default function EntryList({ entries, showType = false }: Props) {
 		touchStartRef.current = null;
 	}, [swipeOffset]);
 
-	// Reset swipe on tap outside
 	const handleRowTap = useCallback((entry: Entry) => {
+		// Ignore click events that followed a swipe gesture
+		if (didSwipeRef.current) {
+			didSwipeRef.current = false;
+			return;
+		}
 		if (swipedEntryId) {
 			setSwipedEntryId(null);
 			setSwipeOffset(0);
 			return;
 		}
 		startEdit(entry);
-	}, [swipedEntryId]);
+	}, [swipedEntryId, startEdit]);
 
 	const groupedArray = useMemo(() => Array.from(groupedEntries.entries()), [groupedEntries]);
 
@@ -171,18 +186,22 @@ export default function EntryList({ entries, showType = false }: Props) {
 										{/* Swipe action background */}
 										<div className="absolute inset-0 flex items-center justify-end">
 											<button
+												type="button"
 												onClick={() => startEdit(entry)}
-												className="h-full w-[70px] flex items-center justify-center"
-												style={{ background: 'var(--color-activity)' }}
+												className={`h-full w-[${ACTION_WIDTH}px] flex items-center justify-center`}
+												style={{ background: 'var(--color-activity)', width: ACTION_WIDTH }}
+												aria-label="Edit entry"
 											>
 												<svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
 												</svg>
 											</button>
 											<button
+												type="button"
 												onClick={() => handleDelete(entry.id)}
-												className="h-full w-[70px] flex items-center justify-center"
-												style={{ background: 'var(--color-danger)' }}
+												className={`h-full w-[${ACTION_WIDTH}px] flex items-center justify-center`}
+												style={{ background: 'var(--color-danger)', width: ACTION_WIDTH }}
+												aria-label="Delete entry"
 											>
 												<svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
