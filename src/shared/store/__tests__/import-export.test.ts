@@ -1,19 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { importData, dataStore } from '../store';
-import type { TrackerData } from '../types';
-
-function makeValidData(overrides: Partial<TrackerData> = {}): TrackerData {
-	return {
-		activityItems: [],
-		foodItems: [],
-		activityCategories: [],
-		foodCategories: [],
-		entries: [],
-		dashboardCards: [],
-		dashboardInitialized: true,
-		...overrides,
-	};
-}
+import { makeValidData } from './fixtures';
 
 function resetStore() {
 	importData(JSON.stringify(makeValidData()));

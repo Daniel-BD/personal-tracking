@@ -1,15 +1,15 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useTrackerData } from '../lib/hooks';
+import { useTrackerData } from '@/shared/store/hooks';
 import {
 	filterEntriesByType,
 	filterEntriesByItems,
 	filterEntriesByCategories
 } from '../lib/analysis';
 import EntryList from '../components/EntryList';
-import SegmentedControl from '../components/SegmentedControl';
-import MultiSelectFilter from '../components/MultiSelectFilter';
-import BottomSheet from '../components/BottomSheet';
+import SegmentedControl from '@/shared/ui/SegmentedControl';
+import MultiSelectFilter from '@/shared/ui/MultiSelectFilter';
+import BottomSheet from '@/shared/ui/BottomSheet';
 
 export default function LogPage() {
 	const data = useTrackerData();

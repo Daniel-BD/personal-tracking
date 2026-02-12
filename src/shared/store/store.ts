@@ -7,150 +7,13 @@ import type {
 	Category,
 	CategorySentiment,
 	DashboardCard
-} from './types';
-import { createEmptyData, generateId, getItems, getCategories, getItemsKey, getCategoriesKey } from './types';
-import { getConfig, fetchGist, updateGist, isConfigured } from './github';
-
-/**
- * Tracks IDs that have been deleted locally but not yet synced.
- * This prevents deleted items from being restored during merge.
- */
-interface PendingDeletions {
-	entries: Set<string>;
-	activityItems: Set<string>;
-	foodItems: Set<string>;
-	activityCategories: Set<string>;
-	foodCategories: Set<string>;
-	dashboardCards: Set<string>;
-}
-
-const pendingDeletions: PendingDeletions = {
-	entries: new Set(),
-	activityItems: new Set(),
-	foodItems: new Set(),
-	activityCategories: new Set(),
-	foodCategories: new Set(),
-	dashboardCards: new Set()
-};
-
-function clearPendingDeletions(): void {
-	pendingDeletions.entries.clear();
-	pendingDeletions.activityItems.clear();
-	pendingDeletions.foodItems.clear();
-	pendingDeletions.activityCategories.clear();
-	pendingDeletions.foodCategories.clear();
-	pendingDeletions.dashboardCards.clear();
-}
-
-/**
- * Merges two TrackerData objects to prevent data loss from stale tabs.
- * Strategy: Union of all items by ID, with local taking precedence for conflicts.
- * Respects pending deletions - items deleted locally won't be restored from remote.
- */
-function mergeTrackerData(local: TrackerData, remote: TrackerData): TrackerData {
-	const localCards = local.dashboardCards || [];
-	const remoteCards = remote.dashboardCards || [];
-
-	// Merge dashboard cards by categoryId, respecting pending deletions
-	const cardMap = new Map<string, DashboardCard>();
-
-	// Add remote cards first if not deleted locally
-	remoteCards.forEach((c) => {
-		if (!pendingDeletions.dashboardCards.has(c.categoryId)) {
-			cardMap.set(c.categoryId, c);
-		}
-	});
-
-	// Local cards take precedence
-	localCards.forEach((c) => cardMap.set(c.categoryId, c));
-
-	const mergedActivityItems = mergeById(local.activityItems, remote.activityItems, pendingDeletions.activityItems);
-	const mergedFoodItems = mergeById(local.foodItems, remote.foodItems, pendingDeletions.foodItems);
-
-	// Merge favorites: union of both sets, filtered to only existing merged items
-	const mergedItemIds = new Set([
-		...mergedActivityItems.map((i) => i.id),
-		...mergedFoodItems.map((i) => i.id)
-	]);
-	const favSet = new Set([...(local.favoriteItems || []), ...(remote.favoriteItems || [])]);
-	const mergedFavorites = Array.from(favSet).filter((id) => mergedItemIds.has(id));
-
-	return {
-		activityItems: mergedActivityItems,
-		foodItems: mergedFoodItems,
-		activityCategories: mergeById(local.activityCategories, remote.activityCategories, pendingDeletions.activityCategories),
-		foodCategories: mergeById(local.foodCategories, remote.foodCategories, pendingDeletions.foodCategories),
-		entries: mergeById(local.entries, remote.entries, pendingDeletions.entries),
-		dashboardCards: Array.from(cardMap.values()),
-		dashboardInitialized: local.dashboardInitialized || remote.dashboardInitialized,
-		favoriteItems: mergedFavorites
-	};
-}
-
-function mergeById<T extends { id: string }>(local: T[], remote: T[], excludeIds: Set<string>): T[] {
-	const localMap = new Map(local.map((item) => [item.id, item]));
-	const merged = [...local];
-
-	for (const remoteItem of remote) {
-		if (!localMap.has(remoteItem.id) && !excludeIds.has(remoteItem.id)) {
-			merged.push(remoteItem);
-		}
-	}
-
-	return merged;
-}
+} from '@/shared/lib/types';
+import { createEmptyData, generateId, getItems, getCategories, getItemsKey, getCategoriesKey } from '@/shared/lib/types';
+import { isConfigured } from '@/shared/lib/github';
+import { migrateData, initializeDefaultDashboardCards } from './migration';
+import { pendingDeletions, clearPendingDeletions, pushToGist, loadFromGistFn, backupToGistFn, restoreFromBackupGistFn } from './sync';
 
 const LOCAL_STORAGE_KEY = 'tracker_data';
-
-function initializeDefaultDashboardCards(data: TrackerData): TrackerData {
-	if (data.dashboardInitialized) {
-		return data;
-	}
-
-	const defaultNames = ['Fruit', 'Vegetables', 'Sugary drinks'];
-	const allCategories = [...data.foodCategories, ...data.activityCategories];
-	const cards: DashboardCard[] = [];
-
-	for (const name of defaultNames) {
-		const category = allCategories.find((c) => c.name.toLowerCase() === name.toLowerCase());
-		if (category) {
-			cards.push({
-				categoryId: category.id,
-				baseline: 'rolling_4_week_avg',
-				comparison: 'last_week'
-			});
-		}
-	}
-
-	return {
-		...data,
-		dashboardCards: cards.length > 0 ? cards : (data.dashboardCards || []),
-		dashboardInitialized: true
-	};
-}
-
-/**
- * Ensure all categories have a sentiment field (migration for data created before sentiment was added)
- */
-function migrateData(data: TrackerData): TrackerData {
-	let migrated = false;
-	const migrateCategories = (cats: Category[]) =>
-		cats.map((c) => {
-			if (c.sentiment === undefined) {
-				migrated = true;
-				return { ...c, sentiment: 'neutral' as CategorySentiment };
-			}
-			return c;
-		});
-
-	const result = {
-		...data,
-		activityCategories: migrateCategories(data.activityCategories),
-		foodCategories: migrateCategories(data.foodCategories)
-	};
-
-	return migrated ? result : data;
-}
 
 function loadFromLocalStorage(): TrackerData {
 	if (typeof localStorage === 'undefined') {
@@ -230,46 +93,15 @@ export const syncStatusStore = {
 };
 
 // ============================================================
-// Gist sync
+// Gist sync wrappers
 // ============================================================
 
-async function pushToGist(): Promise<void> {
-	if (!isConfigured()) return;
-
-	const config = getConfig();
-	if (!config.gistId || !config.token) return;
-
-	setSyncStatus('syncing');
-	try {
-		const remoteData = await fetchGist(config.gistId, config.token);
-		const localData = currentData;
-		const mergedData = mergeTrackerData(localData, remoteData);
-		setData(mergedData);
-		await updateGist(config.gistId, config.token, mergedData);
-		clearPendingDeletions();
-		setSyncStatus('idle');
-	} catch (error) {
-		console.error('Failed to sync to Gist:', error);
-		setSyncStatus('error');
-	}
+function triggerPush(): void {
+	pushToGist(() => currentData, setData, setSyncStatus);
 }
 
 export async function loadFromGist(): Promise<void> {
-	if (!isConfigured()) return;
-
-	const config = getConfig();
-	if (!config.gistId || !config.token) return;
-
-	setSyncStatus('syncing');
-	try {
-		const data = await fetchGist(config.gistId, config.token);
-		setData(data);
-		clearPendingDeletions();
-		setSyncStatus('idle');
-	} catch (error) {
-		console.error('Failed to load from Gist:', error);
-		setSyncStatus('error');
-	}
+	await loadFromGistFn(setData, setSyncStatus);
 }
 
 export async function forceRefresh(): Promise<void> {
@@ -293,7 +125,7 @@ export function addCategory(type: EntryType, name: string, sentiment: CategorySe
 		[key]: [...data[key], category]
 	}));
 
-	pushToGist();
+	triggerPush();
 	return category;
 }
 
@@ -311,7 +143,7 @@ export function updateCategory(type: EntryType, id: string, name: string, sentim
 		})
 	}));
 
-	pushToGist();
+	triggerPush();
 }
 
 export function deleteCategory(type: EntryType, categoryId: string): void {
@@ -335,7 +167,7 @@ export function deleteCategory(type: EntryType, categoryId: string): void {
 		})
 	}));
 
-	pushToGist();
+	triggerPush();
 }
 
 // ============================================================
@@ -355,7 +187,7 @@ export function addItem(type: EntryType, name: string, categoryIds: string[]): I
 		[key]: [...data[key], item]
 	}));
 
-	pushToGist();
+	triggerPush();
 	return item;
 }
 
@@ -368,7 +200,7 @@ export function updateItem(type: EntryType, id: string, name: string, categoryId
 		)
 	}));
 
-	pushToGist();
+	triggerPush();
 }
 
 export function deleteItem(type: EntryType, id: string): void {
@@ -386,7 +218,7 @@ export function deleteItem(type: EntryType, id: string): void {
 		favoriteItems: (data.favoriteItems || []).filter((fid) => fid !== id)
 	}));
 
-	pushToGist();
+	triggerPush();
 }
 
 // ============================================================
@@ -405,7 +237,7 @@ export function addDashboardCard(categoryId: string): void {
 		dashboardCards: [...(data.dashboardCards || []), card]
 	}));
 
-	pushToGist();
+	triggerPush();
 }
 
 export function removeDashboardCard(categoryId: string): void {
@@ -416,7 +248,7 @@ export function removeDashboardCard(categoryId: string): void {
 		dashboardCards: (data.dashboardCards || []).filter((c) => c.categoryId !== categoryId)
 	}));
 
-	pushToGist();
+	triggerPush();
 }
 
 // ============================================================
@@ -435,7 +267,7 @@ export function toggleFavorite(itemId: string): void {
 		};
 	});
 
-	pushToGist();
+	triggerPush();
 }
 
 export function isFavorite(itemId: string): boolean {
@@ -469,7 +301,7 @@ export function addEntry(
 		entries: [...data.entries, entry]
 	}));
 
-	pushToGist();
+	triggerPush();
 	return entry;
 }
 
@@ -484,7 +316,7 @@ export function updateEntry(
 		)
 	}));
 
-	pushToGist();
+	triggerPush();
 }
 
 export function deleteEntry(id: string): void {
@@ -495,7 +327,7 @@ export function deleteEntry(id: string): void {
 		entries: data.entries.filter((entry) => entry.id !== id)
 	}));
 
-	pushToGist();
+	triggerPush();
 }
 
 // ============================================================
@@ -612,7 +444,7 @@ export function importData(jsonString: string): boolean {
 
 		setData(migrateData(data));
 		clearPendingDeletions();
-		pushToGist();
+		triggerPush();
 		return true;
 	} catch {
 		return false;
@@ -624,22 +456,9 @@ export function importData(jsonString: string): boolean {
 // ============================================================
 
 export async function backupToGist(backupGistId: string): Promise<void> {
-	const config = getConfig();
-	if (!config.token || !backupGistId) {
-		throw new Error('Token and backup Gist ID are required');
-	}
-
-	await updateGist(backupGistId, config.token, currentData);
+	await backupToGistFn(backupGistId, () => currentData);
 }
 
 export async function restoreFromBackupGist(backupGistId: string): Promise<void> {
-	const config = getConfig();
-	if (!config.token || !backupGistId) {
-		throw new Error('Token and backup Gist ID are required');
-	}
-
-	const data = await fetchGist(backupGistId, config.token);
-	setData(data);
-	clearPendingDeletions();
-	pushToGist();
+	await restoreFromBackupGistFn(backupGistId, setData, triggerPush);
 }

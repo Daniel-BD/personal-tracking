@@ -7,7 +7,7 @@ import {
 	groupCategoriesForWeek,
 	formatWeekLabel
 } from '../lib/stats';
-import { useIsMobile } from '../lib/hooks';
+import { useIsMobile } from '@/shared/hooks/useIsMobile';
 
 interface CategoryCompositionProps {
 	weeklyData: WeeklyData[];

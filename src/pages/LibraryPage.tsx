@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import type { Item, Category, CategorySentiment } from '../lib/types';
-import { useTrackerData } from '../lib/hooks';
+import type { Item, Category, CategorySentiment } from '@/shared/lib/types';
+import { useTrackerData } from '@/shared/store/hooks';
 import {
 	addItem,
 	updateItem,
@@ -11,10 +11,10 @@ import {
 	getCategoryNames,
 	toggleFavorite,
 	isFavorite
-} from '../lib/store';
+} from '@/shared/store/store';
 import CategoryPicker from '../components/CategoryPicker';
-import SegmentedControl from '../components/SegmentedControl';
-import StarIcon from '../components/StarIcon';
+import SegmentedControl from '@/shared/ui/SegmentedControl';
+import StarIcon from '@/shared/ui/StarIcon';
 
 const SENTIMENT_OPTIONS: { value: CategorySentiment; label: string }[] = [
 	{ value: 'positive', label: 'Positive' },

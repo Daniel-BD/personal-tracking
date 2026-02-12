@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
-import type { TrackerData } from '../types';
+import type { TrackerData } from '@/shared/lib/types';
+import { makeValidData, flushPromises } from './fixtures';
 
 // Mock the github module before importing store
-vi.mock('../github', () => ({
+vi.mock('@/shared/lib/github', () => ({
 	getConfig: vi.fn(() => ({ token: '', gistId: null, backupGistId: null })),
 	saveConfig: vi.fn(),
 	isConfigured: vi.fn(() => false),
@@ -21,25 +22,7 @@ import {
 	addItem,
 	deleteItem,
 } from '../store';
-import { isConfigured, fetchGist, updateGist, getConfig } from '../github';
-
-function makeValidData(overrides: Partial<TrackerData> = {}): TrackerData {
-	return {
-		activityItems: [],
-		foodItems: [],
-		activityCategories: [],
-		foodCategories: [],
-		entries: [],
-		dashboardCards: [],
-		dashboardInitialized: true,
-		favoriteItems: [],
-		...overrides,
-	};
-}
-
-function flushPromises() {
-	return new Promise<void>((resolve) => setTimeout(resolve, 0));
-}
+import { isConfigured, fetchGist, updateGist, getConfig } from '@/shared/lib/github';
 
 describe('favorites', () => {
 	beforeEach(() => {

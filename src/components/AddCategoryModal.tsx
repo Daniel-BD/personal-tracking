@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useTrackerData } from '../lib/hooks';
-import { addDashboardCard } from '../lib/store';
+import { useTrackerData } from '@/shared/store/hooks';
+import { addDashboardCard } from '@/shared/store/store';
 
 interface AddCategoryModalProps {
 	onClose: () => void;

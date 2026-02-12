@@ -1,13 +1,13 @@
 import { useState, useMemo, useRef, useCallback } from 'react';
 import type { TouchEvent as ReactTouchEvent } from 'react';
-import type { Entry, EntryType } from '../lib/types';
-import { getItemById, deleteEntry, updateEntry, toggleFavorite, isFavorite } from '../lib/store';
-import StarIcon from './StarIcon';
-import { useTrackerData } from '../lib/hooks';
+import type { Entry, EntryType } from '@/shared/lib/types';
+import { getItemById, deleteEntry, updateEntry, toggleFavorite, isFavorite } from '@/shared/store/store';
+import StarIcon from '@/shared/ui/StarIcon';
+import { useTrackerData } from '@/shared/store/hooks';
 import { getEntriesGroupedByDate, formatDate, formatTime, getEntryCategoryNames, getEntryCategoryIds } from '../lib/analysis';
 import CategoryPicker from './CategoryPicker';
-import NativePickerInput from './NativePickerInput';
-import BottomSheet from './BottomSheet';
+import NativePickerInput from '@/shared/ui/NativePickerInput';
+import BottomSheet from '@/shared/ui/BottomSheet';
 
 interface Props {
 	entries: Entry[];

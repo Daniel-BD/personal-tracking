@@ -1,4 +1,4 @@
-import { formatTime, formatDateWithYear } from '../lib/analysis';
+import { formatTime, formatDateWithYear } from '@/shared/lib/date-utils';
 
 interface NativePickerInputProps {
 	type: 'date' | 'time';

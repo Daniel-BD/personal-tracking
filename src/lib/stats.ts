@@ -1,5 +1,5 @@
-import type { Entry, TrackerData } from './types';
-import { getCategories } from './types';
+import type { Entry, TrackerData } from '@/shared/lib/types';
+import { getCategories } from '@/shared/lib/types';
 import { getCategoryNameById, getEntryCategoryIds, filterEntriesByType } from './analysis';
 
 export type PeriodType = 'weekly' | 'monthly';

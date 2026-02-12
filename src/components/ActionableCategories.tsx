@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
-import type { TrackerData } from '../lib/types';
+import type { TrackerData } from '@/shared/lib/types';
 import type { ActionableCategoryRow } from '../lib/stats';
 import {
 	getLastNWeeks,
 	getTopLimitCategories,
 	getLaggingPositiveCategories
 } from '../lib/stats';
-import { addDashboardCard } from '../lib/store';
-import { showToast } from './Toast';
-import { useIsMobile } from '../lib/hooks';
+import { addDashboardCard } from '@/shared/store/store';
+import { showToast } from '@/shared/ui/Toast';
+import { useIsMobile } from '@/shared/hooks/useIsMobile';
 
 const MAX_DASHBOARD_CARDS = 6;
 

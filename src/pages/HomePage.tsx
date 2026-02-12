@@ -1,17 +1,17 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { isConfigured } from '../lib/github';
+import { isConfigured } from '@/shared/lib/github';
 import {
 	forceRefresh,
 	addEntry
-} from '../lib/store';
-import { useTrackerData, useSyncStatus } from '../lib/hooks';
+} from '@/shared/store/store';
+import { useTrackerData, useSyncStatus } from '@/shared/store/hooks';
 import {
 	compareMonths,
 	filterEntriesByType
 } from '../lib/analysis';
-import { getTodayDate, getCurrentTime } from '../lib/types';
-import { showToast } from '../components/Toast';
+import { getTodayDate, getCurrentTime } from '@/shared/lib/types';
+import { showToast } from '@/shared/ui/Toast';
 import QuickLogForm from '../components/QuickLogForm';
 
 export default function HomePage() {

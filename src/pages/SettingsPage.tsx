@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
-import { getConfig, saveConfig, validateToken, createGist, listUserGists } from '../lib/github';
-import { loadFromGist, exportData, importData, backupToGist, restoreFromBackupGist } from '../lib/store';
-import { getStoredTheme, storeTheme, applyTheme, type ThemePreference } from '../lib/theme';
-import SegmentedControl from '../components/SegmentedControl';
+import { getConfig, saveConfig, validateToken, createGist, listUserGists } from '@/shared/lib/github';
+import { loadFromGist, exportData, importData, backupToGist, restoreFromBackupGist } from '@/shared/store/store';
+import { getStoredTheme, storeTheme, applyTheme, type ThemePreference } from '@/shared/lib/theme';
+import SegmentedControl from '@/shared/ui/SegmentedControl';
 
 export default function SettingsPage() {
 	const [token, setToken] = useState(getConfig().token);

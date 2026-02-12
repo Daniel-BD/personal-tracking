@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import { useTrackerData } from '../lib/hooks';
+import { useTrackerData } from '@/shared/store/hooks';
 import { getLastNWeeks } from '../lib/stats';
 import { filterEntriesByCategory, filterEntriesByDateRange, formatDateLocal } from '../lib/analysis';
 import GoalCard from './GoalCard';
-import { removeDashboardCard } from '../lib/store';
+import { removeDashboardCard } from '@/shared/store/store';
 import AddCategoryModal from './AddCategoryModal';
 
 export default function GoalDashboard() {

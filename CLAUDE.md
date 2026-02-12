@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Always verify changes build successfully** before considering a task complete. Run `npm run build` after making changes and fix any errors before finishing.
 - **Always update this CLAUDE.md file** when making changes to the codebase (new components, changed patterns, modified architecture, renamed files, etc.) so it continues to accurately reflect the actual code.
-- **Add or update tests** when creating or modifying features. Keep tests focused and minimal — a few good tests that cover core logic and edge cases are better than many fragile tests that are expensive to maintain. Test files live in `src/lib/__tests__/`.
+- **Add or update tests** when creating or modifying features. Keep tests focused and minimal — a few good tests that cover core logic and edge cases are better than many fragile tests that are expensive to maintain. Test files live in `src/shared/store/__tests__/`.
 - You may need to run `npm install` first if `node_modules` is missing.
 
 ## Development Commands
@@ -19,7 +19,7 @@ npm run test         # Run tests once (vitest run)
 npm run test:watch   # Run tests in watch mode (vitest)
 ```
 
-Tests use **Vitest** with **happy-dom** environment. Config is in `vitest.config.ts`. Test files live in `src/lib/__tests__/`.
+Tests use **Vitest** with **happy-dom** environment. Config is in `vitest.config.ts`. Test files live in `src/shared/store/__tests__/`.
 
 ## Project Overview
 
@@ -40,22 +40,27 @@ A personal activity and food tracking PWA built for mobile-first usage. Users lo
 
 All data lives in a single `TrackerData` object containing items, categories, entries, and dashboard cards for both activity and food types. The architecture follows this pattern:
 
-1. **`src/lib/types.ts`** — Data interfaces (`Entry`, `ActivityItem`, `FoodItem`, `Category`, `TrackerData`, `DashboardCard`) and utility functions (`generateId()`, `getTodayDate()`, `getCurrentTime()`, collection accessor helpers like `getItems()`, `getCategories()`).
-2. **`src/lib/store.ts`** — Singleton external store with `useSyncExternalStore`-compatible API (`dataStore`, `syncStatusStore`). All CRUD operations (items, categories, entries, dashboard cards), Gist sync/merge logic, data migration, and export/import (with field-level validation) live here. Every data mutation goes through this file. Store initialization is guarded by a module-level flag and invoked from `App.tsx`.
-3. **`src/lib/hooks.ts`** — React hooks (`useTrackerData()`, `useSyncStatus()`, `useIsMobile()`) that wrap the external store or browser APIs for use in components.
-4. **`src/lib/analysis.ts`** — Pure functions for date filtering, statistics, comparisons, time-series generation, and entity analytics. No side effects. Also contains shared formatting utilities (`formatTime`, `formatDateWithYear`, `formatDateLocal`, `formatWeekLabel`), and chart data utilities (grouping by day/week/month, rolling averages, cumulative series).
-5. **`src/lib/stats.ts`** — Weekly food-analytics engine. Processes food entries by week, calculates balance scores (positive vs. limit sentiment), builds category composition data, and computes actionable category rankings (top limit categories, lagging positive categories).
-6. **`src/lib/github.ts`** — GitHub Gist API integration for backup sync.
-7. **`src/lib/theme.ts`** — Theme preference management (light/dark/system).
+1. **`src/shared/lib/types.ts`** — Data interfaces (`Entry`, `ActivityItem`, `FoodItem`, `Category`, `TrackerData`, `DashboardCard`) and utility functions (`generateId()`, `getTodayDate()`, `getCurrentTime()`, collection accessor helpers like `getItems()`, `getCategories()`).
+2. **`src/shared/store/store.ts`** — Singleton external store with `useSyncExternalStore`-compatible API (`dataStore`, `syncStatusStore`). All CRUD operations (items, categories, entries, dashboard cards), export/import (with field-level validation) live here. Every data mutation goes through this file. Store initialization is guarded by a module-level flag and invoked from `App.tsx`.
+3. **`src/shared/store/sync.ts`** — Gist sync/merge logic. Contains `pushToGist`, `loadFromGistFn`, `mergeTrackerData`, `pendingDeletions` tracking, and backup operations. Called by store.ts through wrapper functions.
+4. **`src/shared/store/migration.ts`** — Data migration (`migrateData()` for sentiment field) and dashboard initialization (`initializeDefaultDashboardCards()`).
+5. **`src/shared/store/hooks.ts`** — React hooks (`useTrackerData()`, `useSyncStatus()`) that wrap the external store for use in components.
+6. **`src/shared/hooks/useIsMobile.ts`** — Browser-only hook for responsive breakpoint detection (not store-related).
+7. **`src/lib/analysis.ts`** — Pure functions for date filtering, statistics, comparisons, and entry grouping. No side effects. Re-exports formatting utilities from `date-utils.ts`.
+8. **`src/shared/lib/date-utils.ts`** — Shared date/time formatting utilities (`formatTime`, `formatDate`, `formatDateWithYear`, `formatDateLocal`, `formatMonthYear`, `formatWeekLabel`).
+9. **`src/lib/stats.ts`** — Weekly food-analytics engine. Processes food entries by week, calculates balance scores (positive vs. limit sentiment), builds category composition data, and computes actionable category rankings (top limit categories, lagging positive categories).
+10. **`src/shared/lib/github.ts`** — GitHub Gist API integration for backup sync.
+11. **`src/shared/lib/theme.ts`** — Theme preference management (light/dark/system).
 
 ### Key Patterns
 
+- **Path aliases**: All imports use `@/` alias (mapped to `src/`) configured in `tsconfig.json`, `vite.config.ts`, and `vitest.config.ts`. Shared modules use `@/shared/...`, pages/components use relative imports for local siblings.
 - **Two parallel type hierarchies**: Activity and food share identical structures (`ActivityItem`/`FoodItem`, separate category lists) but are kept separate throughout. Functions often take an `EntryType` ('activity' | 'food') parameter to select the right list.
 - **Category overrides**: Entries can override their item's default categories via `categoryOverrides`. Use `getEntryCategoryIds()` from `analysis.ts` to get effective categories.
-- **Category sentiment**: Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`, defined as `CategorySentiment` in `types.ts`). Defaults to `'neutral'`. Set via a `SentimentPicker` in the Library page when creating or editing categories. Categories created inline via `CategoryPicker` default to neutral. Non-neutral sentiments display as colored badges (green for positive, red for limit) next to the category name. Legacy data without the field is auto-migrated to `'neutral'` on load via `migrateData()` in `store.ts`.
+- **Category sentiment**: Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`, defined as `CategorySentiment` in `types.ts`). Defaults to `'neutral'`. Set via a `SentimentPicker` in the Library page when creating or editing categories. Categories created inline via `CategoryPicker` default to neutral. Non-neutral sentiments display as colored badges (green for positive, red for limit) next to the category name. Legacy data without the field is auto-migrated to `'neutral'` on load via `migrateData()` in `migration.ts`.
 - **External store pattern**: Instead of React Context, the store uses a module-level singleton with `useSyncExternalStore` for reactivity. This allows store functions (CRUD operations) to be called from anywhere without prop drilling.
 - **Dashboard cards**: `TrackerData.dashboardCards` stores user-configured goal cards (each tied to a `categoryId`). Cards compare this week's count against a rolling 4-week baseline average. CRUD operations: `addDashboardCard()`, `removeDashboardCard()` in `store.ts`.
-- **Toast system**: `showToast()` from `components/Toast.tsx` is a module-level function (no provider needed). Toasts auto-dismiss after 3.5s and optionally include an action button. Used for Quick Log success feedback (with Undo action) and URL-based quick logging.
+- **Toast system**: `showToast()` from `shared/ui/Toast.tsx` is a module-level function (no provider needed). Toasts auto-dismiss after 3.5s and optionally include an action button. Used for Quick Log success feedback (with Undo action) and URL-based quick logging.
 - **URL-based quick logging**: The Home page reads `?add=itemName` from the URL to instantly log an entry for a matching item name. Feedback is shown via toast.
 - **Bottom sheet pattern**: `BottomSheet` component provides a slide-up sheet (~85vh max) with backdrop, handle bar, and escape-to-close. Used by Quick Log for Create+Log flow, Log page for filters, and EntryList for editing entries. Locks body scroll when open. Supports optional `headerAction` prop (ReactNode) rendered trailing in the header row alongside the title.
 - **Favorites**: `TrackerData.favoriteItems` stores an array of item IDs. Items can be favorited/unfavorited via a star icon on the Library page (items tab) and on the Log page (entry rows). `toggleFavorite()` and `isFavorite()` in `store.ts` handle the logic. Favorites are cleaned up when items are deleted. On the Home page, the QuickLogForm shows favorited items instead of recent items.
@@ -77,21 +82,39 @@ Navigation uses a 5-tab bottom nav bar defined in `App.tsx` (Home, Log, Stats, L
 
 ```
 src/
-├── App.tsx                          # Root layout: routes + bottom nav bar + toast container + store init
-├── main.tsx                         # Entry point: BrowserRouter + StrictMode
-├── app.css                          # Global CSS: color system, utility classes, dark mode
+├── app/
+│   ├── App.tsx                      # Root layout: routes + bottom nav bar + toast container + store init
+│   ├── main.tsx                     # Entry point: BrowserRouter + StrictMode
+│   └── app.css                      # Global CSS: color system, utility classes, dark mode
+├── shared/
+│   ├── lib/
+│   │   ├── types.ts                 # All TypeScript interfaces + utility functions
+│   │   ├── github.ts               # GitHub Gist API client
+│   │   ├── theme.ts                # Theme (light/dark/system) persistence + application
+│   │   └── date-utils.ts           # Shared date/time formatting utilities
+│   ├── store/
+│   │   ├── store.ts                # Singleton store: CRUD, export/import, backup wrappers
+│   │   ├── sync.ts                 # Gist sync/merge logic, pending deletions
+│   │   ├── migration.ts            # Data migration + dashboard initialization
+│   │   ├── hooks.ts                # useTrackerData, useSyncStatus
+│   │   └── __tests__/
+│   │       ├── fixtures.ts         # Shared test helpers (makeValidData, flushPromises)
+│   │       ├── import-export.test.ts
+│   │       ├── gist-sync.test.ts
+│   │       └── favorites.test.ts
+│   ├── hooks/
+│   │   └── useIsMobile.ts          # Responsive breakpoint hook
+│   └── ui/
+│       ├── BottomSheet.tsx          # Reusable slide-up bottom sheet with backdrop
+│       ├── SegmentedControl.tsx     # Generic pill/segment toggle (used throughout)
+│       ├── MultiSelectFilter.tsx    # Searchable multi-select dropdown (used on Log page)
+│       ├── NativePickerInput.tsx    # iOS-safe date/time picker
+│       ├── NavIcon.tsx              # Navigation icon component (SVG icons for bottom nav)
+│       ├── StarIcon.tsx             # Reusable star icon (filled/unfilled) for favorites
+│       └── Toast.tsx                # Toast notification system (module-level showToast())
 ├── lib/
-│   ├── types.ts                     # All TypeScript interfaces + utility functions
-│   ├── store.ts                     # Singleton store: CRUD, sync, migration, export/import, backup
-│   ├── hooks.ts                     # useTrackerData, useSyncStatus, useIsMobile
 │   ├── analysis.ts                  # Date filtering, analytics, chart data utilities
-│   ├── stats.ts                     # Weekly food analytics, balance scores, actionable categories
-│   ├── github.ts                    # GitHub Gist API client
-│   ├── theme.ts                     # Theme (light/dark/system) persistence + application
-│   └── __tests__/                   # Vitest tests
-│       ├── import-export.test.ts    # importData validation, round-trip, rejection
-│       ├── gist-sync.test.ts        # Gist sync, merge, backup, CRUD→push
-│       └── favorites.test.ts        # Favorites toggle, cleanup on delete, merge behavior
+│   └── stats.ts                     # Weekly food analytics, balance scores, actionable categories
 ├── pages/
 │   ├── HomePage.tsx                 # Command-palette quick log + demoted monthly stats
 │   ├── LogPage.tsx                  # Filterable entry list with filter bottom sheet
@@ -100,30 +123,29 @@ src/
 │   └── SettingsPage.tsx             # Theme, Gist config, export/import, backup
 ├── components/
 │   ├── QuickLogForm.tsx             # Command-palette search + BottomSheet create/log (used on Home)
-│   ├── BottomSheet.tsx              # Reusable slide-up bottom sheet with backdrop
 │   ├── EntryList.tsx                # Grouped-by-date entry display with swipe actions + edit bottom sheet
 │   ├── CategoryPicker.tsx           # Multi-select category chips with inline creation
 │   ├── AddCategoryModal.tsx         # Modal for adding categories to dashboard
-│   ├── SegmentedControl.tsx         # Generic pill/segment toggle (used throughout)
-│   ├── MultiSelectFilter.tsx        # Searchable multi-select dropdown (used on Log page)
 │   ├── GoalDashboard.tsx            # Dashboard card grid with add/remove
 │   ├── GoalCard.tsx                 # Individual sparkline goal card (uses Recharts)
 │   ├── BalanceOverview.tsx          # Balance score meter + weekly sentiment bar chart
 │   ├── ActionableCategories.tsx     # Top limit & lagging positive category lists
-│   ├── CategoryComposition.tsx      # Weekly stacked category composition chart
-│   ├── NavIcon.tsx                  # Navigation icon component (SVG icons for bottom nav)
-│   ├── NativePickerInput.tsx        # iOS-safe date/time picker (styled div + transparent native input overlay)
-│   ├── StarIcon.tsx                 # Reusable star icon (filled/unfilled) for favorites
-│   └── Toast.tsx                    # Toast notification system (module-level showToast())
+│   └── CategoryComposition.tsx      # Weekly stacked category composition chart
 └── vite-env.d.ts
 ```
 
 ### Import Paths
 
-- Use relative imports from `src/` (e.g., `../lib/store`, `../components/EntryList`)
-- Components are in `src/components/`
+- Use `@/` path alias for all shared modules:
+  - Store functions (CRUD, sync, etc.): `@/shared/store/store`
+  - Store hooks (`useTrackerData`, `useSyncStatus`): `@/shared/store/hooks`
+  - `useIsMobile` hook: `@/shared/hooks/useIsMobile`
+  - Shared UI components: `@/shared/ui/...` (e.g., `@/shared/ui/Toast`, `@/shared/ui/BottomSheet`)
+  - Shared lib utilities: `@/shared/lib/...` (e.g., `@/shared/lib/types`, `@/shared/lib/theme`, `@/shared/lib/github`, `@/shared/lib/date-utils`)
+- Use relative imports for local sibling files (e.g., `../lib/analysis`, `../components/EntryList`)
+- Feature components are in `src/components/`
 - Pages are in `src/pages/`
-- Business logic is in `src/lib/`
+- Feature-specific business logic (analysis, stats) is in `src/lib/`
 
 ## Styling
 
@@ -163,10 +185,10 @@ Use these instead of repeating Tailwind utilities:
 
 - **iOS date/time inputs**: iOS Safari enforces native control sizing on `<input type="date|time">` that CSS cannot override. The `NativePickerInput` component works around this by rendering a styled `<div>` for display with a transparent native `<input>` overlay on top that captures taps directly, reliably opening the OS picker. Previous approach using `showPicker()` was unreliable on iOS Safari. Used in `QuickLogForm` and `EntryList` for all date/time fields. Supports optional `onClear` prop for clearable time fields (clear button uses `z-10` to sit above the transparent input).
 - **HTML5 date/time input width**: Browsers set intrinsic minimum widths that can cause overflow. Handled in `app.css` with `min-width: 0` and `max-width: 100%` overrides on date/time inputs.
-- **Gist sync**: Fire-and-forget with merge logic. LocalStorage is always the source of truth. The store tracks `pendingDeletions` (by entity type) to prevent deleted items from being restored during merge.
+- **Gist sync**: Fire-and-forget with merge logic. LocalStorage is always the source of truth. The store tracks `pendingDeletions` (by entity type) in `sync.ts` to prevent deleted items from being restored during merge.
 - **Entry sorting**: Within each day, entries sort by time (latest first); entries without time come after entries with time.
 - **SPA routing**: The `BASE_PATH` env var can configure the base path for deployment. `main.tsx` strips trailing slashes from `import.meta.env.BASE_URL` for the BrowserRouter basename.
-- **Dashboard initialization**: On first load, `initializeDefaultDashboardCards()` auto-creates dashboard cards for categories named "Fruit", "Vegetables", or "Sugary drinks" if they exist. This runs once (guarded by `dashboardInitialized` flag).
+- **Dashboard initialization**: On first load, `initializeDefaultDashboardCards()` (in `migration.ts`) auto-creates dashboard cards for categories named "Fruit", "Vegetables", or "Sugary drinks" if they exist. This runs once (guarded by `dashboardInitialized` flag).
 - **Stats page focus**: The Stats page currently only analyzes food entries (eating patterns). Activity analytics may be added later.
 - **Recharts in GoalCard**: The `dot` prop on `<Line>` uses a render function with explicit typing to satisfy TypeScript. The last data point gets a larger filled dot.
 - **SegmentedControl variants**: Supports `'pill'` (default, gap-separated buttons) and `'segment'` (iOS-style connected segments with inset background). Also supports `size` prop (`'default'`, `'sm'`, `'xs'`).

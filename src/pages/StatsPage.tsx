@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { useTrackerData } from '../lib/hooks';
+import { useTrackerData } from '@/shared/store/hooks';
 import BalanceOverview from '../components/BalanceOverview';
 import ActionableCategories from '../components/ActionableCategories';
 import CategoryComposition from '../components/CategoryComposition';
 import GoalDashboard from '../components/GoalDashboard';
-import SegmentedControl from '../components/SegmentedControl';
+import SegmentedControl from '@/shared/ui/SegmentedControl';
 import { getLastNWeeks, processFoodEntriesByWeek } from '../lib/stats';
 
 type PeriodType = 'weekly' | 'monthly';

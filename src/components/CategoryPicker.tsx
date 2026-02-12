@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import type { Category, EntryType } from '../lib/types';
-import { addCategory } from '../lib/store';
+import type { Category, EntryType } from '@/shared/lib/types';
+import { addCategory } from '@/shared/store/store';
 
 interface Props {
 	selected: string[];

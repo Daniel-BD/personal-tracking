@@ -6,7 +6,7 @@ import {
 	getScoreChange,
 	formatWeekLabel
 } from '../lib/stats';
-import { useIsMobile } from '../lib/hooks';
+import { useIsMobile } from '@/shared/hooks/useIsMobile';
 
 interface BalanceOverviewProps {
 	weeklyData: WeeklyData[];

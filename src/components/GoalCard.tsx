@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { LineChart, Line, ResponsiveContainer, ReferenceLine, Dot } from 'recharts';
-import type { CategorySentiment } from '../lib/types';
+import type { CategorySentiment } from '@/shared/lib/types';
 
 const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
 	positive: 'var(--color-success)',

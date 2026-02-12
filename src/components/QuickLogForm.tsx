@@ -1,14 +1,14 @@
 import { useState, useMemo, useRef } from 'react';
-import type { EntryType, Item } from '../lib/types';
-import { getTodayDate, getCurrentTime, getTypeIcon } from '../lib/types';
-import { useTrackerData } from '../lib/hooks';
-import { addEntry, addItem, deleteEntry, getItemById, getCategoryNames, toggleFavorite, isFavorite } from '../lib/store';
-import { showToast } from './Toast';
-import BottomSheet from './BottomSheet';
-import StarIcon from './StarIcon';
-import SegmentedControl from './SegmentedControl';
+import type { EntryType, Item } from '@/shared/lib/types';
+import { getTodayDate, getCurrentTime, getTypeIcon } from '@/shared/lib/types';
+import { useTrackerData } from '@/shared/store/hooks';
+import { addEntry, addItem, deleteEntry, getItemById, getCategoryNames, toggleFavorite, isFavorite } from '@/shared/store/store';
+import { showToast } from '@/shared/ui/Toast';
+import BottomSheet from '@/shared/ui/BottomSheet';
+import StarIcon from '@/shared/ui/StarIcon';
+import SegmentedControl from '@/shared/ui/SegmentedControl';
 import CategoryPicker from './CategoryPicker';
-import NativePickerInput from './NativePickerInput';
+import NativePickerInput from '@/shared/ui/NativePickerInput';
 
 interface UnifiedItem {
 	item: Item;

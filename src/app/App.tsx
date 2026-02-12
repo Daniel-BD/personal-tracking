@@ -1,14 +1,14 @@
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
-import { getStoredTheme, applyTheme } from './lib/theme';
-import { initializeStore } from './lib/store';
-import HomePage from './pages/HomePage';
-import LogPage from './pages/LogPage';
-import LibraryPage from './pages/LibraryPage';
-import SettingsPage from './pages/SettingsPage';
-import StatsPage from './pages/StatsPage';
-import NavIcon from './components/NavIcon';
-import ToastContainer from './components/Toast';
+import { getStoredTheme, applyTheme } from '@/shared/lib/theme';
+import { initializeStore } from '@/shared/store/store';
+import HomePage from '@/pages/HomePage';
+import LogPage from '@/pages/LogPage';
+import LibraryPage from '@/pages/LibraryPage';
+import SettingsPage from '@/pages/SettingsPage';
+import StatsPage from '@/pages/StatsPage';
+import NavIcon from '@/shared/ui/NavIcon';
+import ToastContainer from '@/shared/ui/Toast';
 
 const navItems = [
 	{ to: '/', label: 'Home', icon: 'home' },
