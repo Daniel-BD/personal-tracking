@@ -42,9 +42,10 @@ All data lives in a single `TrackerData` object containing items, categories, en
 
 **Shared layer** (cross-feature, reusable):
 1. **`src/shared/lib/types.ts`** — Data interfaces (`Entry`, `ActivityItem`, `FoodItem`, `Category`, `TrackerData`, `DashboardCard`) and utility functions (`generateId()`, `getTodayDate()`, `getCurrentTime()`, collection accessor helpers like `getItems()`, `getCategories()`).
-2. **`src/shared/store/store.ts`** — Singleton external store with `useSyncExternalStore`-compatible API (`dataStore`, `syncStatusStore`). All CRUD operations (items, categories, entries, dashboard cards), export/import (with field-level validation) live here. Every data mutation goes through this file. Store initialization is guarded by a module-level flag and invoked from `App.tsx`.
+2. **`src/shared/store/store.ts`** — Singleton external store with `useSyncExternalStore`-compatible API (`dataStore`, `syncStatusStore`). All CRUD operations (items, categories, entries, dashboard cards) and thin export/import wrappers live here. Every data mutation goes through this file. Store initialization is guarded by a module-level flag and invoked from `App.tsx`.
 3. **`src/shared/store/sync.ts`** — Gist sync/merge logic. Contains `pushToGist`, `loadFromGistFn`, `mergeTrackerData`, `pendingDeletions` tracking, and backup operations. Called by store.ts through wrapper functions.
 4. **`src/shared/store/migration.ts`** — Data migration (`migrateData()` for sentiment field) and dashboard initialization (`initializeDefaultDashboardCards()`).
+4b. **`src/shared/store/import-export.ts`** — Import validation (`validateAndParseImport()`) and export download (`triggerExportDownload()`). Field-level validation of entries, items, and categories lives here. Called by store.ts wrappers.
 5. **`src/shared/store/hooks.ts`** — React hooks that wrap the external store for use in components. Provides `useTrackerData()` for full data access, `useSyncStatus()`, and fine-grained selector hooks (`useEntries()`, `useActivityItems()`, `useFoodItems()`, `useActivityCategories()`, `useFoodCategories()`, `useDashboardCards()`, `useFavoriteItems()`) that prevent re-renders when unrelated data changes.
 6. **`src/shared/hooks/useIsMobile.ts`** — Browser-only hook for responsive breakpoint detection (not store-related).
 7. **`src/shared/lib/date-utils.ts`** — Shared date/time formatting utilities (`formatTime`, `formatDate`, `formatDateWithYear`, `formatDateLocal`, `formatMonthYear`, `formatWeekLabel`).
@@ -101,10 +102,11 @@ src/
 │   │   ├── theme.ts                # Theme (light/dark/system) persistence + application
 │   │   └── date-utils.ts           # Shared date/time formatting utilities
 │   ├── store/
-│   │   ├── store.ts                # Singleton store: CRUD, export/import, backup wrappers
+│   │   ├── store.ts                # Singleton store: CRUD, backup wrappers (~400 lines)
 │   │   ├── sync.ts                 # Gist sync/merge logic, pending deletions
 │   │   ├── migration.ts            # Data migration + dashboard initialization
-│   │   ├── hooks.ts                # useTrackerData, useSyncStatus
+│   │   ├── import-export.ts        # Import validation + export download logic
+│   │   ├── hooks.ts                # useTrackerData, useSyncStatus + selector hooks
 │   │   └── __tests__/
 │   │       ├── fixtures.ts         # Shared test helpers (makeValidData, flushPromises)
 │   │       ├── import-export.test.ts
