@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Always verify changes build successfully** before considering a task complete. Run `npm run build` after making changes and fix any errors before finishing.
 - **Always update this CLAUDE.md file** when making changes to the codebase (new components, changed patterns, modified architecture, renamed files, etc.) so it continues to accurately reflect the actual code.
-- **Add or update tests** when creating or modifying features. Keep tests focused and minimal — a few good tests that cover core logic and edge cases are better than many fragile tests that are expensive to maintain. Test files live in `src/shared/store/__tests__/`.
+- **Add or update tests** when creating or modifying features. Keep tests focused and minimal — a few good tests that cover core logic and edge cases are better than many fragile tests that are expensive to maintain. Test files live alongside the code they test in `__tests__/` directories (e.g., `src/shared/store/__tests__/`, `src/features/tracking/__tests__/`, `src/features/stats/__tests__/`).
 - You may need to run `npm install` first if `node_modules` is missing.
 
 ## Development Commands
@@ -19,7 +19,7 @@ npm run test         # Run tests once (vitest run)
 npm run test:watch   # Run tests in watch mode (vitest)
 ```
 
-Tests use **Vitest** with **happy-dom** environment. Config is in `vitest.config.ts`. Test files live in `src/shared/store/__tests__/`.
+Tests use **Vitest** with **happy-dom** environment. Config is in `vitest.config.ts`. Test files live in `__tests__/` directories colocated with the code they test. Shared test helpers (factory functions like `makeEntry`, `makeItem`, `makeCategory`, `makeValidData`) live in `src/shared/store/__tests__/fixtures.ts`.
 
 ## Project Overview
 
@@ -108,7 +108,7 @@ src/
 │   │   ├── import-export.ts        # Import validation + export download logic
 │   │   ├── hooks.ts                # useTrackerData, useSyncStatus + selector hooks
 │   │   └── __tests__/
-│   │       ├── fixtures.ts         # Shared test helpers (makeValidData, flushPromises)
+│   │       ├── fixtures.ts         # Shared test helpers (makeEntry, makeItem, makeCategory, makeValidData, flushPromises)
 │   │       ├── import-export.test.ts
 │   │       ├── gist-sync.test.ts
 │   │       └── favorites.test.ts
@@ -128,6 +128,10 @@ src/
 │   │   │   ├── entry-filters.ts     # filterEntriesByDateRange, byType, byItem, byCategory, etc.
 │   │   │   ├── entry-grouping.ts    # getEntriesGroupedByDate, countByItem, month comparisons, etc.
 │   │   │   └── category-utils.ts    # getEntryCategoryIds, getCategoryNameById, getEntryCategoryNames
+│   │   ├── __tests__/
+│   │   │   ├── entry-filters.test.ts
+│   │   │   ├── entry-grouping.test.ts
+│   │   │   └── category-utils.test.ts
 │   │   ├── hooks/
 │   │   │   └── useSwipeGesture.ts   # Touch swipe-left gesture logic (extracted from EntryList)
 │   │   ├── components/
@@ -144,6 +148,8 @@ src/
 │   ├── stats/                       # Stats page: goals, balance, composition
 │   │   ├── utils/
 │   │   │   └── stats-engine.ts      # Weekly food analytics, balance scores, actionable categories
+│   │   ├── __tests__/
+│   │   │   └── stats-engine.test.ts
 │   │   ├── components/
 │   │   │   ├── StatsPage.tsx
 │   │   │   ├── GoalDashboard.tsx
