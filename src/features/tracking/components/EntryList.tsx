@@ -1,5 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
-import type { TouchEvent as ReactTouchEvent } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import type { Entry, EntryType } from '@/shared/lib/types';
 import { getItemById, deleteEntry, updateEntry, toggleFavorite, isFavorite } from '@/shared/store/store';
 import StarIcon from '@/shared/ui/StarIcon';
@@ -10,15 +9,12 @@ import { formatDate, formatTime } from '@/shared/lib/date-utils';
 import CategoryPicker from './CategoryPicker';
 import NativePickerInput from '@/shared/ui/NativePickerInput';
 import BottomSheet from '@/shared/ui/BottomSheet';
+import { useSwipeGesture, ACTION_WIDTH } from '../hooks/useSwipeGesture';
 
 interface Props {
 	entries: Entry[];
 	showType?: boolean;
 }
-
-const SWIPE_THRESHOLD = 70;
-const ACTION_WIDTH = 70;
-const SWIPE_REVEAL = -(ACTION_WIDTH * 2);
 
 export default function EntryList({ entries, showType = false }: Props) {
 	const data = useTrackerData();
@@ -30,11 +26,16 @@ export default function EntryList({ entries, showType = false }: Props) {
 	const [editNotes, setEditNotes] = useState('');
 	const [editCategories, setEditCategories] = useState<string[]>([]);
 
-	// Swipe state
-	const [swipedEntryId, setSwipedEntryId] = useState<string | null>(null);
-	const touchStartRef = useRef<{ x: number; y: number; id: string } | null>(null);
-	const didSwipeRef = useRef(false);
-	const [swipeOffset, setSwipeOffset] = useState(0);
+	const {
+		swipedEntryId,
+		swipeOffset,
+		handleTouchStart,
+		handleTouchMove,
+		handleTouchEnd,
+		handleRowTap,
+		resetSwipe,
+		isTouching,
+	} = useSwipeGesture();
 
 	function getItemName(type: EntryType, itemId: string): string {
 		const item = getItemById(type, itemId);
@@ -44,8 +45,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 	function handleDelete(id: string) {
 		if (confirm('Delete this entry?')) {
 			deleteEntry(id);
-			setSwipedEntryId(null);
-			setSwipeOffset(0);
+			resetSwipe();
 			cancelEdit();
 		}
 	}
@@ -56,9 +56,8 @@ export default function EntryList({ entries, showType = false }: Props) {
 		setEditTime(entry.time ?? '');
 		setEditNotes(entry.notes ?? '');
 		setEditCategories(getEntryCategoryIds(entry, data));
-		setSwipedEntryId(null);
-		setSwipeOffset(0);
-	}, [data]);
+		resetSwipe();
+	}, [data, resetSwipe]);
 
 	function cancelEdit() {
 		setEditingEntry(null);
@@ -90,71 +89,6 @@ export default function EntryList({ entries, showType = false }: Props) {
 	function getCategoriesForType(type: EntryType) {
 		return type === 'activity' ? data.activityCategories : data.foodCategories;
 	}
-
-	// Swipe handlers
-	const handleTouchStart = useCallback((e: ReactTouchEvent, entryId: string) => {
-		const touch = e.touches[0];
-		touchStartRef.current = { x: touch.clientX, y: touch.clientY, id: entryId };
-		didSwipeRef.current = false;
-
-		// If a different entry was swiped, reset it
-		if (swipedEntryId && swipedEntryId !== entryId) {
-			setSwipedEntryId(null);
-			setSwipeOffset(0);
-		}
-	}, [swipedEntryId]);
-
-	const handleTouchMove = useCallback((e: ReactTouchEvent) => {
-		if (!touchStartRef.current) return;
-		const touch = e.touches[0];
-		const deltaX = touch.clientX - touchStartRef.current.x;
-		const deltaY = touch.clientY - touchStartRef.current.y;
-
-		// If vertical scroll is dominant, cancel swipe
-		if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaX) < 10) {
-			return;
-		}
-
-		// Mark that a swipe occurred (to prevent click from opening edit)
-		if (Math.abs(deltaX) > 5) {
-			didSwipeRef.current = true;
-		}
-
-		// Only allow left swipe (negative deltaX)
-		if (deltaX < 0) {
-			setSwipeOffset(Math.max(deltaX, SWIPE_REVEAL));
-			setSwipedEntryId(touchStartRef.current.id);
-		}
-	}, []);
-
-	const handleTouchEnd = useCallback(() => {
-		if (!touchStartRef.current) return;
-
-		if (Math.abs(swipeOffset) > SWIPE_THRESHOLD) {
-			// Snap to reveal actions
-			setSwipeOffset(SWIPE_REVEAL);
-		} else {
-			// Snap back
-			setSwipeOffset(0);
-			setSwipedEntryId(null);
-		}
-
-		touchStartRef.current = null;
-	}, [swipeOffset]);
-
-	const handleRowTap = useCallback((entry: Entry) => {
-		// Ignore click events that followed a swipe gesture
-		if (didSwipeRef.current) {
-			didSwipeRef.current = false;
-			return;
-		}
-		if (swipedEntryId) {
-			setSwipedEntryId(null);
-			setSwipeOffset(0);
-			return;
-		}
-		startEdit(entry);
-	}, [swipedEntryId, startEdit]);
 
 	const groupedArray = useMemo(() => Array.from(groupedEntries.entries()), [groupedEntries]);
 
@@ -219,12 +153,12 @@ export default function EntryList({ entries, showType = false }: Props) {
 											}`}
 											style={{
 												transform: isSwiped ? `translateX(${swipeOffset}px)` : 'translateX(0)',
-												transition: touchStartRef.current ? 'none' : 'transform 0.25s ease-out'
+												transition: isTouching() ? 'none' : 'transform 0.25s ease-out'
 											}}
 											onTouchStart={(e) => handleTouchStart(e, entry.id)}
 											onTouchMove={handleTouchMove}
 											onTouchEnd={handleTouchEnd}
-											onClick={() => handleRowTap(entry)}
+											onClick={() => handleRowTap(() => startEdit(entry))}
 										>
 											<div className="flex items-center justify-between gap-3">
 												<div className="flex-1 min-w-0">

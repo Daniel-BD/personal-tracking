@@ -1,171 +1,71 @@
-import { useState, useMemo, useRef } from 'react';
-import type { EntryType, Item } from '@/shared/lib/types';
-import { getTodayDate, getCurrentTime, getTypeIcon } from '@/shared/lib/types';
+import { useRef } from 'react';
+import type { EntryType } from '@/shared/lib/types';
+import { getTypeIcon } from '@/shared/lib/types';
 import { useTrackerData } from '@/shared/store/hooks';
-import { addEntry, addItem, deleteEntry, getItemById, getCategoryNames, toggleFavorite, isFavorite } from '@/shared/store/store';
-import { showToast } from '@/shared/ui/Toast';
+import { getCategoryNames, toggleFavorite, isFavorite } from '@/shared/store/store';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import StarIcon from '@/shared/ui/StarIcon';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import { CategoryPicker } from '@/features/tracking';
 import NativePickerInput from '@/shared/ui/NativePickerInput';
-
-interface UnifiedItem {
-	item: Item;
-	type: EntryType;
-}
+import { useQuickLogSearch } from '../hooks/useQuickLogSearch';
+import { useQuickLogForm } from '../hooks/useQuickLogForm';
 
 export default function QuickLogForm() {
 	const data = useTrackerData();
 	const inputRef = useRef<HTMLInputElement>(null);
 
-	// Search state
-	const [query, setQuery] = useState('');
-	const [isFocused, setIsFocused] = useState(false);
-
-	// Create + Log sheet state
-	const [sheetOpen, setSheetOpen] = useState(false);
-	const [sheetMode, setSheetMode] = useState<'create' | 'log'>('create');
-	const [itemName, setItemName] = useState('');
-	const [itemType, setItemType] = useState<EntryType>('food');
-	const [logDate, setLogDate] = useState(getTodayDate());
-	const [logTime, setLogTime] = useState<string | null>(getCurrentTime());
-	const [logNote, setLogNote] = useState('');
-	const [logCategories, setLogCategories] = useState<string[]>([]);
-
-	// Item being logged (for existing items tapped from search)
-	const [selectedItem, setSelectedItem] = useState<UnifiedItem | null>(null);
-
-	// All items merged
-	const allItems = useMemo(() => {
-		const activities: UnifiedItem[] = data.activityItems.map((item) => ({ item, type: 'activity' as EntryType }));
-		const foods: UnifiedItem[] = data.foodItems.map((item) => ({ item, type: 'food' as EntryType }));
-		return [...activities, ...foods];
-	}, [data.activityItems, data.foodItems]);
-
-	// Favorite items — Map-based O(N+M) lookup
-	const favoriteItemsList = useMemo(() => {
-		const favorites = data.favoriteItems || [];
-		if (favorites.length === 0) return [];
-
-		const itemMap = new Map<string, UnifiedItem>();
-		for (const item of data.activityItems) {
-			itemMap.set(item.id, { item, type: 'activity' });
-		}
-		for (const item of data.foodItems) {
-			itemMap.set(item.id, { item, type: 'food' });
-		}
-
-		const result: UnifiedItem[] = [];
-		for (const itemId of favorites) {
-			const unified = itemMap.get(itemId);
-			if (unified) result.push(unified);
-		}
-		return result;
-	}, [data.favoriteItems, data.activityItems, data.foodItems]);
-
-	// Filtered search results
-	const searchResults = useMemo(() => {
-		if (!query.trim()) return [];
-		return allItems.filter((u) =>
-			u.item.name.toLowerCase().includes(query.toLowerCase())
-		);
-	}, [allItems, query]);
-
-	const showResults = isFocused && query.trim().length > 0;
-	const hasExactMatch = searchResults.some(
-		(u) => u.item.name.toLowerCase() === query.trim().toLowerCase()
+	const {
+		query,
+		setQuery,
+		isFocused,
+		setIsFocused,
+		searchResults,
+		showResults,
+		hasExactMatch,
+		favoriteItemsList,
+		resetSearch,
+	} = useQuickLogSearch(
+		data.activityItems,
+		data.foodItems,
+		data.favoriteItems || []
 	);
 
-	// --- Actions ---
+	const {
+		sheetOpen,
+		setSheetOpen,
+		sheetMode,
+		itemName,
+		setItemName,
+		itemType,
+		setItemType,
+		logDate,
+		setLogDate,
+		logTime,
+		setLogTime,
+		logNote,
+		setLogNote,
+		logCategories,
+		setLogCategories,
+		selectedItem,
+		categoriesForType,
+		isLogDisabled,
+		openForExisting,
+		openForCreate,
+		handleLog,
+	} = useQuickLogForm(data.activityCategories, data.foodCategories);
 
-	function handleSelectExisting(unified: UnifiedItem) {
-		setSelectedItem(unified);
-		setSheetMode('log');
-		setItemName(unified.item.name);
-		setItemType(unified.type);
-		setLogDate(getTodayDate());
-		setLogTime(getCurrentTime());
-		setLogNote('');
-		setLogCategories([...unified.item.categories]);
-
-		setSheetOpen(true);
-		setQuery('');
-		setIsFocused(false);
+	function handleSelectExisting(unified: Parameters<typeof openForExisting>[0]) {
+		openForExisting(unified);
+		resetSearch();
 		inputRef.current?.blur();
 	}
 
 	function handleCreateTap() {
-		setSelectedItem(null);
-		setSheetMode('create');
-		setItemName(query.trim());
-		setItemType('food');
-		setLogDate(getTodayDate());
-		setLogTime(getCurrentTime());
-		setLogNote('');
-		setLogCategories([]);
-
-		setSheetOpen(true);
-		setQuery('');
-		setIsFocused(false);
+		openForCreate(query.trim());
+		resetSearch();
 		inputRef.current?.blur();
 	}
-
-	function handleLog() {
-		let entryItemId: string;
-		let entryType: EntryType;
-
-		if (sheetMode === 'create') {
-			if (!itemName.trim()) return;
-			const newItem = addItem(itemType, itemName.trim(), logCategories);
-			entryItemId = newItem.id;
-			entryType = itemType;
-		} else {
-			if (!selectedItem) return;
-			entryItemId = selectedItem.item.id;
-			entryType = selectedItem.type;
-		}
-
-		const entry = addEntry(
-			entryType,
-			entryItemId,
-			logDate,
-			logTime,
-			logNote.trim() || null,
-			logCategories.length > 0 ? logCategories : null
-		);
-
-		setSheetOpen(false);
-		resetForm();
-
-		const displayName = itemName.trim() || selectedItem?.item.name || 'item';
-		showToast(`Logged "${displayName}"`, {
-			label: 'Undo',
-			onClick: () => {
-				deleteEntry(entry.id);
-				showToast('Entry undone');
-			}
-		});
-	}
-
-	function resetForm() {
-		setQuery('');
-		setSelectedItem(null);
-		setItemName('');
-		setItemType('food');
-		setLogDate(getTodayDate());
-		setLogTime(getCurrentTime());
-		setLogNote('');
-		setLogCategories([]);
-	}
-
-	// Categories for current type
-	const categoriesForType = useMemo(
-		() => itemType === 'activity' ? data.activityCategories : data.foodCategories,
-		[itemType, data.activityCategories, data.foodCategories]
-	);
-
-	const isLogDisabled = sheetMode === 'create' && !itemName.trim();
 
 	return (
 		<>

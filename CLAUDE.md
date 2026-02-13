@@ -52,12 +52,12 @@ All data lives in a single `TrackerData` object containing items, categories, en
 9. **`src/shared/lib/theme.ts`** — Theme preference management (light/dark/system).
 
 **Feature layer** (self-contained domains):
-10. **`src/features/tracking/`** — Core entry/item/category logic. Contains `utils/entry-filters.ts` (date range, type, item, category filtering), `utils/entry-grouping.ts` (group by date/week, month comparisons, totals), `utils/category-utils.ts` (category ID resolution, name lookup), plus `EntryList` and `CategoryPicker` components. This is the foundational feature used by most other features.
-11. **`src/features/quick-log/`** — Quick-log command palette used on the Home page. Contains `QuickLogForm` with search, favorites, and create/log BottomSheet.
+10. **`src/features/tracking/`** — Core entry/item/category logic. Contains `utils/entry-filters.ts` (date range, type, item, category filtering), `utils/entry-grouping.ts` (group by date/week, month comparisons, totals), `utils/category-utils.ts` (category ID resolution, name lookup), `hooks/useSwipeGesture.ts` (extracted touch/swipe gesture logic), plus `EntryList` and `CategoryPicker` components. This is the foundational feature used by most other features.
+11. **`src/features/quick-log/`** — Quick-log command palette used on the Home page. Business logic is extracted into `hooks/useQuickLogSearch.ts` (search/filter) and `hooks/useQuickLogForm.ts` (form state, submit, create-vs-log mode). `QuickLogForm` is a presentational component wiring hooks to UI.
 12. **`src/features/stats/`** — Stats page with goal dashboard, balance score, actionable categories, and category composition charts. Contains `utils/stats-engine.ts` (weekly food analytics, balance scores, actionable category rankings) and all chart components.
-13. **`src/features/library/`** — Library page for item & category CRUD management with search and SentimentPicker.
-14. **`src/features/settings/`** — Settings page for theme, Gist config, export/import, and backup management.
-15. **`src/features/log/`** — Log page with filterable entry list, type filter, and filter BottomSheet.
+13. **`src/features/library/`** — Library page for item & category CRUD management. Split into `LibraryPage.tsx` (layout shell with tabs/search), `ItemsTab.tsx` (item list + add/edit forms), `CategoriesTab.tsx` (category list + add/edit forms), and `SentimentPicker.tsx` (positive/neutral/limit selector).
+14. **`src/features/settings/`** — Settings page split into section components: `SettingsPage.tsx` (layout shell), `ThemeSection.tsx` (light/dark/system picker), `GistConfigSection.tsx` (token + Gist ID config), `ExportImportSection.tsx` (JSON export/import), `BackupSection.tsx` (backup Gist management).
+15. **`src/features/log/`** — Log page with filterable entry list. Filter logic is extracted into `hooks/useLogFilters.ts` (filter state, filtered entries, chip generation). `LogPage.tsx` is a presentational shell.
 16. **`src/features/home/`** — Home page orchestrating quick-log and monthly stats.
 
 ### Key Patterns
@@ -73,7 +73,7 @@ All data lives in a single `TrackerData` object containing items, categories, en
 - **Bottom sheet pattern**: `BottomSheet` component provides a slide-up sheet (~85vh max) with backdrop, handle bar, and escape-to-close. Used by Quick Log for Create+Log flow, Log page for filters, and EntryList for editing entries. Locks body scroll when open. Supports optional `headerAction` prop (ReactNode) rendered trailing in the header row alongside the title.
 - **Favorites**: `TrackerData.favoriteItems` stores an array of item IDs. Items can be favorited/unfavorited via a star icon on the Library page (items tab) and on the Log page (entry rows). `toggleFavorite()` and `isFavorite()` in `store.ts` handle the logic. Favorites are cleaned up when items are deleted. On the Home page, the QuickLogForm shows favorited items instead of recent items.
 - **Log page design**: Minimal layout with title + entry count, segment-style type filter on page background (no card container), filter icon top-right opening a BottomSheet with category/item multi-select filters. Active filters shown as removable chips. Entry list uses grouped flat rows (no individual card styling), swipe-left for edit/delete actions, tap row to edit in a BottomSheet. Date headers are sticky, uppercase, muted.
-- **Swipe gestures**: EntryList implements touch-based swipe-left to reveal Edit (blue) and Delete (red) action buttons. Uses touch event handlers with a 70px threshold. Tapping a row opens edit in a BottomSheet.
+- **Swipe gestures**: `useSwipeGesture` hook (in `features/tracking/hooks/`) encapsulates touch-based swipe-left logic to reveal Edit (blue) and Delete (red) action buttons. Uses a 70px threshold. Returns `swipedEntryId`, `swipeOffset`, touch handlers, `resetSwipe`, and `handleRowTap`. EntryList consumes this hook.
 - **Quick Log flow**: Command-palette style — borderless search input at top, inline search results, favorites list (items starred by the user). Tapping an item or "Create" opens a BottomSheet with type selector (create mode), date+time (defaulting to today/now), categories, and note. The Log/Create action button sits in the sheet header (top-right, small rounded pill) via `headerAction` prop. All fields visible — no collapsible sections. No blocking modals. Fast path: open → type → tap → Log (3 interactions).
 
 ### Routes
@@ -126,13 +126,18 @@ src/
 │   │   │   ├── entry-filters.ts     # filterEntriesByDateRange, byType, byItem, byCategory, etc.
 │   │   │   ├── entry-grouping.ts    # getEntriesGroupedByDate, countByItem, month comparisons, etc.
 │   │   │   └── category-utils.ts    # getEntryCategoryIds, getCategoryNameById, getEntryCategoryNames
+│   │   ├── hooks/
+│   │   │   └── useSwipeGesture.ts   # Touch swipe-left gesture logic (extracted from EntryList)
 │   │   ├── components/
 │   │   │   ├── EntryList.tsx        # Grouped-by-date entry display with swipe actions + edit sheet
 │   │   │   └── CategoryPicker.tsx   # Multi-select category chips with inline creation
 │   │   └── index.ts                 # Public API
 │   ├── quick-log/                   # Quick-log command palette (Home page)
+│   │   ├── hooks/
+│   │   │   ├── useQuickLogSearch.ts # Search query state, filtered results, favorites list
+│   │   │   └── useQuickLogForm.ts   # Form state, submit handlers, create-vs-log mode
 │   │   ├── components/
-│   │   │   └── QuickLogForm.tsx     # Search input + results + favorites + create/log sheet
+│   │   │   └── QuickLogForm.tsx     # Presentational: search input + results + favorites + create/log sheet
 │   │   └── index.ts
 │   ├── stats/                       # Stats page: goals, balance, composition
 │   │   ├── utils/
@@ -148,15 +153,24 @@ src/
 │   │   └── index.ts
 │   ├── library/                     # Library page: item & category CRUD
 │   │   ├── components/
-│   │   │   └── LibraryPage.tsx      # Page with tabs, search, item/category forms, SentimentPicker
+│   │   │   ├── LibraryPage.tsx      # Layout shell: tabs, search bar
+│   │   │   ├── ItemsTab.tsx         # Items list + add/edit forms with CategoryPicker
+│   │   │   ├── CategoriesTab.tsx    # Categories list + add/edit forms with SentimentPicker
+│   │   │   └── SentimentPicker.tsx  # Positive/neutral/limit radio group
 │   │   └── index.ts
 │   ├── settings/                    # Settings page: theme, sync, export
 │   │   ├── components/
-│   │   │   └── SettingsPage.tsx     # Theme, Gist config, export/import, backup
+│   │   │   ├── SettingsPage.tsx     # Layout shell: section composition + shared gist list
+│   │   │   ├── ThemeSection.tsx     # Theme picker (light/dark/system)
+│   │   │   ├── GistConfigSection.tsx # GitHub token + Gist ID configuration
+│   │   │   ├── ExportImportSection.tsx # Export/import JSON data
+│   │   │   └── BackupSection.tsx    # Backup Gist management
 │   │   └── index.ts
 │   ├── log/                         # Log page: filterable entry list
+│   │   ├── hooks/
+│   │   │   └── useLogFilters.ts     # Filter state, filtered entries, chip generation
 │   │   ├── components/
-│   │   │   └── LogPage.tsx          # Type filter, filter sheet, entry list
+│   │   │   └── LogPage.tsx          # Presentational shell: type filter, filter sheet, entry list
 │   │   └── index.ts
 │   └── home/                        # Home page: quick-log + monthly stats
 │       ├── components/
