@@ -5,7 +5,7 @@ import {
 	forceRefresh,
 	addEntry
 } from '@/shared/store/store';
-import { useTrackerData, useSyncStatus } from '@/shared/store/hooks';
+import { useEntries, useActivityItems, useFoodItems, useSyncStatus } from '@/shared/store/hooks';
 import {
 	compareMonths,
 	filterEntriesByType
@@ -15,7 +15,9 @@ import { showToast } from '@/shared/ui/Toast';
 import { QuickLogForm } from '@/features/quick-log';
 
 export default function HomePage() {
-	const data = useTrackerData();
+	const entries = useEntries();
+	const activityItems = useActivityItems();
+	const foodItems = useFoodItems();
 	const syncStatus = useSyncStatus();
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
@@ -32,10 +34,10 @@ export default function HomePage() {
 		if (!addParam) return;
 
 		const searchName = addParam.toLowerCase();
-		const activityMatch = data.activityItems.find(
+		const activityMatch = activityItems.find(
 			(item) => item.name.toLowerCase() === searchName
 		);
-		const foodMatch = data.foodItems.find(
+		const foodMatch = foodItems.find(
 			(item) => item.name.toLowerCase() === searchName
 		);
 
@@ -59,12 +61,12 @@ export default function HomePage() {
 	}
 
 	const activityComparison = useMemo(
-		() => compareMonths(filterEntriesByType(data.entries, 'activity')),
-		[data.entries]
+		() => compareMonths(filterEntriesByType(entries, 'activity')),
+		[entries]
 	);
 	const foodComparison = useMemo(
-		() => compareMonths(filterEntriesByType(data.entries, 'food')),
-		[data.entries]
+		() => compareMonths(filterEntriesByType(entries, 'food')),
+		[entries]
 	);
 
 	return (

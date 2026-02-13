@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useTrackerData } from '@/shared/store/hooks';
+import { useActivityItems, useFoodItems } from '@/shared/store/hooks';
 import { EntryList } from '@/features/tracking';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import MultiSelectFilter from '@/shared/ui/MultiSelectFilter';
@@ -7,7 +7,8 @@ import BottomSheet from '@/shared/ui/BottomSheet';
 import { useLogFilters } from '../hooks/useLogFilters';
 
 export default function LogPage() {
-	const data = useTrackerData();
+	const activityItems = useActivityItems();
+	const foodItems = useFoodItems();
 	const {
 		typeFilter,
 		handleTypeChange,
@@ -18,14 +19,15 @@ export default function LogPage() {
 		showFilterSheet,
 		setShowFilterSheet,
 		availableCategories,
+		availableItems,
 		categoryOptions,
 		itemOptions,
 		activeFilterCount,
 		filteredEntries,
 		clearAllFilters,
-	} = useLogFilters(data);
+	} = useLogFilters();
 
-	const hasItems = data.activityItems.length > 0 || data.foodItems.length > 0;
+	const hasItems = activityItems.length > 0 || foodItems.length > 0;
 	const entryLabel = filteredEntries.length === 1 ? 'entry' : 'entries';
 
 	return (
@@ -88,7 +90,7 @@ export default function LogPage() {
 						);
 					})}
 					{selectedItems.map((itemId) => {
-						const item = data.activityItems.find((i) => i.id === itemId) ?? data.foodItems.find((i) => i.id === itemId);
+						const item = availableItems.find((i) => i.id === itemId);
 						if (!item) return null;
 						return (
 							<button

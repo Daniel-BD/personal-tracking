@@ -1,4 +1,11 @@
 import { useState, useMemo } from 'react';
+import {
+	useEntries,
+	useActivityItems,
+	useFoodItems,
+	useActivityCategories,
+	useFoodCategories
+} from '@/shared/store/hooks';
 import type { TrackerData } from '@/shared/lib/types';
 import {
 	filterEntriesByType,
@@ -6,23 +13,29 @@ import {
 	filterEntriesByCategories
 } from '@/features/tracking/utils/entry-filters';
 
-export function useLogFilters(data: TrackerData) {
+export function useLogFilters() {
+	const entries = useEntries();
+	const activityItems = useActivityItems();
+	const foodItems = useFoodItems();
+	const activityCategories = useActivityCategories();
+	const foodCategories = useFoodCategories();
+
 	const [typeFilter, setTypeFilter] = useState<'all' | 'activity' | 'food'>('all');
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 	const [selectedItems, setSelectedItems] = useState<string[]>([]);
 	const [showFilterSheet, setShowFilterSheet] = useState(false);
 
 	const availableCategories = useMemo(() => {
-		if (typeFilter === 'activity') return data.activityCategories;
-		if (typeFilter === 'food') return data.foodCategories;
-		return [...data.activityCategories, ...data.foodCategories];
-	}, [typeFilter, data.activityCategories, data.foodCategories]);
+		if (typeFilter === 'activity') return activityCategories;
+		if (typeFilter === 'food') return foodCategories;
+		return [...activityCategories, ...foodCategories];
+	}, [typeFilter, activityCategories, foodCategories]);
 
 	const availableItems = useMemo(() => {
-		if (typeFilter === 'activity') return data.activityItems;
-		if (typeFilter === 'food') return data.foodItems;
-		return [...data.activityItems, ...data.foodItems];
-	}, [typeFilter, data.activityItems, data.foodItems]);
+		if (typeFilter === 'activity') return activityItems;
+		if (typeFilter === 'food') return foodItems;
+		return [...activityItems, ...foodItems];
+	}, [typeFilter, activityItems, foodItems]);
 
 	const categoryOptions = useMemo(
 		() => availableCategories.map((cat) => ({
@@ -30,24 +43,24 @@ export function useLogFilters(data: TrackerData) {
 			name: cat.name,
 			subtitle:
 				typeFilter === 'all'
-					? data.activityCategories.find((c) => c.id === cat.id)
+					? activityCategories.find((c) => c.id === cat.id)
 						? 'Activity'
 						: 'Food'
 					: undefined
 		})),
-		[availableCategories, typeFilter, data.activityCategories]
+		[availableCategories, typeFilter, activityCategories]
 	);
 
 	const itemOptions = useMemo(
 		() => availableItems.map((item) => {
 			const categories =
 				typeFilter === 'all'
-					? data.activityItems.find((i) => i.id === item.id)
-						? data.activityCategories
-						: data.foodCategories
+					? activityItems.find((i) => i.id === item.id)
+						? activityCategories
+						: foodCategories
 					: typeFilter === 'activity'
-						? data.activityCategories
-						: data.foodCategories;
+						? activityCategories
+						: foodCategories;
 
 			const categoryNames = item.categories
 				.map((catId) => categories.find((c) => c.id === catId)?.name)
@@ -60,20 +73,29 @@ export function useLogFilters(data: TrackerData) {
 				subtitle: categoryNames || undefined
 			};
 		}),
-		[availableItems, typeFilter, data]
+		[availableItems, typeFilter, activityItems, foodItems, activityCategories, foodCategories]
 	);
 
 	const activeFilterCount = selectedCategories.length + selectedItems.length;
 
+	// Minimal TrackerData for utility functions that require it
+	const dataForFilters = useMemo((): TrackerData => ({
+		entries,
+		activityItems,
+		foodItems,
+		activityCategories,
+		foodCategories,
+	}), [entries, activityItems, foodItems, activityCategories, foodCategories]);
+
 	const filteredEntries = useMemo(() => {
-		let result = data.entries;
+		let result = entries;
 
 		if (typeFilter !== 'all') {
 			result = filterEntriesByType(result, typeFilter);
 		}
 
 		if (selectedCategories.length > 0) {
-			result = filterEntriesByCategories(result, selectedCategories, data);
+			result = filterEntriesByCategories(result, selectedCategories, dataForFilters);
 		}
 
 		if (selectedItems.length > 0) {
@@ -81,23 +103,23 @@ export function useLogFilters(data: TrackerData) {
 		}
 
 		return result;
-	}, [data, typeFilter, selectedCategories, selectedItems]);
+	}, [entries, dataForFilters, typeFilter, selectedCategories, selectedItems]);
 
 	function handleTypeChange(newType: 'all' | 'activity' | 'food') {
 		if (newType !== typeFilter) {
 			if (newType === 'activity') {
 				setSelectedCategories((prev) => prev.filter((id) =>
-					data.activityCategories.some((c) => c.id === id)
+					activityCategories.some((c) => c.id === id)
 				));
 				setSelectedItems((prev) => prev.filter((id) =>
-					data.activityItems.some((i) => i.id === id)
+					activityItems.some((i) => i.id === id)
 				));
 			} else if (newType === 'food') {
 				setSelectedCategories((prev) => prev.filter((id) =>
-					data.foodCategories.some((c) => c.id === id)
+					foodCategories.some((c) => c.id === id)
 				));
 				setSelectedItems((prev) => prev.filter((id) =>
-					data.foodItems.some((i) => i.id === id)
+					foodItems.some((i) => i.id === id)
 				));
 			}
 			setTypeFilter(newType);

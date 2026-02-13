@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useTrackerData } from '@/shared/store/hooks';
+import { useDashboardCards, useFoodCategories, useActivityCategories } from '@/shared/store/hooks';
 import { addDashboardCard } from '@/shared/store/store';
 
 interface AddCategoryModalProps {
@@ -7,21 +7,23 @@ interface AddCategoryModalProps {
 }
 
 export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
-	const data = useTrackerData();
+	const dashboardCards = useDashboardCards();
+	const foodCategories = useFoodCategories();
+	const activityCategories = useActivityCategories();
 	const [search, setSearch] = useState('');
 
 	const addedCategoryIds = useMemo(() => {
-		return new Set((data.dashboardCards || []).map(c => c.categoryId));
-	}, [data.dashboardCards]);
+		return new Set(dashboardCards.map(c => c.categoryId));
+	}, [dashboardCards]);
 
 	const categories = useMemo(() => {
 		const all = [
-			...data.foodCategories.map(c => ({ ...c, type: 'food' })),
-			...data.activityCategories.map(c => ({ ...c, type: 'activity' }))
+			...foodCategories.map(c => ({ ...c, type: 'food' })),
+			...activityCategories.map(c => ({ ...c, type: 'activity' }))
 		];
 
 		return all.sort((a, b) => a.name.localeCompare(b.name));
-	}, [data.foodCategories, data.activityCategories]);
+	}, [foodCategories, activityCategories]);
 
 	const filteredCategories = useMemo(() => {
 		const term = search.toLowerCase().trim();

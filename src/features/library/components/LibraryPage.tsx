@@ -1,28 +1,31 @@
 import { useState, useMemo } from 'react';
-import { useTrackerData } from '@/shared/store/hooks';
+import { useActivityItems, useFoodItems, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import ItemsTab from './ItemsTab';
 import CategoriesTab from './CategoriesTab';
 
 export default function LibraryPage() {
-	const data = useTrackerData();
+	const activityItems = useActivityItems();
+	const foodItems = useFoodItems();
+	const activityCategories = useActivityCategories();
+	const foodCategories = useFoodCategories();
 
 	const [activeTab, setActiveTab] = useState<'activity' | 'food'>('activity');
 	const [activeSubTab, setActiveSubTab] = useState<'items' | 'categories'>('items');
 	const [searchQuery, setSearchQuery] = useState('');
 
 	const allItems = useMemo(
-		() => (activeTab === 'activity' ? data.activityItems : data.foodItems)
+		() => (activeTab === 'activity' ? activityItems : foodItems)
 			.slice()
 			.sort((a, b) => a.name.localeCompare(b.name)),
-		[activeTab, data.activityItems, data.foodItems]
+		[activeTab, activityItems, foodItems]
 	);
 
 	const allCategories = useMemo(
-		() => (activeTab === 'activity' ? data.activityCategories : data.foodCategories)
+		() => (activeTab === 'activity' ? activityCategories : foodCategories)
 			.slice()
 			.sort((a, b) => a.name.localeCompare(b.name)),
-		[activeTab, data.activityCategories, data.foodCategories]
+		[activeTab, activityCategories, foodCategories]
 	);
 
 	const currentItems = useMemo(

@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import type { EntryType } from '@/shared/lib/types';
 import { getTypeIcon } from '@/shared/lib/types';
-import { useTrackerData } from '@/shared/store/hooks';
+import { useActivityItems, useFoodItems, useFavoriteItems, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
 import { getCategoryNames, toggleFavorite, isFavorite } from '@/shared/store/store';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import StarIcon from '@/shared/ui/StarIcon';
@@ -12,7 +12,11 @@ import { useQuickLogSearch } from '../hooks/useQuickLogSearch';
 import { useQuickLogForm } from '../hooks/useQuickLogForm';
 
 export default function QuickLogForm() {
-	const data = useTrackerData();
+	const activityItems = useActivityItems();
+	const foodItems = useFoodItems();
+	const favoriteIds = useFavoriteItems();
+	const activityCategories = useActivityCategories();
+	const foodCategories = useFoodCategories();
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	const {
@@ -26,9 +30,9 @@ export default function QuickLogForm() {
 		favoriteItemsList,
 		resetSearch,
 	} = useQuickLogSearch(
-		data.activityItems,
-		data.foodItems,
-		data.favoriteItems || []
+		activityItems,
+		foodItems,
+		favoriteIds
 	);
 
 	const {
@@ -53,7 +57,7 @@ export default function QuickLogForm() {
 		openForExisting,
 		openForCreate,
 		handleLog,
-	} = useQuickLogForm(data.activityCategories, data.foodCategories);
+	} = useQuickLogForm(activityCategories, foodCategories);
 
 	function handleSelectExisting(unified: Parameters<typeof openForExisting>[0]) {
 		openForExisting(unified);
