@@ -12,7 +12,7 @@ import {
 	toggleFavorite,
 	isFavorite
 } from '@/shared/store/store';
-import CategoryPicker from '../components/CategoryPicker';
+import { CategoryPicker } from '@/features/tracking';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import StarIcon from '@/shared/ui/StarIcon';
 

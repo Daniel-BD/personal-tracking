@@ -9,10 +9,10 @@ import { useTrackerData, useSyncStatus } from '@/shared/store/hooks';
 import {
 	compareMonths,
 	filterEntriesByType
-} from '../lib/analysis';
+} from '@/features/tracking';
 import { getTodayDate, getCurrentTime } from '@/shared/lib/types';
 import { showToast } from '@/shared/ui/Toast';
-import QuickLogForm from '../components/QuickLogForm';
+import { QuickLogForm } from '@/features/quick-log';
 
 export default function HomePage() {
 	const data = useTrackerData();

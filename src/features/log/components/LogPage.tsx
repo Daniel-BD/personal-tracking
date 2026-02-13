@@ -5,8 +5,8 @@ import {
 	filterEntriesByType,
 	filterEntriesByItems,
 	filterEntriesByCategories
-} from '../lib/analysis';
-import EntryList from '../components/EntryList';
+} from '@/features/tracking/utils/entry-filters';
+import { EntryList } from '@/features/tracking';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import MultiSelectFilter from '@/shared/ui/MultiSelectFilter';
 import BottomSheet from '@/shared/ui/BottomSheet';

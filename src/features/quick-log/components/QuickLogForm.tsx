@@ -7,7 +7,7 @@ import { showToast } from '@/shared/ui/Toast';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import StarIcon from '@/shared/ui/StarIcon';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
-import CategoryPicker from './CategoryPicker';
+import { CategoryPicker } from '@/features/tracking';
 import NativePickerInput from '@/shared/ui/NativePickerInput';
 
 interface UnifiedItem {

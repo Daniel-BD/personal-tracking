@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import type { WeeklyData } from '../lib/stats';
+import type { WeeklyData } from '../utils/stats-engine';
 import {
 	getTopCategories,
 	buildCategoryColorMap,
 	groupCategoriesForWeek,
 	formatWeekLabel
-} from '../lib/stats';
+} from '../utils/stats-engine';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
 
 interface CategoryCompositionProps {

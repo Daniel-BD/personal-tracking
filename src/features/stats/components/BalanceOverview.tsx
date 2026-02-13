@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import type { WeeklyData } from '../lib/stats';
+import type { WeeklyData } from '../utils/stats-engine';
 import {
 	calculateBalanceScore,
 	getScoreChange,
 	formatWeekLabel
-} from '../lib/stats';
+} from '../utils/stats-engine';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
 
 interface BalanceOverviewProps {

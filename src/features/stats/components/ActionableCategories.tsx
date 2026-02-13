@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import type { TrackerData } from '@/shared/lib/types';
-import type { ActionableCategoryRow } from '../lib/stats';
+import type { ActionableCategoryRow } from '../utils/stats-engine';
 import {
 	getLastNWeeks,
 	getTopLimitCategories,
 	getLaggingPositiveCategories
-} from '../lib/stats';
+} from '../utils/stats-engine';
 import { addDashboardCard } from '@/shared/store/store';
 import { showToast } from '@/shared/ui/Toast';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';

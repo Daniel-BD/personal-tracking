@@ -1,6 +1,11 @@
 import type { Entry, TrackerData } from '@/shared/lib/types';
 import { getCategories } from '@/shared/lib/types';
-import { getCategoryNameById, getEntryCategoryIds, filterEntriesByType } from './analysis';
+import { getCategoryNameById, getEntryCategoryIds } from '@/features/tracking/utils/category-utils';
+import { filterEntriesByType } from '@/features/tracking/utils/entry-filters';
+import { formatWeekLabel } from '@/shared/lib/date-utils';
+
+// Re-export formatWeekLabel for consumers
+export { formatWeekLabel } from '@/shared/lib/date-utils';
 
 export type PeriodType = 'weekly' | 'monthly';
 
@@ -220,8 +225,6 @@ const COLOR_PALETTE = [
 
 /**
  * Assign colors to top categories by rank order to guarantee unique colors.
- * Categories are ordered by frequency (from getTopCategories), so the most
- * common category always gets the first palette color.
  */
 export function buildCategoryColorMap(topCategoryIds: string[]): Map<string, string> {
 	const map = new Map<string, string>();
@@ -286,8 +289,7 @@ export interface ActionableCategoryRow {
 
 /**
  * Collect food entries from the last 4 weeks and count occurrences for
- * categories matching the given sentiment. Filters all entries once by
- * date range instead of per-week for efficiency.
+ * categories matching the given sentiment.
  */
 function countCategoriesBySentiment(
 	entries: Entry[],
@@ -327,7 +329,6 @@ function countCategoriesBySentiment(
 
 /**
  * Top Limit Categories (last 4 weeks)
- * Ranked by total_count descending. Bar = share of all limit events.
  */
 export function getTopLimitCategories(
 	entries: Entry[],
@@ -356,8 +357,6 @@ export function getTopLimitCategories(
 
 /**
  * Lagging Positive Categories (last 4 weeks)
- * Ranked by underrepresentation: (average_positive_share − category_share)
- * where average_positive_share = 1/N and category_share = cat_count/total_positive
  */
 export function getLaggingPositiveCategories(
 	entries: Entry[],
@@ -397,6 +396,3 @@ export function getLaggingPositiveCategories(
 			};
 		});
 }
-
-// Re-export formatWeekLabel from analysis (now accepts Date | string)
-export { formatWeekLabel } from './analysis';

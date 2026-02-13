@@ -38,25 +38,33 @@ A personal activity and food tracking PWA built for mobile-first usage. Users lo
 
 ### Data Flow
 
-All data lives in a single `TrackerData` object containing items, categories, entries, and dashboard cards for both activity and food types. The architecture follows this pattern:
+All data lives in a single `TrackerData` object containing items, categories, entries, and dashboard cards for both activity and food types. The architecture follows a **feature-based** pattern:
 
+**Shared layer** (cross-feature, reusable):
 1. **`src/shared/lib/types.ts`** — Data interfaces (`Entry`, `ActivityItem`, `FoodItem`, `Category`, `TrackerData`, `DashboardCard`) and utility functions (`generateId()`, `getTodayDate()`, `getCurrentTime()`, collection accessor helpers like `getItems()`, `getCategories()`).
 2. **`src/shared/store/store.ts`** — Singleton external store with `useSyncExternalStore`-compatible API (`dataStore`, `syncStatusStore`). All CRUD operations (items, categories, entries, dashboard cards), export/import (with field-level validation) live here. Every data mutation goes through this file. Store initialization is guarded by a module-level flag and invoked from `App.tsx`.
 3. **`src/shared/store/sync.ts`** — Gist sync/merge logic. Contains `pushToGist`, `loadFromGistFn`, `mergeTrackerData`, `pendingDeletions` tracking, and backup operations. Called by store.ts through wrapper functions.
 4. **`src/shared/store/migration.ts`** — Data migration (`migrateData()` for sentiment field) and dashboard initialization (`initializeDefaultDashboardCards()`).
 5. **`src/shared/store/hooks.ts`** — React hooks (`useTrackerData()`, `useSyncStatus()`) that wrap the external store for use in components.
 6. **`src/shared/hooks/useIsMobile.ts`** — Browser-only hook for responsive breakpoint detection (not store-related).
-7. **`src/lib/analysis.ts`** — Pure functions for date filtering, statistics, comparisons, and entry grouping. No side effects. Re-exports formatting utilities from `date-utils.ts`.
-8. **`src/shared/lib/date-utils.ts`** — Shared date/time formatting utilities (`formatTime`, `formatDate`, `formatDateWithYear`, `formatDateLocal`, `formatMonthYear`, `formatWeekLabel`).
-9. **`src/lib/stats.ts`** — Weekly food-analytics engine. Processes food entries by week, calculates balance scores (positive vs. limit sentiment), builds category composition data, and computes actionable category rankings (top limit categories, lagging positive categories).
-10. **`src/shared/lib/github.ts`** — GitHub Gist API integration for backup sync.
-11. **`src/shared/lib/theme.ts`** — Theme preference management (light/dark/system).
+7. **`src/shared/lib/date-utils.ts`** — Shared date/time formatting utilities (`formatTime`, `formatDate`, `formatDateWithYear`, `formatDateLocal`, `formatMonthYear`, `formatWeekLabel`).
+8. **`src/shared/lib/github.ts`** — GitHub Gist API integration for backup sync.
+9. **`src/shared/lib/theme.ts`** — Theme preference management (light/dark/system).
+
+**Feature layer** (self-contained domains):
+10. **`src/features/tracking/`** — Core entry/item/category logic. Contains `utils/entry-filters.ts` (date range, type, item, category filtering), `utils/entry-grouping.ts` (group by date/week, month comparisons, totals), `utils/category-utils.ts` (category ID resolution, name lookup), plus `EntryList` and `CategoryPicker` components. This is the foundational feature used by most other features.
+11. **`src/features/quick-log/`** — Quick-log command palette used on the Home page. Contains `QuickLogForm` with search, favorites, and create/log BottomSheet.
+12. **`src/features/stats/`** — Stats page with goal dashboard, balance score, actionable categories, and category composition charts. Contains `utils/stats-engine.ts` (weekly food analytics, balance scores, actionable category rankings) and all chart components.
+13. **`src/features/library/`** — Library page for item & category CRUD management with search and SentimentPicker.
+14. **`src/features/settings/`** — Settings page for theme, Gist config, export/import, and backup management.
+15. **`src/features/log/`** — Log page with filterable entry list, type filter, and filter BottomSheet.
+16. **`src/features/home/`** — Home page orchestrating quick-log and monthly stats.
 
 ### Key Patterns
 
 - **Path aliases**: All imports use `@/` alias (mapped to `src/`) configured in `tsconfig.json`, `vite.config.ts`, and `vitest.config.ts`. Shared modules use `@/shared/...`, pages/components use relative imports for local siblings.
 - **Two parallel type hierarchies**: Activity and food share identical structures (`ActivityItem`/`FoodItem`, separate category lists) but are kept separate throughout. Functions often take an `EntryType` ('activity' | 'food') parameter to select the right list.
-- **Category overrides**: Entries can override their item's default categories via `categoryOverrides`. Use `getEntryCategoryIds()` from `analysis.ts` to get effective categories.
+- **Category overrides**: Entries can override their item's default categories via `categoryOverrides`. Use `getEntryCategoryIds()` from `@/features/tracking/utils/category-utils` to get effective categories.
 - **Category sentiment**: Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`, defined as `CategorySentiment` in `types.ts`). Defaults to `'neutral'`. Set via a `SentimentPicker` in the Library page when creating or editing categories. Categories created inline via `CategoryPicker` default to neutral. Non-neutral sentiments display as colored badges (green for positive, red for limit) next to the category name. Legacy data without the field is auto-migrated to `'neutral'` on load via `migrateData()` in `migration.ts`.
 - **External store pattern**: Instead of React Context, the store uses a module-level singleton with `useSyncExternalStore` for reactivity. This allows store functions (CRUD operations) to be called from anywhere without prop drilling.
 - **Dashboard cards**: `TrackerData.dashboardCards` stores user-configured goal cards (each tied to a `categoryId`). Cards compare this week's count against a rolling 4-week baseline average. CRUD operations: `addDashboardCard()`, `removeDashboardCard()` in `store.ts`.
@@ -112,40 +120,61 @@ src/
 │       ├── NavIcon.tsx              # Navigation icon component (SVG icons for bottom nav)
 │       ├── StarIcon.tsx             # Reusable star icon (filled/unfilled) for favorites
 │       └── Toast.tsx                # Toast notification system (module-level showToast())
-├── lib/
-│   ├── analysis.ts                  # Date filtering, analytics, chart data utilities
-│   └── stats.ts                     # Weekly food analytics, balance scores, actionable categories
-├── pages/
-│   ├── HomePage.tsx                 # Command-palette quick log + demoted monthly stats
-│   ├── LogPage.tsx                  # Filterable entry list with filter bottom sheet
-│   ├── StatsPage.tsx                # Stats dashboard: goals, balance, composition
-│   ├── LibraryPage.tsx              # Item & category CRUD management
-│   └── SettingsPage.tsx             # Theme, Gist config, export/import, backup
-├── components/
-│   ├── QuickLogForm.tsx             # Command-palette search + BottomSheet create/log (used on Home)
-│   ├── EntryList.tsx                # Grouped-by-date entry display with swipe actions + edit bottom sheet
-│   ├── CategoryPicker.tsx           # Multi-select category chips with inline creation
-│   ├── AddCategoryModal.tsx         # Modal for adding categories to dashboard
-│   ├── GoalDashboard.tsx            # Dashboard card grid with add/remove
-│   ├── GoalCard.tsx                 # Individual sparkline goal card (uses Recharts)
-│   ├── BalanceOverview.tsx          # Balance score meter + weekly sentiment bar chart
-│   ├── ActionableCategories.tsx     # Top limit & lagging positive category lists
-│   └── CategoryComposition.tsx      # Weekly stacked category composition chart
+├── features/
+│   ├── tracking/                    # Core: entries, items, categories (shared logic)
+│   │   ├── utils/
+│   │   │   ├── entry-filters.ts     # filterEntriesByDateRange, byType, byItem, byCategory, etc.
+│   │   │   ├── entry-grouping.ts    # getEntriesGroupedByDate, countByItem, month comparisons, etc.
+│   │   │   └── category-utils.ts    # getEntryCategoryIds, getCategoryNameById, getEntryCategoryNames
+│   │   ├── components/
+│   │   │   ├── EntryList.tsx        # Grouped-by-date entry display with swipe actions + edit sheet
+│   │   │   └── CategoryPicker.tsx   # Multi-select category chips with inline creation
+│   │   └── index.ts                 # Public API
+│   ├── quick-log/                   # Quick-log command palette (Home page)
+│   │   ├── components/
+│   │   │   └── QuickLogForm.tsx     # Search input + results + favorites + create/log sheet
+│   │   └── index.ts
+│   ├── stats/                       # Stats page: goals, balance, composition
+│   │   ├── utils/
+│   │   │   └── stats-engine.ts      # Weekly food analytics, balance scores, actionable categories
+│   │   ├── components/
+│   │   │   ├── StatsPage.tsx
+│   │   │   ├── GoalDashboard.tsx
+│   │   │   ├── GoalCard.tsx
+│   │   │   ├── AddCategoryModal.tsx
+│   │   │   ├── BalanceOverview.tsx
+│   │   │   ├── ActionableCategories.tsx
+│   │   │   └── CategoryComposition.tsx
+│   │   └── index.ts
+│   ├── library/                     # Library page: item & category CRUD
+│   │   ├── components/
+│   │   │   └── LibraryPage.tsx      # Page with tabs, search, item/category forms, SentimentPicker
+│   │   └── index.ts
+│   ├── settings/                    # Settings page: theme, sync, export
+│   │   ├── components/
+│   │   │   └── SettingsPage.tsx     # Theme, Gist config, export/import, backup
+│   │   └── index.ts
+│   ├── log/                         # Log page: filterable entry list
+│   │   ├── components/
+│   │   │   └── LogPage.tsx          # Type filter, filter sheet, entry list
+│   │   └── index.ts
+│   └── home/                        # Home page: quick-log + monthly stats
+│       ├── components/
+│       │   └── HomePage.tsx
+│       └── index.ts
 └── vite-env.d.ts
 ```
 
 ### Import Paths
 
-- Use `@/` path alias for all shared modules:
-  - Store functions (CRUD, sync, etc.): `@/shared/store/store`
-  - Store hooks (`useTrackerData`, `useSyncStatus`): `@/shared/store/hooks`
-  - `useIsMobile` hook: `@/shared/hooks/useIsMobile`
-  - Shared UI components: `@/shared/ui/...` (e.g., `@/shared/ui/Toast`, `@/shared/ui/BottomSheet`)
-  - Shared lib utilities: `@/shared/lib/...` (e.g., `@/shared/lib/types`, `@/shared/lib/theme`, `@/shared/lib/github`, `@/shared/lib/date-utils`)
-- Use relative imports for local sibling files (e.g., `../lib/analysis`, `../components/EntryList`)
-- Feature components are in `src/components/`
-- Pages are in `src/pages/`
-- Feature-specific business logic (analysis, stats) is in `src/lib/`
+- Use `@/` path alias for all imports (mapped to `src/` in `tsconfig.json`, `vite.config.ts`, `vitest.config.ts`):
+  - **Shared modules**: `@/shared/store/store`, `@/shared/store/hooks`, `@/shared/lib/types`, `@/shared/lib/date-utils`, `@/shared/ui/Toast`, `@/shared/hooks/useIsMobile`, etc.
+  - **Feature public APIs** (via barrel `index.ts`): `@/features/tracking`, `@/features/quick-log`, `@/features/stats`, `@/features/library`, `@/features/settings`, `@/features/log`, `@/features/home`
+  - **Feature internals** (within the same feature): use relative imports (e.g., `../utils/entry-filters`, `./GoalCard`)
+  - **Cross-feature imports**: prefer importing from the feature's `index.ts` barrel (e.g., `@/features/tracking`) rather than reaching into internal files
+- Feature-specific business logic lives inside `features/<name>/utils/`
+- Shared pure utilities live in `shared/lib/`
+- Reusable UI components (no business logic) live in `shared/ui/`
 
 ## Styling
 

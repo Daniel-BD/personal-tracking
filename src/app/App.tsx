@@ -2,11 +2,11 @@ import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { getStoredTheme, applyTheme } from '@/shared/lib/theme';
 import { initializeStore } from '@/shared/store/store';
-import HomePage from '@/pages/HomePage';
-import LogPage from '@/pages/LogPage';
-import LibraryPage from '@/pages/LibraryPage';
-import SettingsPage from '@/pages/SettingsPage';
-import StatsPage from '@/pages/StatsPage';
+import { HomePage } from '@/features/home';
+import { LogPage } from '@/features/log';
+import { LibraryPage } from '@/features/library';
+import { SettingsPage } from '@/features/settings';
+import { StatsPage } from '@/features/stats';
 import NavIcon from '@/shared/ui/NavIcon';
 import ToastContainer from '@/shared/ui/Toast';
 

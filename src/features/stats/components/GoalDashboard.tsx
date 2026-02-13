@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useTrackerData } from '@/shared/store/hooks';
-import { getLastNWeeks } from '../lib/stats';
-import { filterEntriesByCategory, filterEntriesByDateRange, formatDateLocal } from '../lib/analysis';
+import { getLastNWeeks } from '../utils/stats-engine';
+import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking/utils/entry-filters';
+import { formatDateLocal } from '@/shared/lib/date-utils';
 import GoalCard from './GoalCard';
 import { removeDashboardCard } from '@/shared/store/store';
 import AddCategoryModal from './AddCategoryModal';
@@ -50,9 +51,6 @@ export default function GoalDashboard() {
 			const currentCount = sparklineData[sparklineData.length - 1].count;
 
 			// Baseline: average of the 4 weeks preceding the last week
-			// sparklineData has 8 weeks: [0, 1, 2, 3, 4, 5, 6, 7]
-			// Current is index 7.
-			// Baseline is average of indices 3, 4, 5, 6.
 			const baselineWeeks = sparklineData.slice(3, 7);
 			const baselineSum = baselineWeeks.reduce((sum, w) => sum + w.count, 0);
 			const baselineAvg = baselineSum / 4;
