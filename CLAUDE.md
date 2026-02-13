@@ -58,7 +58,7 @@ All data lives in a single `TrackerData` object containing items, categories, en
 12. **`src/features/stats/`** — Stats page with goal dashboard, balance score, actionable categories, and category composition charts. Contains `utils/stats-engine.ts` (weekly food analytics, balance scores, actionable category rankings) and all chart components.
 13. **`src/features/library/`** — Library page for item & category CRUD management. Split into `LibraryPage.tsx` (layout shell with tabs/search), `ItemsTab.tsx` (item list + add/edit forms), `CategoriesTab.tsx` (category list + add/edit forms), and `SentimentPicker.tsx` (positive/neutral/limit selector).
 14. **`src/features/settings/`** — Settings page split into section components: `SettingsPage.tsx` (layout shell), `ThemeSection.tsx` (light/dark/system picker), `GistConfigSection.tsx` (token + Gist ID config), `ExportImportSection.tsx` (JSON export/import), `BackupSection.tsx` (backup Gist management).
-15. **`src/features/log/`** — Log page with filterable entry list. Filter logic is extracted into `hooks/useLogFilters.ts` (filter state, filtered entries, chip generation). `LogPage.tsx` is a presentational shell.
+15. **`src/features/log/`** — Log page with filterable entry list. Filter logic is extracted into `hooks/useLogFilters.ts` (filter state, filtered entries, active filter count). `LogPage.tsx` is a presentational shell.
 16. **`src/features/home/`** — Home page orchestrating quick-log and monthly stats.
 
 ### Key Patterns
@@ -197,6 +197,33 @@ src/
 - Feature-specific business logic lives inside `features/<name>/utils/`
 - Shared pure utilities live in `shared/lib/`
 - Reusable UI components (no business logic) live in `shared/ui/`
+
+## Code Standards
+
+### File Size Limits
+
+- **Components and pages**: ~250 lines max. If a component grows beyond this, extract hooks, sub-components, or utility functions.
+- **Utility files** (pure functions in `utils/` directories): can be longer than 250 lines.
+- **`store.ts`**: kept under 400 lines, focused on CRUD operations only.
+
+### Naming Conventions
+
+| Category | Pattern | Example |
+|----------|---------|---------|
+| React components | PascalCase `.tsx` | `EntryList.tsx` |
+| Hooks | `use` prefix, camelCase `.ts` | `useSwipeGesture.ts` |
+| Utility modules | kebab-case `.ts` | `entry-filters.ts` |
+| Test files | colocated `__tests__/` folder | `features/tracking/__tests__/entry-filters.test.ts` |
+| Barrel exports | `index.ts` per feature | `features/tracking/index.ts` |
+
+Avoid generic dump files like `helpers.ts`, `utils.ts` (without a descriptive prefix), or `misc.ts`.
+
+### Import Boundary Rules
+
+- **Cross-feature**: always import from the feature's `index.ts` barrel, never internal files.
+- **Shared code** (`shared/`): must NOT import from `features/`. Data flows one way: features depend on shared, not the reverse.
+- **Shared UI** (`shared/ui/`): must NOT import from `shared/store/` or `features/`. UI components are pure and generic.
+- **Within a feature**: use relative imports for siblings (e.g., `../utils/entry-filters`, `./GoalCard`).
 
 ## Styling
 
