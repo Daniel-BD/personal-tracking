@@ -1,7 +1,6 @@
 import type { Entry, TrackerData } from '@/shared/lib/types';
 import { getCategories } from '@/shared/lib/types';
-import { getCategoryNameById, getEntryCategoryIds } from '@/features/tracking/utils/category-utils';
-import { filterEntriesByType } from '@/features/tracking/utils/entry-filters';
+import { getCategoryNameById, getEntryCategoryIds, filterEntriesByType } from '@/features/tracking';
 import { formatWeekLabel } from '@/shared/lib/date-utils';
 
 // Re-export formatWeekLabel for consumers

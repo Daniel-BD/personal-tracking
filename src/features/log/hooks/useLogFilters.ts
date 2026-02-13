@@ -11,7 +11,7 @@ import {
 	filterEntriesByType,
 	filterEntriesByItems,
 	filterEntriesByCategories
-} from '@/features/tracking/utils/entry-filters';
+} from '@/features/tracking';
 
 export function useLogFilters() {
 	const entries = useEntries();

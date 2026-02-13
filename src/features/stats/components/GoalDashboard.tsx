@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTrackerData } from '@/shared/store/hooks';
 import { getLastNWeeks } from '../utils/stats-engine';
-import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking/utils/entry-filters';
+import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking';
 import { formatDateLocal } from '@/shared/lib/date-utils';
 import GoalCard from './GoalCard';
 import { removeDashboardCard } from '@/shared/store/store';

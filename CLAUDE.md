@@ -65,7 +65,7 @@ All data lives in a single `TrackerData` object containing items, categories, en
 
 - **Path aliases**: All imports use `@/` alias (mapped to `src/`) configured in `tsconfig.json`, `vite.config.ts`, and `vitest.config.ts`. Shared modules use `@/shared/...`, pages/components use relative imports for local siblings.
 - **Two parallel type hierarchies**: Activity and food share identical structures (`ActivityItem`/`FoodItem`, separate category lists) but are kept separate throughout. Functions often take an `EntryType` ('activity' | 'food') parameter to select the right list.
-- **Category overrides**: Entries can override their item's default categories via `categoryOverrides`. Use `getEntryCategoryIds()` from `@/features/tracking/utils/category-utils` to get effective categories.
+- **Category overrides**: Entries can override their item's default categories via `categoryOverrides`. Use `getEntryCategoryIds()` from `@/features/tracking` to get effective categories.
 - **Category sentiment**: Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`, defined as `CategorySentiment` in `types.ts`). Defaults to `'neutral'`. Set via a `SentimentPicker` in the Library page when creating or editing categories. Categories created inline via `CategoryPicker` default to neutral. Non-neutral sentiments display as colored badges (green for positive, red for limit) next to the category name. Legacy data without the field is auto-migrated to `'neutral'` on load via `migrateData()` in `migration.ts`.
 - **External store pattern**: Instead of React Context, the store uses a module-level singleton with `useSyncExternalStore` for reactivity. This allows store functions (CRUD operations) to be called from anywhere without prop drilling. Fine-grained selector hooks (`useEntries()`, `useActivityItems()`, etc.) prevent unnecessary re-renders by returning specific data slices — since `updateData()` uses object spread, unchanged sub-arrays keep the same reference, so `useSyncExternalStore` skips re-renders for unaffected slices. Prefer the most specific hook available; use `useTrackerData()` only when the full object is needed (e.g., passing to utility functions that take `TrackerData`).
 - **Dashboard cards**: `TrackerData.dashboardCards` stores user-configured goal cards (each tied to a `categoryId`). Cards compare this week's count against a rolling 4-week baseline average. CRUD operations: `addDashboardCard()`, `removeDashboardCard()` in `store.ts`.
@@ -193,7 +193,7 @@ src/
   - **Shared modules**: `@/shared/store/store`, `@/shared/store/hooks`, `@/shared/lib/types`, `@/shared/lib/date-utils`, `@/shared/ui/Toast`, `@/shared/hooks/useIsMobile`, etc.
   - **Feature public APIs** (via barrel `index.ts`): `@/features/tracking`, `@/features/quick-log`, `@/features/stats`, `@/features/library`, `@/features/settings`, `@/features/log`, `@/features/home`
   - **Feature internals** (within the same feature): use relative imports (e.g., `../utils/entry-filters`, `./GoalCard`)
-  - **Cross-feature imports**: prefer importing from the feature's `index.ts` barrel (e.g., `@/features/tracking`) rather than reaching into internal files
+  - **Cross-feature imports**: always import from the feature's `index.ts` barrel (e.g., `@/features/tracking`), never reach into internal files (e.g., `@/features/tracking/utils/entry-filters`)
 - Feature-specific business logic lives inside `features/<name>/utils/`
 - Shared pure utilities live in `shared/lib/`
 - Reusable UI components (no business logic) live in `shared/ui/`
