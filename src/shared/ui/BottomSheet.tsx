@@ -31,11 +31,8 @@ export default function BottomSheet({ open, onclose, children, title, headerActi
 
 		document.addEventListener('keydown', handleKeyDown);
 
-		// Move focus into the sheet when it opens (skip date/time inputs to avoid native picker popup on mobile)
-		const firstFocusable = sheetRef.current?.querySelector<HTMLElement>(
-			'input:not([type="date"]):not([type="time"]), button, [tabindex]:not([tabindex="-1"])'
-		);
-		firstFocusable?.focus();
+		// Move focus to the sheet itself (not a text input, to avoid opening the keyboard on mobile)
+		sheetRef.current?.focus();
 
 		return () => document.removeEventListener('keydown', handleKeyDown);
 	}, [open, onclose]);
@@ -56,7 +53,8 @@ export default function BottomSheet({ open, onclose, children, title, headerActi
 				role="dialog"
 				aria-modal="true"
 				aria-labelledby={title ? titleId : undefined}
-				className="relative w-full max-w-lg bg-[var(--bg-card)] rounded-t-2xl shadow-[var(--shadow-elevated)] animate-slide-up max-h-[85dvh] flex flex-col"
+				tabIndex={-1}
+				className="relative w-full max-w-lg bg-[var(--bg-card)] rounded-t-2xl shadow-[var(--shadow-elevated)] animate-slide-up max-h-[85dvh] flex flex-col outline-none"
 			>
 				{/* Handle */}
 				<div className="flex justify-center pt-3 pb-1 flex-shrink-0">
