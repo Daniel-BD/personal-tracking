@@ -1,6 +1,6 @@
-import { Home, List, BookOpen, BarChart3, Settings } from 'lucide-react';
+import { Home, List, BookOpen, BarChart3, Settings, type LucideIcon } from 'lucide-react';
 
-const icons: Record<string, React.ComponentType<{ className?: string }>> = {
+const icons: Record<string, LucideIcon> = {
 	home: Home,
 	list: List,
 	book: BookOpen,
@@ -11,5 +11,5 @@ const icons: Record<string, React.ComponentType<{ className?: string }>> = {
 export default function NavIcon({ icon }: { icon: string }) {
 	const Icon = icons[icon];
 	if (!Icon) return null;
-	return <Icon className="w-6 h-6" />;
+	return <Icon className="w-6 h-6" strokeWidth={1.5} />;
 }

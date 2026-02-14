@@ -173,14 +173,14 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery }: 
 										className="text-subtle hover:text-[var(--color-activity)] p-1"
 										aria-label="Edit item"
 									>
-										<Pencil className="w-4 h-4" />
+										<Pencil className="w-4 h-4" strokeWidth={2} />
 									</button>
 									<button
 										onClick={() => handleDeleteItem(item.id)}
 										className="text-subtle hover:text-[var(--color-danger)] p-1"
 										aria-label="Delete item"
 									>
-										<Trash2 className="w-4 h-4" />
+										<Trash2 className="w-4 h-4" strokeWidth={2} />
 									</button>
 								</div>
 							</div>
