@@ -87,6 +87,25 @@ export function useQuickLogForm(
 		});
 	}
 
+	function quickLogItem(unified: UnifiedItem) {
+		const entry = addEntry(
+			unified.type,
+			unified.item.id,
+			getTodayDate(),
+			getCurrentTime(),
+			null,
+			null
+		);
+
+		showToast(`Logged "${unified.item.name}"`, {
+			label: 'Undo',
+			onClick: () => {
+				deleteEntry(entry.id);
+				showToast('Entry undone');
+			}
+		});
+	}
+
 	function resetForm() {
 		setSelectedItem(null);
 		setItemName('');
@@ -119,5 +138,6 @@ export function useQuickLogForm(
 		openForExisting,
 		openForCreate,
 		handleLog,
+		quickLogItem,
 	};
 }

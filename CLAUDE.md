@@ -55,7 +55,7 @@ All data lives in a single `TrackerData` object containing items, categories, en
 
 **Feature layer** (self-contained domains):
 10. **`src/features/tracking/`** — Core entry/item/category logic. Contains `utils/entry-filters.ts` (date range, type, item, category filtering), `utils/entry-grouping.ts` (group by date/week, month comparisons, totals), `utils/category-utils.ts` (category ID resolution, name lookup), `hooks/useSwipeGesture.ts` (extracted touch/swipe gesture logic), plus `EntryList` and `CategoryPicker` components. This is the foundational feature used by most other features.
-11. **`src/features/quick-log/`** — Quick-log command palette used on the Home page. Business logic is extracted into `hooks/useQuickLogSearch.ts` (search/filter) and `hooks/useQuickLogForm.ts` (form state, submit, create-vs-log mode). `QuickLogForm` is a presentational component wiring hooks to UI.
+11. **`src/features/quick-log/`** — Quick-log command palette used on the Home page. Business logic is extracted into `hooks/useQuickLogSearch.ts` (search/filter) and `hooks/useQuickLogForm.ts` (form state, submit, create-vs-log mode, instant quick-log). `QuickLogForm` is a presentational component wiring hooks to UI. Each favorite item has a Zap icon button for instant logging (today's date + current time, no sheet).
 12. **`src/features/stats/`** — Stats page with goal dashboard, balance score, actionable categories, and category composition charts. Contains `utils/stats-engine.ts` (weekly food analytics, balance scores, actionable category rankings) and all chart components.
 13. **`src/features/library/`** — Library page for item & category CRUD management. Split into `LibraryPage.tsx` (layout shell with tabs/search), `ItemsTab.tsx` (item list + add/edit forms), `CategoriesTab.tsx` (category list + add/edit forms), and `SentimentPicker.tsx` (positive/neutral/limit selector).
 14. **`src/features/settings/`** — Settings page split into section components: `SettingsPage.tsx` (layout shell), `ThemeSection.tsx` (light/dark/system picker), `GistConfigSection.tsx` (token + Gist ID config), `ExportImportSection.tsx` (JSON export/import), `BackupSection.tsx` (backup Gist management).
@@ -76,7 +76,7 @@ All data lives in a single `TrackerData` object containing items, categories, en
 - **Favorites**: `TrackerData.favoriteItems` stores an array of item IDs. Items can be favorited/unfavorited via a star icon on the Library page (items tab) and on the Log page (entry rows). `toggleFavorite()` and `isFavorite()` in `store.ts` handle the logic. Favorites are cleaned up when items are deleted. On the Home page, the QuickLogForm shows favorited items instead of recent items.
 - **Log page design**: Minimal layout with title + entry count, segment-style type filter on page background (no card container), filter icon top-right opening a BottomSheet with category/item multi-select filters. Active filters shown as removable chips. Entry list uses grouped flat rows (no individual card styling), swipe-left for edit/delete actions, tap row to edit in a BottomSheet. Date headers are sticky, uppercase, muted.
 - **Swipe gestures**: `useSwipeGesture` hook (in `features/tracking/hooks/`) encapsulates touch-based swipe-left logic to reveal Edit (blue) and Delete (red) action buttons. Uses a 70px threshold. Returns `swipedEntryId`, `swipeOffset`, touch handlers, `resetSwipe`, and `handleRowTap`. EntryList consumes this hook.
-- **Quick Log flow**: Command-palette style — borderless search input at top, inline search results, favorites list (items starred by the user). Tapping an item or "Create" opens a BottomSheet with type selector (create mode), date+time (defaulting to today/now), categories, and note. The Log/Create action button sits in the sheet header (top-right, small rounded pill) via `headerAction` prop. All fields visible — no collapsible sections. No blocking modals. Fast path: open → type → tap → Log (3 interactions).
+- **Quick Log flow**: Command-palette style — borderless search input at top, inline search results, favorites list (items starred by the user). Tapping an item or "Create" opens a BottomSheet with type selector (create mode), date+time (defaulting to today/now), categories, and note. The Log/Create action button sits in the sheet header (top-right, small rounded pill) via `headerAction` prop. All fields visible — no collapsible sections. No blocking modals. Fast path: open → type → tap → Log (3 interactions). Favorites also have a Zap (⚡) icon button for instant logging — tapping it creates an entry with today's date and current time immediately (no sheet), with an undo toast.
 
 ### Routes
 
@@ -150,7 +150,8 @@ src/
 │   │   │   ├── useQuickLogSearch.ts # Search query state, filtered results, favorites list
 │   │   │   └── useQuickLogForm.ts   # Form state, submit handlers, create-vs-log mode
 │   │   ├── __tests__/
-│   │   │   └── quick-log-search.test.ts # Tests for search, merge, favorites logic
+│   │   │   ├── quick-log-search.test.ts # Tests for search, merge, favorites logic
+│   │   │   └── quick-log-form.test.ts  # Tests for instant quick-log entry creation
 │   │   ├── components/
 │   │   │   └── QuickLogForm.tsx     # Presentational: search input + results + favorites + create/log sheet
 │   │   └── index.ts

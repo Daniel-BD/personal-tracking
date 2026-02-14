@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Zap } from 'lucide-react';
 import type { EntryType } from '@/shared/lib/types';
 import { getTypeIcon } from '@/shared/lib/types';
 import { useActivityItems, useFoodItems, useFavoriteItems, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
@@ -58,6 +58,7 @@ export default function QuickLogForm() {
 		openForExisting,
 		openForCreate,
 		handleLog,
+		quickLogItem,
 	} = useQuickLogForm(activityCategories, foodCategories);
 
 	function handleSelectExisting(unified: Parameters<typeof openForExisting>[0]) {
@@ -150,10 +151,18 @@ export default function QuickLogForm() {
 								<button
 									type="button"
 									onClick={() => handleSelectExisting(unified)}
-									className="flex-1 text-left flex items-center gap-3"
+									className="flex-1 text-left flex items-center gap-3 min-w-0"
 								>
 									<span className="text-sm">{getTypeIcon(unified.type)}</span>
-									<span className="text-body">{unified.item.name}</span>
+									<span className="text-body truncate">{unified.item.name}</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => quickLogItem(unified)}
+									className="flex-shrink-0 p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--color-activity)] hover:bg-[var(--bg-inset)] transition-colors"
+									aria-label={`Quick log ${unified.item.name}`}
+								>
+									<Zap className="w-4 h-4" strokeWidth={2} />
 								</button>
 							</div>
 						))}
