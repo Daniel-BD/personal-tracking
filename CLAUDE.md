@@ -100,7 +100,11 @@ src/
 │   │   ├── types.ts                 # All TypeScript interfaces + utility functions
 │   │   ├── github.ts               # GitHub Gist API client
 │   │   ├── theme.ts                # Theme (light/dark/system) persistence + application
-│   │   └── date-utils.ts           # Shared date/time formatting utilities
+│   │   ├── date-utils.ts           # Shared date/time formatting utilities
+│   │   └── __tests__/
+│   │       ├── types.test.ts        # Tests for utility functions in types.ts
+│   │       ├── date-utils.test.ts   # Tests for date/time formatting
+│   │       └── theme.test.ts        # Tests for theme persistence + application
 │   ├── store/
 │   │   ├── store.ts                # Singleton store: CRUD, backup wrappers (~400 lines)
 │   │   ├── sync.ts                 # Gist sync/merge logic, pending deletions
@@ -109,6 +113,8 @@ src/
 │   │   ├── hooks.ts                # useTrackerData, useSyncStatus + selector hooks
 │   │   └── __tests__/
 │   │       ├── fixtures.ts         # Shared test helpers (makeEntry, makeItem, makeCategory, makeValidData, flushPromises)
+│   │       ├── store-crud.test.ts   # Tests for store CRUD operations (categories, items, entries, dashboard cards)
+│   │       ├── migration.test.ts    # Tests for data migration + dashboard initialization
 │   │       ├── import-export.test.ts
 │   │       ├── gist-sync.test.ts
 │   │       └── favorites.test.ts
@@ -142,6 +148,8 @@ src/
 │   │   ├── hooks/
 │   │   │   ├── useQuickLogSearch.ts # Search query state, filtered results, favorites list
 │   │   │   └── useQuickLogForm.ts   # Form state, submit handlers, create-vs-log mode
+│   │   ├── __tests__/
+│   │   │   └── quick-log-search.test.ts # Tests for search, merge, favorites logic
 │   │   ├── components/
 │   │   │   └── QuickLogForm.tsx     # Presentational: search input + results + favorites + create/log sheet
 │   │   └── index.ts
@@ -177,6 +185,8 @@ src/
 │   ├── log/                         # Log page: filterable entry list
 │   │   ├── hooks/
 │   │   │   └── useLogFilters.ts     # Filter state, filtered entries, chip generation
+│   │   ├── __tests__/
+│   │   │   └── log-filters.test.ts  # Tests for filter pipeline composition + type-change cleanup
 │   │   ├── components/
 │   │   │   └── LogPage.tsx          # Presentational shell: type filter, filter sheet, entry list
 │   │   └── index.ts
