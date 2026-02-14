@@ -10,6 +10,8 @@ interface Props {
 
 export default function BottomSheet({ open, onclose, children, title, headerAction }: Props) {
 	const sheetRef = useRef<HTMLDivElement>(null);
+	const oncloseRef = useRef(onclose);
+	oncloseRef.current = onclose;
 	const titleId = useId();
 
 	// Save and restore original body overflow
@@ -21,24 +23,27 @@ export default function BottomSheet({ open, onclose, children, title, headerActi
 		}
 	}, [open]);
 
-	// Keyboard handling + focus management
+	// Keyboard handling — uses ref so effect doesn't re-run on onclose identity changes
 	useEffect(() => {
 		if (!open) return;
 
 		function handleKeyDown(e: KeyboardEvent) {
-			if (e.key === 'Escape') onclose();
+			if (e.key === 'Escape') oncloseRef.current();
 		}
 
 		document.addEventListener('keydown', handleKeyDown);
+		return () => document.removeEventListener('keydown', handleKeyDown);
+	}, [open]);
 
-		// Move focus into the sheet when it opens (skip date/time inputs to avoid native picker popup on mobile)
+	// Focus management — only when opening, with preventScroll to avoid page jumps
+	useEffect(() => {
+		if (!open) return;
+
 		const firstFocusable = sheetRef.current?.querySelector<HTMLElement>(
 			'input:not([type="date"]):not([type="time"]), button, [tabindex]:not([tabindex="-1"])'
 		);
-		firstFocusable?.focus();
-
-		return () => document.removeEventListener('keydown', handleKeyDown);
-	}, [open, onclose]);
+		firstFocusable?.focus({ preventScroll: true });
+	}, [open]);
 
 	if (!open) return null;
 
