@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { X, Check } from 'lucide-react';
 
 interface FilterOption {
 	id: string;
@@ -71,9 +72,7 @@ export default function MultiSelectFilter({
 								className="hover:text-[var(--color-activity)] ml-0.5"
 								aria-label={`Remove ${option.name}`}
 							>
-								<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-								</svg>
+								<X className="w-3.5 h-3.5" strokeWidth={2} />
 							</button>
 						</span>
 					))}
@@ -118,9 +117,7 @@ export default function MultiSelectFilter({
 										}`}
 									>
 										{selected.includes(option.id) && (
-											<svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-											</svg>
+											<Check className="w-3 h-3 text-white" strokeWidth={3} />
 										)}
 									</span>
 									<div className="flex-1 min-w-0">

@@ -31,6 +31,7 @@ A personal activity and food tracking PWA built for mobile-first usage. Users lo
 - **Styling**: Tailwind CSS v4 (Vite plugin, not PostCSS)
 - **Language**: TypeScript (strict mode)
 - **Build**: Vite 7
+- **Icons**: Lucide React (tree-shakeable, outline-style icons used throughout the app)
 - **Charting**: Recharts 3 (used on Stats page for sparklines, bar charts, and stacked charts)
 - **Storage**: LocalStorage (source of truth) + optional GitHub Gist sync (backup only)
 
@@ -125,8 +126,8 @@ src/
 │       ├── SegmentedControl.tsx     # Generic pill/segment toggle (used throughout)
 │       ├── MultiSelectFilter.tsx    # Searchable multi-select dropdown (used on Log page)
 │       ├── NativePickerInput.tsx    # iOS-safe date/time picker
-│       ├── NavIcon.tsx              # Navigation icon component (SVG icons for bottom nav)
-│       ├── StarIcon.tsx             # Reusable star icon (filled/unfilled) for favorites
+│       ├── NavIcon.tsx              # Navigation icon component (Lucide icons for bottom nav)
+│       ├── StarIcon.tsx             # Reusable star icon (Lucide Star, filled/unfilled) for favorites
 │       └── Toast.tsx                # Toast notification system (module-level showToast())
 ├── features/
 │   ├── tracking/                    # Core: entries, items, categories (shared logic)

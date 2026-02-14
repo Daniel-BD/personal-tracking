@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Pencil, Trash2 } from 'lucide-react';
 import type { Item, Category, EntryType } from '@/shared/lib/types';
 import {
 	addItem,
@@ -172,14 +173,14 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery }: 
 										className="text-subtle hover:text-[var(--color-activity)] p-1"
 										aria-label="Edit item"
 									>
-										&#x270F;&#xFE0F;
+										<Pencil className="w-4 h-4" />
 									</button>
 									<button
 										onClick={() => handleDeleteItem(item.id)}
 										className="text-subtle hover:text-[var(--color-danger)] p-1"
 										aria-label="Delete item"
 									>
-										&#x1F5D1;&#xFE0F;
+										<Trash2 className="w-4 h-4" />
 									</button>
 								</div>
 							</div>
