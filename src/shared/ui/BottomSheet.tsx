@@ -35,12 +35,20 @@ export default function BottomSheet({ open, onclose, children, title, headerActi
 		return () => document.removeEventListener('keydown', handleKeyDown);
 	}, [open]);
 
-	// Focus management — only when opening, with preventScroll to avoid page jumps
+	// Focus management — deferred to ensure it runs after any browser auto-focus behavior
 	useEffect(() => {
 		if (!open) return;
 
-		// Move focus to the sheet itself (not a text input, to avoid opening the keyboard on mobile)
-		sheetRef.current?.focus({ preventScroll: true });
+		const rafId = requestAnimationFrame(() => {
+			// If the browser auto-focused a text input, blur it to dismiss the mobile keyboard
+			const active = document.activeElement;
+			if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
+				active.blur();
+			}
+			sheetRef.current?.focus({ preventScroll: true });
+		});
+
+		return () => cancelAnimationFrame(rafId);
 	}, [open]);
 
 	if (!open) return null;
