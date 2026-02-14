@@ -95,7 +95,7 @@ export default function MultiSelectFilter({
 					onFocus={() => setShowDropdown(true)}
 					onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
 					placeholder={placeholder}
-					className="form-input text-sm"
+					className="form-input"
 				/>
 
 				{showDropdown && (

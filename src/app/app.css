@@ -259,7 +259,7 @@ input[type='datetime-local'] {
 	border-radius: theme(borderRadius.md);
 	background: var(--bg-input);
 	color: var(--text-primary);
-	font-size: theme(fontSize.sm);
+	font-size: 1rem; /* 16px prevents iOS Safari auto-zoom on focus */
 	transition: border-color 0.15s, box-shadow 0.15s;
 }
 .form-input-sm:focus {
