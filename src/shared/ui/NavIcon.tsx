@@ -11,5 +11,5 @@ const icons: Record<string, LucideIcon> = {
 export default function NavIcon({ icon }: { icon: string }) {
 	const Icon = icons[icon];
 	if (!Icon) return null;
-	return <Icon className="w-6 h-6" strokeWidth={1.5} />;
+	return <Icon className="w-6 h-6" />;
 }
