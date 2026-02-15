@@ -7,22 +7,26 @@ type TypeFilter = 'all' | 'activity' | 'food';
 type ViewMode = 'items' | 'categories';
 
 interface RankedRow {
+	id: string;
 	name: string;
 	count: number;
 	type: EntryType;
 }
 
 function rankItems(entries: Entry[], data: TrackerData): RankedRow[] {
-	const counts = new Map<string, { name: string; count: number; type: EntryType }>();
+	const itemLookup = new Map(
+		[...data.activityItems, ...data.foodItems].map((item) => [item.id, item])
+	);
+	const counts = new Map<string, RankedRow>();
 
 	for (const entry of entries) {
 		const existing = counts.get(entry.itemId);
 		if (existing) {
 			existing.count++;
 		} else {
-			const allItems = [...data.activityItems, ...data.foodItems];
-			const item = allItems.find((i) => i.id === entry.itemId);
+			const item = itemLookup.get(entry.itemId);
 			counts.set(entry.itemId, {
+				id: entry.itemId,
 				name: item?.name ?? 'Unknown',
 				count: 1,
 				type: entry.type
@@ -34,7 +38,10 @@ function rankItems(entries: Entry[], data: TrackerData): RankedRow[] {
 }
 
 function rankCategories(entries: Entry[], data: TrackerData): RankedRow[] {
-	const counts = new Map<string, { name: string; count: number; type: EntryType }>();
+	const catLookup = new Map(
+		[...data.activityCategories, ...data.foodCategories].map((cat) => [cat.id, cat])
+	);
+	const counts = new Map<string, RankedRow>();
 
 	for (const entry of entries) {
 		const catIds = getEntryCategoryIds(entry, data);
@@ -43,9 +50,9 @@ function rankCategories(entries: Entry[], data: TrackerData): RankedRow[] {
 			if (existing) {
 				existing.count++;
 			} else {
-				const allCats = [...data.activityCategories, ...data.foodCategories];
-				const cat = allCats.find((c) => c.id === catId);
+				const cat = catLookup.get(catId);
 				counts.set(catId, {
+					id: catId,
 					name: cat?.name ?? 'Unknown',
 					count: 1,
 					type: entry.type
@@ -114,7 +121,7 @@ export default function FrequencyRanking({ entries, data }: Props) {
 			) : (
 				<div className="space-y-1.5">
 					{ranked.map((row, i) => (
-						<div key={`${row.name}-${row.type}`} className="flex items-center gap-3">
+						<div key={row.id} className="flex items-center gap-3">
 							<span className="text-xs text-muted w-5 text-right shrink-0">{i + 1}</span>
 							<div className="flex-1 min-w-0">
 								<div className="flex items-center justify-between gap-2 mb-0.5">
