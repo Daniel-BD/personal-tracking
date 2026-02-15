@@ -40,6 +40,15 @@ export function formatMonthYear(date: Date = new Date()): string {
 }
 
 /**
+ * Get the YYYY-MM-DD string for N days before today in local timezone.
+ */
+export function getDateNDaysAgo(n: number): string {
+	const d = new Date();
+	d.setDate(d.getDate() - n);
+	return formatDateLocal(d);
+}
+
+/**
  * Format a week start date for display. Accepts either a YYYY-MM-DD string or a Date object.
  */
 export function formatWeekLabel(dateOrString: string | Date): string {

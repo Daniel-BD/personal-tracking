@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { useTrackerData } from '@/shared/store/hooks';
-import { filterEntriesByDateRange } from '@/features/tracking';
 import BalanceOverview from './BalanceOverview';
 import ActionableCategories from './ActionableCategories';
 import CategoryComposition from './CategoryComposition';
@@ -21,19 +20,9 @@ export default function StatsPage() {
 		return processFoodEntriesByWeek(data.entries, data, weeks);
 	}, [data, weeks]);
 
-	const periodEntries = useMemo(() => {
-		if (weeks.length === 0) return [];
-		const start = weeks[0].start;
-		const end = weeks[weeks.length - 1].end;
-		const fmt = (d: Date) => d.toISOString().split('T')[0];
-		return filterEntriesByDateRange(data.entries, { start: fmt(start), end: fmt(end) });
-	}, [data.entries, weeks]);
-
 	const hasData = useMemo(() => {
 		return weeklyData.some((w) => w.totalCount > 0);
 	}, [weeklyData]);
-
-	const hasAnyEntries = periodEntries.length > 0;
 
 	return (
 		<div className="space-y-4 sm:space-y-6 pb-6">
@@ -88,11 +77,11 @@ export default function StatsPage() {
 				</>
 			)}
 
-			{/* Frequency Ranking — shows for any entries in the period */}
-			{hasAnyEntries && (
+			{/* Frequency Ranking — shows for any entries */}
+			{data.entries.length > 0 && (
 				<>
 					<hr className="border-[var(--border-default)]" />
-					<FrequencyRanking entries={periodEntries} data={data} />
+					<FrequencyRanking entries={data.entries} data={data} />
 				</>
 			)}
 		</div>
