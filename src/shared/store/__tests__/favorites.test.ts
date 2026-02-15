@@ -116,6 +116,78 @@ describe('favorites', () => {
 		expect(pushed.favoriteItems).not.toContain('gone');
 	});
 
+	it('unfavoriting persists through gist sync merge', async () => {
+		(isConfigured as Mock).mockReturnValue(false);
+		importData(
+			JSON.stringify(
+				makeValidData({
+					foodItems: [
+						{ id: 'apple', name: 'Apple', categories: [] },
+						{ id: 'banana', name: 'Banana', categories: [] },
+					],
+					favoriteItems: ['apple', 'banana'],
+				}),
+			),
+		);
+		vi.clearAllMocks();
+
+		(isConfigured as Mock).mockReturnValue(true);
+		(getConfig as Mock).mockReturnValue({ token: 'tok', gistId: 'gist', backupGistId: null });
+
+		// Remote still has both items favorited
+		const remoteData = makeValidData({
+			foodItems: [
+				{ id: 'apple', name: 'Apple', categories: [] },
+				{ id: 'banana', name: 'Banana', categories: [] },
+			],
+			favoriteItems: ['apple', 'banana'],
+		});
+		(fetchGist as Mock).mockResolvedValue(remoteData);
+		(updateGist as Mock).mockResolvedValue(undefined);
+
+		// Unfavorite apple — triggers merge with remote
+		toggleFavorite('apple');
+		await flushPromises();
+
+		expect(updateGist).toHaveBeenCalled();
+		const pushed = (updateGist as Mock).mock.calls[0][2] as TrackerData;
+		expect(pushed.favoriteItems).not.toContain('apple');
+		expect(pushed.favoriteItems).toContain('banana');
+	});
+
+	it('re-favoriting after unfavoriting clears pending deletion', async () => {
+		(isConfigured as Mock).mockReturnValue(false);
+		importData(
+			JSON.stringify(
+				makeValidData({
+					foodItems: [{ id: 'apple', name: 'Apple', categories: [] }],
+					favoriteItems: ['apple'],
+				}),
+			),
+		);
+		vi.clearAllMocks();
+
+		(isConfigured as Mock).mockReturnValue(true);
+		(getConfig as Mock).mockReturnValue({ token: 'tok', gistId: 'gist', backupGistId: null });
+
+		const remoteData = makeValidData({
+			foodItems: [{ id: 'apple', name: 'Apple', categories: [] }],
+			favoriteItems: ['apple'],
+		});
+		(fetchGist as Mock).mockResolvedValue(remoteData);
+		(updateGist as Mock).mockResolvedValue(undefined);
+
+		// Unfavorite then re-favorite
+		toggleFavorite('apple'); // unfavorite
+		toggleFavorite('apple'); // re-favorite
+		await flushPromises();
+
+		expect(updateGist).toHaveBeenCalled();
+		const calls = (updateGist as Mock).mock.calls;
+		const lastCall = calls[calls.length - 1][2] as TrackerData;
+		expect(lastCall.favoriteItems).toContain('apple');
+	});
+
 	it('isFavorite returns false for unknown item IDs', () => {
 		expect(isFavorite('nonexistent')).toBe(false);
 	});

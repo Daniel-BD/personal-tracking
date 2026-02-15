@@ -12,6 +12,7 @@ interface PendingDeletions {
 	activityCategories: Set<string>;
 	foodCategories: Set<string>;
 	dashboardCards: Set<string>;
+	favoriteItems: Set<string>;
 }
 
 export const pendingDeletions: PendingDeletions = {
@@ -21,6 +22,7 @@ export const pendingDeletions: PendingDeletions = {
 	activityCategories: new Set(),
 	foodCategories: new Set(),
 	dashboardCards: new Set(),
+	favoriteItems: new Set(),
 };
 
 export function clearPendingDeletions(): void {
@@ -30,6 +32,7 @@ export function clearPendingDeletions(): void {
 	pendingDeletions.activityCategories.clear();
 	pendingDeletions.foodCategories.clear();
 	pendingDeletions.dashboardCards.clear();
+	pendingDeletions.favoriteItems.clear();
 }
 
 /**
@@ -57,9 +60,15 @@ export function mergeTrackerData(local: TrackerData, remote: TrackerData): Track
 	const mergedActivityItems = mergeById(local.activityItems, remote.activityItems, pendingDeletions.activityItems);
 	const mergedFoodItems = mergeById(local.foodItems, remote.foodItems, pendingDeletions.foodItems);
 
-	// Merge favorites: union of both sets, filtered to only existing merged items
+	// Merge favorites: union of both sets, filtered to only existing merged items.
+	// Respects pending deletions — items unfavorited locally won't be restored from remote.
 	const mergedItemIds = new Set([...mergedActivityItems.map((i) => i.id), ...mergedFoodItems.map((i) => i.id)]);
-	const favSet = new Set([...(local.favoriteItems || []), ...(remote.favoriteItems || [])]);
+	const favSet = new Set([...(local.favoriteItems || [])]);
+	for (const id of remote.favoriteItems || []) {
+		if (!pendingDeletions.favoriteItems.has(id)) {
+			favSet.add(id);
+		}
+	}
 	const mergedFavorites = Array.from(favSet).filter((id) => mergedItemIds.has(id));
 
 	return {
