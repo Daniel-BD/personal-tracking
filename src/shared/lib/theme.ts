@@ -30,9 +30,11 @@ export function applyTheme(pref: ThemePreference): void {
 		html.classList.remove('dark');
 	}
 
-	// Update theme-color meta tag
+	// Update theme-color meta tag using CSS variable
 	const meta = document.querySelector('meta[name="theme-color"]');
 	if (meta) {
-		meta.setAttribute('content', effective === 'dark' ? '#111827' : '#f9fafb');
+		const bgPageColor = getComputedStyle(html)
+			.getPropertyValue('--bg-page').trim();
+		meta.setAttribute('content', bgPageColor);
 	}
 }

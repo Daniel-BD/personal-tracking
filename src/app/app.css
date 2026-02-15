@@ -64,6 +64,20 @@
 	/* Neutral (for chart fills, muted indicators) */
 	--color-neutral: #d1d5db;          /* gray-300 */
 
+	/* Favorite star (yellow) */
+	--color-favorite: #facc15;         /* yellow-400 */
+
+	/* Chart colors (for data visualization) */
+	--chart-color-1: #3b82f6;  /* blue-500 */
+	--chart-color-2: #ef4444;  /* red-500 */
+	--chart-color-3: #10b981;  /* emerald-500 */
+	--chart-color-4: #f59e0b;  /* amber-500 */
+	--chart-color-5: #8b5cf6;  /* violet-500 */
+	--chart-color-6: #ec4899;  /* pink-500 */
+	--chart-color-7: #06b6d4;  /* cyan-500 */
+	--chart-color-8: #f97316;  /* orange-500 */
+	--chart-color-9: #6366f1;  /* indigo-500 */
+
 	/* Toast (inverted surface) */
 	--bg-toast: #111827;               /* gray-900 */
 	--text-toast: #ffffff;
@@ -131,6 +145,20 @@
 
 	/* Neutral */
 	--color-neutral: #4b5563;          /* gray-600 */
+
+	/* Favorite star (yellow) */
+	--color-favorite: #fbbf24;         /* yellow-400 brighter for dark mode */
+
+	/* Chart colors (same in dark mode for consistency) */
+	--chart-color-1: #3b82f6;  /* blue-500 */
+	--chart-color-2: #ef4444;  /* red-500 */
+	--chart-color-3: #10b981;  /* emerald-500 */
+	--chart-color-4: #f59e0b;  /* amber-500 */
+	--chart-color-5: #8b5cf6;  /* violet-500 */
+	--chart-color-6: #ec4899;  /* pink-500 */
+	--chart-color-7: #06b6d4;  /* cyan-500 */
+	--chart-color-8: #f97316;  /* orange-500 */
+	--chart-color-9: #6366f1;  /* indigo-500 */
 
 	/* Toast (inverted surface) */
 	--bg-toast: #f3f4f6;               /* gray-100 */

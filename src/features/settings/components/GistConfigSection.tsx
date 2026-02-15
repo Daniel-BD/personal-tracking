@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getConfig, saveConfig, validateToken, createGist, listUserGists } from '@/shared/lib/github';
 import { loadFromGist } from '@/shared/store/store';
-
-interface GistInfo {
-	id: string;
-	description: string;
-	files: string[];
-}
+import type { GistInfo } from '../types';
 
 interface Props {
 	onBrowseGists: (gists: GistInfo[], mode: 'primary' | 'backup') => void;
