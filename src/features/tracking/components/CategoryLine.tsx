@@ -1,5 +1,4 @@
 import type { Category } from '@/shared/lib/types';
-import { getCategorySentimentCounts } from '../utils/category-utils';
 
 interface Props {
 	categoryIds: string[];
@@ -14,9 +13,24 @@ export default function CategoryLine({ categoryIds, categories, emptyText }: Pro
 		) : null;
 	}
 
-	const categoryMap = new Map(categories.map((c) => [c.id, c.name]));
-	const names = categoryIds.map((id) => categoryMap.get(id)).filter(Boolean);
-	const { positive, limit } = getCategorySentimentCounts(categoryIds, categories);
+	const categoryMap = new Map(categories.map((c) => [c.id, c]));
+	const names: string[] = [];
+	let positive = 0;
+	let limit = 0;
+	for (const id of categoryIds) {
+		const cat = categoryMap.get(id);
+		if (!cat) continue;
+		names.push(cat.name);
+		if (cat.sentiment === 'positive') positive++;
+		else if (cat.sentiment === 'limit') limit++;
+	}
+
+	if (names.length === 0) {
+		return emptyText ? (
+			<p className="text-xs text-subtle mt-0.5">{emptyText}</p>
+		) : null;
+	}
+
 	const hasIndicators = positive > 0 || limit > 0;
 
 	return (

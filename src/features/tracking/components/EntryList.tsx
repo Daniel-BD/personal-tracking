@@ -172,12 +172,12 @@ export default function EntryList({ entries, showType = false }: Props) {
 														</span>
 													</div>
 													<CategoryLine
-													categoryIds={categoryIds}
-													categories={typeCategories}
-												/>
-												{entry.notes && (
-													<p className="text-xs text-subtle mt-0.5 truncate italic">{entry.notes}</p>
-												)}
+														categoryIds={categoryIds}
+														categories={typeCategories}
+													/>
+													{entry.notes && (
+														<p className="text-xs text-subtle mt-0.5 truncate italic">{entry.notes}</p>
+													)}
 												</div>
 												<div className="flex items-center gap-2 flex-shrink-0">
 													{entry.time && (

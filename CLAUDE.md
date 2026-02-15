@@ -9,6 +9,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Add or update tests** when creating or modifying features. Keep tests focused and minimal — a few good tests that cover core logic and edge cases are better than many fragile tests that are expensive to maintain. Test files live alongside the code they test in `__tests__/` directories (e.g., `src/shared/store/__tests__/`, `src/features/tracking/__tests__/`, `src/features/stats/__tests__/`).
 - You may need to run `npm install` first if `node_modules` is missing.
 
+## Checking PR Review Comments
+
+The `gh` CLI is not pre-authenticated in this environment. To check PR review comments, use the `WebFetch` tool on the GitHub PR URL (e.g., `https://github.com/Daniel-BD/personal-tracking/pull/123`). First fetch the PR list page to find the PR number, then fetch the individual PR page to read comments.
+
 ## Development Commands
 
 ```bash
