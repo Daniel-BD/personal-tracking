@@ -273,12 +273,20 @@ export function removeDashboardCard(categoryId: string): void {
 // ============================================================
 
 export function toggleFavorite(itemId: string): void {
+	const favorites = currentData.favoriteItems || [];
+	const isFav = favorites.includes(itemId);
+
+	if (isFav) {
+		pendingDeletions.favoriteItems.add(itemId);
+	} else {
+		pendingDeletions.favoriteItems.delete(itemId);
+	}
+
 	updateData((data) => {
-		const favorites = data.favoriteItems || [];
-		const isFav = favorites.includes(itemId);
+		const favs = data.favoriteItems || [];
 		return {
 			...data,
-			favoriteItems: isFav ? favorites.filter((id) => id !== itemId) : [...favorites, itemId],
+			favoriteItems: isFav ? favs.filter((id) => id !== itemId) : [...favs, itemId],
 		};
 	});
 

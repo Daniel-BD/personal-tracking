@@ -12,6 +12,7 @@ vi.mock('@/shared/store/sync', () => ({
 		foodCategories: new Set(),
 		entries: new Set(),
 		dashboardCards: new Set(),
+		favoriteItems: new Set(),
 	},
 	clearPendingDeletions: vi.fn(),
 	pushToGist: vi.fn(),
