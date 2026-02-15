@@ -56,7 +56,7 @@ All data lives in a single `TrackerData` object containing items, categories, en
 **Feature layer** (self-contained domains):
 10. **`src/features/tracking/`** — Core entry/item/category logic. Contains `utils/entry-filters.ts` (date range, type, item, category filtering), `utils/entry-grouping.ts` (group by date/week, month comparisons, totals), `utils/category-utils.ts` (category ID resolution, name lookup), `hooks/useSwipeGesture.ts` (extracted touch/swipe gesture logic), plus `EntryList` and `CategoryPicker` components. This is the foundational feature used by most other features.
 11. **`src/features/quick-log/`** — Quick-log command palette used on the Home page. Business logic is extracted into `hooks/useQuickLogSearch.ts` (search/filter) and `hooks/useQuickLogForm.ts` (form state, submit, create-vs-log mode, instant quick-log). `QuickLogForm` is a presentational component wiring hooks to UI. Each favorite item has a Zap icon button for instant logging (today's date + current time, no sheet).
-12. **`src/features/stats/`** — Stats page with goal dashboard, balance score, actionable categories, and category composition charts. Contains `utils/stats-engine.ts` (weekly food analytics, balance scores, actionable category rankings) and all chart components.
+12. **`src/features/stats/`** — Stats page with goal dashboard, balance score, actionable categories, category composition charts, and frequency ranking. Contains `utils/stats-engine.ts` (weekly food analytics, balance scores, actionable category rankings) and all chart components. `FrequencyRanking` lists all logged items or categories ordered by count, with SegmentedControl filters for type (all/activities/food) and view mode (items/categories).
 13. **`src/features/library/`** — Library page for item & category CRUD management. Visually aligned with the Log page — compact card list with swipe-left actions (edit/delete), tap-to-edit via BottomSheet, and a `+` icon button in the header for adding. Split into `LibraryPage.tsx` (layout shell with header, segment controls, search), `ItemsTab.tsx` (item list with swipe gestures + add/edit BottomSheets), `CategoriesTab.tsx` (category list with swipe gestures + add/edit BottomSheets), and `SentimentPicker.tsx` (positive/neutral/limit selector).
 14. **`src/features/settings/`** — Settings page split into section components: `SettingsPage.tsx` (layout shell), `ThemeSection.tsx` (light/dark/system picker), `GistConfigSection.tsx` (token + Gist ID config), `ExportImportSection.tsx` (JSON export/import), `BackupSection.tsx` (backup Gist management).
 15. **`src/features/log/`** — Log page with filterable entry list. Filter logic is extracted into `hooks/useLogFilters.ts` (filter state, filtered entries, active filter count). `LogPage.tsx` is a presentational shell.
@@ -82,7 +82,7 @@ All data lives in a single `TrackerData` object containing items, categories, en
 
 - `/` — Home page with command-palette quick log, favorite items, bottom sheet create+log, and demoted monthly stats
 - `/log` — Minimal log view with segment-style type filter, filter bottom sheet, swipeable entry list with tap-to-edit
-- `/stats` — Stats page: goal dashboard with sparkline cards, balance score, actionable categories (top limit & lagging positive), and category composition chart
+- `/stats` — Stats page: goal dashboard with sparkline cards, balance score, actionable categories (top limit & lagging positive), category composition chart, and frequency ranking (most-logged items/categories)
 - `/library` — Compact item & category management with segment-style tabs, swipeable list rows (matching Log design), BottomSheet add/edit forms, and `+` header button
 - `/settings` — Theme preferences, GitHub Gist sync configuration, export/import, and backup Gist management
 
@@ -167,7 +167,8 @@ src/
 │   │   │   ├── AddCategoryModal.tsx
 │   │   │   ├── BalanceOverview.tsx
 │   │   │   ├── ActionableCategories.tsx
-│   │   │   └── CategoryComposition.tsx
+│   │   │   ├── CategoryComposition.tsx
+│   │   │   └── FrequencyRanking.tsx    # Ranked list of most-logged items/categories with type + view mode filters
 │   │   └── index.ts
 │   ├── library/                     # Library page: item & category CRUD
 │   │   ├── components/

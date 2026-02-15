@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useTrackerData } from '@/shared/store/hooks';
+import { filterEntriesByDateRange } from '@/features/tracking';
 import BalanceOverview from './BalanceOverview';
 import ActionableCategories from './ActionableCategories';
 import CategoryComposition from './CategoryComposition';
 import GoalDashboard from './GoalDashboard';
+import FrequencyRanking from './FrequencyRanking';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import { getLastNWeeks, processFoodEntriesByWeek } from '../utils/stats-engine';
 
@@ -13,14 +15,25 @@ export default function StatsPage() {
 	const data = useTrackerData();
 	const [period, setPeriod] = useState<PeriodType>('weekly');
 
+	const weeks = useMemo(() => getLastNWeeks(8), []);
+
 	const weeklyData = useMemo(() => {
-		const weeks = getLastNWeeks(8);
 		return processFoodEntriesByWeek(data.entries, data, weeks);
-	}, [data]);
+	}, [data, weeks]);
+
+	const periodEntries = useMemo(() => {
+		if (weeks.length === 0) return [];
+		const start = weeks[0].start;
+		const end = weeks[weeks.length - 1].end;
+		const fmt = (d: Date) => d.toISOString().split('T')[0];
+		return filterEntriesByDateRange(data.entries, { start: fmt(start), end: fmt(end) });
+	}, [data.entries, weeks]);
 
 	const hasData = useMemo(() => {
 		return weeklyData.some((w) => w.totalCount > 0);
 	}, [weeklyData]);
+
+	const hasAnyEntries = periodEntries.length > 0;
 
 	return (
 		<div className="space-y-4 sm:space-y-6 pb-6">
@@ -35,11 +48,13 @@ export default function StatsPage() {
 			{/* Period toggle */}
 			<SegmentedControl
 				options={[
-					{ value: 'weekly' as const, label: 'Weekly', activeClass: 'type-activity' },
+					{ value: 'weekly' as const, label: 'Weekly' },
 					{ value: 'monthly' as const, label: 'Monthly', disabled: true, title: 'Monthly view coming soon' }
 				]}
 				value={period}
 				onchange={setPeriod}
+				variant="segment"
+				size="sm"
 			/>
 
 			{/* Empty state */}
@@ -70,6 +85,14 @@ export default function StatsPage() {
 
 					{/* Section 2: Category Composition */}
 					<CategoryComposition weeklyData={weeklyData} />
+				</>
+			)}
+
+			{/* Frequency Ranking — shows for any entries in the period */}
+			{hasAnyEntries && (
+				<>
+					<hr className="border-[var(--border-default)]" />
+					<FrequencyRanking entries={periodEntries} data={data} />
 				</>
 			)}
 		</div>
