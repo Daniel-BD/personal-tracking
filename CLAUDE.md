@@ -178,6 +178,7 @@ src/
 │   │   │   └── SentimentPicker.tsx  # Positive/neutral/limit radio group
 │   │   └── index.ts
 │   ├── settings/                    # Settings page: theme, sync, export
+│   │   ├── types.ts                 # Shared types (GistInfo interface)
 │   │   ├── components/
 │   │   │   ├── SettingsPage.tsx     # Layout shell: section composition + shared gist list
 │   │   │   ├── ThemeSection.tsx     # Theme picker (light/dark/system)
@@ -250,6 +251,8 @@ All colors are defined as CSS custom properties on `:root` (light) and `.dark` (
 - **Activity (blue)**: `--color-activity`, `--color-activity-hover`, `--color-activity-bg`, `--color-activity-bg-strong`, `--color-activity-text`, `--color-activity-border`
 - **Food (green)**: `--color-food`, `--color-food-hover`, `--color-food-bg`, `--color-food-bg-strong`, `--color-food-text`, `--color-food-border`
 - **Status**: `--color-success*`, `--color-danger*`, `--color-warning*`, `--color-neutral`
+- **Favorite star**: `--color-favorite` (yellow, used in StarIcon for favorited items)
+- **Chart colors**: `--chart-color-1` through `--chart-color-9` (used for data visualization in stats charts)
 - **Toast**: `--bg-toast`, `--text-toast`, `--color-toast-action`
 - **Shadows**: `--shadow-card`, `--shadow-elevated`
 

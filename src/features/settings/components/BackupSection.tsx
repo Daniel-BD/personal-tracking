@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getConfig, saveConfig, createGist, listUserGists } from '@/shared/lib/github';
 import { backupToGist, restoreFromBackupGist } from '@/shared/store/store';
-
-interface GistInfo {
-	id: string;
-	description: string;
-	files: string[];
-}
+import type { GistInfo } from '../types';
 
 interface Props {
 	token: string;

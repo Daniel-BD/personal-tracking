@@ -1,15 +1,10 @@
 import { useState } from 'react';
 import { getConfig } from '@/shared/lib/github';
+import type { GistInfo } from '../types';
 import ThemeSection from './ThemeSection';
 import GistConfigSection from './GistConfigSection';
 import ExportImportSection from './ExportImportSection';
 import BackupSection from './BackupSection';
-
-interface GistInfo {
-	id: string;
-	description: string;
-	files: string[];
-}
 
 export default function SettingsPage() {
 	const [existingGists, setExistingGists] = useState<GistInfo[]>([]);

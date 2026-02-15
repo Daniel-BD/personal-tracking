@@ -210,25 +210,39 @@ export function getTopCategories(
 		.map(([catId]) => catId);
 }
 
-const COLOR_PALETTE = [
-	'#3b82f6', // blue
-	'#ef4444', // red
-	'#10b981', // emerald
-	'#f59e0b', // amber
-	'#8b5cf6', // violet
-	'#ec4899', // pink
-	'#06b6d4', // cyan
-	'#f97316', // orange
-	'#6366f1' // indigo
-];
+/**
+ * Get chart color palette from CSS variables
+ */
+function getChartColors(): string[] {
+	if (typeof document === 'undefined') {
+		// Fallback for SSR/tests
+		return [
+			'#3b82f6', '#ef4444', '#10b981', '#f59e0b',
+			'#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1'
+		];
+	}
+	const styles = getComputedStyle(document.documentElement);
+	return [
+		styles.getPropertyValue('--chart-color-1').trim(),
+		styles.getPropertyValue('--chart-color-2').trim(),
+		styles.getPropertyValue('--chart-color-3').trim(),
+		styles.getPropertyValue('--chart-color-4').trim(),
+		styles.getPropertyValue('--chart-color-5').trim(),
+		styles.getPropertyValue('--chart-color-6').trim(),
+		styles.getPropertyValue('--chart-color-7').trim(),
+		styles.getPropertyValue('--chart-color-8').trim(),
+		styles.getPropertyValue('--chart-color-9').trim()
+	];
+}
 
 /**
  * Assign colors to top categories by rank order to guarantee unique colors.
  */
 export function buildCategoryColorMap(topCategoryIds: string[]): Map<string, string> {
+	const chartColors = getChartColors();
 	const map = new Map<string, string>();
 	topCategoryIds.forEach((catId, index) => {
-		map.set(catId, COLOR_PALETTE[index % COLOR_PALETTE.length]);
+		map.set(catId, chartColors[index % chartColors.length]);
 	});
 	map.set('OTHER', 'var(--color-neutral)');
 	return map;
