@@ -260,6 +260,19 @@ describe('getTopCategories', () => {
 });
 
 describe('buildCategoryColorMap', () => {
+	beforeEach(() => {
+		// Set up CSS variables for chart colors in the test environment
+		document.documentElement.style.setProperty('--chart-color-1', '#3b82f6');
+		document.documentElement.style.setProperty('--chart-color-2', '#ef4444');
+		document.documentElement.style.setProperty('--chart-color-3', '#10b981');
+		document.documentElement.style.setProperty('--chart-color-4', '#f59e0b');
+		document.documentElement.style.setProperty('--chart-color-5', '#8b5cf6');
+		document.documentElement.style.setProperty('--chart-color-6', '#ec4899');
+		document.documentElement.style.setProperty('--chart-color-7', '#06b6d4');
+		document.documentElement.style.setProperty('--chart-color-8', '#f97316');
+		document.documentElement.style.setProperty('--chart-color-9', '#6366f1');
+	});
+
 	it('assigns unique colors to each category', () => {
 		const map = buildCategoryColorMap(['a', 'b', 'c']);
 		expect(map.get('a')).toBeDefined();
