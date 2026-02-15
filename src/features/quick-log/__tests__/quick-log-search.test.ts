@@ -21,22 +21,14 @@ function mergeItems(activityItems: Item[], foodItems: Item[]): UnifiedItem[] {
 
 function searchItems(allItems: UnifiedItem[], query: string): UnifiedItem[] {
 	if (!query.trim()) return [];
-	return allItems.filter((u) =>
-		u.item.name.toLowerCase().includes(query.toLowerCase())
-	);
+	return allItems.filter((u) => u.item.name.toLowerCase().includes(query.toLowerCase()));
 }
 
-function getFavorites(
-	activityItems: Item[],
-	foodItems: Item[],
-	favoriteIds: string[]
-): UnifiedItem[] {
+function getFavorites(activityItems: Item[], foodItems: Item[], favoriteIds: string[]): UnifiedItem[] {
 	if (favoriteIds.length === 0) return [];
 	const itemMap = new Map<string, UnifiedItem>();
-	for (const item of activityItems)
-		itemMap.set(item.id, { item, type: 'activity' });
-	for (const item of foodItems)
-		itemMap.set(item.id, { item, type: 'food' });
+	for (const item of activityItems) itemMap.set(item.id, { item, type: 'activity' });
+	for (const item of foodItems) itemMap.set(item.id, { item, type: 'food' });
 	const result: UnifiedItem[] = [];
 	for (const itemId of favoriteIds) {
 		const unified = itemMap.get(itemId);
@@ -46,9 +38,7 @@ function getFavorites(
 }
 
 function hasExactMatch(results: UnifiedItem[], query: string): boolean {
-	return results.some(
-		(u) => u.item.name.toLowerCase() === query.trim().toLowerCase()
-	);
+	return results.some((u) => u.item.name.toLowerCase() === query.trim().toLowerCase());
 }
 
 describe('mergeItems', () => {
@@ -101,10 +91,7 @@ describe('searchItems', () => {
 
 describe('getFavorites', () => {
 	const actItems = [makeItem({ id: 'a1', name: 'Running' })];
-	const foodItems = [
-		makeItem({ id: 'f1', name: 'Apple' }),
-		makeItem({ id: 'f2', name: 'Banana' }),
-	];
+	const foodItems = [makeItem({ id: 'f1', name: 'Apple' }), makeItem({ id: 'f2', name: 'Banana' })];
 
 	it('returns empty for no favorite IDs', () => {
 		expect(getFavorites(actItems, foodItems, [])).toEqual([]);

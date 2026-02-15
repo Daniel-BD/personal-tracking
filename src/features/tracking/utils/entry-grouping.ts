@@ -119,7 +119,7 @@ export function getMonthRange(date: Date = new Date()): DateRange {
 
 	return {
 		start: formatDateLocal(start),
-		end: formatDateLocal(end)
+		end: formatDateLocal(end),
 	};
 }
 
@@ -131,7 +131,7 @@ export function getPreviousMonthRange(date: Date = new Date()): DateRange {
 
 	return {
 		start: formatDateLocal(start),
-		end: formatDateLocal(end)
+		end: formatDateLocal(end),
 	};
 }
 
@@ -145,7 +145,7 @@ export function getWeekRange(date: Date = new Date()): DateRange {
 
 	return {
 		start: formatDateLocal(start),
-		end: formatDateLocal(end)
+		end: formatDateLocal(end),
 	};
 }
 
@@ -157,20 +157,20 @@ export function compareMonths(entries: Entry[], currentDate: Date = new Date()):
 	const previousCount = filterEntriesByDateRange(entries, previousRange).length;
 
 	const difference = currentCount - previousCount;
-	const percentChange = previousCount === 0 ? null : ((difference / previousCount) * 100);
+	const percentChange = previousCount === 0 ? null : (difference / previousCount) * 100;
 
 	return {
 		current: currentCount,
 		previous: previousCount,
 		difference,
-		percentChange
+		percentChange,
 	};
 }
 
 export function compareMonthsForItem(
 	entries: Entry[],
 	itemId: string,
-	currentDate: Date = new Date()
+	currentDate: Date = new Date(),
 ): ComparisonResult {
 	const itemEntries = filterEntriesByItem(entries, itemId);
 	return compareMonths(itemEntries, currentDate);
@@ -179,7 +179,7 @@ export function compareMonthsForItem(
 export function getItemTotals(
 	entries: Entry[],
 	items: Item[],
-	range?: DateRange
+	range?: DateRange,
 ): Array<{ item: Item; count: number }> {
 	const filteredEntries = range ? filterEntriesByDateRange(entries, range) : entries;
 	const counts = countEntriesByItem(filteredEntries);
@@ -187,7 +187,7 @@ export function getItemTotals(
 	return items
 		.map((item) => ({
 			item,
-			count: counts.get(item.id) || 0
+			count: counts.get(item.id) || 0,
 		}))
 		.filter((result) => result.count > 0)
 		.sort((a, b) => b.count - a.count);
@@ -196,7 +196,7 @@ export function getItemTotals(
 export function getCategoryTotals(
 	entries: Entry[],
 	data: TrackerData,
-	range?: DateRange
+	range?: DateRange,
 ): Array<{ category: string; count: number }> {
 	const filteredEntries = range ? filterEntriesByDateRange(entries, range) : entries;
 	const counts = countEntriesByCategory(filteredEntries, data);

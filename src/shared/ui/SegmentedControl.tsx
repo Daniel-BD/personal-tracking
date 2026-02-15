@@ -17,14 +17,14 @@ interface Props<T extends string> {
 const sizeClasses = {
 	default: 'py-2 px-4 font-medium',
 	sm: 'py-1.5 px-3 text-sm font-medium',
-	xs: 'py-1 px-2 text-xs font-medium'
+	xs: 'py-1 px-2 text-xs font-medium',
 };
 
 function getButtonClass<T extends string>(
 	option: Option<T>,
 	isActive: boolean,
 	variant: 'pill' | 'segment',
-	size: 'default' | 'sm' | 'xs'
+	size: 'default' | 'sm' | 'xs',
 ): string {
 	const baseClass = `flex-1 rounded-md transition-colors ${sizeClasses[size]}`;
 
@@ -50,7 +50,7 @@ export default function SegmentedControl<T extends string>({
 	value,
 	onchange,
 	variant = 'pill',
-	size = 'default'
+	size = 'default',
 }: Props<T>) {
 	if (variant === 'segment') {
 		return (

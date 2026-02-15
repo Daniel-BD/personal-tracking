@@ -23,21 +23,13 @@ export function filterEntriesByItems(entries: Entry[], itemIds: string[]): Entry
 	return entries.filter((entry) => itemIds.includes(entry.itemId));
 }
 
-export function filterEntriesByCategory(
-	entries: Entry[],
-	categoryId: string,
-	data: TrackerData
-): Entry[] {
+export function filterEntriesByCategory(entries: Entry[], categoryId: string, data: TrackerData): Entry[] {
 	return entries.filter((entry) => {
 		return getEntryCategoryIds(entry, data).includes(categoryId);
 	});
 }
 
-export function filterEntriesByCategories(
-	entries: Entry[],
-	categoryIds: string[],
-	data: TrackerData
-): Entry[] {
+export function filterEntriesByCategories(entries: Entry[], categoryIds: string[], data: TrackerData): Entry[] {
 	if (categoryIds.length === 0) return entries;
 	return entries.filter((entry) => {
 		const entryCatIds = getEntryCategoryIds(entry, data);

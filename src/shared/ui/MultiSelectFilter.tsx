@@ -15,27 +15,16 @@ interface Props {
 	label?: string;
 }
 
-export default function MultiSelectFilter({
-	options,
-	selected,
-	onchange,
-	placeholder = 'Search...',
-	label
-}: Props) {
+export default function MultiSelectFilter({ options, selected, onchange, placeholder = 'Search...', label }: Props) {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [showDropdown, setShowDropdown] = useState(false);
 
 	const filteredOptions = useMemo(
-		() => options.filter((option) =>
-			option.name.toLowerCase().includes(searchQuery.toLowerCase())
-		),
-		[options, searchQuery]
+		() => options.filter((option) => option.name.toLowerCase().includes(searchQuery.toLowerCase())),
+		[options, searchQuery],
 	);
 
-	const selectedOptions = useMemo(
-		() => options.filter((option) => selected.includes(option.id)),
-		[options, selected]
-	);
+	const selectedOptions = useMemo(() => options.filter((option) => selected.includes(option.id)), [options, selected]);
 
 	function toggleOption(optionId: string) {
 		if (selected.includes(optionId)) {
@@ -76,11 +65,7 @@ export default function MultiSelectFilter({
 							</button>
 						</span>
 					))}
-					<button
-						type="button"
-						onClick={clearAll}
-						className="text-xs text-label hover:text-body px-1"
-					>
+					<button type="button" onClick={clearAll} className="text-xs text-label hover:text-body px-1">
 						Clear all
 					</button>
 				</div>
@@ -116,15 +101,11 @@ export default function MultiSelectFilter({
 												: 'border-[var(--border-input)]'
 										}`}
 									>
-										{selected.includes(option.id) && (
-											<Check className="w-3 h-3 text-white" strokeWidth={3} />
-										)}
+										{selected.includes(option.id) && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
 									</span>
 									<div className="flex-1 min-w-0">
 										<div className="font-medium text-sm truncate text-heading">{option.name}</div>
-										{option.subtitle && (
-											<div className="text-xs text-label truncate">{option.subtitle}</div>
-										)}
+										{option.subtitle && <div className="text-xs text-label truncate">{option.subtitle}</div>}
 									</div>
 								</button>
 							))

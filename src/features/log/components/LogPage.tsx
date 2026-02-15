@@ -50,7 +50,10 @@ export default function LogPage() {
 				>
 					<Filter className="w-5 h-5" strokeWidth={1.5} />
 					{activeFilterCount > 0 && (
-						<span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: 'var(--color-activity)' }} />
+						<span
+							className="absolute top-1 right-1 w-2 h-2 rounded-full"
+							style={{ background: 'var(--color-activity)' }}
+						/>
 					)}
 				</button>
 			</div>
@@ -60,7 +63,7 @@ export default function LogPage() {
 				options={[
 					{ value: 'all' as const, label: 'All', activeClass: 'bg-[var(--text-secondary)] text-white' },
 					{ value: 'activity' as const, label: 'Activities', activeClass: 'type-activity' },
-					{ value: 'food' as const, label: 'Food', activeClass: 'type-food' }
+					{ value: 'food' as const, label: 'Food', activeClass: 'type-food' },
 				]}
 				value={typeFilter}
 				onchange={handleTypeChange}
@@ -123,11 +126,7 @@ export default function LogPage() {
 				<div className="text-center py-12">
 					<p className="text-label mb-2">No entries match your filters</p>
 					{activeFilterCount > 0 ? (
-						<button
-							type="button"
-							onClick={clearAllFilters}
-							className="text-[var(--color-activity)] hover:underline"
-						>
+						<button type="button" onClick={clearAllFilters} className="text-[var(--color-activity)] hover:underline">
 							Clear all filters
 						</button>
 					) : (
@@ -139,11 +138,7 @@ export default function LogPage() {
 			)}
 
 			{/* Filter Bottom Sheet */}
-			<BottomSheet
-				open={showFilterSheet}
-				onclose={() => setShowFilterSheet(false)}
-				title="Filters"
-			>
+			<BottomSheet open={showFilterSheet} onclose={() => setShowFilterSheet(false)} title="Filters">
 				<div className="space-y-5">
 					{categoryOptions.length > 0 && (
 						<MultiSelectFilter
@@ -175,11 +170,7 @@ export default function LogPage() {
 					)}
 
 					{activeFilterCount > 0 && (
-						<button
-							type="button"
-							onClick={clearAllFilters}
-							className="w-full btn btn-secondary"
-						>
+						<button type="button" onClick={clearAllFilters} className="w-full btn btn-secondary">
 							Clear all filters
 						</button>
 					)}

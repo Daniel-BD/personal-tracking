@@ -21,7 +21,7 @@ export function formatDate(dateString: string): string {
 	return date.toLocaleDateString('en-US', {
 		weekday: 'short',
 		month: 'short',
-		day: 'numeric'
+		day: 'numeric',
 	});
 }
 
@@ -35,7 +35,7 @@ export function formatDateWithYear(dateString: string): string {
 export function formatMonthYear(date: Date = new Date()): string {
 	return date.toLocaleDateString('en-US', {
 		month: 'long',
-		year: 'numeric'
+		year: 'numeric',
 	});
 }
 
@@ -52,11 +52,9 @@ export function getDateNDaysAgo(n: number): string {
  * Format a week start date for display. Accepts either a YYYY-MM-DD string or a Date object.
  */
 export function formatWeekLabel(dateOrString: string | Date): string {
-	const date = typeof dateOrString === 'string'
-		? new Date(dateOrString + 'T00:00:00')
-		: dateOrString;
+	const date = typeof dateOrString === 'string' ? new Date(dateOrString + 'T00:00:00') : dateOrString;
 	return date.toLocaleDateString('en-US', {
 		month: 'short',
-		day: 'numeric'
+		day: 'numeric',
 	});
 }

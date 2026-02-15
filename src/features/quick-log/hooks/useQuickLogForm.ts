@@ -5,10 +5,7 @@ import { addEntry, addItem, deleteEntry } from '@/shared/store/store';
 import { showToast } from '@/shared/ui/Toast';
 import type { UnifiedItem } from './useQuickLogSearch';
 
-export function useQuickLogForm(
-	activityCategories: Category[],
-	foodCategories: Category[]
-) {
+export function useQuickLogForm(activityCategories: Category[], foodCategories: Category[]) {
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const [sheetMode, setSheetMode] = useState<'create' | 'log'>('create');
 	const [itemName, setItemName] = useState('');
@@ -20,8 +17,8 @@ export function useQuickLogForm(
 	const [selectedItem, setSelectedItem] = useState<UnifiedItem | null>(null);
 
 	const categoriesForType = useMemo(
-		() => itemType === 'activity' ? activityCategories : foodCategories,
-		[itemType, activityCategories, foodCategories]
+		() => (itemType === 'activity' ? activityCategories : foodCategories),
+		[itemType, activityCategories, foodCategories],
 	);
 
 	const isLogDisabled = sheetMode === 'create' && !itemName.trim();
@@ -71,7 +68,7 @@ export function useQuickLogForm(
 			logDate,
 			logTime,
 			logNote.trim() || null,
-			logCategories.length > 0 ? logCategories : null
+			logCategories.length > 0 ? logCategories : null,
 		);
 
 		setSheetOpen(false);
@@ -83,26 +80,19 @@ export function useQuickLogForm(
 			onClick: () => {
 				deleteEntry(entry.id);
 				showToast('Entry undone');
-			}
+			},
 		});
 	}
 
 	function quickLogItem(unified: UnifiedItem) {
-		const entry = addEntry(
-			unified.type,
-			unified.item.id,
-			getTodayDate(),
-			getCurrentTime(),
-			null,
-			null
-		);
+		const entry = addEntry(unified.type, unified.item.id, getTodayDate(), getCurrentTime(), null, null);
 
 		showToast(`Logged "${unified.item.name}"`, {
 			label: 'Undo',
 			onClick: () => {
 				deleteEntry(entry.id);
 				showToast('Entry undone');
-			}
+			},
 		});
 	}
 

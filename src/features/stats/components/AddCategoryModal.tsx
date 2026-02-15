@@ -14,13 +14,13 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 	const [search, setSearch] = useState('');
 
 	const addedCategoryIds = useMemo(() => {
-		return new Set(dashboardCards.map(c => c.categoryId));
+		return new Set(dashboardCards.map((c) => c.categoryId));
 	}, [dashboardCards]);
 
 	const categories = useMemo(() => {
 		const all = [
-			...foodCategories.map(c => ({ ...c, type: 'food' })),
-			...activityCategories.map(c => ({ ...c, type: 'activity' }))
+			...foodCategories.map((c) => ({ ...c, type: 'food' })),
+			...activityCategories.map((c) => ({ ...c, type: 'activity' })),
 		];
 
 		return all.sort((a, b) => a.name.localeCompare(b.name));
@@ -28,9 +28,7 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 
 	const filteredCategories = useMemo(() => {
 		const term = search.toLowerCase().trim();
-		return categories.filter(c =>
-			c.name.toLowerCase().includes(term)
-		);
+		return categories.filter((c) => c.name.toLowerCase().includes(term));
 	}, [categories, search]);
 
 	const handleSelect = (categoryId: string) => {
@@ -47,10 +45,7 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 			>
 				<div className="p-4 border-b flex items-center justify-between">
 					<h3 className="text-lg font-bold">Add to Dashboard</h3>
-					<button
-						onClick={onClose}
-						className="p-1 hover:bg-inset rounded-full transition-colors"
-					>
+					<button onClick={onClose} className="p-1 hover:bg-inset rounded-full transition-colors">
 						<X className="w-5 h-5" strokeWidth={2} />
 					</button>
 				</div>
@@ -75,18 +70,14 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 								onClick={() => handleSelect(category.id)}
 								disabled={isAdded}
 								className={`w-full text-left px-3 py-2 rounded-md flex items-center justify-between transition-colors ${
-									isAdded
-										? 'opacity-50 cursor-not-allowed bg-inset'
-										: 'hover:bg-inset'
+									isAdded ? 'opacity-50 cursor-not-allowed bg-inset' : 'hover:bg-inset'
 								}`}
 							>
 								<div className="flex items-center gap-2">
 									<div
 										className="w-2 h-2 rounded-full"
 										style={{
-											backgroundColor: category.type === 'food'
-												? 'var(--color-food)'
-												: 'var(--color-activity)'
+											backgroundColor: category.type === 'food' ? 'var(--color-food)' : 'var(--color-activity)',
 										}}
 									/>
 									<span className="font-medium">{category.name}</span>
@@ -94,17 +85,13 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 										{category.type}
 									</span>
 								</div>
-								{isAdded && (
-									<span className="text-xs font-medium text-label">Added</span>
-								)}
+								{isAdded && <span className="text-xs font-medium text-label">Added</span>}
 							</button>
 						);
 					})}
 
 					{filteredCategories.length === 0 && (
-						<div className="py-8 text-center text-label">
-							No categories found matching &quot;{search}&quot;
-						</div>
+						<div className="py-8 text-center text-label">No categories found matching &quot;{search}&quot;</div>
 					)}
 				</div>
 			</div>

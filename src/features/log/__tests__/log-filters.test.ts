@@ -1,10 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Entry, Item, Category } from '@/shared/lib/types';
-import {
-	filterEntriesByType,
-	filterEntriesByItems,
-	filterEntriesByCategories,
-} from '@/features/tracking';
+import { filterEntriesByType, filterEntriesByItems, filterEntriesByCategories } from '@/features/tracking';
 import { makeEntry, makeItem, makeCategory, makeValidData } from '@/shared/store/__tests__/fixtures';
 
 /**
@@ -16,18 +12,14 @@ import { makeEntry, makeItem, makeCategory, makeValidData } from '@/shared/store
 function getAvailableCategories(
 	typeFilter: 'all' | 'activity' | 'food',
 	activityCategories: Category[],
-	foodCategories: Category[]
+	foodCategories: Category[],
 ): Category[] {
 	if (typeFilter === 'activity') return activityCategories;
 	if (typeFilter === 'food') return foodCategories;
 	return [...activityCategories, ...foodCategories];
 }
 
-function getAvailableItems(
-	typeFilter: 'all' | 'activity' | 'food',
-	activityItems: Item[],
-	foodItems: Item[]
-): Item[] {
+function getAvailableItems(typeFilter: 'all' | 'activity' | 'food', activityItems: Item[], foodItems: Item[]): Item[] {
 	if (typeFilter === 'activity') return activityItems;
 	if (typeFilter === 'food') return foodItems;
 	return [...activityItems, ...foodItems];
@@ -41,7 +33,7 @@ function cleanupSelectionsForType(
 	activityCategories: Category[],
 	foodCategories: Category[],
 	activityItems: Item[],
-	foodItems: Item[]
+	foodItems: Item[],
 ) {
 	const cats = newType === 'activity' ? activityCategories : foodCategories;
 	const items = newType === 'activity' ? activityItems : foodItems;
@@ -146,8 +138,10 @@ describe('type change cleanup', () => {
 			'activity',
 			['ac1', 'fc1'], // mixed selections
 			['ai1', 'fi1'],
-			[actCat], [foodCat],
-			[actItem], [foodItem]
+			[actCat],
+			[foodCat],
+			[actItem],
+			[foodItem],
 		);
 		expect(result.categories).toEqual(['ac1']);
 		expect(result.items).toEqual(['ai1']);
@@ -158,8 +152,10 @@ describe('type change cleanup', () => {
 			'food',
 			['ac1', 'fc1'],
 			['ai1', 'fi1'],
-			[actCat], [foodCat],
-			[actItem], [foodItem]
+			[actCat],
+			[foodCat],
+			[actItem],
+			[foodItem],
 		);
 		expect(result.categories).toEqual(['fc1']);
 		expect(result.items).toEqual(['fi1']);
@@ -170,8 +166,10 @@ describe('type change cleanup', () => {
 			'activity',
 			['fc1'], // only food category selected
 			['fi1'], // only food item selected
-			[actCat], [foodCat],
-			[actItem], [foodItem]
+			[actCat],
+			[foodCat],
+			[actItem],
+			[foodItem],
 		);
 		expect(result.categories).toEqual([]);
 		expect(result.items).toEqual([]);

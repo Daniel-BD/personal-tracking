@@ -29,16 +29,14 @@ export default function StatsPage() {
 			{/* Header */}
 			<div className="space-y-2">
 				<h1 className="text-2xl font-bold">Eating patterns</h1>
-				<p className="text-body">
-					What your eating events are made of
-				</p>
+				<p className="text-body">What your eating events are made of</p>
 			</div>
 
 			{/* Period toggle */}
 			<SegmentedControl
 				options={[
 					{ value: 'weekly' as const, label: 'Weekly' },
-					{ value: 'monthly' as const, label: 'Monthly', disabled: true, title: 'Monthly view coming soon' }
+					{ value: 'monthly' as const, label: 'Monthly', disabled: true, title: 'Monthly view coming soon' },
 				]}
 				value={period}
 				onchange={setPeriod}
@@ -49,12 +47,8 @@ export default function StatsPage() {
 			{/* Empty state */}
 			{!hasData && (
 				<div className="card p-8 text-center space-y-2">
-					<p className="text-body">
-						No food entries logged yet
-					</p>
-					<p className="text-sm text-label">
-						Start logging food items to see your eating patterns
-					</p>
+					<p className="text-body">No food entries logged yet</p>
+					<p className="text-sm text-label">Start logging food items to see your eating patterns</p>
 				</div>
 			)}
 

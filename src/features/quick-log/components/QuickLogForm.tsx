@@ -2,7 +2,13 @@ import { useRef } from 'react';
 import { Search, Zap } from 'lucide-react';
 import type { EntryType } from '@/shared/lib/types';
 import { getTypeIcon } from '@/shared/lib/types';
-import { useActivityItems, useFoodItems, useFavoriteItems, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
+import {
+	useActivityItems,
+	useFoodItems,
+	useFavoriteItems,
+	useActivityCategories,
+	useFoodCategories,
+} from '@/shared/store/hooks';
 import { getCategoryNames, toggleFavorite, isFavorite } from '@/shared/store/store';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import StarIcon from '@/shared/ui/StarIcon';
@@ -30,11 +36,7 @@ export default function QuickLogForm() {
 		hasExactMatch,
 		favoriteItemsList,
 		resetSearch,
-	} = useQuickLogSearch(
-		activityItems,
-		foodItems,
-		favoriteIds
-	);
+	} = useQuickLogSearch(activityItems, foodItems, favoriteIds);
 
 	const {
 		sheetOpen,
@@ -190,7 +192,9 @@ export default function QuickLogForm() {
 					{/* Item name — only for create mode */}
 					{sheetMode === 'create' && (
 						<div>
-							<label htmlFor="sheet-name" className="form-label">Name</label>
+							<label htmlFor="sheet-name" className="form-label">
+								Name
+							</label>
 							<input
 								id="sheet-name"
 								type="text"
@@ -210,7 +214,7 @@ export default function QuickLogForm() {
 							<SegmentedControl
 								options={[
 									{ value: 'activity' as EntryType, label: 'Activity', activeClass: 'type-activity' },
-									{ value: 'food' as EntryType, label: 'Food', activeClass: 'type-food' }
+									{ value: 'food' as EntryType, label: 'Food', activeClass: 'type-food' },
 								]}
 								value={itemType}
 								onchange={setItemType}
@@ -222,18 +226,17 @@ export default function QuickLogForm() {
 
 					{/* Date */}
 					<div>
-						<label htmlFor="sheet-date" className="form-label">Date</label>
-						<NativePickerInput
-							id="sheet-date"
-							type="date"
-							value={logDate}
-							onChange={setLogDate}
-						/>
+						<label htmlFor="sheet-date" className="form-label">
+							Date
+						</label>
+						<NativePickerInput id="sheet-date" type="date" value={logDate} onChange={setLogDate} />
 					</div>
 
 					{/* Time */}
 					<div>
-						<label htmlFor="sheet-time" className="form-label">Time</label>
+						<label htmlFor="sheet-time" className="form-label">
+							Time
+						</label>
 						<NativePickerInput
 							id="sheet-time"
 							type="time"
@@ -256,7 +259,9 @@ export default function QuickLogForm() {
 
 					{/* Note */}
 					<div>
-						<label htmlFor="sheet-note" className="form-label">Note</label>
+						<label htmlFor="sheet-note" className="form-label">
+							Note
+						</label>
 						<input
 							id="sheet-note"
 							type="text"

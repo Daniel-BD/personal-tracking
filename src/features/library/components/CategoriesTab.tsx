@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Pencil, Trash2, FolderOpen } from 'lucide-react';
 import type { Item, Category, CategorySentiment, EntryType } from '@/shared/lib/types';
-import {
-	addCategory,
-	updateCategory,
-	deleteCategory
-} from '@/shared/store/store';
+import { addCategory, updateCategory, deleteCategory } from '@/shared/store/store';
 import { useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import SentimentPicker from './SentimentPicker';
@@ -19,7 +15,14 @@ interface Props {
 	onCloseAddSheet: () => void;
 }
 
-export default function CategoriesTab({ categories, allItems, activeTab, searchQuery, showAddSheet, onCloseAddSheet }: Props) {
+export default function CategoriesTab({
+	categories,
+	allItems,
+	activeTab,
+	searchQuery,
+	showAddSheet,
+	onCloseAddSheet,
+}: Props) {
 	const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 	const [formName, setFormName] = useState('');
 	const [formSentiment, setFormSentiment] = useState<CategorySentiment>('neutral');
@@ -81,7 +84,7 @@ export default function CategoriesTab({ categories, allItems, activeTab, searchQ
 		const category = categories.find((c) => c.id === categoryId);
 		if (
 			!confirm(
-				`Delete category "${category?.name}"? It will be removed from ${itemCount} item${itemCount !== 1 ? 's' : ''}.`
+				`Delete category "${category?.name}"? It will be removed from ${itemCount} item${itemCount !== 1 ? 's' : ''}.`,
 			)
 		)
 			return;
@@ -101,9 +104,7 @@ export default function CategoriesTab({ categories, allItems, activeTab, searchQ
 							? `No categories match "${searchQuery}"`
 							: `No categories for ${activeTab === 'activity' ? 'activities' : 'food'} yet`}
 					</p>
-					{!searchQuery.trim() && (
-						<p className="text-xs text-subtle">Tap + to add your first category</p>
-					)}
+					{!searchQuery.trim() && <p className="text-xs text-subtle">Tap + to add your first category</p>}
 				</div>
 			) : (
 				<div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-default)] overflow-hidden">
@@ -143,7 +144,7 @@ export default function CategoriesTab({ categories, allItems, activeTab, searchQ
 									}`}
 									style={{
 										transform: isSwiped ? `translateX(${swipeOffset}px)` : 'translateX(0)',
-										transition: isTouching() ? 'none' : 'transform 0.25s ease-out'
+										transition: isTouching() ? 'none' : 'transform 0.25s ease-out',
 									}}
 									onTouchStart={(e) => handleTouchStart(e, category.id)}
 									onTouchMove={handleTouchMove}
@@ -153,15 +154,15 @@ export default function CategoriesTab({ categories, allItems, activeTab, searchQ
 									<div className="flex items-center justify-between gap-3">
 										<div className="flex-1 min-w-0">
 											<div className="flex items-center gap-2">
-												<span className="font-medium text-heading truncate">
-													{category.name}
-												</span>
+												<span className="font-medium text-heading truncate">{category.name}</span>
 												{category.sentiment && category.sentiment !== 'neutral' && (
-													<span className={`text-xs font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-														category.sentiment === 'positive'
-															? 'bg-[var(--color-success-bg)] text-[var(--color-success-text)]'
-															: 'bg-[var(--color-danger-bg)] text-[var(--color-danger-text)]'
-													}`}>
+													<span
+														className={`text-xs font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+															category.sentiment === 'positive'
+																? 'bg-[var(--color-success-bg)] text-[var(--color-success-text)]'
+																: 'bg-[var(--color-danger-bg)] text-[var(--color-danger-text)]'
+														}`}
+													>
 														{category.sentiment}
 													</span>
 												)}
@@ -184,18 +185,16 @@ export default function CategoriesTab({ categories, allItems, activeTab, searchQ
 				onclose={onCloseAddSheet}
 				title="Add Category"
 				headerAction={
-					<button
-						onClick={handleAdd}
-						disabled={!formName.trim()}
-						className="btn-primary btn-sm rounded-full px-4"
-					>
+					<button onClick={handleAdd} disabled={!formName.trim()} className="btn-primary btn-sm rounded-full px-4">
 						Add
 					</button>
 				}
 			>
 				<div className="space-y-4">
 					<div>
-						<label htmlFor="addCategoryName" className="form-label">Name</label>
+						<label htmlFor="addCategoryName" className="form-label">
+							Name
+						</label>
 						<input
 							id="addCategoryName"
 							type="text"
@@ -233,7 +232,9 @@ export default function CategoriesTab({ categories, allItems, activeTab, searchQ
 				{editingCategory && (
 					<div className="space-y-4">
 						<div>
-							<label htmlFor="editCategoryName" className="form-label">Name</label>
+							<label htmlFor="editCategoryName" className="form-label">
+								Name
+							</label>
 							<input
 								id="editCategoryName"
 								type="text"
@@ -247,10 +248,7 @@ export default function CategoriesTab({ categories, allItems, activeTab, searchQ
 							<SentimentPicker value={formSentiment} onChange={setFormSentiment} />
 						</div>
 						<div className="pt-2">
-							<button
-								onClick={() => handleDelete(editingCategory.id)}
-								className="btn btn-danger w-full"
-							>
+							<button onClick={() => handleDelete(editingCategory.id)} className="btn btn-danger w-full">
 								<Trash2 className="w-4 h-4 mr-2" strokeWidth={2} />
 								Delete Category
 							</button>

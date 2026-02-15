@@ -33,8 +33,7 @@ export function applyTheme(pref: ThemePreference): void {
 	// Update theme-color meta tag using CSS variable
 	const meta = document.querySelector('meta[name="theme-color"]');
 	if (meta) {
-		const bgPageColor = getComputedStyle(html)
-			.getPropertyValue('--bg-page').trim();
+		const bgPageColor = getComputedStyle(html).getPropertyValue('--bg-page').trim();
 		meta.setAttribute('content', bgPageColor);
 	}
 }

@@ -4,6 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Important Workflow Rules
 
+- **Always run `npm run format` before committing** to auto-format all code with Prettier. This must happen before every commit.
 - **Always verify changes build successfully** before considering a task complete. Run `npm run build` after making changes and fix any errors before finishing.
 - **Always update this CLAUDE.md file** when making changes to the codebase (new components, changed patterns, modified architecture, renamed files, etc.) so it continues to accurately reflect the actual code.
 - **Add or update tests** when creating or modifying features. Keep tests focused and minimal — a few good tests that cover core logic and edge cases are better than many fragile tests that are expensive to maintain. Test files live alongside the code they test in `__tests__/` directories (e.g., `src/shared/store/__tests__/`, `src/features/tracking/__tests__/`, `src/features/stats/__tests__/`).
@@ -21,6 +22,8 @@ npm run build        # Production build (tsc + vite build — always run before 
 npm run preview      # Preview production build
 npm run test         # Run tests once (vitest run)
 npm run test:watch   # Run tests in watch mode (vitest)
+npm run format       # Auto-format all code with Prettier (always run before committing)
+npm run format:check # Check if code is formatted (CI-friendly, no writes)
 ```
 
 Tests use **Vitest** with **happy-dom** environment. Config is in `vitest.config.ts`. Test files live in `__tests__/` directories colocated with the code they test. Shared test helpers (factory functions like `makeEntry`, `makeItem`, `makeCategory`, `makeValidData`) live in `src/shared/store/__tests__/fixtures.ts`.
@@ -37,6 +40,7 @@ A personal activity and food tracking PWA built for mobile-first usage. Users lo
 - **Build**: Vite 7
 - **Icons**: Lucide React (tree-shakeable, outline-style icons used throughout the app)
 - **Charting**: Recharts 3 (used on Stats page for sparklines, bar charts, and stacked charts)
+- **Formatting**: Prettier (config in `.prettierrc` — tabs, single quotes, 120 print width)
 - **Storage**: LocalStorage (source of truth) + optional GitHub Gist sync (backup only)
 
 ## Architecture

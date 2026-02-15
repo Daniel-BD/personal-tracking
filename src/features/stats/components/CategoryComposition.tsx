@@ -5,7 +5,7 @@ import {
 	getTopCategories,
 	buildCategoryColorMap,
 	groupCategoriesForWeek,
-	formatWeekLabel
+	formatWeekLabel,
 } from '../utils/stats-engine';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
 
@@ -36,7 +36,7 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 			const dataPoint: Record<string, number | string> = {
 				week: formatWeekLabel(week.start),
 				weekKey: week.weekKey,
-				opacity: week.hasLowData ? 0.4 : 1
+				opacity: week.hasLowData ? 0.4 : 1,
 			};
 
 			grouped.forEach((cat) => {
@@ -81,10 +81,7 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 					<BarChart
 						data={chartData}
 						layout="vertical"
-						margin={isMobile
-							? { top: 5, right: 10, left: 5, bottom: 5 }
-							: { top: 5, right: 30, left: 80, bottom: 5 }
-						}
+						margin={isMobile ? { top: 5, right: 10, left: 5, bottom: 5 } : { top: 5, right: 30, left: 80, bottom: 5 }}
 						onClick={(state) => {
 							if (state.isTooltipActive && typeof state.activeTooltipIndex === 'number') {
 								handleBarClick(chartData[state.activeTooltipIndex]);
@@ -92,18 +89,13 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 						}}
 					>
 						<XAxis type="number" domain={[0, 100]} hide />
-						<YAxis
-							dataKey="week"
-							type="category"
-							width={isMobile ? 50 : 75}
-							tick={{ fontSize: 12 }}
-						/>
+						<YAxis dataKey="week" type="category" width={isMobile ? 50 : 75} tick={{ fontSize: 12 }} />
 						<Tooltip
-							formatter={(value: number | undefined) => value !== undefined ? `${Math.round(value)}%` : 'N/A'}
+							formatter={(value: number | undefined) => (value !== undefined ? `${Math.round(value)}%` : 'N/A')}
 							contentStyle={{
 								background: 'var(--bg-card)',
 								border: '1px solid var(--border-default)',
-								borderRadius: '8px'
+								borderRadius: '8px',
 							}}
 							cursor={{ fill: 'var(--bg-inset)' }}
 						/>
@@ -118,19 +110,13 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 								isAnimationActive={false}
 							>
 								{chartData.map((entry, index) => (
-									<Cell
-										key={`${catId}-${index}`}
-										opacity={entry.opacity}
-										cursor="pointer"
-									/>
+									<Cell key={`${catId}-${index}`} opacity={entry.opacity} cursor="pointer" />
 								))}
 							</Bar>
 						))}
 					</BarChart>
 				</ResponsiveContainer>
-				<p className="text-xs text-body">
-					Click a bar to see detailed category breakdown
-				</p>
+				<p className="text-xs text-body">Click a bar to see detailed category breakdown</p>
 			</div>
 
 			{/* Modal */}
@@ -151,11 +137,7 @@ interface CategoryDetailModalProps {
 	onClose: () => void;
 }
 
-function CategoryDetailModal({
-	week,
-	colorMap,
-	onClose
-}: CategoryDetailModalProps) {
+function CategoryDetailModal({ week, colorMap, onClose }: CategoryDetailModalProps) {
 	const sortedCategories = useMemo(() => {
 		return [...week.categories].sort((a, b) => b.count - a.count);
 	}, [week.categories]);
@@ -168,17 +150,10 @@ function CategoryDetailModal({
 			>
 				<div className="flex justify-between items-center pb-4 border-b border-[var(--border-default)]">
 					<div>
-						<h3 className="font-semibold text-heading">
-							Week of {formatWeekLabel(week.start)}
-						</h3>
-						<p className="text-sm text-body">
-							{week.totalCount} events
-						</p>
+						<h3 className="font-semibold text-heading">Week of {formatWeekLabel(week.start)}</h3>
+						<p className="text-sm text-body">{week.totalCount} events</p>
 					</div>
-					<button
-						onClick={onClose}
-						className="text-label hover:text-heading text-xl"
-					>
+					<button onClick={onClose} className="text-label hover:text-heading text-xl">
 						✕
 					</button>
 				</div>
@@ -186,10 +161,7 @@ function CategoryDetailModal({
 				{/* Categories list */}
 				<div className="space-y-3">
 					{sortedCategories.map((cat) => {
-						const percentage =
-							week.totalCount > 0
-								? Math.round((cat.count / week.totalCount) * 100)
-								: 0;
+						const percentage = week.totalCount > 0 ? Math.round((cat.count / week.totalCount) * 100) : 0;
 
 						const color = colorMap.get(cat.categoryId);
 
@@ -200,20 +172,14 @@ function CategoryDetailModal({
 										<div
 											className="w-3 h-3 rounded-full flex-shrink-0"
 											style={{
-												backgroundColor: color
+												backgroundColor: color,
 											}}
 										/>
-										<span className="font-medium truncate text-heading">
-											{cat.categoryName}
-										</span>
+										<span className="font-medium truncate text-heading">{cat.categoryName}</span>
 									</div>
 									<div className="flex items-center gap-2 ml-2 flex-shrink-0">
-										<span className="text-sm text-body">
-											{percentage}%
-										</span>
-										<span className="text-sm font-semibold text-heading">
-											({cat.count})
-										</span>
+										<span className="text-sm text-body">{percentage}%</span>
+										<span className="text-sm font-semibold text-heading">({cat.count})</span>
 									</div>
 								</div>
 								<div className="bg-[var(--bg-inset)] rounded h-1.5">
@@ -221,7 +187,7 @@ function CategoryDetailModal({
 										className="h-full rounded transition-all"
 										style={{
 											width: `${percentage}%`,
-											backgroundColor: color
+											backgroundColor: color,
 										}}
 									/>
 								</div>
@@ -232,10 +198,7 @@ function CategoryDetailModal({
 			</div>
 
 			{/* Close on background click */}
-			<div
-				className="fixed inset-0 -z-10"
-				onClick={onClose}
-			/>
+			<div className="fixed inset-0 -z-10" onClick={onClose} />
 		</div>
 	);
 }

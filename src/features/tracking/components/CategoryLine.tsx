@@ -8,9 +8,7 @@ interface Props {
 
 export default function CategoryLine({ categoryIds, categories, emptyText }: Props) {
 	if (categoryIds.length === 0) {
-		return emptyText ? (
-			<p className="text-xs text-subtle mt-0.5">{emptyText}</p>
-		) : null;
+		return emptyText ? <p className="text-xs text-subtle mt-0.5">{emptyText}</p> : null;
 	}
 
 	const categoryMap = new Map(categories.map((c) => [c.id, c]));
@@ -26,9 +24,7 @@ export default function CategoryLine({ categoryIds, categories, emptyText }: Pro
 	}
 
 	if (names.length === 0) {
-		return emptyText ? (
-			<p className="text-xs text-subtle mt-0.5">{emptyText}</p>
-		) : null;
+		return emptyText ? <p className="text-xs text-subtle mt-0.5">{emptyText}</p> : null;
 	}
 
 	const hasIndicators = positive > 0 || limit > 0;
@@ -37,16 +33,8 @@ export default function CategoryLine({ categoryIds, categories, emptyText }: Pro
 		<p className="text-xs text-label mt-0.5 truncate flex items-center gap-1">
 			{hasIndicators && (
 				<span className="flex-shrink-0" aria-label={`${positive} positive, ${limit} limit`}>
-					{positive > 0 && (
-						<span className="font-bold text-[var(--color-success)]">
-							{'+'.repeat(positive)}
-						</span>
-					)}
-					{limit > 0 && (
-						<span className="font-bold text-[var(--color-danger)]">
-							{'\u2212'.repeat(limit)}
-						</span>
-					)}
+					{positive > 0 && <span className="font-bold text-[var(--color-success)]">{'+'.repeat(positive)}</span>}
+					{limit > 0 && <span className="font-bold text-[var(--color-danger)]">{'\u2212'.repeat(limit)}</span>}
 				</span>
 			)}
 			<span className="truncate">{names.join(' \u00B7 ')}</span>

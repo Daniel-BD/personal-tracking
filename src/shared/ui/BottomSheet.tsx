@@ -19,7 +19,9 @@ export default function BottomSheet({ open, onclose, children, title, headerActi
 		if (open) {
 			const originalOverflow = document.body.style.overflow;
 			document.body.style.overflow = 'hidden';
-			return () => { document.body.style.overflow = originalOverflow; };
+			return () => {
+				document.body.style.overflow = originalOverflow;
+			};
 		}
 	}, [open]);
 
@@ -48,10 +50,7 @@ export default function BottomSheet({ open, onclose, children, title, headerActi
 	return (
 		<div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden">
 			{/* Backdrop */}
-			<div
-				className="absolute inset-0 bg-black/40 animate-fade-in"
-				onClick={onclose}
-			/>
+			<div className="absolute inset-0 bg-black/40 animate-fade-in" onClick={onclose} />
 
 			{/* Sheet */}
 			<div
@@ -69,12 +68,19 @@ export default function BottomSheet({ open, onclose, children, title, headerActi
 
 				{(title || headerAction) && (
 					<div className="px-5 pb-3 flex-shrink-0 flex items-center justify-between gap-3">
-						{title && <h3 id={titleId} className="text-lg font-semibold text-heading">{title}</h3>}
+						{title && (
+							<h3 id={titleId} className="text-lg font-semibold text-heading">
+								{title}
+							</h3>
+						)}
 						{headerAction}
 					</div>
 				)}
 
-				<div className="flex-1 overflow-y-auto px-5 pb-5" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom, 0px))' }}>
+				<div
+					className="flex-1 overflow-y-auto px-5 pb-5"
+					style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom, 0px))' }}
+				>
 					{children}
 				</div>
 			</div>

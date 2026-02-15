@@ -25,7 +25,7 @@ export function getEntryCategoryNames(entry: Entry, data: TrackerData): string[]
 
 export function getCategorySentimentCounts(
 	categoryIds: string[],
-	categories: Category[]
+	categories: Category[],
 ): { positive: number; limit: number } {
 	const categoryMap = new Map(categories.map((c) => [c.id, c.sentiment]));
 	let positive = 0;

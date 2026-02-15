@@ -113,18 +113,16 @@ export default function GistConfigSection({ onBrowseGists, selectedGistId }: Pro
 					placeholder="ghp_xxxxxxxxxxxx"
 					className="form-input"
 				/>
-				<button
-					onClick={handleValidate}
-					disabled={status === 'validating'}
-					className="w-full btn-primary"
-				>
+				<button onClick={handleValidate} disabled={status === 'validating'} className="w-full btn-primary">
 					{status === 'validating' ? 'Validating...' : 'Validate Token'}
 				</button>
 			</div>
 
 			{(status === 'valid' || gistId) && (
 				<div className="border-t border-[var(--border-default)] pt-4 space-y-2">
-					<label htmlFor="gistId" className="form-label">Gist ID</label>
+					<label htmlFor="gistId" className="form-label">
+						Gist ID
+					</label>
 					<input
 						id="gistId"
 						type="text"
@@ -149,10 +147,7 @@ export default function GistConfigSection({ onBrowseGists, selectedGistId }: Pro
 			)}
 
 			{message && (
-				<p
-					className="text-sm"
-					style={{ color: `var(${status === 'invalid' ? '--color-danger' : '--color-success'})` }}
-				>
+				<p className="text-sm" style={{ color: `var(${status === 'invalid' ? '--color-danger' : '--color-success'})` }}>
 					{message}
 				</p>
 			)}

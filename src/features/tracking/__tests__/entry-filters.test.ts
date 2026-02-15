@@ -35,10 +35,7 @@ describe('filterEntriesByDateRange', () => {
 	});
 
 	it('handles single-day range', () => {
-		const entries = [
-			makeEntry({ date: '2025-01-15' }),
-			makeEntry({ date: '2025-01-16' }),
-		];
+		const entries = [makeEntry({ date: '2025-01-15' }), makeEntry({ date: '2025-01-16' })];
 		const result = filterEntriesByDateRange(entries, { start: '2025-01-15', end: '2025-01-15' });
 		expect(result).toHaveLength(1);
 		expect(result[0].date).toBe('2025-01-15');
@@ -57,21 +54,14 @@ describe('filterEntriesByDateRange', () => {
 
 describe('filterEntriesByType', () => {
 	it('filters food entries', () => {
-		const entries = [
-			makeEntry({ type: 'food' }),
-			makeEntry({ type: 'activity' }),
-			makeEntry({ type: 'food' }),
-		];
+		const entries = [makeEntry({ type: 'food' }), makeEntry({ type: 'activity' }), makeEntry({ type: 'food' })];
 		const result = filterEntriesByType(entries, 'food');
 		expect(result).toHaveLength(2);
 		expect(result.every((e) => e.type === 'food')).toBe(true);
 	});
 
 	it('filters activity entries', () => {
-		const entries = [
-			makeEntry({ type: 'food' }),
-			makeEntry({ type: 'activity' }),
-		];
+		const entries = [makeEntry({ type: 'food' }), makeEntry({ type: 'activity' })];
 		const result = filterEntriesByType(entries, 'activity');
 		expect(result).toHaveLength(1);
 		expect(result[0].type).toBe('activity');
@@ -90,11 +80,7 @@ describe('filterEntriesByType', () => {
 
 describe('filterEntriesByItem', () => {
 	it('returns entries matching the item ID', () => {
-		const entries = [
-			makeEntry({ itemId: 'item-a' }),
-			makeEntry({ itemId: 'item-b' }),
-			makeEntry({ itemId: 'item-a' }),
-		];
+		const entries = [makeEntry({ itemId: 'item-a' }), makeEntry({ itemId: 'item-b' }), makeEntry({ itemId: 'item-a' })];
 		const result = filterEntriesByItem(entries, 'item-a');
 		expect(result).toHaveLength(2);
 		expect(result.every((e) => e.itemId === 'item-a')).toBe(true);
@@ -112,11 +98,7 @@ describe('filterEntriesByItem', () => {
 
 describe('filterEntriesByItems', () => {
 	it('returns entries matching any item in the list', () => {
-		const entries = [
-			makeEntry({ itemId: 'item-a' }),
-			makeEntry({ itemId: 'item-b' }),
-			makeEntry({ itemId: 'item-c' }),
-		];
+		const entries = [makeEntry({ itemId: 'item-a' }), makeEntry({ itemId: 'item-b' }), makeEntry({ itemId: 'item-c' })];
 		const result = filterEntriesByItems(entries, ['item-a', 'item-c']);
 		expect(result).toHaveLength(2);
 		expect(result.map((e) => e.itemId)).toEqual(['item-a', 'item-c']);
@@ -142,10 +124,7 @@ describe('filterEntriesByCategory', () => {
 			foodItems: [item],
 			foodCategories: [cat],
 		});
-		const entries = [
-			makeEntry({ type: 'food', itemId: 'item-1' }),
-			makeEntry({ type: 'food', itemId: 'item-2' }),
-		];
+		const entries = [makeEntry({ type: 'food', itemId: 'item-1' }), makeEntry({ type: 'food', itemId: 'item-2' })];
 		const result = filterEntriesByCategory(entries, 'cat-1', data);
 		expect(result).toHaveLength(1);
 		expect(result[0].itemId).toBe('item-1');
@@ -154,9 +133,7 @@ describe('filterEntriesByCategory', () => {
 	it('uses category overrides when present', () => {
 		const item = makeItem({ id: 'item-1', categories: ['cat-1'] });
 		const data = makeValidData({ foodItems: [item] });
-		const entries = [
-			makeEntry({ type: 'food', itemId: 'item-1', categoryOverrides: ['cat-2'] }),
-		];
+		const entries = [makeEntry({ type: 'food', itemId: 'item-1', categoryOverrides: ['cat-2'] })];
 		// Entry has override to cat-2, so filtering by cat-1 should NOT match
 		expect(filterEntriesByCategory(entries, 'cat-1', data)).toEqual([]);
 		// But filtering by cat-2 should match

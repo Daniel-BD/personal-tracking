@@ -6,12 +6,26 @@ import type {
 	EntryType,
 	Category,
 	CategorySentiment,
-	DashboardCard
+	DashboardCard,
 } from '@/shared/lib/types';
-import { createEmptyData, generateId, getItems, getCategories, getItemsKey, getCategoriesKey } from '@/shared/lib/types';
+import {
+	createEmptyData,
+	generateId,
+	getItems,
+	getCategories,
+	getItemsKey,
+	getCategoriesKey,
+} from '@/shared/lib/types';
 import { isConfigured } from '@/shared/lib/github';
 import { migrateData, initializeDefaultDashboardCards } from './migration';
-import { pendingDeletions, clearPendingDeletions, pushToGist, loadFromGistFn, backupToGistFn, restoreFromBackupGistFn } from './sync';
+import {
+	pendingDeletions,
+	clearPendingDeletions,
+	pushToGist,
+	loadFromGistFn,
+	backupToGistFn,
+	restoreFromBackupGistFn,
+} from './sync';
 import { triggerExportDownload, validateAndParseImport } from './import-export';
 
 const LOCAL_STORAGE_KEY = 'tracker_data';
@@ -76,21 +90,25 @@ function setSyncStatus(status: SyncStatus) {
 export const dataStore = {
 	subscribe(listener: Listener) {
 		listeners.add(listener);
-		return () => { listeners.delete(listener); };
+		return () => {
+			listeners.delete(listener);
+		};
 	},
 	getSnapshot(): TrackerData {
 		return currentData;
-	}
+	},
 };
 
 export const syncStatusStore = {
 	subscribe(listener: Listener) {
 		syncListeners.add(listener);
-		return () => { syncListeners.delete(listener); };
+		return () => {
+			syncListeners.delete(listener);
+		};
 	},
 	getSnapshot(): SyncStatus {
 		return currentSyncStatus;
-	}
+	},
 };
 
 // ============================================================
@@ -117,13 +135,13 @@ export function addCategory(type: EntryType, name: string, sentiment: CategorySe
 	const category: Category = {
 		id: generateId(),
 		name: name.trim(),
-		sentiment
+		sentiment,
 	};
 
 	const key = getCategoriesKey(type);
 	updateData((data) => ({
 		...data,
-		[key]: [...data[key], category]
+		[key]: [...data[key], category],
 	}));
 
 	triggerPush();
@@ -141,7 +159,7 @@ export function updateCategory(type: EntryType, id: string, name: string, sentim
 			const updated = { ...c, name: name.trim() };
 			if (sentiment !== undefined) updated.sentiment = sentiment;
 			return updated;
-		})
+		}),
 	}));
 
 	triggerPush();
@@ -157,15 +175,15 @@ export function deleteCategory(type: EntryType, categoryId: string): void {
 		[catKey]: data[catKey].filter((c) => c.id !== categoryId),
 		[itemsKey]: data[itemsKey].map((item) => ({
 			...item,
-			categories: item.categories.filter((id) => id !== categoryId)
+			categories: item.categories.filter((id) => id !== categoryId),
 		})),
 		entries: data.entries.map((entry) => {
 			if (entry.type !== type || !entry.categoryOverrides) return entry;
 			return {
 				...entry,
-				categoryOverrides: entry.categoryOverrides.filter((id) => id !== categoryId)
+				categoryOverrides: entry.categoryOverrides.filter((id) => id !== categoryId),
 			};
-		})
+		}),
 	}));
 
 	triggerPush();
@@ -179,13 +197,13 @@ export function addItem(type: EntryType, name: string, categoryIds: string[]): I
 	const item: Item = {
 		id: generateId(),
 		name,
-		categories: categoryIds
+		categories: categoryIds,
 	};
 
 	const key = getItemsKey(type);
 	updateData((data) => ({
 		...data,
-		[key]: [...data[key], item]
+		[key]: [...data[key], item],
 	}));
 
 	triggerPush();
@@ -196,9 +214,7 @@ export function updateItem(type: EntryType, id: string, name: string, categoryId
 	const key = getItemsKey(type);
 	updateData((data) => ({
 		...data,
-		[key]: data[key].map((item) =>
-			item.id === id ? { ...item, name, categories: categoryIds } : item
-		)
+		[key]: data[key].map((item) => (item.id === id ? { ...item, name, categories: categoryIds } : item)),
 	}));
 
 	triggerPush();
@@ -216,7 +232,7 @@ export function deleteItem(type: EntryType, id: string): void {
 		...data,
 		[key]: data[key].filter((item) => item.id !== id),
 		entries: data.entries.filter((e) => !(e.type === type && e.itemId === id)),
-		favoriteItems: (data.favoriteItems || []).filter((fid) => fid !== id)
+		favoriteItems: (data.favoriteItems || []).filter((fid) => fid !== id),
 	}));
 
 	triggerPush();
@@ -230,12 +246,12 @@ export function addDashboardCard(categoryId: string): void {
 	const card: DashboardCard = {
 		categoryId,
 		baseline: 'rolling_4_week_avg',
-		comparison: 'last_week'
+		comparison: 'last_week',
 	};
 
 	updateData((data) => ({
 		...data,
-		dashboardCards: [...(data.dashboardCards || []), card]
+		dashboardCards: [...(data.dashboardCards || []), card],
 	}));
 
 	triggerPush();
@@ -246,7 +262,7 @@ export function removeDashboardCard(categoryId: string): void {
 
 	updateData((data) => ({
 		...data,
-		dashboardCards: (data.dashboardCards || []).filter((c) => c.categoryId !== categoryId)
+		dashboardCards: (data.dashboardCards || []).filter((c) => c.categoryId !== categoryId),
 	}));
 
 	triggerPush();
@@ -262,9 +278,7 @@ export function toggleFavorite(itemId: string): void {
 		const isFav = favorites.includes(itemId);
 		return {
 			...data,
-			favoriteItems: isFav
-				? favorites.filter((id) => id !== itemId)
-				: [...favorites, itemId]
+			favoriteItems: isFav ? favorites.filter((id) => id !== itemId) : [...favorites, itemId],
 		};
 	});
 
@@ -285,7 +299,7 @@ export function addEntry(
 	date: string,
 	time: string | null = null,
 	notes: string | null = null,
-	categoryOverrides: string[] | null = null
+	categoryOverrides: string[] | null = null,
 ): Entry {
 	const entry: Entry = {
 		id: generateId(),
@@ -294,27 +308,22 @@ export function addEntry(
 		date,
 		time,
 		notes,
-		categoryOverrides
+		categoryOverrides,
 	};
 
 	updateData((data) => ({
 		...data,
-		entries: [...data.entries, entry]
+		entries: [...data.entries, entry],
 	}));
 
 	triggerPush();
 	return entry;
 }
 
-export function updateEntry(
-	id: string,
-	updates: Partial<Omit<Entry, 'id' | 'type' | 'itemId'>>
-): void {
+export function updateEntry(id: string, updates: Partial<Omit<Entry, 'id' | 'type' | 'itemId'>>): void {
 	updateData((data) => ({
 		...data,
-		entries: data.entries.map((entry) =>
-			entry.id === id ? { ...entry, ...updates } : entry
-		)
+		entries: data.entries.map((entry) => (entry.id === id ? { ...entry, ...updates } : entry)),
 	}));
 
 	triggerPush();
@@ -325,7 +334,7 @@ export function deleteEntry(id: string): void {
 
 	updateData((data) => ({
 		...data,
-		entries: data.entries.filter((entry) => entry.id !== id)
+		entries: data.entries.filter((entry) => entry.id !== id),
 	}));
 
 	triggerPush();
@@ -339,10 +348,7 @@ export function getItemById(type: EntryType, itemId: string): Item | undefined {
 	return getItems(currentData, type).find((item) => item.id === itemId);
 }
 
-export function getCategoryById(
-	type: EntryType,
-	categoryId: string
-): Category | undefined {
+export function getCategoryById(type: EntryType, categoryId: string): Category | undefined {
 	return getCategories(currentData, type).find((c) => c.id === categoryId);
 }
 

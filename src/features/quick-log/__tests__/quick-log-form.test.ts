@@ -39,22 +39,19 @@ function quickLogItem(unified: UnifiedItem) {
 	const date = today.toISOString().split('T')[0];
 	const time = today.toTimeString().slice(0, 5);
 
-	return addEntry(
-		unified.type,
-		unified.item.id,
-		date,
-		time,
-		null,
-		null
-	);
+	return addEntry(unified.type, unified.item.id, date, time, null, null);
 }
 
 describe('quickLogItem', () => {
 	beforeEach(() => {
-		importData(JSON.stringify(makeValidData({
-			foodItems: [makeItem({ id: 'f1', name: 'Apple' })],
-			activityItems: [makeItem({ id: 'a1', name: 'Running' })],
-		})));
+		importData(
+			JSON.stringify(
+				makeValidData({
+					foodItems: [makeItem({ id: 'f1', name: 'Apple' })],
+					activityItems: [makeItem({ id: 'a1', name: 'Running' })],
+				}),
+			),
+		);
 	});
 
 	it('creates an entry with today date and current time', () => {

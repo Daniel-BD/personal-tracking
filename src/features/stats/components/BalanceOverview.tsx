@@ -1,11 +1,7 @@
 import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import type { WeeklyData } from '../utils/stats-engine';
-import {
-	calculateBalanceScore,
-	getScoreChange,
-	formatWeekLabel
-} from '../utils/stats-engine';
+import { calculateBalanceScore, getScoreChange, formatWeekLabel } from '../utils/stats-engine';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
 
 interface BalanceOverviewProps {
@@ -23,7 +19,7 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 				positive: total > 0 ? (positive / total) * 100 : 0,
 				neutral: total > 0 ? (neutral / total) * 100 : 0,
 				limit: total > 0 ? (limit / total) * 100 : 0,
-				opacity: week.hasLowData ? 0.4 : 1
+				opacity: week.hasLowData ? 0.4 : 1,
 			};
 		});
 	}, [weeklyData]);
@@ -63,10 +59,7 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 							<div
 								className="text-sm font-semibold flex items-center gap-1"
 								style={{
-									color:
-										scoreChange.direction === 'up'
-											? 'var(--color-success)'
-											: 'var(--color-danger)'
+									color: scoreChange.direction === 'up' ? 'var(--color-success)' : 'var(--color-danger)',
 								}}
 							>
 								<span>{scoreChange.direction === 'up' ? '↑' : '↓'}</span>
@@ -82,13 +75,11 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 						className="h-full transition-all duration-300"
 						style={{
 							width: `${currentScore}%`,
-							background: `linear-gradient(to right, var(--color-danger), var(--color-warning), var(--color-success))`
+							background: `linear-gradient(to right, var(--color-danger), var(--color-warning), var(--color-success))`,
 						}}
 					/>
 				</div>
-				<p className="text-xs text-body">
-					Positive ÷ (Positive + Limit)
-				</p>
+				<p className="text-xs text-body">Positive ÷ (Positive + Limit)</p>
 			</div>
 
 			{/* Weekly breakdown chart */}
@@ -98,70 +89,36 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 					<BarChart
 						data={data}
 						layout="vertical"
-						margin={isMobile
-							? { top: 5, right: 10, left: 5, bottom: 5 }
-							: { top: 5, right: 30, left: 80, bottom: 5 }
-						}
+						margin={isMobile ? { top: 5, right: 10, left: 5, bottom: 5 } : { top: 5, right: 30, left: 80, bottom: 5 }}
 					>
 						<XAxis type="number" domain={[0, 100]} hide />
-						<YAxis
-							dataKey="week"
-							type="category"
-							width={isMobile ? 50 : 75}
-							tick={{ fontSize: 12 }}
-						/>
+						<YAxis dataKey="week" type="category" width={isMobile ? 50 : 75} tick={{ fontSize: 12 }} />
 						<Tooltip
-							formatter={(value: number | undefined) => value !== undefined ? `${Math.round(value)}%` : 'N/A'}
+							formatter={(value: number | undefined) => (value !== undefined ? `${Math.round(value)}%` : 'N/A')}
 							contentStyle={{
 								background: 'var(--bg-card)',
 								border: '1px solid var(--border-default)',
-								borderRadius: '8px'
+								borderRadius: '8px',
 							}}
 						/>
-						<Bar
-							dataKey="positive"
-							stackId="sentiment"
-							fill="var(--color-success)"
-							name="Positive"
-						>
+						<Bar dataKey="positive" stackId="sentiment" fill="var(--color-success)" name="Positive">
 							{data.map((entry, index) => (
-								<Cell
-									key={`positive-${index}`}
-									opacity={entry.opacity}
-								/>
+								<Cell key={`positive-${index}`} opacity={entry.opacity} />
 							))}
 						</Bar>
-						<Bar
-							dataKey="neutral"
-							stackId="sentiment"
-							fill="var(--color-neutral)"
-							name="Neutral"
-						>
+						<Bar dataKey="neutral" stackId="sentiment" fill="var(--color-neutral)" name="Neutral">
 							{data.map((entry, index) => (
-								<Cell
-									key={`neutral-${index}`}
-									opacity={entry.opacity}
-								/>
+								<Cell key={`neutral-${index}`} opacity={entry.opacity} />
 							))}
 						</Bar>
-						<Bar
-							dataKey="limit"
-							stackId="sentiment"
-							fill="var(--color-danger)"
-							name="Limit"
-						>
+						<Bar dataKey="limit" stackId="sentiment" fill="var(--color-danger)" name="Limit">
 							{data.map((entry, index) => (
-								<Cell
-									key={`limit-${index}`}
-									opacity={entry.opacity}
-								/>
+								<Cell key={`limit-${index}`} opacity={entry.opacity} />
 							))}
 						</Bar>
 					</BarChart>
 				</ResponsiveContainer>
-				<p className="text-xs text-body">
-					Faded weeks have less than 5 logged events
-				</p>
+				<p className="text-xs text-body">Faded weeks have less than 5 logged events</p>
 			</div>
 		</div>
 	);

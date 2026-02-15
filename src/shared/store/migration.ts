@@ -17,7 +17,7 @@ export function migrateData(data: TrackerData): TrackerData {
 	const result = {
 		...data,
 		activityCategories: migrateCategories(data.activityCategories),
-		foodCategories: migrateCategories(data.foodCategories)
+		foodCategories: migrateCategories(data.foodCategories),
 	};
 
 	return migrated ? result : data;
@@ -38,14 +38,14 @@ export function initializeDefaultDashboardCards(data: TrackerData): TrackerData 
 			cards.push({
 				categoryId: category.id,
 				baseline: 'rolling_4_week_avg',
-				comparison: 'last_week'
+				comparison: 'last_week',
 			});
 		}
 	}
 
 	return {
 		...data,
-		dashboardCards: cards.length > 0 ? cards : (data.dashboardCards || []),
-		dashboardInitialized: true
+		dashboardCards: cards.length > 0 ? cards : data.dashboardCards || [],
+		dashboardInitialized: true,
 	};
 }

@@ -15,7 +15,7 @@ const navItems = [
 	{ to: '/log', label: 'Log', icon: 'list' },
 	{ to: '/stats', label: 'Stats', icon: 'chart' },
 	{ to: '/library', label: 'Library', icon: 'book' },
-	{ to: '/settings', label: 'Settings', icon: 'settings' }
+	{ to: '/settings', label: 'Settings', icon: 'settings' },
 ];
 
 export default function App() {
@@ -52,14 +52,12 @@ export default function App() {
 				style={{
 					background: 'color-mix(in srgb, var(--bg-card) 80%, transparent)',
 					borderColor: 'var(--border-default)',
-					paddingBottom: 'env(safe-area-inset-bottom, 0px)'
+					paddingBottom: 'env(safe-area-inset-bottom, 0px)',
 				}}
 			>
 				<div className="max-w-4xl mx-auto flex justify-around">
 					{navItems.map((item) => {
-						const isActive = item.to === '/'
-							? location.pathname === '/'
-							: location.pathname.startsWith(item.to);
+						const isActive = item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to);
 						return (
 							<NavLink
 								key={item.to}

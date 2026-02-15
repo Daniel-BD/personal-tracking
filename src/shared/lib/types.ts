@@ -65,7 +65,7 @@ export function createEmptyData(): TrackerData {
 		entries: [],
 		dashboardCards: [],
 		dashboardInitialized: false,
-		favoriteItems: []
+		favoriteItems: [],
 	};
 }
 

@@ -6,15 +6,7 @@ interface StarIconProps {
 }
 
 export default function StarIcon({ filled, className = 'w-5 h-5' }: StarIconProps) {
-	const favoriteColor = getComputedStyle(document.documentElement)
-		.getPropertyValue('--color-favorite').trim();
+	const favoriteColor = getComputedStyle(document.documentElement).getPropertyValue('--color-favorite').trim();
 
-	return (
-		<Star
-			className={className}
-			fill={filled ? favoriteColor : 'none'}
-			stroke={favoriteColor}
-			strokeWidth={1.5}
-		/>
-	);
+	return <Star className={className} fill={filled ? favoriteColor : 'none'} stroke={favoriteColor} strokeWidth={1.5} />;
 }

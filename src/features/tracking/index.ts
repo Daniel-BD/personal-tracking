@@ -1,8 +1,32 @@
 // Utils
-export { filterEntriesByDateRange, filterEntriesByType, filterEntriesByItem, filterEntriesByItems, filterEntriesByCategory, filterEntriesByCategories } from './utils/entry-filters';
+export {
+	filterEntriesByDateRange,
+	filterEntriesByType,
+	filterEntriesByItem,
+	filterEntriesByItems,
+	filterEntriesByCategory,
+	filterEntriesByCategories,
+} from './utils/entry-filters';
 export type { DateRange } from './utils/entry-filters';
-export { getEntryCategoryIds, getCategoryNameById, getEntryCategoryNames, getCategorySentimentCounts } from './utils/category-utils';
-export { getEntriesGroupedByDate, countEntriesByItem, countEntriesByCategory, groupEntriesByWeek, getMonthRange, getPreviousMonthRange, getWeekRange, compareMonths, compareMonthsForItem, getItemTotals, getCategoryTotals } from './utils/entry-grouping';
+export {
+	getEntryCategoryIds,
+	getCategoryNameById,
+	getEntryCategoryNames,
+	getCategorySentimentCounts,
+} from './utils/category-utils';
+export {
+	getEntriesGroupedByDate,
+	countEntriesByItem,
+	countEntriesByCategory,
+	groupEntriesByWeek,
+	getMonthRange,
+	getPreviousMonthRange,
+	getWeekRange,
+	compareMonths,
+	compareMonthsForItem,
+	getItemTotals,
+	getCategoryTotals,
+} from './utils/entry-grouping';
 export type { ComparisonResult } from './utils/entry-grouping';
 
 // Hooks

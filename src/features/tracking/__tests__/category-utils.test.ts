@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { getEntryCategoryIds, getCategoryNameById, getEntryCategoryNames, getCategorySentimentCounts } from '../utils/category-utils';
+import {
+	getEntryCategoryIds,
+	getCategoryNameById,
+	getEntryCategoryNames,
+	getCategorySentimentCounts,
+} from '../utils/category-utils';
 import { makeEntry, makeItem, makeCategory, makeValidData, resetIdCounter } from '@/shared/store/__tests__/fixtures';
 
 beforeEach(() => resetIdCounter());
@@ -156,10 +161,7 @@ describe('getCategorySentimentCounts', () => {
 	});
 
 	it('handles all limit categories', () => {
-		const categories = [
-			makeCategory({ id: 'c1', sentiment: 'limit' }),
-			makeCategory({ id: 'c2', sentiment: 'limit' }),
-		];
+		const categories = [makeCategory({ id: 'c1', sentiment: 'limit' }), makeCategory({ id: 'c2', sentiment: 'limit' })];
 		const result = getCategorySentimentCounts(['c1', 'c2'], categories);
 		expect(result).toEqual({ positive: 0, limit: 2 });
 	});

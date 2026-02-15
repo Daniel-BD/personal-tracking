@@ -14,14 +14,7 @@ vi.mock('@/shared/lib/github', () => ({
 	validateToken: vi.fn(),
 }));
 
-import {
-	importData,
-	dataStore,
-	toggleFavorite,
-	isFavorite,
-	addItem,
-	deleteItem,
-} from '../store';
+import { importData, dataStore, toggleFavorite, isFavorite, addItem, deleteItem } from '../store';
 import { isConfigured, fetchGist, updateGist, getConfig } from '@/shared/lib/github';
 
 describe('favorites', () => {
@@ -33,9 +26,13 @@ describe('favorites', () => {
 	});
 
 	it('toggleFavorite adds an item to favorites', () => {
-		importData(JSON.stringify(makeValidData({
-			foodItems: [{ id: 'apple', name: 'Apple', categories: [] }],
-		})));
+		importData(
+			JSON.stringify(
+				makeValidData({
+					foodItems: [{ id: 'apple', name: 'Apple', categories: [] }],
+				}),
+			),
+		);
 
 		toggleFavorite('apple');
 
@@ -44,10 +41,14 @@ describe('favorites', () => {
 	});
 
 	it('toggleFavorite removes an already-favorited item', () => {
-		importData(JSON.stringify(makeValidData({
-			foodItems: [{ id: 'apple', name: 'Apple', categories: [] }],
-			favoriteItems: ['apple'],
-		})));
+		importData(
+			JSON.stringify(
+				makeValidData({
+					foodItems: [{ id: 'apple', name: 'Apple', categories: [] }],
+					favoriteItems: ['apple'],
+				}),
+			),
+		);
 
 		expect(isFavorite('apple')).toBe(true);
 
@@ -58,13 +59,17 @@ describe('favorites', () => {
 	});
 
 	it('deleteItem removes the item from favorites', () => {
-		importData(JSON.stringify(makeValidData({
-			foodItems: [
-				{ id: 'apple', name: 'Apple', categories: [] },
-				{ id: 'banana', name: 'Banana', categories: [] },
-			],
-			favoriteItems: ['apple', 'banana'],
-		})));
+		importData(
+			JSON.stringify(
+				makeValidData({
+					foodItems: [
+						{ id: 'apple', name: 'Apple', categories: [] },
+						{ id: 'banana', name: 'Banana', categories: [] },
+					],
+					favoriteItems: ['apple', 'banana'],
+				}),
+			),
+		);
 
 		deleteItem('food', 'apple');
 
@@ -74,13 +79,17 @@ describe('favorites', () => {
 
 	it('merge filters out favorites for deleted items', async () => {
 		// Set up local state with one item + favorite, then delete it
-		importData(JSON.stringify(makeValidData({
-			foodItems: [
-				{ id: 'keep', name: 'Keeper', categories: [] },
-				{ id: 'gone', name: 'Doomed', categories: [] },
-			],
-			favoriteItems: ['keep', 'gone'],
-		})));
+		importData(
+			JSON.stringify(
+				makeValidData({
+					foodItems: [
+						{ id: 'keep', name: 'Keeper', categories: [] },
+						{ id: 'gone', name: 'Doomed', categories: [] },
+					],
+					favoriteItems: ['keep', 'gone'],
+				}),
+			),
+		);
 		vi.clearAllMocks();
 
 		(isConfigured as Mock).mockReturnValue(true);

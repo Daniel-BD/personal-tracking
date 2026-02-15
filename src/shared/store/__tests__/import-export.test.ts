@@ -91,11 +91,7 @@ describe('importData', () => {
 		expect(importData(JSON.stringify(data))).toBe(true);
 
 		const snapshot = dataStore.getSnapshot();
-		expect(snapshot.foodCategories.map((c) => c.sentiment)).toEqual([
-			'positive',
-			'neutral',
-			'limit',
-		]);
+		expect(snapshot.foodCategories.map((c) => c.sentiment)).toEqual(['positive', 'neutral', 'limit']);
 	});
 
 	it('migrates categories without sentiment to neutral', () => {
@@ -113,7 +109,15 @@ describe('importData', () => {
 	it('accepts both activity and food types in entries', () => {
 		const data = makeValidData({
 			entries: [
-				{ id: 'e1', type: 'activity', itemId: 'i1', date: '2025-01-15', time: null, notes: null, categoryOverrides: null },
+				{
+					id: 'e1',
+					type: 'activity',
+					itemId: 'i1',
+					date: '2025-01-15',
+					time: null,
+					notes: null,
+					categoryOverrides: null,
+				},
 				{ id: 'e2', type: 'food', itemId: 'i2', date: '2025-01-15', time: null, notes: null, categoryOverrides: null },
 			],
 		});
@@ -200,7 +204,15 @@ describe('importData', () => {
 	it('rejects entries with non-string id', () => {
 		const data = makeValidData({
 			entries: [
-				{ id: 123 as unknown as string, type: 'food', itemId: 'i1', date: '2025-01-15', time: null, notes: null, categoryOverrides: null },
+				{
+					id: 123 as unknown as string,
+					type: 'food',
+					itemId: 'i1',
+					date: '2025-01-15',
+					time: null,
+					notes: null,
+					categoryOverrides: null,
+				},
 			],
 		});
 		expect(importData(JSON.stringify(data))).toBe(false);
@@ -209,9 +221,7 @@ describe('importData', () => {
 	it('rejects entries with invalid type', () => {
 		const data = {
 			...makeValidData(),
-			entries: [
-				{ id: 'e1', type: 'invalid', itemId: 'i1', date: '2025-01-15' },
-			],
+			entries: [{ id: 'e1', type: 'invalid', itemId: 'i1', date: '2025-01-15' }],
 		};
 		expect(importData(JSON.stringify(data))).toBe(false);
 	});
@@ -219,9 +229,7 @@ describe('importData', () => {
 	it('rejects entries with non-string date', () => {
 		const data = {
 			...makeValidData(),
-			entries: [
-				{ id: 'e1', type: 'food', itemId: 'i1', date: 12345 },
-			],
+			entries: [{ id: 'e1', type: 'food', itemId: 'i1', date: 12345 }],
 		};
 		expect(importData(JSON.stringify(data))).toBe(false);
 	});
@@ -229,9 +237,7 @@ describe('importData', () => {
 	it('rejects entries with non-string time', () => {
 		const data = {
 			...makeValidData(),
-			entries: [
-				{ id: 'e1', type: 'food', itemId: 'i1', date: '2025-01-15', time: 123 },
-			],
+			entries: [{ id: 'e1', type: 'food', itemId: 'i1', date: '2025-01-15', time: 123 }],
 		};
 		expect(importData(JSON.stringify(data))).toBe(false);
 	});
@@ -239,9 +245,7 @@ describe('importData', () => {
 	it('rejects entries with non-string notes', () => {
 		const data = {
 			...makeValidData(),
-			entries: [
-				{ id: 'e1', type: 'food', itemId: 'i1', date: '2025-01-15', notes: 123 },
-			],
+			entries: [{ id: 'e1', type: 'food', itemId: 'i1', date: '2025-01-15', notes: 123 }],
 		};
 		expect(importData(JSON.stringify(data))).toBe(false);
 	});
@@ -249,9 +253,7 @@ describe('importData', () => {
 	it('rejects entries with non-array categoryOverrides', () => {
 		const data = {
 			...makeValidData(),
-			entries: [
-				{ id: 'e1', type: 'food', itemId: 'i1', date: '2025-01-15', categoryOverrides: 'cat1' },
-			],
+			entries: [{ id: 'e1', type: 'food', itemId: 'i1', date: '2025-01-15', categoryOverrides: 'cat1' }],
 		};
 		expect(importData(JSON.stringify(data))).toBe(false);
 	});
@@ -259,9 +261,7 @@ describe('importData', () => {
 	it('rejects entries with non-string categoryOverride IDs', () => {
 		const data = {
 			...makeValidData(),
-			entries: [
-				{ id: 'e1', type: 'food', itemId: 'i1', date: '2025-01-15', categoryOverrides: [123] },
-			],
+			entries: [{ id: 'e1', type: 'food', itemId: 'i1', date: '2025-01-15', categoryOverrides: [123] }],
 		};
 		expect(importData(JSON.stringify(data))).toBe(false);
 	});
@@ -345,8 +345,24 @@ describe('importData', () => {
 			activityCategories: [{ id: 'acat1', name: 'Cardio', sentiment: 'neutral' }],
 			activityItems: [{ id: 'aitem1', name: 'Running', categories: ['acat1'] }],
 			entries: [
-				{ id: 'e1', type: 'food', itemId: 'item1', date: '2025-01-15', time: '12:30', notes: 'Yummy', categoryOverrides: ['cat2'] },
-				{ id: 'e2', type: 'activity', itemId: 'aitem1', date: '2025-01-15', time: null, notes: null, categoryOverrides: null },
+				{
+					id: 'e1',
+					type: 'food',
+					itemId: 'item1',
+					date: '2025-01-15',
+					time: '12:30',
+					notes: 'Yummy',
+					categoryOverrides: ['cat2'],
+				},
+				{
+					id: 'e2',
+					type: 'activity',
+					itemId: 'aitem1',
+					date: '2025-01-15',
+					time: null,
+					notes: null,
+					categoryOverrides: null,
+				},
 			],
 		});
 

@@ -13,17 +13,20 @@ export function useSwipeGesture() {
 	const touchStartRef = useRef<{ x: number; y: number; id: string } | null>(null);
 	const didSwipeRef = useRef(false);
 
-	const handleTouchStart = useCallback((e: ReactTouchEvent, entryId: string) => {
-		const touch = e.touches[0];
-		touchStartRef.current = { x: touch.clientX, y: touch.clientY, id: entryId };
-		didSwipeRef.current = false;
+	const handleTouchStart = useCallback(
+		(e: ReactTouchEvent, entryId: string) => {
+			const touch = e.touches[0];
+			touchStartRef.current = { x: touch.clientX, y: touch.clientY, id: entryId };
+			didSwipeRef.current = false;
 
-		// If a different entry was swiped, reset it
-		if (swipedEntryId && swipedEntryId !== entryId) {
-			setSwipedEntryId(null);
-			setSwipeOffset(0);
-		}
-	}, [swipedEntryId]);
+			// If a different entry was swiped, reset it
+			if (swipedEntryId && swipedEntryId !== entryId) {
+				setSwipedEntryId(null);
+				setSwipeOffset(0);
+			}
+		},
+		[swipedEntryId],
+	);
 
 	const handleTouchMove = useCallback((e: ReactTouchEvent) => {
 		if (!touchStartRef.current) return;
@@ -70,19 +73,22 @@ export function useSwipeGesture() {
 
 	const isTouching = useCallback(() => touchStartRef.current !== null, []);
 
-	const handleRowTap = useCallback((onTap: () => void) => {
-		// Ignore click events that followed a swipe gesture
-		if (didSwipeRef.current) {
-			didSwipeRef.current = false;
-			return;
-		}
-		if (swipedEntryId) {
-			setSwipedEntryId(null);
-			setSwipeOffset(0);
-			return;
-		}
-		onTap();
-	}, [swipedEntryId]);
+	const handleRowTap = useCallback(
+		(onTap: () => void) => {
+			// Ignore click events that followed a swipe gesture
+			if (didSwipeRef.current) {
+				didSwipeRef.current = false;
+				return;
+			}
+			if (swipedEntryId) {
+				setSwipedEntryId(null);
+				setSwipeOffset(0);
+				return;
+			}
+			onTap();
+		},
+		[swipedEntryId],
+	);
 
 	return {
 		swipedEntryId,
