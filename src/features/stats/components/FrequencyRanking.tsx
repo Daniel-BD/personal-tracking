@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
 import type { TrackerData, EntryType, Entry } from '@/shared/lib/types';
-import { filterEntriesByType, getEntryCategoryIds } from '@/features/tracking';
+import { filterEntriesByType, filterEntriesByDateRange, getEntryCategoryIds } from '@/features/tracking';
+import { getTodayDate } from '@/shared/lib/types';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 
+type TimePeriod = 'all' | '7d' | '30d';
 type TypeFilter = 'all' | 'activity' | 'food';
 type ViewMode = 'items' | 'categories';
 
@@ -69,14 +71,30 @@ interface Props {
 	data: TrackerData;
 }
 
+function getDateNDaysAgo(n: number): string {
+	const d = new Date();
+	d.setDate(d.getDate() - n);
+	return d.toISOString().split('T')[0];
+}
+
 export default function FrequencyRanking({ entries, data }: Props) {
+	const [timePeriod, setTimePeriod] = useState<TimePeriod>('all');
 	const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
 	const [viewMode, setViewMode] = useState<ViewMode>('items');
 
+	const timeFilteredEntries = useMemo(() => {
+		if (timePeriod === 'all') return entries;
+		const days = timePeriod === '7d' ? 7 : 30;
+		return filterEntriesByDateRange(entries, {
+			start: getDateNDaysAgo(days),
+			end: getTodayDate()
+		});
+	}, [entries, timePeriod]);
+
 	const filteredEntries = useMemo(() => {
-		if (typeFilter === 'all') return entries;
-		return filterEntriesByType(entries, typeFilter);
-	}, [entries, typeFilter]);
+		if (typeFilter === 'all') return timeFilteredEntries;
+		return filterEntriesByType(timeFilteredEntries, typeFilter);
+	}, [timeFilteredEntries, typeFilter]);
 
 	const ranked = useMemo(() => {
 		if (viewMode === 'items') {
@@ -90,6 +108,18 @@ export default function FrequencyRanking({ entries, data }: Props) {
 	return (
 		<div className="space-y-3">
 			<h2 className="text-lg font-semibold text-heading">Most logged</h2>
+
+			<SegmentedControl
+				options={[
+					{ value: 'all' as const, label: 'All time' },
+					{ value: '7d' as const, label: '7 days' },
+					{ value: '30d' as const, label: '30 days' }
+				]}
+				value={timePeriod}
+				onchange={setTimePeriod}
+				variant="segment"
+				size="sm"
+			/>
 
 			<SegmentedControl
 				options={[
