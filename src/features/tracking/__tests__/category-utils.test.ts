@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { getEntryCategoryIds, getCategoryNameById, getEntryCategoryNames } from '../utils/category-utils';
+import { getEntryCategoryIds, getCategoryNameById, getEntryCategoryNames, getCategorySentimentCounts } from '../utils/category-utils';
 import { makeEntry, makeItem, makeCategory, makeValidData, resetIdCounter } from '@/shared/store/__tests__/fixtures';
 
 beforeEach(() => resetIdCounter());
@@ -110,5 +110,57 @@ describe('getEntryCategoryNames', () => {
 		const data = makeValidData({ foodCategories: [cat] });
 		const entry = makeEntry({ categoryOverrides: ['override-cat'] });
 		expect(getEntryCategoryNames(entry, data)).toEqual(['Override']);
+	});
+});
+
+describe('getCategorySentimentCounts', () => {
+	it('counts positive and limit categories', () => {
+		const categories = [
+			makeCategory({ id: 'c1', sentiment: 'positive' }),
+			makeCategory({ id: 'c2', sentiment: 'positive' }),
+			makeCategory({ id: 'c3', sentiment: 'limit' }),
+			makeCategory({ id: 'c4', sentiment: 'neutral' }),
+		];
+		const result = getCategorySentimentCounts(['c1', 'c2', 'c3', 'c4'], categories);
+		expect(result).toEqual({ positive: 2, limit: 1 });
+	});
+
+	it('returns zeros when all categories are neutral', () => {
+		const categories = [
+			makeCategory({ id: 'c1', sentiment: 'neutral' }),
+			makeCategory({ id: 'c2', sentiment: 'neutral' }),
+		];
+		const result = getCategorySentimentCounts(['c1', 'c2'], categories);
+		expect(result).toEqual({ positive: 0, limit: 0 });
+	});
+
+	it('returns zeros for empty category IDs', () => {
+		const categories = [makeCategory({ id: 'c1', sentiment: 'positive' })];
+		const result = getCategorySentimentCounts([], categories);
+		expect(result).toEqual({ positive: 0, limit: 0 });
+	});
+
+	it('ignores category IDs not found in categories list', () => {
+		const categories = [makeCategory({ id: 'c1', sentiment: 'positive' })];
+		const result = getCategorySentimentCounts(['c1', 'unknown-id'], categories);
+		expect(result).toEqual({ positive: 1, limit: 0 });
+	});
+
+	it('handles all positive categories', () => {
+		const categories = [
+			makeCategory({ id: 'c1', sentiment: 'positive' }),
+			makeCategory({ id: 'c2', sentiment: 'positive' }),
+		];
+		const result = getCategorySentimentCounts(['c1', 'c2'], categories);
+		expect(result).toEqual({ positive: 2, limit: 0 });
+	});
+
+	it('handles all limit categories', () => {
+		const categories = [
+			makeCategory({ id: 'c1', sentiment: 'limit' }),
+			makeCategory({ id: 'c2', sentiment: 'limit' }),
+		];
+		const result = getCategorySentimentCounts(['c1', 'c2'], categories);
+		expect(result).toEqual({ positive: 0, limit: 2 });
 	});
 });

@@ -5,7 +5,8 @@ import { getItemById, deleteEntry, updateEntry, toggleFavorite, isFavorite } fro
 import StarIcon from '@/shared/ui/StarIcon';
 import { useTrackerData } from '@/shared/store/hooks';
 import { getEntriesGroupedByDate } from '../utils/entry-grouping';
-import { getEntryCategoryNames, getEntryCategoryIds } from '../utils/category-utils';
+import { getEntryCategoryIds } from '../utils/category-utils';
+import CategoryLine from './CategoryLine';
 import { formatDate, formatTime } from '@/shared/lib/date-utils';
 import CategoryPicker from './CategoryPicker';
 import NativePickerInput from '@/shared/ui/NativePickerInput';
@@ -112,7 +113,8 @@ export default function EntryList({ entries, showType = false }: Props) {
 						{/* Grouped entry rows — flat, divider-separated */}
 						<div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-default)] overflow-hidden">
 							{dateEntries.map((entry, idx) => {
-								const categories = getEntryCategoryNames(entry, data);
+								const categoryIds = getEntryCategoryIds(entry, data);
+								const typeCategories = entry.type === 'activity' ? data.activityCategories : data.foodCategories;
 								const isLastInGroup = idx === dateEntries.length - 1;
 								const isSwiped = swipedEntryId === entry.id;
 
@@ -169,14 +171,13 @@ export default function EntryList({ entries, showType = false }: Props) {
 															{getItemName(entry.type, entry.itemId)}
 														</span>
 													</div>
-													{categories.length > 0 && (
-														<p className="text-xs text-label mt-0.5 truncate">
-															{categories.join(' \u00B7 ')}
-														</p>
-													)}
-													{entry.notes && (
-														<p className="text-xs text-subtle mt-0.5 truncate italic">{entry.notes}</p>
-													)}
+													<CategoryLine
+													categoryIds={categoryIds}
+													categories={typeCategories}
+												/>
+												{entry.notes && (
+													<p className="text-xs text-subtle mt-0.5 truncate italic">{entry.notes}</p>
+												)}
 												</div>
 												<div className="flex items-center gap-2 flex-shrink-0">
 													{entry.time && (

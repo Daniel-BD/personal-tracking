@@ -5,11 +5,10 @@ import {
 	addItem,
 	updateItem,
 	deleteItem,
-	getCategoryNames,
 	toggleFavorite,
 	isFavorite
 } from '@/shared/store/store';
-import { CategoryPicker, useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
+import { CategoryPicker, CategoryLine, useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
 import StarIcon from '@/shared/ui/StarIcon';
 import BottomSheet from '@/shared/ui/BottomSheet';
 
@@ -84,10 +83,6 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 		cancelEdit();
 	}
 
-	function getCategoryNamesForItem(item: Item): string[] {
-		return getCategoryNames(activeTab, item.categories);
-	}
-
 	const typeLabel = activeTab === 'activity' ? 'activity' : 'food';
 
 	return (
@@ -108,7 +103,6 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 			) : (
 				<div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-default)] overflow-hidden">
 					{items.map((item, idx) => {
-						const categoryNames = getCategoryNamesForItem(item);
 						const isLastInGroup = idx === items.length - 1;
 						const isSwiped = swipedEntryId === item.id;
 
@@ -155,13 +149,11 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 											<span className="font-medium text-heading truncate block">
 												{item.name}
 											</span>
-											{categoryNames.length > 0 ? (
-												<p className="text-xs text-label mt-0.5 truncate">
-													{categoryNames.join(' \u00B7 ')}
-												</p>
-											) : (
-												<p className="text-xs text-subtle mt-0.5">No categories</p>
-											)}
+											<CategoryLine
+												categoryIds={item.categories}
+												categories={categories}
+												emptyText="No categories"
+											/>
 										</div>
 										<button
 											type="button"
