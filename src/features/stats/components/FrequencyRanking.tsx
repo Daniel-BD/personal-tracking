@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import type { TrackerData, EntryType, Entry } from '@/shared/lib/types';
-import { filterEntriesByType, filterEntriesByDateRange, getEntryCategoryIds } from '@/features/tracking';
 import { getTodayDate } from '@/shared/lib/types';
+import { filterEntriesByType, filterEntriesByDateRange, getEntryCategoryIds } from '@/features/tracking';
+import { getDateNDaysAgo } from '@/shared/lib/date-utils';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 
 type TimePeriod = 'all' | '7d' | '30d';
@@ -71,12 +72,6 @@ interface Props {
 	data: TrackerData;
 }
 
-function getDateNDaysAgo(n: number): string {
-	const d = new Date();
-	d.setDate(d.getDate() - n);
-	return d.toISOString().split('T')[0];
-}
-
 export default function FrequencyRanking({ entries, data }: Props) {
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('all');
 	const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
@@ -86,7 +81,7 @@ export default function FrequencyRanking({ entries, data }: Props) {
 		if (timePeriod === 'all') return entries;
 		const days = timePeriod === '7d' ? 7 : 30;
 		return filterEntriesByDateRange(entries, {
-			start: getDateNDaysAgo(days),
+			start: getDateNDaysAgo(days - 1),
 			end: getTodayDate()
 		});
 	}, [entries, timePeriod]);

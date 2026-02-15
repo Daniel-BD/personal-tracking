@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
 	formatDateLocal,
 	formatTime,
@@ -6,6 +6,7 @@ import {
 	formatDateWithYear,
 	formatMonthYear,
 	formatWeekLabel,
+	getDateNDaysAgo,
 } from '@/shared/lib/date-utils';
 
 describe('formatTime', () => {
@@ -115,5 +116,29 @@ describe('formatWeekLabel', () => {
 		const fromString = formatWeekLabel('2025-03-10');
 		const fromDate = formatWeekLabel(new Date(2025, 2, 10));
 		expect(fromString).toBe(fromDate);
+	});
+});
+
+describe('getDateNDaysAgo', () => {
+	it('returns today for 0 days ago', () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(2025, 5, 15)); // June 15, 2025
+		expect(getDateNDaysAgo(0)).toBe('2025-06-15');
+		vi.useRealTimers();
+	});
+
+	it('returns correct date for N days ago', () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(2025, 5, 15));
+		expect(getDateNDaysAgo(6)).toBe('2025-06-09');
+		expect(getDateNDaysAgo(29)).toBe('2025-05-17');
+		vi.useRealTimers();
+	});
+
+	it('handles month boundaries', () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(2025, 2, 3)); // March 3, 2025
+		expect(getDateNDaysAgo(5)).toBe('2025-02-26');
+		vi.useRealTimers();
 	});
 });
