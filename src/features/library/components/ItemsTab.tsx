@@ -76,7 +76,9 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 	}
 
 	function handleDelete(id: string) {
-		if (!confirm('Delete this item and all its entries?')) return;
+		const item = items.find((i) => i.id === id) || (editingItem?.id === id ? editingItem : null);
+		const name = item?.name ? `"${item.name}"` : 'this item';
+		if (!confirm(`Delete item ${name} and all its entries?`)) return;
 		deleteItem(activeTab, id);
 		resetSwipe();
 		cancelEdit();
