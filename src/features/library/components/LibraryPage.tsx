@@ -17,41 +17,39 @@ export default function LibraryPage() {
 	const [showAddSheet, setShowAddSheet] = useState(false);
 
 	const allItems = useMemo(
-		() => (activeTab === 'activity' ? activityItems : foodItems)
-			.slice()
-			.sort((a, b) => a.name.localeCompare(b.name)),
-		[activeTab, activityItems, foodItems]
+		() => (activeTab === 'activity' ? activityItems : foodItems).slice().sort((a, b) => a.name.localeCompare(b.name)),
+		[activeTab, activityItems, foodItems],
 	);
 
 	const allCategories = useMemo(
-		() => (activeTab === 'activity' ? activityCategories : foodCategories)
-			.slice()
-			.sort((a, b) => a.name.localeCompare(b.name)),
-		[activeTab, activityCategories, foodCategories]
+		() =>
+			(activeTab === 'activity' ? activityCategories : foodCategories)
+				.slice()
+				.sort((a, b) => a.name.localeCompare(b.name)),
+		[activeTab, activityCategories, foodCategories],
 	);
 
 	const currentItems = useMemo(
-		() => searchQuery.trim()
-			? allItems.filter((item) =>
-				item.name.toLowerCase().includes(searchQuery.toLowerCase())
-			)
-			: allItems,
-		[allItems, searchQuery]
+		() =>
+			searchQuery.trim()
+				? allItems.filter((item) => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+				: allItems,
+		[allItems, searchQuery],
 	);
 
 	const currentCategories = useMemo(
-		() => searchQuery.trim()
-			? allCategories.filter((cat) =>
-				cat.name.toLowerCase().includes(searchQuery.toLowerCase())
-			)
-			: allCategories,
-		[allCategories, searchQuery]
+		() =>
+			searchQuery.trim()
+				? allCategories.filter((cat) => cat.name.toLowerCase().includes(searchQuery.toLowerCase()))
+				: allCategories,
+		[allCategories, searchQuery],
 	);
 
 	const count = activeSubTab === 'items' ? currentItems.length : currentCategories.length;
-	const countLabel = activeSubTab === 'items'
-		? `${count} item${count !== 1 ? 's' : ''}`
-		: `${count} ${count !== 1 ? 'categories' : 'category'}`;
+	const countLabel =
+		activeSubTab === 'items'
+			? `${count} item${count !== 1 ? 's' : ''}`
+			: `${count} ${count !== 1 ? 'categories' : 'category'}`;
 
 	return (
 		<div className="space-y-3">
@@ -75,7 +73,7 @@ export default function LibraryPage() {
 			<SegmentedControl
 				options={[
 					{ value: 'activity' as const, label: 'Activities', activeClass: 'type-activity' },
-					{ value: 'food' as const, label: 'Food', activeClass: 'type-food' }
+					{ value: 'food' as const, label: 'Food', activeClass: 'type-food' },
 				]}
 				value={activeTab}
 				onchange={setActiveTab}
@@ -87,7 +85,7 @@ export default function LibraryPage() {
 			<SegmentedControl
 				options={[
 					{ value: 'items' as const, label: 'Items' },
-					{ value: 'categories' as const, label: 'Categories' }
+					{ value: 'categories' as const, label: 'Categories' },
 				]}
 				value={activeSubTab}
 				onchange={setActiveSubTab}

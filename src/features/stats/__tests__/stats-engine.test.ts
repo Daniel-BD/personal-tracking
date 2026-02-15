@@ -62,10 +62,7 @@ describe('processFoodEntriesByWeek', () => {
 	it('groups entries into correct weeks', () => {
 		const item = makeItem({ id: 'item-1' });
 		const data = makeValidData({ foodItems: [item] });
-		const weeks = [
-			makeWeek('2025-W03', '2025-01-13', '2025-01-19'),
-			makeWeek('2025-W04', '2025-01-20', '2025-01-26'),
-		];
+		const weeks = [makeWeek('2025-W03', '2025-01-13', '2025-01-19'), makeWeek('2025-W04', '2025-01-20', '2025-01-26')];
 		const entries = [
 			makeEntry({ type: 'food', itemId: 'item-1', date: '2025-01-14' }),
 			makeEntry({ type: 'food', itemId: 'item-1', date: '2025-01-15' }),
@@ -100,10 +97,7 @@ describe('processFoodEntriesByWeek', () => {
 	it('marks week as hasLowData when fewer than 5 entries', () => {
 		const data = makeValidData();
 		const weeks = [makeWeek('2025-W03', '2025-01-13', '2025-01-19')];
-		const entries = [
-			makeEntry({ type: 'food', date: '2025-01-14' }),
-			makeEntry({ type: 'food', date: '2025-01-15' }),
-		];
+		const entries = [makeEntry({ type: 'food', date: '2025-01-14' }), makeEntry({ type: 'food', date: '2025-01-15' })];
 		const result = processFoodEntriesByWeek(entries, data, weeks);
 		expect(result[0].hasLowData).toBe(true);
 	});
@@ -111,9 +105,7 @@ describe('processFoodEntriesByWeek', () => {
 	it('marks week as not hasLowData with 5+ entries', () => {
 		const data = makeValidData();
 		const weeks = [makeWeek('2025-W03', '2025-01-13', '2025-01-19')];
-		const entries = Array.from({ length: 5 }, (_, i) =>
-			makeEntry({ type: 'food', date: `2025-01-${13 + i}` })
-		);
+		const entries = Array.from({ length: 5 }, (_, i) => makeEntry({ type: 'food', date: `2025-01-${13 + i}` }));
 		const result = processFoodEntriesByWeek(entries, data, weeks);
 		expect(result[0].hasLowData).toBe(false);
 	});
@@ -131,8 +123,12 @@ describe('processFoodEntriesByWeek', () => {
 describe('calculateBalanceScore', () => {
 	it('returns 100 when all positive', () => {
 		const weekData: WeeklyData = {
-			weekKey: 'test', start: new Date(), end: new Date(),
-			entries: [], totalCount: 5, categories: [],
+			weekKey: 'test',
+			start: new Date(),
+			end: new Date(),
+			entries: [],
+			totalCount: 5,
+			categories: [],
 			sentimentCounts: { positive: 5, neutral: 2, limit: 0 },
 			hasLowData: false,
 		};
@@ -141,8 +137,12 @@ describe('calculateBalanceScore', () => {
 
 	it('returns 0 when all limit', () => {
 		const weekData: WeeklyData = {
-			weekKey: 'test', start: new Date(), end: new Date(),
-			entries: [], totalCount: 5, categories: [],
+			weekKey: 'test',
+			start: new Date(),
+			end: new Date(),
+			entries: [],
+			totalCount: 5,
+			categories: [],
 			sentimentCounts: { positive: 0, neutral: 2, limit: 5 },
 			hasLowData: false,
 		};
@@ -151,8 +151,12 @@ describe('calculateBalanceScore', () => {
 
 	it('returns 50 for equal positive and limit', () => {
 		const weekData: WeeklyData = {
-			weekKey: 'test', start: new Date(), end: new Date(),
-			entries: [], totalCount: 6, categories: [],
+			weekKey: 'test',
+			start: new Date(),
+			end: new Date(),
+			entries: [],
+			totalCount: 6,
+			categories: [],
 			sentimentCounts: { positive: 3, neutral: 2, limit: 3 },
 			hasLowData: false,
 		};
@@ -161,8 +165,12 @@ describe('calculateBalanceScore', () => {
 
 	it('returns 0 when no positive or limit entries', () => {
 		const weekData: WeeklyData = {
-			weekKey: 'test', start: new Date(), end: new Date(),
-			entries: [], totalCount: 0, categories: [],
+			weekKey: 'test',
+			start: new Date(),
+			end: new Date(),
+			entries: [],
+			totalCount: 0,
+			categories: [],
 			sentimentCounts: { positive: 0, neutral: 0, limit: 0 },
 			hasLowData: true,
 		};
@@ -171,8 +179,12 @@ describe('calculateBalanceScore', () => {
 
 	it('ignores neutral entries in the calculation', () => {
 		const weekData: WeeklyData = {
-			weekKey: 'test', start: new Date(), end: new Date(),
-			entries: [], totalCount: 10, categories: [],
+			weekKey: 'test',
+			start: new Date(),
+			end: new Date(),
+			entries: [],
+			totalCount: 10,
+			categories: [],
 			sentimentCounts: { positive: 3, neutral: 100, limit: 1 },
 			hasLowData: false,
 		};
@@ -209,8 +221,12 @@ describe('getScoreChange', () => {
 describe('getTopCategories', () => {
 	it('returns category IDs sorted by total count across weeks', () => {
 		const week1: WeeklyData = {
-			weekKey: 'w1', start: new Date(), end: new Date(),
-			entries: [], totalCount: 0, hasLowData: false,
+			weekKey: 'w1',
+			start: new Date(),
+			end: new Date(),
+			entries: [],
+			totalCount: 0,
+			hasLowData: false,
 			sentimentCounts: { positive: 0, neutral: 0, limit: 0 },
 			categories: [
 				{ categoryId: 'a', categoryName: 'A', sentiment: 'neutral', count: 5 },
@@ -218,8 +234,12 @@ describe('getTopCategories', () => {
 			],
 		};
 		const week2: WeeklyData = {
-			weekKey: 'w2', start: new Date(), end: new Date(),
-			entries: [], totalCount: 0, hasLowData: false,
+			weekKey: 'w2',
+			start: new Date(),
+			end: new Date(),
+			entries: [],
+			totalCount: 0,
+			hasLowData: false,
 			sentimentCounts: { positive: 0, neutral: 0, limit: 0 },
 			categories: [
 				{ categoryId: 'a', categoryName: 'A', sentiment: 'neutral', count: 8 },
@@ -234,8 +254,12 @@ describe('getTopCategories', () => {
 
 	it('respects the limit parameter', () => {
 		const week: WeeklyData = {
-			weekKey: 'w', start: new Date(), end: new Date(),
-			entries: [], totalCount: 0, hasLowData: false,
+			weekKey: 'w',
+			start: new Date(),
+			end: new Date(),
+			entries: [],
+			totalCount: 0,
+			hasLowData: false,
 			sentimentCounts: { positive: 0, neutral: 0, limit: 0 },
 			categories: [
 				{ categoryId: 'a', categoryName: 'A', sentiment: 'neutral', count: 5 },
@@ -250,8 +274,12 @@ describe('getTopCategories', () => {
 
 	it('returns empty array when no categories', () => {
 		const week: WeeklyData = {
-			weekKey: 'w', start: new Date(), end: new Date(),
-			entries: [], totalCount: 0, hasLowData: false,
+			weekKey: 'w',
+			start: new Date(),
+			end: new Date(),
+			entries: [],
+			totalCount: 0,
+			hasLowData: false,
 			sentimentCounts: { positive: 0, neutral: 0, limit: 0 },
 			categories: [],
 		};
@@ -298,8 +326,12 @@ describe('buildCategoryColorMap', () => {
 
 describe('groupCategoriesForWeek', () => {
 	const makeWeeklyData = (categories: WeeklyData['categories']): WeeklyData => ({
-		weekKey: 'w', start: new Date(), end: new Date(),
-		entries: [], totalCount: 0, hasLowData: false,
+		weekKey: 'w',
+		start: new Date(),
+		end: new Date(),
+		entries: [],
+		totalCount: 0,
+		hasLowData: false,
 		sentimentCounts: { positive: 0, neutral: 0, limit: 0 },
 		categories,
 	});
@@ -330,9 +362,7 @@ describe('groupCategoriesForWeek', () => {
 	});
 
 	it('omits Other when all categories are in top list', () => {
-		const week = makeWeeklyData([
-			{ categoryId: 'a', categoryName: 'A', sentiment: 'neutral', count: 5 },
-		]);
+		const week = makeWeeklyData([{ categoryId: 'a', categoryName: 'A', sentiment: 'neutral', count: 5 }]);
 		const result = groupCategoriesForWeek(week, ['a', 'b']);
 		expect(result).toHaveLength(1);
 		expect(result[0].categoryId).toBe('a');
@@ -401,13 +431,13 @@ describe('getTopLimitCategories', () => {
 
 	it('respects limit parameter', () => {
 		const cats = Array.from({ length: 3 }, (_, i) =>
-			makeCategory({ id: `lim-${i}`, name: `Limit ${i}`, sentiment: 'limit' })
+			makeCategory({ id: `lim-${i}`, name: `Limit ${i}`, sentiment: 'limit' }),
 		);
 		const items = Array.from({ length: 3 }, (_, i) => makeItem({ id: `i${i}` }));
 		const data = makeValidData({ foodItems: items, foodCategories: cats });
 		const weeks = [makeWeek('2025-W03', '2025-01-13', '2025-01-19')];
 		const entries = cats.map((c, i) =>
-			makeEntry({ type: 'food', itemId: `i${i}`, date: '2025-01-15', categoryOverrides: [c.id] })
+			makeEntry({ type: 'food', itemId: `i${i}`, date: '2025-01-15', categoryOverrides: [c.id] }),
 		);
 		const result = getTopLimitCategories(entries, data, weeks, 1);
 		expect(result).toHaveLength(1);
@@ -437,7 +467,7 @@ describe('getLaggingPositiveCategories', () => {
 		const entries = [
 			// Fruits: 5 entries (dominant)
 			...Array.from({ length: 5 }, (_, i) =>
-				makeEntry({ type: 'food', itemId: 'i1', date: `2025-01-${14 + i}`, categoryOverrides: ['p1'] })
+				makeEntry({ type: 'food', itemId: 'i1', date: `2025-01-${14 + i}`, categoryOverrides: ['p1'] }),
 			),
 			// Veggies: 1 entry (lagging)
 			makeEntry({ type: 'food', itemId: 'i2', date: '2025-01-20', categoryOverrides: ['p2'] }),
@@ -484,7 +514,7 @@ describe('getLaggingPositiveCategories', () => {
 
 	it('respects limit parameter', () => {
 		const cats = Array.from({ length: 5 }, (_, i) =>
-			makeCategory({ id: `p${i}`, name: `Pos ${i}`, sentiment: 'positive' })
+			makeCategory({ id: `p${i}`, name: `Pos ${i}`, sentiment: 'positive' }),
 		);
 		const items = [makeItem({ id: 'i0' })];
 		const data = makeValidData({ foodItems: items, foodCategories: cats });
@@ -496,7 +526,7 @@ describe('getLaggingPositiveCategories', () => {
 		];
 		// Only one category has entries — the rest all lag
 		const entries = Array.from({ length: 10 }, () =>
-			makeEntry({ type: 'food', itemId: 'i0', date: '2025-01-15', categoryOverrides: ['p0'] })
+			makeEntry({ type: 'food', itemId: 'i0', date: '2025-01-15', categoryOverrides: ['p0'] }),
 		);
 		const result = getLaggingPositiveCategories(entries, data, weeks, 2);
 		expect(result).toHaveLength(2);

@@ -16,13 +16,8 @@ export default function NativePickerInput({ type, value, onChange, onClear, id }
 	return (
 		<div className="relative">
 			{/* Visible styled display */}
-			<div
-				id={id}
-				className={`form-input w-full text-left flex items-center ${showClear ? 'pr-8' : ''}`}
-			>
-				<span className={value ? '' : 'text-[var(--text-muted)]'}>
-					{displayValue || placeholder}
-				</span>
+			<div id={id} className={`form-input w-full text-left flex items-center ${showClear ? 'pr-8' : ''}`}>
+				<span className={value ? '' : 'text-[var(--text-muted)]'}>{displayValue || placeholder}</span>
 			</div>
 
 			{/* Native input — transparent overlay that captures taps directly.

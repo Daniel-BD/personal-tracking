@@ -114,9 +114,13 @@ describe('gist sync', () => {
 
 			// Import data with an item (sync disabled)
 			(isConfigured as Mock).mockReturnValue(false);
-			importData(JSON.stringify(makeValidData({
-				foodItems: [{ id: 'shared-id', name: 'Local Version', categories: [] }],
-			})));
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodItems: [{ id: 'shared-id', name: 'Local Version', categories: [] }],
+					}),
+				),
+			);
 			vi.clearAllMocks();
 			(isConfigured as Mock).mockReturnValue(true);
 			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
@@ -144,12 +148,16 @@ describe('gist sync', () => {
 
 			// Start with an item locally
 			(isConfigured as Mock).mockReturnValue(false);
-			importData(JSON.stringify(makeValidData({
-				foodItems: [
-					{ id: 'keep-me', name: 'Keeper', categories: [] },
-					{ id: 'delete-me', name: 'Doomed', categories: [] },
-				],
-			})));
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodItems: [
+							{ id: 'keep-me', name: 'Keeper', categories: [] },
+							{ id: 'delete-me', name: 'Doomed', categories: [] },
+						],
+					}),
+				),
+			);
 			vi.clearAllMocks();
 			(isConfigured as Mock).mockReturnValue(true);
 			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
@@ -177,13 +185,33 @@ describe('gist sync', () => {
 
 		it('does not restore deleted entries from remote', async () => {
 			(isConfigured as Mock).mockReturnValue(false);
-			importData(JSON.stringify(makeValidData({
-				foodItems: [{ id: 'item1', name: 'Apple', categories: [] }],
-				entries: [
-					{ id: 'e-keep', type: 'food' as const, itemId: 'item1', date: '2025-01-15', time: null, notes: null, categoryOverrides: null },
-					{ id: 'e-delete', type: 'food' as const, itemId: 'item1', date: '2025-01-16', time: null, notes: null, categoryOverrides: null },
-				],
-			})));
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodItems: [{ id: 'item1', name: 'Apple', categories: [] }],
+						entries: [
+							{
+								id: 'e-keep',
+								type: 'food' as const,
+								itemId: 'item1',
+								date: '2025-01-15',
+								time: null,
+								notes: null,
+								categoryOverrides: null,
+							},
+							{
+								id: 'e-delete',
+								type: 'food' as const,
+								itemId: 'item1',
+								date: '2025-01-16',
+								time: null,
+								notes: null,
+								categoryOverrides: null,
+							},
+						],
+					}),
+				),
+			);
 			vi.clearAllMocks();
 			(isConfigured as Mock).mockReturnValue(true);
 			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
@@ -192,8 +220,24 @@ describe('gist sync', () => {
 			const remoteData = makeValidData({
 				foodItems: [{ id: 'item1', name: 'Apple', categories: [] }],
 				entries: [
-					{ id: 'e-keep', type: 'food' as const, itemId: 'item1', date: '2025-01-15', time: null, notes: null, categoryOverrides: null },
-					{ id: 'e-delete', type: 'food' as const, itemId: 'item1', date: '2025-01-16', time: null, notes: null, categoryOverrides: null },
+					{
+						id: 'e-keep',
+						type: 'food' as const,
+						itemId: 'item1',
+						date: '2025-01-15',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
+					{
+						id: 'e-delete',
+						type: 'food' as const,
+						itemId: 'item1',
+						date: '2025-01-16',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
 				],
 			});
 			(fetchGist as Mock).mockResolvedValue(remoteData);
@@ -212,16 +256,20 @@ describe('gist sync', () => {
 		it('merges dashboard cards and respects pending deletions', async () => {
 			(isConfigured as Mock).mockReturnValue(false);
 			const { removeDashboardCard } = await import('../store');
-			importData(JSON.stringify(makeValidData({
-				foodCategories: [
-					{ id: 'cat1', name: 'Fruit', sentiment: 'positive' },
-					{ id: 'cat2', name: 'Veggies', sentiment: 'positive' },
-				],
-				dashboardCards: [
-					{ categoryId: 'cat1', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
-					{ categoryId: 'cat2', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
-				],
-			})));
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodCategories: [
+							{ id: 'cat1', name: 'Fruit', sentiment: 'positive' },
+							{ id: 'cat2', name: 'Veggies', sentiment: 'positive' },
+						],
+						dashboardCards: [
+							{ categoryId: 'cat1', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
+							{ categoryId: 'cat2', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
+						],
+					}),
+				),
+			);
 			vi.clearAllMocks();
 			(isConfigured as Mock).mockReturnValue(true);
 			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
@@ -255,9 +303,13 @@ describe('gist sync', () => {
 	describe('backup operations', () => {
 		it('backupToGist sends current data to backup gist', async () => {
 			(isConfigured as Mock).mockReturnValue(false);
-			importData(JSON.stringify(makeValidData({
-				foodItems: [{ id: 'i1', name: 'Apple', categories: [] }],
-			})));
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodItems: [{ id: 'i1', name: 'Apple', categories: [] }],
+					}),
+				),
+			);
 			vi.clearAllMocks();
 			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: 'backup-id' });
 			(updateGist as Mock).mockResolvedValue(undefined);
@@ -268,9 +320,7 @@ describe('gist sync', () => {
 				'backup-id',
 				'test-token',
 				expect.objectContaining({
-					foodItems: expect.arrayContaining([
-						expect.objectContaining({ name: 'Apple' }),
-					]),
+					foodItems: expect.arrayContaining([expect.objectContaining({ name: 'Apple' })]),
 				}),
 			);
 		});
@@ -289,9 +339,13 @@ describe('gist sync', () => {
 
 		it('restoreFromBackupGist replaces current data', async () => {
 			(isConfigured as Mock).mockReturnValue(false);
-			importData(JSON.stringify(makeValidData({
-				foodItems: [{ id: 'old', name: 'Old Item', categories: [] }],
-			})));
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodItems: [{ id: 'old', name: 'Old Item', categories: [] }],
+					}),
+				),
+			);
 			vi.clearAllMocks();
 			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: 'backup-id' });
 			(isConfigured as Mock).mockReturnValue(false); // prevent pushToGist side effects

@@ -1,15 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Pencil, Trash2, PackageOpen } from 'lucide-react';
 import type { Item, Category, EntryType } from '@/shared/lib/types';
-import {
-	addItem,
-	updateItem,
-	deleteItem,
-	getCategoryNames,
-	toggleFavorite,
-	isFavorite
-} from '@/shared/store/store';
-import { CategoryPicker, useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
+import { addItem, updateItem, deleteItem, toggleFavorite, isFavorite } from '@/shared/store/store';
+import { CategoryPicker, CategoryLine, useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
 import StarIcon from '@/shared/ui/StarIcon';
 import BottomSheet from '@/shared/ui/BottomSheet';
 
@@ -84,10 +77,6 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 		cancelEdit();
 	}
 
-	function getCategoryNamesForItem(item: Item): string[] {
-		return getCategoryNames(activeTab, item.categories);
-	}
-
 	const typeLabel = activeTab === 'activity' ? 'activity' : 'food';
 
 	return (
@@ -97,18 +86,13 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 				<div className="text-center py-12">
 					<PackageOpen className="w-10 h-10 text-subtle mx-auto mb-3" strokeWidth={1.5} />
 					<p className="text-label mb-1">
-						{searchQuery.trim()
-							? `No ${typeLabel} items match "${searchQuery}"`
-							: `No ${typeLabel} items yet`}
+						{searchQuery.trim() ? `No ${typeLabel} items match "${searchQuery}"` : `No ${typeLabel} items yet`}
 					</p>
-					{!searchQuery.trim() && (
-						<p className="text-xs text-subtle">Tap + to add your first item</p>
-					)}
+					{!searchQuery.trim() && <p className="text-xs text-subtle">Tap + to add your first item</p>}
 				</div>
 			) : (
 				<div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-default)] overflow-hidden">
 					{items.map((item, idx) => {
-						const categoryNames = getCategoryNamesForItem(item);
 						const isLastInGroup = idx === items.length - 1;
 						const isSwiped = swipedEntryId === item.id;
 
@@ -143,7 +127,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 									}`}
 									style={{
 										transform: isSwiped ? `translateX(${swipeOffset}px)` : 'translateX(0)',
-										transition: isTouching() ? 'none' : 'transform 0.25s ease-out'
+										transition: isTouching() ? 'none' : 'transform 0.25s ease-out',
 									}}
 									onTouchStart={(e) => handleTouchStart(e, item.id)}
 									onTouchMove={handleTouchMove}
@@ -152,20 +136,15 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 								>
 									<div className="flex items-center justify-between gap-3">
 										<div className="flex-1 min-w-0">
-											<span className="font-medium text-heading truncate block">
-												{item.name}
-											</span>
-											{categoryNames.length > 0 ? (
-												<p className="text-xs text-label mt-0.5 truncate">
-													{categoryNames.join(' \u00B7 ')}
-												</p>
-											) : (
-												<p className="text-xs text-subtle mt-0.5">No categories</p>
-											)}
+											<span className="font-medium text-heading truncate block">{item.name}</span>
+											<CategoryLine categoryIds={item.categories} categories={categories} emptyText="No categories" />
 										</div>
 										<button
 											type="button"
-											onClick={(e) => { e.stopPropagation(); toggleFavorite(item.id); }}
+											onClick={(e) => {
+												e.stopPropagation();
+												toggleFavorite(item.id);
+											}}
 											className="p-0.5 flex-shrink-0"
 											aria-label={isFavorite(item.id) ? 'Remove from favorites' : 'Add to favorites'}
 										>
@@ -185,18 +164,16 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 				onclose={onCloseAddSheet}
 				title={`Add ${activeTab === 'activity' ? 'Activity' : 'Food'} Item`}
 				headerAction={
-					<button
-						onClick={handleAdd}
-						disabled={!formName.trim()}
-						className="btn-primary btn-sm rounded-full px-4"
-					>
+					<button onClick={handleAdd} disabled={!formName.trim()} className="btn-primary btn-sm rounded-full px-4">
 						Add
 					</button>
 				}
 			>
 				<div className="space-y-4">
 					<div>
-						<label htmlFor="addItemName" className="form-label">Name</label>
+						<label htmlFor="addItemName" className="form-label">
+							Name
+						</label>
 						<input
 							id="addItemName"
 							type="text"
@@ -239,7 +216,9 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 				{editingItem && (
 					<div className="space-y-4">
 						<div>
-							<label htmlFor="editItemName" className="form-label">Name</label>
+							<label htmlFor="editItemName" className="form-label">
+								Name
+							</label>
 							<input
 								id="editItemName"
 								type="text"
@@ -258,10 +237,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 							/>
 						</div>
 						<div className="pt-2">
-							<button
-								onClick={() => handleDelete(editingItem.id)}
-								className="btn btn-danger w-full"
-							>
+							<button onClick={() => handleDelete(editingItem.id)} className="btn btn-danger w-full">
 								<Trash2 className="w-4 h-4 mr-2" strokeWidth={2} />
 								Delete Item
 							</button>

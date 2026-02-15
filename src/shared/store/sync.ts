@@ -20,7 +20,7 @@ export const pendingDeletions: PendingDeletions = {
 	foodItems: new Set(),
 	activityCategories: new Set(),
 	foodCategories: new Set(),
-	dashboardCards: new Set()
+	dashboardCards: new Set(),
 };
 
 export function clearPendingDeletions(): void {
@@ -58,22 +58,23 @@ export function mergeTrackerData(local: TrackerData, remote: TrackerData): Track
 	const mergedFoodItems = mergeById(local.foodItems, remote.foodItems, pendingDeletions.foodItems);
 
 	// Merge favorites: union of both sets, filtered to only existing merged items
-	const mergedItemIds = new Set([
-		...mergedActivityItems.map((i) => i.id),
-		...mergedFoodItems.map((i) => i.id)
-	]);
+	const mergedItemIds = new Set([...mergedActivityItems.map((i) => i.id), ...mergedFoodItems.map((i) => i.id)]);
 	const favSet = new Set([...(local.favoriteItems || []), ...(remote.favoriteItems || [])]);
 	const mergedFavorites = Array.from(favSet).filter((id) => mergedItemIds.has(id));
 
 	return {
 		activityItems: mergedActivityItems,
 		foodItems: mergedFoodItems,
-		activityCategories: mergeById(local.activityCategories, remote.activityCategories, pendingDeletions.activityCategories),
+		activityCategories: mergeById(
+			local.activityCategories,
+			remote.activityCategories,
+			pendingDeletions.activityCategories,
+		),
 		foodCategories: mergeById(local.foodCategories, remote.foodCategories, pendingDeletions.foodCategories),
 		entries: mergeById(local.entries, remote.entries, pendingDeletions.entries),
 		dashboardCards: Array.from(cardMap.values()),
 		dashboardInitialized: local.dashboardInitialized || remote.dashboardInitialized,
-		favoriteItems: mergedFavorites
+		favoriteItems: mergedFavorites,
 	};
 }
 
@@ -97,7 +98,7 @@ function mergeById<T extends { id: string }>(local: T[], remote: T[], excludeIds
 export async function pushToGist(
 	getCurrentData: () => TrackerData,
 	setData: (data: TrackerData) => void,
-	setSyncStatus: (status: 'idle' | 'syncing' | 'error') => void
+	setSyncStatus: (status: 'idle' | 'syncing' | 'error') => void,
 ): Promise<void> {
 	if (!isConfigured()) return;
 
@@ -121,7 +122,7 @@ export async function pushToGist(
 
 export async function loadFromGistFn(
 	setData: (data: TrackerData) => void,
-	setSyncStatus: (status: 'idle' | 'syncing' | 'error') => void
+	setSyncStatus: (status: 'idle' | 'syncing' | 'error') => void,
 ): Promise<void> {
 	if (!isConfigured()) return;
 
@@ -152,7 +153,7 @@ export async function backupToGistFn(backupGistId: string, getCurrentData: () =>
 export async function restoreFromBackupGistFn(
 	backupGistId: string,
 	setData: (data: TrackerData) => void,
-	triggerPush: () => void
+	triggerPush: () => void,
 ): Promise<void> {
 	const config = getConfig();
 	if (!config.token || !backupGistId) {

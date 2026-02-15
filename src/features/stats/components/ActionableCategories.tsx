@@ -1,11 +1,7 @@
 import { useMemo } from 'react';
 import type { TrackerData } from '@/shared/lib/types';
 import type { ActionableCategoryRow } from '../utils/stats-engine';
-import {
-	getLastNWeeks,
-	getTopLimitCategories,
-	getLaggingPositiveCategories
-} from '../utils/stats-engine';
+import { getLastNWeeks, getTopLimitCategories, getLaggingPositiveCategories } from '../utils/stats-engine';
 import { addDashboardCard } from '@/shared/store/store';
 import { showToast } from '@/shared/ui/Toast';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
@@ -19,15 +15,9 @@ interface ActionableCategoriesProps {
 export default function ActionableCategories({ data }: ActionableCategoriesProps) {
 	const weeks = useMemo(() => getLastNWeeks(8), []);
 
-	const limitRows = useMemo(
-		() => getTopLimitCategories(data.entries, data, weeks),
-		[data, weeks]
-	);
+	const limitRows = useMemo(() => getTopLimitCategories(data.entries, data, weeks), [data, weeks]);
 
-	const positiveRows = useMemo(
-		() => getLaggingPositiveCategories(data.entries, data, weeks),
-		[data, weeks]
-	);
+	const positiveRows = useMemo(() => getLaggingPositiveCategories(data.entries, data, weeks), [data, weeks]);
 
 	const followedIds = useMemo(() => {
 		return new Set((data.dashboardCards || []).map((c) => c.categoryId));
@@ -107,21 +97,15 @@ function Panel({ title, subtitle, rows, accent, followedIds, onFollow }: PanelPr
 						<div key={row.categoryId} className="group">
 							<div className="flex items-center justify-between gap-2 mb-0.5">
 								<div className="flex items-center gap-2 min-w-0 flex-1">
-									<span className="text-sm font-medium text-heading truncate">
-										{row.categoryName}
-									</span>
-									<span className="text-xs text-label whitespace-nowrap">
-										{row.label}
-									</span>
+									<span className="text-sm font-medium text-heading truncate">{row.categoryName}</span>
+									<span className="text-xs text-label whitespace-nowrap">{row.label}</span>
 								</div>
 
 								<button
 									onClick={() => onFollow(row.categoryId, row.categoryName)}
 									disabled={isFollowed}
 									className={`text-xs font-medium px-2 py-0.5 rounded transition-colors whitespace-nowrap ${
-										isFollowed
-											? 'text-label cursor-default'
-											: 'text-body hover:bg-[var(--bg-inset)]'
+										isFollowed ? 'text-label cursor-default' : 'text-body hover:bg-[var(--bg-inset)]'
 									} ${!isMobile && !isFollowed ? 'sm:opacity-0 sm:group-hover:opacity-100' : ''}`}
 								>
 									{isFollowed ? '\u2713 Following' : '+ Follow'}
@@ -134,7 +118,7 @@ function Panel({ title, subtitle, rows, accent, followedIds, onFollow }: PanelPr
 									style={{
 										width: `${barWidth}%`,
 										backgroundColor: barColor,
-										opacity: 0.7
+										opacity: 0.7,
 									}}
 								/>
 							</div>

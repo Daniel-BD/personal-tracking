@@ -41,10 +41,7 @@ export default function SettingsPage() {
 
 			<ThemeSection />
 
-			<GistConfigSection
-				onBrowseGists={handleBrowseGists}
-				selectedGistId={selectedPrimaryGistId}
-			/>
+			<GistConfigSection onBrowseGists={handleBrowseGists} selectedGistId={selectedPrimaryGistId} />
 
 			{/* Shared gist list — shown inline when browsing */}
 			{showGistList && existingGists.length > 0 && (
@@ -70,7 +67,9 @@ export default function SettingsPage() {
 									{gist.files.length > 3 ? '...' : ''}
 								</div>
 								{gist.files.includes('tracker-data.json') && (
-									<span className="text-xs" style={{ color: 'var(--color-success)' }}>Contains tracker data</span>
+									<span className="text-xs" style={{ color: 'var(--color-success)' }}>
+										Contains tracker data
+									</span>
 								)}
 							</button>
 						))}
@@ -89,18 +88,14 @@ export default function SettingsPage() {
 				</p>
 			)}
 
-			{token && (
-				<BackupSection
-					token={token}
-					onBrowseGists={handleBrowseGists}
-					selectedGistId={selectedBackupGistId}
-				/>
-			)}
+			{token && <BackupSection token={token} onBrowseGists={handleBrowseGists} selectedGistId={selectedBackupGistId} />}
 
 			<div className="card p-6">
 				<h3 className="text-lg font-semibold text-heading mb-4">How to get a GitHub Token</h3>
 				<ol className="text-sm text-body space-y-2 list-decimal list-inside">
-					<li>Go to GitHub Settings &rarr; Developer settings &rarr; Personal access tokens &rarr; Fine-grained tokens</li>
+					<li>
+						Go to GitHub Settings &rarr; Developer settings &rarr; Personal access tokens &rarr; Fine-grained tokens
+					</li>
 					<li>Click &quot;Generate new token&quot;</li>
 					<li>Give it a name like &quot;Activity Tracker&quot;</li>
 					<li>Under &quot;Account permissions&quot;, set Gists to &quot;Read and write&quot;</li>

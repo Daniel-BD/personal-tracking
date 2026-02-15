@@ -6,7 +6,7 @@ import type { CategorySentiment } from '@/shared/lib/types';
 const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
 	positive: 'var(--color-success)',
 	limit: 'var(--color-danger)',
-	neutral: 'var(--color-neutral)'
+	neutral: 'var(--color-neutral)',
 };
 
 interface GoalCardProps {
@@ -26,7 +26,7 @@ export default function GoalCard({
 	currentCount,
 	baselineAvg,
 	deltaPercent,
-	onRemove
+	onRemove,
 }: GoalCardProps) {
 	const color = SENTIMENT_COLORS[sentiment];
 
@@ -49,9 +49,7 @@ export default function GoalCard({
 		return `(${sign}${formatted} ${unit})`;
 	}, [isStable, currentCount, baselineAvg]);
 
-	const avgFormatted = Number.isInteger(baselineAvg)
-		? baselineAvg.toString()
-		: baselineAvg.toFixed(1);
+	const avgFormatted = Number.isInteger(baselineAvg) ? baselineAvg.toString() : baselineAvg.toFixed(1);
 
 	return (
 		<div className="card p-4 flex flex-col justify-between relative group h-full min-h-[160px]">
@@ -66,13 +64,8 @@ export default function GoalCard({
 
 			{/* 1. Category name + sentiment dot */}
 			<div className="flex items-center gap-1.5">
-				<div
-					className="w-2 h-2 rounded-full"
-					style={{ backgroundColor: color }}
-				/>
-				<span className="text-xs font-medium text-label truncate max-w-[120px]">
-					{categoryName}
-				</span>
+				<div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+				<span className="text-xs font-medium text-label truncate max-w-[120px]">{categoryName}</span>
 			</div>
 
 			{/* 2. Current value block — explicit values */}
@@ -87,29 +80,17 @@ export default function GoalCard({
 
 			{/* 3. Primary change metric */}
 			<div className="mt-1 flex items-baseline gap-1.5">
-				<span
-					className="text-lg font-bold"
-					style={{ color: isStable ? undefined : color }}
-				>
+				<span className="text-lg font-bold" style={{ color: isStable ? undefined : color }}>
 					{changeText}
 				</span>
-				{deltaEvents && (
-					<span className="text-[10px] text-label">
-						{deltaEvents}
-					</span>
-				)}
+				{deltaEvents && <span className="text-[10px] text-label">{deltaEvents}</span>}
 			</div>
 
 			{/* 4. Sparkline */}
 			<div className="h-12 w-full -mx-2 mt-1">
 				<ResponsiveContainer width="100%" height="100%">
 					<LineChart data={sparklineData}>
-						<ReferenceLine
-							y={baselineAvg}
-							stroke="var(--border-default)"
-							strokeDasharray="3 3"
-							strokeWidth={1}
-						/>
+						<ReferenceLine y={baselineAvg} stroke="var(--border-default)" strokeDasharray="3 3" strokeWidth={1} />
 						<Line
 							type="monotone"
 							dataKey="count"
@@ -120,27 +101,9 @@ export default function GoalCard({
 								if (cx == null || cy == null || index == null) return <></>;
 								const isLast = index === sparklineData.length - 1;
 								if (isLast) {
-									return (
-										<Dot
-											cx={cx}
-											cy={cy}
-											r={4}
-											fill={color}
-											stroke="var(--bg-card)"
-											strokeWidth={2}
-										/>
-									);
+									return <Dot cx={cx} cy={cy} r={4} fill={color} stroke="var(--bg-card)" strokeWidth={2} />;
 								}
-								return (
-									<Dot
-										cx={cx}
-										cy={cy}
-										r={2}
-										fill={color}
-										stroke="none"
-										opacity={0.35}
-									/>
-								);
+								return <Dot cx={cx} cy={cy} r={2} fill={color} stroke="none" opacity={0.35} />;
 							}}
 							isAnimationActive={false}
 						/>

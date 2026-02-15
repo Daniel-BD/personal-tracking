@@ -33,9 +33,7 @@ export default function CategoryPicker({ selected, categories, onchange, type }:
 		const trimmedName = searchText.trim();
 		if (!trimmedName || !type) return;
 
-		const existing = categories.find(
-			(c) => c.name.toLowerCase() === trimmedName.toLowerCase()
-		);
+		const existing = categories.find((c) => c.name.toLowerCase() === trimmedName.toLowerCase());
 
 		if (existing) {
 			if (!selected.includes(existing.id)) {
@@ -56,32 +54,24 @@ export default function CategoryPicker({ selected, categories, onchange, type }:
 		}
 	}
 
-	const availableCategories = useMemo(
-		() => categories.filter((c) => !selected.includes(c.id)),
-		[categories, selected]
-	);
+	const availableCategories = useMemo(() => categories.filter((c) => !selected.includes(c.id)), [categories, selected]);
 
 	const filteredCategories = useMemo(
-		() => searchText.trim()
-			? availableCategories.filter((c) =>
-				c.name.toLowerCase().includes(searchText.toLowerCase())
-			)
-			: availableCategories,
-		[availableCategories, searchText]
+		() =>
+			searchText.trim()
+				? availableCategories.filter((c) => c.name.toLowerCase().includes(searchText.toLowerCase()))
+				: availableCategories,
+		[availableCategories, searchText],
 	);
 
 	const selectedCategories = useMemo(
-		() => selected
-			.map((id) => ({ id, name: getCategoryName(id) }))
-			.filter((c) => c.name),
-		[selected, categories]
+		() => selected.map((id) => ({ id, name: getCategoryName(id) })).filter((c) => c.name),
+		[selected, categories],
 	);
 
 	const searchMatchesExisting = useMemo(
-		() => categories.some(
-			(c) => c.name.toLowerCase() === searchText.trim().toLowerCase()
-		),
-		[categories, searchText]
+		() => categories.some((c) => c.name.toLowerCase() === searchText.trim().toLowerCase()),
+		[categories, searchText],
 	);
 
 	return (
@@ -143,7 +133,9 @@ export default function CategoryPicker({ selected, categories, onchange, type }:
 			) : selectedCategories.length === 0 && !type ? (
 				<p className="text-xs text-subtle">No categories available. Create categories in the Library.</p>
 			) : searchText.trim() && filteredCategories.length === 0 ? (
-				<p className="text-xs text-subtle">No matching categories. Click &quot;Add&quot; to create &quot;{searchText.trim()}&quot;.</p>
+				<p className="text-xs text-subtle">
+					No matching categories. Click &quot;Add&quot; to create &quot;{searchText.trim()}&quot;.
+				</p>
 			) : null}
 		</div>
 	);

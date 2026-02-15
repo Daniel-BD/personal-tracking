@@ -110,15 +110,13 @@ export interface WeeklyData {
 export function processFoodEntriesByWeek(
 	entries: Entry[],
 	data: TrackerData,
-	weeks: Array<{ key: string; start: Date; end: Date }>
+	weeks: Array<{ key: string; start: Date; end: Date }>,
 ): WeeklyData[] {
 	const foodEntries = filterEntriesByType(entries, 'food');
 	const foodCategories = getCategories(data, 'food');
 
 	return weeks.map((week) => {
-		const weekEntries = foodEntries.filter((e: Entry) =>
-			isEntryInWeek(e, week.start, week.end)
-		);
+		const weekEntries = foodEntries.filter((e: Entry) => isEntryInWeek(e, week.start, week.end));
 
 		// Build category map with sentiment
 		const categoryMap = new Map<string, WeeklyCategoryData>();
@@ -135,7 +133,7 @@ export function processFoodEntriesByWeek(
 						categoryId: catId,
 						categoryName: catName,
 						sentiment,
-						count: 0
+						count: 0,
 					});
 				}
 				const existing = categoryMap.get(catId)!;
@@ -148,7 +146,7 @@ export function processFoodEntriesByWeek(
 		const sentimentCounts = {
 			positive: categories.filter((c) => c.sentiment === 'positive').reduce((s, c) => s + c.count, 0),
 			neutral: categories.filter((c) => c.sentiment === 'neutral').reduce((s, c) => s + c.count, 0),
-			limit: categories.filter((c) => c.sentiment === 'limit').reduce((s, c) => s + c.count, 0)
+			limit: categories.filter((c) => c.sentiment === 'limit').reduce((s, c) => s + c.count, 0),
 		};
 
 		return {
@@ -159,7 +157,7 @@ export function processFoodEntriesByWeek(
 			totalCount: weekEntries.length,
 			categories,
 			sentimentCounts,
-			hasLowData: weekEntries.length < 5
+			hasLowData: weekEntries.length < 5,
 		};
 	});
 }
@@ -178,24 +176,21 @@ export function calculateBalanceScore(weeklyData: WeeklyData): number {
  */
 export function getScoreChange(
 	current: number,
-	previous: number
+	previous: number,
 ): { direction: 'up' | 'down' | 'stable'; percentChange: number } {
 	if (previous === 0) return { direction: 'stable', percentChange: 0 };
 	const change = ((current - previous) / previous) * 100;
 	if (Math.abs(change) < 1) return { direction: 'stable', percentChange: 0 };
 	return {
 		direction: change > 0 ? 'up' : 'down',
-		percentChange: Math.round(Math.abs(change))
+		percentChange: Math.round(Math.abs(change)),
 	};
 }
 
 /**
  * Get top N categories across all weeks
  */
-export function getTopCategories(
-	allWeeklyData: WeeklyData[],
-	limit: number = 9
-): string[] {
+export function getTopCategories(allWeeklyData: WeeklyData[], limit: number = 9): string[] {
 	const categoryTotals = new Map<string, number>();
 
 	allWeeklyData.forEach((week) => {
@@ -216,10 +211,7 @@ export function getTopCategories(
 function getChartColors(): string[] {
 	if (typeof document === 'undefined') {
 		// Fallback for SSR/tests
-		return [
-			'#3b82f6', '#ef4444', '#10b981', '#f59e0b',
-			'#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1'
-		];
+		return ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1'];
 	}
 	const styles = getComputedStyle(document.documentElement);
 	return [
@@ -231,7 +223,7 @@ function getChartColors(): string[] {
 		styles.getPropertyValue('--chart-color-6').trim(),
 		styles.getPropertyValue('--chart-color-7').trim(),
 		styles.getPropertyValue('--chart-color-8').trim(),
-		styles.getPropertyValue('--chart-color-9').trim()
+		styles.getPropertyValue('--chart-color-9').trim(),
 	];
 }
 
@@ -253,7 +245,7 @@ export function buildCategoryColorMap(topCategoryIds: string[]): Map<string, str
  */
 export function groupCategoriesForWeek(
 	week: WeeklyData,
-	topCategoryIds: string[]
+	topCategoryIds: string[],
 ): Array<{ categoryId: string; categoryName: string; sentiment: string; count: number }> {
 	const grouped = [];
 	let otherCount = 0;
@@ -271,7 +263,7 @@ export function groupCategoriesForWeek(
 			categoryId: 'OTHER',
 			categoryName: 'Other',
 			sentiment: 'neutral',
-			count: otherCount
+			count: otherCount,
 		});
 	}
 
@@ -308,12 +300,10 @@ function countCategoriesBySentiment(
 	entries: Entry[],
 	data: TrackerData,
 	weeks: Array<{ key: string; start: Date; end: Date }>,
-	sentiment: 'limit' | 'positive'
+	sentiment: 'limit' | 'positive',
 ): { counts: Map<string, number>; total: number; catIds: Set<string> } {
 	const foodCategories = getCategories(data, 'food');
-	const catIds = new Set(
-		foodCategories.filter((c) => c.sentiment === sentiment).map((c) => c.id)
-	);
+	const catIds = new Set(foodCategories.filter((c) => c.sentiment === sentiment).map((c) => c.id));
 
 	const counts = new Map<string, number>();
 	let total = 0;
@@ -324,8 +314,7 @@ function countCategoriesBySentiment(
 	const last4 = weeks.slice(-4);
 	const rangeStart = last4[0].start;
 	const rangeEnd = last4[last4.length - 1].end;
-	const foodEntries = filterEntriesByType(entries, 'food')
-		.filter((e) => isEntryInWeek(e, rangeStart, rangeEnd));
+	const foodEntries = filterEntriesByType(entries, 'food').filter((e) => isEntryInWeek(e, rangeStart, rangeEnd));
 
 	for (const entry of foodEntries) {
 		const entryCatIds = getEntryCategoryIds(entry, data);
@@ -347,7 +336,7 @@ export function getTopLimitCategories(
 	entries: Entry[],
 	data: TrackerData,
 	weeks: Array<{ key: string; start: Date; end: Date }>,
-	limit: number = 5
+	limit: number = 5,
 ): ActionableCategoryRow[] {
 	const { counts, total } = countCategoriesBySentiment(entries, data, weeks, 'limit');
 	if (total === 0) return [];
@@ -363,7 +352,7 @@ export function getTopLimitCategories(
 				categoryName: catName,
 				value: share,
 				label: `${share}% of limit total`,
-				count
+				count,
 			};
 		});
 }
@@ -375,7 +364,7 @@ export function getLaggingPositiveCategories(
 	entries: Entry[],
 	data: TrackerData,
 	weeks: Array<{ key: string; start: Date; end: Date }>,
-	limit: number = 5
+	limit: number = 5,
 ): ActionableCategoryRow[] {
 	const { counts, total, catIds } = countCategoriesBySentiment(entries, data, weeks, 'positive');
 	if (total === 0) return [];
@@ -405,7 +394,7 @@ export function getLaggingPositiveCategories(
 				categoryId: r.catId,
 				categoryName: catName,
 				value: gapPercent,
-				label: 'Below your positive average'
+				label: 'Below your positive average',
 			};
 		});
 }

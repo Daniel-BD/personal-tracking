@@ -5,7 +5,8 @@ import { getItemById, deleteEntry, updateEntry, toggleFavorite, isFavorite } fro
 import StarIcon from '@/shared/ui/StarIcon';
 import { useTrackerData } from '@/shared/store/hooks';
 import { getEntriesGroupedByDate } from '../utils/entry-grouping';
-import { getEntryCategoryNames, getEntryCategoryIds } from '../utils/category-utils';
+import { getEntryCategoryIds } from '../utils/category-utils';
+import CategoryLine from './CategoryLine';
 import { formatDate, formatTime } from '@/shared/lib/date-utils';
 import CategoryPicker from './CategoryPicker';
 import NativePickerInput from '@/shared/ui/NativePickerInput';
@@ -51,14 +52,17 @@ export default function EntryList({ entries, showType = false }: Props) {
 		}
 	}
 
-	const startEdit = useCallback((entry: Entry) => {
-		setEditingEntry(entry);
-		setEditDate(entry.date);
-		setEditTime(entry.time ?? '');
-		setEditNotes(entry.notes ?? '');
-		setEditCategories(getEntryCategoryIds(entry, data));
-		resetSwipe();
-	}, [data, resetSwipe]);
+	const startEdit = useCallback(
+		(entry: Entry) => {
+			setEditingEntry(entry);
+			setEditDate(entry.date);
+			setEditTime(entry.time ?? '');
+			setEditNotes(entry.notes ?? '');
+			setEditCategories(getEntryCategoryIds(entry, data));
+			resetSwipe();
+		},
+		[data, resetSwipe],
+	);
 
 	function cancelEdit() {
 		setEditingEntry(null);
@@ -82,7 +86,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 			date: editDate,
 			time: editTime || null,
 			notes: editNotes || null,
-			categoryOverrides: categoriesChanged ? editCategories : null
+			categoryOverrides: categoriesChanged ? editCategories : null,
 		});
 		cancelEdit();
 	}
@@ -104,23 +108,19 @@ export default function EntryList({ entries, showType = false }: Props) {
 					<div key={dateStr}>
 						{/* Date header — sticky, uppercase, muted */}
 						<div className="sticky top-0 z-10 bg-[var(--bg-page)] py-1.5">
-							<h3 className="text-[11px] font-semibold text-subtle uppercase tracking-wider">
-								{formatDate(dateStr)}
-							</h3>
+							<h3 className="text-[11px] font-semibold text-subtle uppercase tracking-wider">{formatDate(dateStr)}</h3>
 						</div>
 
 						{/* Grouped entry rows — flat, divider-separated */}
 						<div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-default)] overflow-hidden">
 							{dateEntries.map((entry, idx) => {
-								const categories = getEntryCategoryNames(entry, data);
+								const categoryIds = getEntryCategoryIds(entry, data);
+								const typeCategories = entry.type === 'activity' ? data.activityCategories : data.foodCategories;
 								const isLastInGroup = idx === dateEntries.length - 1;
 								const isSwiped = swipedEntryId === entry.id;
 
 								return (
-									<div
-										key={entry.id}
-										className="relative overflow-hidden"
-									>
+									<div key={entry.id} className="relative overflow-hidden">
 										{/* Swipe action background */}
 										<div className="absolute inset-0 flex items-center justify-end">
 											<button
@@ -150,7 +150,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 											}`}
 											style={{
 												transform: isSwiped ? `translateX(${swipeOffset}px)` : 'translateX(0)',
-												transition: isTouching() ? 'none' : 'transform 0.25s ease-out'
+												transition: isTouching() ? 'none' : 'transform 0.25s ease-out',
 											}}
 											onTouchStart={(e) => handleTouchStart(e, entry.id)}
 											onTouchMove={handleTouchMove}
@@ -161,7 +161,12 @@ export default function EntryList({ entries, showType = false }: Props) {
 												<div className="flex-1 min-w-0">
 													<div className="flex items-center gap-2">
 														{showType && (
-															<span className="text-sm flex-shrink-0" style={{ color: `var(${entry.type === 'activity' ? '--color-activity' : '--color-food'})` }}>
+															<span
+																className="text-sm flex-shrink-0"
+																style={{
+																	color: `var(${entry.type === 'activity' ? '--color-activity' : '--color-food'})`,
+																}}
+															>
 																{entry.type === 'activity' ? '\u{1F3C3}' : '\u{1F37D}\u{FE0F}'}
 															</span>
 														)}
@@ -169,24 +174,19 @@ export default function EntryList({ entries, showType = false }: Props) {
 															{getItemName(entry.type, entry.itemId)}
 														</span>
 													</div>
-													{categories.length > 0 && (
-														<p className="text-xs text-label mt-0.5 truncate">
-															{categories.join(' \u00B7 ')}
-														</p>
-													)}
-													{entry.notes && (
-														<p className="text-xs text-subtle mt-0.5 truncate italic">{entry.notes}</p>
-													)}
+													<CategoryLine categoryIds={categoryIds} categories={typeCategories} />
+													{entry.notes && <p className="text-xs text-subtle mt-0.5 truncate italic">{entry.notes}</p>}
 												</div>
 												<div className="flex items-center gap-2 flex-shrink-0">
 													{entry.time && (
-														<span className="text-xs text-subtle tabular-nums">
-															{formatTime(entry.time)}
-														</span>
+														<span className="text-xs text-subtle tabular-nums">{formatTime(entry.time)}</span>
 													)}
 													<button
 														type="button"
-														onClick={(e) => { e.stopPropagation(); toggleFavorite(entry.itemId); }}
+														onClick={(e) => {
+															e.stopPropagation();
+															toggleFavorite(entry.itemId);
+														}}
 														className="p-0.5"
 														aria-label={isFavorite(entry.itemId) ? 'Remove from favorites' : 'Add to favorites'}
 													>
@@ -214,19 +214,11 @@ export default function EntryList({ entries, showType = false }: Props) {
 						<div className="grid grid-cols-2 gap-3">
 							<div>
 								<label className="form-label">Date</label>
-								<NativePickerInput
-									type="date"
-									value={editDate}
-									onChange={setEditDate}
-								/>
+								<NativePickerInput type="date" value={editDate} onChange={setEditDate} />
 							</div>
 							<div>
 								<label className="form-label">Time</label>
-								<NativePickerInput
-									type="time"
-									value={editTime}
-									onChange={setEditTime}
-								/>
+								<NativePickerInput type="time" value={editTime} onChange={setEditTime} />
 							</div>
 						</div>
 

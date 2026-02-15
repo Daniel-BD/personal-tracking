@@ -13,10 +13,15 @@ function isValidEntry(e: unknown): e is Entry {
 		(obj.type !== 'activity' && obj.type !== 'food') ||
 		typeof obj.itemId !== 'string' ||
 		typeof obj.date !== 'string'
-	) return false;
+	)
+		return false;
 	if (obj.time != null && typeof obj.time !== 'string') return false;
 	if (obj.notes != null && typeof obj.notes !== 'string') return false;
-	if (obj.categoryOverrides != null && (!Array.isArray(obj.categoryOverrides) || !obj.categoryOverrides.every((id: unknown) => typeof id === 'string'))) return false;
+	if (
+		obj.categoryOverrides != null &&
+		(!Array.isArray(obj.categoryOverrides) || !obj.categoryOverrides.every((id: unknown) => typeof id === 'string'))
+	)
+		return false;
 	return true;
 }
 

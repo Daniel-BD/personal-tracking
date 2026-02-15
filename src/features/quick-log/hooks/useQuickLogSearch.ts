@@ -6,11 +6,7 @@ export interface UnifiedItem {
 	type: EntryType;
 }
 
-export function useQuickLogSearch(
-	activityItems: Item[],
-	foodItems: Item[],
-	favoriteIds: string[]
-) {
+export function useQuickLogSearch(activityItems: Item[], foodItems: Item[], favoriteIds: string[]) {
 	const [query, setQuery] = useState('');
 	const [isFocused, setIsFocused] = useState(false);
 
@@ -44,15 +40,11 @@ export function useQuickLogSearch(
 	// Filtered search results
 	const searchResults = useMemo(() => {
 		if (!query.trim()) return [];
-		return allItems.filter((u) =>
-			u.item.name.toLowerCase().includes(query.toLowerCase())
-		);
+		return allItems.filter((u) => u.item.name.toLowerCase().includes(query.toLowerCase()));
 	}, [allItems, query]);
 
 	const showResults = isFocused && query.trim().length > 0;
-	const hasExactMatch = searchResults.some(
-		(u) => u.item.name.toLowerCase() === query.trim().toLowerCase()
-	);
+	const hasExactMatch = searchResults.some((u) => u.item.name.toLowerCase() === query.trim().toLowerCase());
 
 	function resetSearch() {
 		setQuery('');

@@ -17,58 +17,56 @@ export default function GoalDashboard() {
 	const dashboardData = useMemo(() => {
 		if (!data.dashboardCards) return [];
 
-		return data.dashboardCards.map((card) => {
-			const categoryId = card.categoryId;
+		return data.dashboardCards
+			.map((card) => {
+				const categoryId = card.categoryId;
 
-			// Find category and determine color/type/sentiment
-			const foodCat = data.foodCategories.find(c => c.id === categoryId);
-			const activityCat = data.activityCategories.find(c => c.id === categoryId);
-			const category = foodCat || activityCat;
+				// Find category and determine color/type/sentiment
+				const foodCat = data.foodCategories.find((c) => c.id === categoryId);
+				const activityCat = data.activityCategories.find((c) => c.id === categoryId);
+				const category = foodCat || activityCat;
 
-			if (!category) return null;
+				if (!category) return null;
 
-			const categoryName = category.name;
-			const sentiment = category.sentiment;
+				const categoryName = category.name;
+				const sentiment = category.sentiment;
 
-			// Calculate weekly counts
-			const sparklineData = weeks.map((week) => {
-				const range = {
-					start: formatDateLocal(week.start),
-					end: formatDateLocal(week.end)
-				};
-				const weekEntries = filterEntriesByCategory(
-					filterEntriesByDateRange(data.entries, range),
-					categoryId,
-					data
-				);
+				// Calculate weekly counts
+				const sparklineData = weeks.map((week) => {
+					const range = {
+						start: formatDateLocal(week.start),
+						end: formatDateLocal(week.end),
+					};
+					const weekEntries = filterEntriesByCategory(filterEntriesByDateRange(data.entries, range), categoryId, data);
+					return {
+						week: week.key,
+						count: weekEntries.length,
+					};
+				});
+
+				// Current week (last element)
+				const currentCount = sparklineData[sparklineData.length - 1].count;
+
+				// Baseline: average of the 4 weeks preceding the last week
+				const baselineWeeks = sparklineData.slice(3, 7);
+				const baselineSum = baselineWeeks.reduce((sum, w) => sum + w.count, 0);
+				const baselineAvg = baselineSum / 4;
+
+				const delta = currentCount - baselineAvg;
+				const deltaPercent = baselineAvg === 0 ? (currentCount > 0 ? 1 : 0) : delta / baselineAvg;
+
 				return {
-					week: week.key,
-					count: weekEntries.length
+					categoryId,
+					categoryName,
+					sentiment,
+					sparklineData,
+					currentCount,
+					baselineAvg,
+					delta,
+					deltaPercent,
 				};
-			});
-
-			// Current week (last element)
-			const currentCount = sparklineData[sparklineData.length - 1].count;
-
-			// Baseline: average of the 4 weeks preceding the last week
-			const baselineWeeks = sparklineData.slice(3, 7);
-			const baselineSum = baselineWeeks.reduce((sum, w) => sum + w.count, 0);
-			const baselineAvg = baselineSum / 4;
-
-			const delta = currentCount - baselineAvg;
-			const deltaPercent = baselineAvg === 0 ? (currentCount > 0 ? 1 : 0) : delta / baselineAvg;
-
-			return {
-				categoryId,
-				categoryName,
-				sentiment,
-				sparklineData,
-				currentCount,
-				baselineAvg,
-				delta,
-				deltaPercent
-			};
-		}).filter((item): item is NonNullable<typeof item> => item !== null);
+			})
+			.filter((item): item is NonNullable<typeof item> => item !== null);
 	}, [data, weeks]);
 
 	return (
@@ -115,11 +113,7 @@ export default function GoalDashboard() {
 				)}
 			</div>
 
-			{isModalOpen && (
-				<AddCategoryModal
-					onClose={() => setIsModalOpen(false)}
-				/>
-			)}
+			{isModalOpen && <AddCategoryModal onClose={() => setIsModalOpen(false)} />}
 		</div>
 	);
 }

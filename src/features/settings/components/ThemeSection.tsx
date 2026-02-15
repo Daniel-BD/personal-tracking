@@ -19,7 +19,7 @@ export default function ThemeSection() {
 				options={[
 					{ value: 'light' as const, label: 'Light' },
 					{ value: 'dark' as const, label: 'Dark' },
-					{ value: 'system' as const, label: 'System' }
+					{ value: 'system' as const, label: 'System' },
 				]}
 				value={themePreference}
 				onchange={handleThemeChange}

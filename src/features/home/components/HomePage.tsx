@@ -2,15 +2,9 @@ import { useState, useEffect, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { isConfigured } from '@/shared/lib/github';
-import {
-	forceRefresh,
-	addEntry
-} from '@/shared/store/store';
+import { forceRefresh, addEntry } from '@/shared/store/store';
 import { useEntries, useActivityItems, useFoodItems, useSyncStatus } from '@/shared/store/hooks';
-import {
-	compareMonths,
-	filterEntriesByType
-} from '@/features/tracking';
+import { compareMonths, filterEntriesByType } from '@/features/tracking';
 import { getTodayDate, getCurrentTime } from '@/shared/lib/types';
 import { showToast } from '@/shared/ui/Toast';
 import { QuickLogForm } from '@/features/quick-log';
@@ -35,12 +29,8 @@ export default function HomePage() {
 		if (!addParam) return;
 
 		const searchName = addParam.toLowerCase();
-		const activityMatch = activityItems.find(
-			(item) => item.name.toLowerCase() === searchName
-		);
-		const foodMatch = foodItems.find(
-			(item) => item.name.toLowerCase() === searchName
-		);
+		const activityMatch = activityItems.find((item) => item.name.toLowerCase() === searchName);
+		const foodMatch = foodItems.find((item) => item.name.toLowerCase() === searchName);
 
 		navigate('/', { replace: true });
 
@@ -61,20 +51,19 @@ export default function HomePage() {
 		await forceRefresh();
 	}
 
-	const activityComparison = useMemo(
-		() => compareMonths(filterEntriesByType(entries, 'activity')),
-		[entries]
-	);
-	const foodComparison = useMemo(
-		() => compareMonths(filterEntriesByType(entries, 'food')),
-		[entries]
-	);
+	const activityComparison = useMemo(() => compareMonths(filterEntriesByType(entries, 'activity')), [entries]);
+	const foodComparison = useMemo(() => compareMonths(filterEntriesByType(entries, 'food')), [entries]);
 
 	return (
 		<div className="space-y-6">
 			{!configured ? (
-				<div className="card p-4" style={{ background: 'var(--color-warning-bg)', borderColor: 'var(--color-warning-border)' }}>
-					<h2 className="font-semibold" style={{ color: 'var(--color-warning-text)' }}>Setup Required</h2>
+				<div
+					className="card p-4"
+					style={{ background: 'var(--color-warning-bg)', borderColor: 'var(--color-warning-border)' }}
+				>
+					<h2 className="font-semibold" style={{ color: 'var(--color-warning-text)' }}>
+						Setup Required
+					</h2>
 					<p className="text-sm mt-1" style={{ color: 'var(--color-warning-text)', opacity: 0.85 }}>
 						Configure your GitHub token to start tracking.
 					</p>

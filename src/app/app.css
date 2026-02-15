@@ -8,39 +8,39 @@
    ============================================================ */
 :root {
 	/* Backgrounds */
-	--bg-page: #f9fafb;       /* gray-50 */
-	--bg-card: #ffffff;        /* white */
-	--bg-card-hover: #f9fafb;  /* gray-50 */
-	--bg-elevated: #ffffff;    /* white */
-	--bg-inset: #f3f4f6;      /* gray-100 */
-	--bg-input: #ffffff;       /* white */
+	--bg-page: #f9fafb; /* gray-50 */
+	--bg-card: #ffffff; /* white */
+	--bg-card-hover: #f9fafb; /* gray-50 */
+	--bg-elevated: #ffffff; /* white */
+	--bg-inset: #f3f4f6; /* gray-100 */
+	--bg-input: #ffffff; /* white */
 
 	/* Text */
-	--text-primary: #111827;   /* gray-900 */
+	--text-primary: #111827; /* gray-900 */
 	--text-secondary: #4b5563; /* gray-600 */
-	--text-tertiary: #6b7280;  /* gray-500 */
-	--text-muted: #9ca3af;     /* gray-400 */
+	--text-tertiary: #6b7280; /* gray-500 */
+	--text-muted: #9ca3af; /* gray-400 */
 
 	/* Borders */
 	--border-default: #e5e7eb; /* gray-200 */
-	--border-input: #d1d5db;   /* gray-300 */
-	--border-subtle: #f3f4f6;  /* gray-100 */
+	--border-input: #d1d5db; /* gray-300 */
+	--border-subtle: #f3f4f6; /* gray-100 */
 
 	/* Activity (blue) */
-	--color-activity: #2563eb;       /* blue-600 */
+	--color-activity: #2563eb; /* blue-600 */
 	--color-activity-hover: #1d4ed8; /* blue-700 */
-	--color-activity-bg: #eff6ff;    /* blue-50 */
+	--color-activity-bg: #eff6ff; /* blue-50 */
 	--color-activity-bg-strong: #dbeafe; /* blue-100 */
-	--color-activity-text: #1e40af;  /* blue-800 */
+	--color-activity-text: #1e40af; /* blue-800 */
 	--color-activity-border: #bfdbfe; /* blue-200 */
 
 	/* Food (green) */
-	--color-food: #16a34a;           /* green-600 */
-	--color-food-hover: #15803d;     /* green-700 */
-	--color-food-bg: #f0fdf4;        /* green-50 */
+	--color-food: #16a34a; /* green-600 */
+	--color-food-hover: #15803d; /* green-700 */
+	--color-food-bg: #f0fdf4; /* green-50 */
 	--color-food-bg-strong: #dcfce7; /* green-100 */
-	--color-food-text: #166534;      /* green-800 */
-	--color-food-border: #bbf7d0;    /* green-200 */
+	--color-food-text: #166534; /* green-800 */
+	--color-food-border: #bbf7d0; /* green-200 */
 
 	/* Status: success */
 	--color-success: #16a34a;
@@ -62,26 +62,26 @@
 	--color-warning-border: #fde68a;
 
 	/* Neutral (for chart fills, muted indicators) */
-	--color-neutral: #d1d5db;          /* gray-300 */
+	--color-neutral: #d1d5db; /* gray-300 */
 
 	/* Favorite star (yellow) */
-	--color-favorite: #facc15;         /* yellow-400 */
+	--color-favorite: #facc15; /* yellow-400 */
 
 	/* Chart colors (for data visualization) */
-	--chart-color-1: #3b82f6;  /* blue-500 */
-	--chart-color-2: #ef4444;  /* red-500 */
-	--chart-color-3: #10b981;  /* emerald-500 */
-	--chart-color-4: #f59e0b;  /* amber-500 */
-	--chart-color-5: #8b5cf6;  /* violet-500 */
-	--chart-color-6: #ec4899;  /* pink-500 */
-	--chart-color-7: #06b6d4;  /* cyan-500 */
-	--chart-color-8: #f97316;  /* orange-500 */
-	--chart-color-9: #6366f1;  /* indigo-500 */
+	--chart-color-1: #3b82f6; /* blue-500 */
+	--chart-color-2: #ef4444; /* red-500 */
+	--chart-color-3: #10b981; /* emerald-500 */
+	--chart-color-4: #f59e0b; /* amber-500 */
+	--chart-color-5: #8b5cf6; /* violet-500 */
+	--chart-color-6: #ec4899; /* pink-500 */
+	--chart-color-7: #06b6d4; /* cyan-500 */
+	--chart-color-8: #f97316; /* orange-500 */
+	--chart-color-9: #6366f1; /* indigo-500 */
 
 	/* Toast (inverted surface) */
-	--bg-toast: #111827;               /* gray-900 */
+	--bg-toast: #111827; /* gray-900 */
 	--text-toast: #ffffff;
-	--color-toast-action: #93c5fd;     /* blue-300 */
+	--color-toast-action: #93c5fd; /* blue-300 */
 
 	/* Shadows */
 	--shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
@@ -90,39 +90,39 @@
 
 .dark {
 	/* Backgrounds */
-	--bg-page: #030712;       /* gray-950 */
-	--bg-card: #111827;       /* gray-900 */
+	--bg-page: #030712; /* gray-950 */
+	--bg-card: #111827; /* gray-900 */
 	--bg-card-hover: #1f2937; /* gray-800 */
-	--bg-elevated: #1f2937;   /* gray-800 */
-	--bg-inset: #1f2937;      /* gray-800 */
-	--bg-input: #1f2937;      /* gray-800 */
+	--bg-elevated: #1f2937; /* gray-800 */
+	--bg-inset: #1f2937; /* gray-800 */
+	--bg-input: #1f2937; /* gray-800 */
 
 	/* Text */
-	--text-primary: #f3f4f6;   /* gray-100 */
+	--text-primary: #f3f4f6; /* gray-100 */
 	--text-secondary: #d1d5db; /* gray-300 */
-	--text-tertiary: #9ca3af;  /* gray-400 */
-	--text-muted: #6b7280;     /* gray-500 */
+	--text-tertiary: #9ca3af; /* gray-400 */
+	--text-muted: #6b7280; /* gray-500 */
 
 	/* Borders */
 	--border-default: #374151; /* gray-700 */
-	--border-input: #4b5563;   /* gray-600 */
-	--border-subtle: #1f2937;  /* gray-800 */
+	--border-input: #4b5563; /* gray-600 */
+	--border-subtle: #1f2937; /* gray-800 */
 
 	/* Activity (blue) — brighter for dark mode */
-	--color-activity: #60a5fa;       /* blue-400 */
+	--color-activity: #60a5fa; /* blue-400 */
 	--color-activity-hover: #93bbfd; /* blue-300 */
 	--color-activity-bg: rgba(23, 37, 84, 0.5); /* blue-950/50% */
 	--color-activity-bg-strong: #1e3a5f; /* blue-900 */
-	--color-activity-text: #93c5fd;  /* blue-300 */
+	--color-activity-text: #93c5fd; /* blue-300 */
 	--color-activity-border: #1e40af; /* blue-800 */
 
 	/* Food (green) */
-	--color-food: #4ade80;           /* green-400 */
-	--color-food-hover: #86efac;     /* green-300 */
+	--color-food: #4ade80; /* green-400 */
+	--color-food-hover: #86efac; /* green-300 */
 	--color-food-bg: rgba(5, 46, 22, 0.5); /* green-950/50% */
 	--color-food-bg-strong: #14532d; /* green-900 */
-	--color-food-text: #86efac;      /* green-300 */
-	--color-food-border: #166534;    /* green-800 */
+	--color-food-text: #86efac; /* green-300 */
+	--color-food-border: #166534; /* green-800 */
 
 	/* Status: success */
 	--color-success: #4ade80;
@@ -144,26 +144,26 @@
 	--color-warning-border: #92400e;
 
 	/* Neutral */
-	--color-neutral: #4b5563;          /* gray-600 */
+	--color-neutral: #4b5563; /* gray-600 */
 
 	/* Favorite star (yellow) */
-	--color-favorite: #fbbf24;         /* yellow-400 brighter for dark mode */
+	--color-favorite: #fbbf24; /* yellow-400 brighter for dark mode */
 
 	/* Chart colors (same in dark mode for consistency) */
-	--chart-color-1: #3b82f6;  /* blue-500 */
-	--chart-color-2: #ef4444;  /* red-500 */
-	--chart-color-3: #10b981;  /* emerald-500 */
-	--chart-color-4: #f59e0b;  /* amber-500 */
-	--chart-color-5: #8b5cf6;  /* violet-500 */
-	--chart-color-6: #ec4899;  /* pink-500 */
-	--chart-color-7: #06b6d4;  /* cyan-500 */
-	--chart-color-8: #f97316;  /* orange-500 */
-	--chart-color-9: #6366f1;  /* indigo-500 */
+	--chart-color-1: #3b82f6; /* blue-500 */
+	--chart-color-2: #ef4444; /* red-500 */
+	--chart-color-3: #10b981; /* emerald-500 */
+	--chart-color-4: #f59e0b; /* amber-500 */
+	--chart-color-5: #8b5cf6; /* violet-500 */
+	--chart-color-6: #ec4899; /* pink-500 */
+	--chart-color-7: #06b6d4; /* cyan-500 */
+	--chart-color-8: #f97316; /* orange-500 */
+	--chart-color-9: #6366f1; /* indigo-500 */
 
 	/* Toast (inverted surface) */
-	--bg-toast: #f3f4f6;               /* gray-100 */
-	--text-toast: #111827;             /* gray-900 */
-	--color-toast-action: #2563eb;     /* blue-600 */
+	--bg-toast: #f3f4f6; /* gray-100 */
+	--text-toast: #111827; /* gray-900 */
+	--color-toast-action: #2563eb; /* blue-600 */
 
 	/* Shadows */
 	--shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.2);
@@ -229,14 +229,22 @@
    Base Styles
    ============================================================ */
 html {
-	font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	font-family:
+		system-ui,
+		-apple-system,
+		BlinkMacSystemFont,
+		'Segoe UI',
+		Roboto,
+		sans-serif;
 }
 
 body {
 	background: var(--bg-page);
 	color: var(--text-primary);
 	min-height: 100vh;
-	transition: background-color 0.2s, color 0.2s;
+	transition:
+		background-color 0.2s,
+		color 0.2s;
 }
 
 /* ============================================================
@@ -259,7 +267,9 @@ body {
 	border-radius: theme(borderRadius.md);
 	background: var(--bg-input);
 	color: var(--text-primary);
-	transition: border-color 0.15s, box-shadow 0.15s;
+	transition:
+		border-color 0.15s,
+		box-shadow 0.15s;
 }
 .form-input:focus {
 	outline: none;
@@ -288,7 +298,9 @@ input[type='datetime-local'] {
 	background: var(--bg-input);
 	color: var(--text-primary);
 	font-size: 1rem; /* 16px prevents iOS Safari auto-zoom on focus */
-	transition: border-color 0.15s, box-shadow 0.15s;
+	transition:
+		border-color 0.15s,
+		box-shadow 0.15s;
 }
 .form-input-sm:focus {
 	outline: none;
@@ -363,8 +375,14 @@ input[type='datetime-local'] {
    Animations
    ============================================================ */
 @keyframes fade-in {
-	from { opacity: 0; transform: translateY(8px); }
-	to { opacity: 1; transform: translateY(0); }
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 .animate-fade-in {
@@ -372,8 +390,12 @@ input[type='datetime-local'] {
 }
 
 @keyframes slide-up {
-	from { transform: translateY(100%); }
-	to { transform: translateY(0); }
+	from {
+		transform: translateY(100%);
+	}
+	to {
+		transform: translateY(0);
+	}
 }
 
 .animate-slide-up {

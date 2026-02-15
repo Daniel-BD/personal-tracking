@@ -17,9 +17,7 @@ interface RankedRow {
 }
 
 function rankItems(entries: Entry[], data: TrackerData): RankedRow[] {
-	const itemLookup = new Map(
-		[...data.activityItems, ...data.foodItems].map((item) => [item.id, item])
-	);
+	const itemLookup = new Map([...data.activityItems, ...data.foodItems].map((item) => [item.id, item]));
 	const counts = new Map<string, RankedRow>();
 
 	for (const entry of entries) {
@@ -32,7 +30,7 @@ function rankItems(entries: Entry[], data: TrackerData): RankedRow[] {
 				id: entry.itemId,
 				name: item?.name ?? 'Unknown',
 				count: 1,
-				type: entry.type
+				type: entry.type,
 			});
 		}
 	}
@@ -41,9 +39,7 @@ function rankItems(entries: Entry[], data: TrackerData): RankedRow[] {
 }
 
 function rankCategories(entries: Entry[], data: TrackerData): RankedRow[] {
-	const catLookup = new Map(
-		[...data.activityCategories, ...data.foodCategories].map((cat) => [cat.id, cat])
-	);
+	const catLookup = new Map([...data.activityCategories, ...data.foodCategories].map((cat) => [cat.id, cat]));
 	const counts = new Map<string, RankedRow>();
 
 	for (const entry of entries) {
@@ -58,7 +54,7 @@ function rankCategories(entries: Entry[], data: TrackerData): RankedRow[] {
 					id: catId,
 					name: cat?.name ?? 'Unknown',
 					count: 1,
-					type: entry.type
+					type: entry.type,
 				});
 			}
 		}
@@ -82,7 +78,7 @@ export default function FrequencyRanking({ entries, data }: Props) {
 		const days = timePeriod === '7d' ? 7 : 30;
 		return filterEntriesByDateRange(entries, {
 			start: getDateNDaysAgo(days - 1),
-			end: getTodayDate()
+			end: getTodayDate(),
 		});
 	}, [entries, timePeriod]);
 
@@ -108,7 +104,7 @@ export default function FrequencyRanking({ entries, data }: Props) {
 				options={[
 					{ value: 'all' as const, label: 'All time' },
 					{ value: '7d' as const, label: '7 days' },
-					{ value: '30d' as const, label: '30 days' }
+					{ value: '30d' as const, label: '30 days' },
 				]}
 				value={timePeriod}
 				onchange={setTimePeriod}
@@ -120,7 +116,7 @@ export default function FrequencyRanking({ entries, data }: Props) {
 				options={[
 					{ value: 'all' as const, label: 'All', activeClass: 'bg-[var(--text-secondary)] text-white' },
 					{ value: 'activity' as const, label: 'Activities', activeClass: 'type-activity' },
-					{ value: 'food' as const, label: 'Food', activeClass: 'type-food' }
+					{ value: 'food' as const, label: 'Food', activeClass: 'type-food' },
 				]}
 				value={typeFilter}
 				onchange={setTypeFilter}
@@ -131,7 +127,7 @@ export default function FrequencyRanking({ entries, data }: Props) {
 			<SegmentedControl
 				options={[
 					{ value: 'items' as const, label: 'Items' },
-					{ value: 'categories' as const, label: 'Categories' }
+					{ value: 'categories' as const, label: 'Categories' },
 				]}
 				value={viewMode}
 				onchange={setViewMode}
@@ -140,9 +136,7 @@ export default function FrequencyRanking({ entries, data }: Props) {
 			/>
 
 			{ranked.length === 0 ? (
-				<p className="text-sm text-label text-center py-4">
-					No {viewMode} logged in this period
-				</p>
+				<p className="text-sm text-label text-center py-4">No {viewMode} logged in this period</p>
 			) : (
 				<div className="space-y-1.5">
 					{ranked.map((row, i) => (
@@ -156,9 +150,7 @@ export default function FrequencyRanking({ entries, data }: Props) {
 								<div className="h-1 rounded-full bg-[var(--bg-inset)] overflow-hidden">
 									<div
 										className={`h-full rounded-full transition-all ${
-											row.type === 'activity'
-												? 'bg-[var(--color-activity)]'
-												: 'bg-[var(--color-food)]'
+											row.type === 'activity' ? 'bg-[var(--color-activity)]' : 'bg-[var(--color-food)]'
 										}`}
 										style={{ width: `${(row.count / maxCount) * 100}%` }}
 									/>

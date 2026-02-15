@@ -17,7 +17,7 @@ export function getConfig(): GistConfig {
 	return {
 		token: localStorage.getItem('github_token') || '',
 		gistId: localStorage.getItem('gist_id') || null,
-		backupGistId: localStorage.getItem('backup_gist_id') || null
+		backupGistId: localStorage.getItem('backup_gist_id') || null,
 	};
 }
 
@@ -46,19 +46,15 @@ export function isConfigured(): boolean {
 	return !!config.token && !!config.gistId;
 }
 
-async function apiRequest<T>(
-	endpoint: string,
-	token: string,
-	options: RequestInit = {}
-): Promise<T> {
+async function apiRequest<T>(endpoint: string, token: string, options: RequestInit = {}): Promise<T> {
 	const response = await fetch(`${GITHUB_API_BASE}${endpoint}`, {
 		...options,
 		headers: {
 			Authorization: `Bearer ${token}`,
 			Accept: 'application/vnd.github+json',
 			'X-GitHub-Api-Version': '2022-11-28',
-			...options.headers
-		}
+			...options.headers,
+		},
 	});
 
 	if (!response.ok) {
@@ -84,23 +80,19 @@ export async function fetchGist(gistId: string, token: string): Promise<TrackerD
 	}
 }
 
-export async function updateGist(
-	gistId: string,
-	token: string,
-	data: TrackerData
-): Promise<void> {
+export async function updateGist(gistId: string, token: string, data: TrackerData): Promise<void> {
 	await apiRequest(`/gists/${gistId}`, token, {
 		method: 'PATCH',
 		headers: {
-			'Content-Type': 'application/json'
+			'Content-Type': 'application/json',
 		},
 		body: JSON.stringify({
 			files: {
 				[GIST_FILENAME]: {
-					content: JSON.stringify(data, null, 2)
-				}
-			}
-		})
+					content: JSON.stringify(data, null, 2),
+				},
+			},
+		}),
 	});
 }
 
@@ -108,29 +100,31 @@ export async function createGist(token: string): Promise<string> {
 	const response = await apiRequest<GistResponse>('/gists', token, {
 		method: 'POST',
 		headers: {
-			'Content-Type': 'application/json'
+			'Content-Type': 'application/json',
 		},
 		body: JSON.stringify({
 			description: 'Personal Activity & Food Tracker Data',
 			public: false,
 			files: {
 				[GIST_FILENAME]: {
-					content: JSON.stringify(createEmptyData(), null, 2)
-				}
-			}
-		})
+					content: JSON.stringify(createEmptyData(), null, 2),
+				},
+			},
+		}),
 	});
 
 	return response.id;
 }
 
-export async function listUserGists(token: string): Promise<Array<{ id: string; description: string; files: string[] }>> {
+export async function listUserGists(
+	token: string,
+): Promise<Array<{ id: string; description: string; files: string[] }>> {
 	const gists = await apiRequest<GistResponse[]>('/gists', token);
 
 	return gists.map((gist) => ({
 		id: gist.id,
 		description: (gist as unknown as { description: string }).description || 'No description',
-		files: Object.keys(gist.files)
+		files: Object.keys(gist.files),
 	}));
 }
 

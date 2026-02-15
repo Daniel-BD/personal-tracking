@@ -145,10 +145,7 @@ describe('groupEntriesByWeek', () => {
 	});
 
 	it('returns sorted by date ascending', () => {
-		const entries = [
-			makeEntry({ date: '2025-01-20' }),
-			makeEntry({ date: '2025-01-06' }),
-		];
+		const entries = [makeEntry({ date: '2025-01-20' }), makeEntry({ date: '2025-01-06' })];
 		const result = groupEntriesByWeek(entries, null);
 		for (let i = 1; i < result.length; i++) {
 			expect(result[i].date >= result[i - 1].date).toBe(true);
@@ -282,11 +279,7 @@ describe('getItemTotals', () => {
 			makeItem({ id: 'b', name: 'Banana' }),
 			makeItem({ id: 'c', name: 'Cherry' }),
 		];
-		const entries = [
-			makeEntry({ itemId: 'b' }),
-			makeEntry({ itemId: 'b' }),
-			makeEntry({ itemId: 'a' }),
-		];
+		const entries = [makeEntry({ itemId: 'b' }), makeEntry({ itemId: 'b' }), makeEntry({ itemId: 'a' })];
 		const result = getItemTotals(entries, items);
 		expect(result).toHaveLength(2); // Cherry has 0, excluded
 		expect(result[0].item.id).toBe('b');
@@ -303,10 +296,7 @@ describe('getItemTotals', () => {
 
 	it('filters by date range when provided', () => {
 		const items = [makeItem({ id: 'a' })];
-		const entries = [
-			makeEntry({ itemId: 'a', date: '2025-01-10' }),
-			makeEntry({ itemId: 'a', date: '2025-02-10' }),
-		];
+		const entries = [makeEntry({ itemId: 'a', date: '2025-01-10' }), makeEntry({ itemId: 'a', date: '2025-02-10' })];
 		const result = getItemTotals(entries, items, { start: '2025-01-01', end: '2025-01-31' });
 		expect(result[0].count).toBe(1);
 	});
