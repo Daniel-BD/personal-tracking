@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Pencil, Trash2, PackageOpen } from 'lucide-react';
 import type { Item, Category, EntryType } from '@/shared/lib/types';
 import {
 	addItem,
@@ -9,185 +9,264 @@ import {
 	toggleFavorite,
 	isFavorite
 } from '@/shared/store/store';
-import { CategoryPicker } from '@/features/tracking';
+import { CategoryPicker, useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
 import StarIcon from '@/shared/ui/StarIcon';
+import BottomSheet from '@/shared/ui/BottomSheet';
 
 interface Props {
 	items: Item[];
 	categories: Category[];
 	activeTab: EntryType;
 	searchQuery: string;
+	showAddSheet: boolean;
+	onCloseAddSheet: () => void;
 }
 
-export default function ItemsTab({ items, categories, activeTab, searchQuery }: Props) {
+export default function ItemsTab({ items, categories, activeTab, searchQuery, showAddSheet, onCloseAddSheet }: Props) {
 	const [editingItem, setEditingItem] = useState<Item | null>(null);
-	const [showAddForm, setShowAddForm] = useState(false);
-	const [newItemName, setNewItemName] = useState('');
-	const [newItemCategories, setNewItemCategories] = useState<string[]>([]);
+	const [formName, setFormName] = useState('');
+	const [formCategories, setFormCategories] = useState<string[]>([]);
 
-	function handleAddItem() {
-		if (!newItemName.trim()) return;
-		addItem(activeTab, newItemName.trim(), newItemCategories);
-		setNewItemName('');
-		setNewItemCategories([]);
-		setShowAddForm(false);
+	const {
+		swipedEntryId,
+		swipeOffset,
+		handleTouchStart,
+		handleTouchMove,
+		handleTouchEnd,
+		handleRowTap,
+		resetSwipe,
+		isTouching,
+	} = useSwipeGesture();
+
+	// Reset form when add sheet opens
+	useEffect(() => {
+		if (showAddSheet) {
+			setFormName('');
+			setFormCategories([]);
+		}
+	}, [showAddSheet]);
+
+	function handleAdd() {
+		if (!formName.trim()) return;
+		addItem(activeTab, formName.trim(), formCategories);
+		setFormName('');
+		setFormCategories([]);
+		onCloseAddSheet();
 	}
 
-	function handleEditItem(item: Item) {
+	function startEdit(item: Item) {
 		setEditingItem({ ...item });
+		setFormName(item.name);
+		setFormCategories([...item.categories]);
+		resetSwipe();
 	}
 
 	function handleSaveEdit() {
-		if (!editingItem || !editingItem.name.trim()) return;
-		updateItem(activeTab, editingItem.id, editingItem.name.trim(), editingItem.categories);
+		if (!editingItem || !formName.trim()) return;
+		updateItem(activeTab, editingItem.id, formName.trim(), formCategories);
 		setEditingItem(null);
+		setFormName('');
+		setFormCategories([]);
 	}
 
-	function handleCancelEdit() {
+	function cancelEdit() {
 		setEditingItem(null);
+		setFormName('');
+		setFormCategories([]);
 	}
 
-	function handleDeleteItem(id: string) {
+	function handleDelete(id: string) {
 		if (!confirm('Delete this item and all its entries?')) return;
 		deleteItem(activeTab, id);
+		resetSwipe();
+		cancelEdit();
 	}
 
 	function getCategoryNamesForItem(item: Item): string[] {
 		return getCategoryNames(activeTab, item.categories);
 	}
 
+	const typeLabel = activeTab === 'activity' ? 'activity' : 'food';
+
 	return (
 		<>
-			{showAddForm ? (
-				<div className="card p-4 space-y-4">
-					<h3 className="font-semibold text-heading">
-						Add New {activeTab === 'activity' ? 'Activity' : 'Food'} Item
-					</h3>
+			{/* Item list */}
+			{items.length === 0 ? (
+				<div className="text-center py-12">
+					<PackageOpen className="w-10 h-10 text-subtle mx-auto mb-3" strokeWidth={1.5} />
+					<p className="text-label mb-1">
+						{searchQuery.trim()
+							? `No ${typeLabel} items match "${searchQuery}"`
+							: `No ${typeLabel} items yet`}
+					</p>
+					{!searchQuery.trim() && (
+						<p className="text-xs text-subtle">Tap + to add your first item</p>
+					)}
+				</div>
+			) : (
+				<div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-default)] overflow-hidden">
+					{items.map((item, idx) => {
+						const categoryNames = getCategoryNamesForItem(item);
+						const isLastInGroup = idx === items.length - 1;
+						const isSwiped = swipedEntryId === item.id;
 
+						return (
+							<div key={item.id} className="relative overflow-hidden">
+								{/* Swipe action background */}
+								<div className="absolute inset-0 flex items-center justify-end">
+									<button
+										type="button"
+										onClick={() => startEdit(item)}
+										style={{ background: 'var(--color-activity)', width: ACTION_WIDTH }}
+										className="h-full flex items-center justify-center"
+										aria-label="Edit item"
+									>
+										<Pencil className="w-5 h-5 text-white" strokeWidth={2} />
+									</button>
+									<button
+										type="button"
+										onClick={() => handleDelete(item.id)}
+										style={{ background: 'var(--color-danger)', width: ACTION_WIDTH }}
+										className="h-full flex items-center justify-center"
+										aria-label="Delete item"
+									>
+										<Trash2 className="w-5 h-5 text-white" strokeWidth={2} />
+									</button>
+								</div>
+
+								{/* Row content */}
+								<div
+									className={`relative bg-[var(--bg-card)] px-4 py-3 transition-transform ${
+										!isLastInGroup ? 'border-b border-[var(--border-subtle)]' : ''
+									}`}
+									style={{
+										transform: isSwiped ? `translateX(${swipeOffset}px)` : 'translateX(0)',
+										transition: isTouching() ? 'none' : 'transform 0.25s ease-out'
+									}}
+									onTouchStart={(e) => handleTouchStart(e, item.id)}
+									onTouchMove={handleTouchMove}
+									onTouchEnd={handleTouchEnd}
+									onClick={() => handleRowTap(() => startEdit(item))}
+								>
+									<div className="flex items-center justify-between gap-3">
+										<div className="flex-1 min-w-0">
+											<span className="font-medium text-heading truncate block">
+												{item.name}
+											</span>
+											{categoryNames.length > 0 ? (
+												<p className="text-xs text-label mt-0.5 truncate">
+													{categoryNames.join(' \u00B7 ')}
+												</p>
+											) : (
+												<p className="text-xs text-subtle mt-0.5">No categories</p>
+											)}
+										</div>
+										<button
+											type="button"
+											onClick={(e) => { e.stopPropagation(); toggleFavorite(item.id); }}
+											className="p-0.5 flex-shrink-0"
+											aria-label={isFavorite(item.id) ? 'Remove from favorites' : 'Add to favorites'}
+										>
+											<StarIcon filled={isFavorite(item.id)} className="w-4 h-4" />
+										</button>
+									</div>
+								</div>
+							</div>
+						);
+					})}
+				</div>
+			)}
+
+			{/* Add Item Bottom Sheet */}
+			<BottomSheet
+				open={showAddSheet}
+				onclose={onCloseAddSheet}
+				title={`Add ${activeTab === 'activity' ? 'Activity' : 'Food'} Item`}
+				headerAction={
+					<button
+						onClick={handleAdd}
+						disabled={!formName.trim()}
+						className="btn-primary btn-sm rounded-full px-4"
+					>
+						Add
+					</button>
+				}
+			>
+				<div className="space-y-4">
 					<div>
-						<label htmlFor="newName" className="form-label">Name</label>
+						<label htmlFor="addItemName" className="form-label">Name</label>
 						<input
-							id="newName"
+							id="addItemName"
 							type="text"
-							value={newItemName}
-							onChange={(e) => setNewItemName(e.target.value)}
+							value={formName}
+							onChange={(e) => setFormName(e.target.value)}
 							placeholder="Enter name..."
 							className="form-input"
+							autoFocus
 						/>
 					</div>
-
 					<div>
 						<label className="form-label">Categories</label>
 						<CategoryPicker
-							selected={newItemCategories}
+							selected={formCategories}
 							categories={categories}
-							onchange={setNewItemCategories}
+							onchange={setFormCategories}
 							type={activeTab}
 						/>
 					</div>
-
-					<div className="flex gap-2">
-						<button
-							onClick={handleAddItem}
-							disabled={!newItemName.trim()}
-							className="flex-1 btn-primary"
-						>
-							Add Item
-						</button>
-						<button
-							onClick={() => setShowAddForm(false)}
-							className="flex-1 btn-secondary"
-						>
-							Cancel
-						</button>
-					</div>
 				</div>
-			) : (
-				<button
-					onClick={() => setShowAddForm(true)}
-					className="w-full bg-[var(--bg-card)] border-2 border-dashed border-[var(--border-input)] rounded-lg py-4 text-label hover:border-[var(--color-activity)] hover:text-[var(--color-activity)] transition-colors"
-				>
-					+ Add New {activeTab === 'activity' ? 'Activity' : 'Food'} Item
-				</button>
-			)}
+			</BottomSheet>
 
-			<div className="space-y-2">
-				{items.length === 0 ? (
-					<p className="text-center text-label py-8">
-						{searchQuery.trim()
-							? `No ${activeTab === 'activity' ? 'activities' : 'food items'} match "${searchQuery}"`
-							: `No ${activeTab === 'activity' ? 'activities' : 'food items'} yet. Add one above!`}
-					</p>
-				) : (
-					items.map((item) =>
-						editingItem?.id === item.id ? (
-							<div key={item.id} className="card p-4 space-y-3">
-								<input
-									type="text"
-									value={editingItem.name}
-									onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
-									className="form-input"
-								/>
-								<CategoryPicker
-									selected={editingItem.categories}
-									categories={categories}
-									onchange={(ids) => setEditingItem({ ...editingItem, categories: ids })}
-									type={activeTab}
-								/>
-								<div className="flex gap-2">
-									<button onClick={handleSaveEdit} className="flex-1 btn-success">
-										Save
-									</button>
-									<button onClick={handleCancelEdit} className="flex-1 btn-secondary">
-										Cancel
-									</button>
-								</div>
-							</div>
-						) : (
-							<div key={item.id} className="card p-4 flex items-start justify-between">
-								<div className="flex-1">
-									<div className="font-medium text-heading">{item.name}</div>
-									{item.categories.length > 0 ? (
-										<div className="flex flex-wrap gap-1 mt-1">
-											{getCategoryNamesForItem(item).map((categoryName) => (
-												<span key={categoryName} className="text-xs bg-[var(--bg-inset)] text-label px-2 py-0.5 rounded">
-													{categoryName}
-												</span>
-											))}
-										</div>
-									) : (
-										<div className="text-xs text-subtle mt-1">No categories</div>
-									)}
-								</div>
-								<div className="flex gap-2">
-									<button
-										type="button"
-										onClick={() => toggleFavorite(item.id)}
-										className="p-1"
-										aria-label={isFavorite(item.id) ? 'Remove from favorites' : 'Add to favorites'}
-									>
-										<StarIcon filled={isFavorite(item.id)} />
-									</button>
-									<button
-										onClick={() => handleEditItem(item)}
-										className="text-subtle hover:text-[var(--color-activity)] p-1"
-										aria-label="Edit item"
-									>
-										<Pencil className="w-4 h-4" strokeWidth={2} />
-									</button>
-									<button
-										onClick={() => handleDeleteItem(item.id)}
-										className="text-subtle hover:text-[var(--color-danger)] p-1"
-										aria-label="Delete item"
-									>
-										<Trash2 className="w-4 h-4" strokeWidth={2} />
-									</button>
-								</div>
-							</div>
-						)
-					)
+			{/* Edit Item Bottom Sheet */}
+			<BottomSheet
+				open={editingItem !== null}
+				onclose={cancelEdit}
+				title={editingItem ? `Edit ${editingItem.name}` : undefined}
+				headerAction={
+					editingItem ? (
+						<button
+							onClick={handleSaveEdit}
+							disabled={!formName.trim()}
+							className="btn-primary btn-sm rounded-full px-4"
+						>
+							Save
+						</button>
+					) : undefined
+				}
+			>
+				{editingItem && (
+					<div className="space-y-4">
+						<div>
+							<label htmlFor="editItemName" className="form-label">Name</label>
+							<input
+								id="editItemName"
+								type="text"
+								value={formName}
+								onChange={(e) => setFormName(e.target.value)}
+								className="form-input"
+							/>
+						</div>
+						<div>
+							<label className="form-label">Categories</label>
+							<CategoryPicker
+								selected={formCategories}
+								categories={categories}
+								onchange={setFormCategories}
+								type={activeTab}
+							/>
+						</div>
+						<div className="pt-2">
+							<button
+								onClick={() => handleDelete(editingItem.id)}
+								className="btn btn-danger w-full"
+							>
+								<Trash2 className="w-4 h-4 mr-2" strokeWidth={2} />
+								Delete Item
+							</button>
+						</div>
+					</div>
 				)}
-			</div>
+			</BottomSheet>
 		</>
 	);
 }

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, Plus } from 'lucide-react';
 import { useActivityItems, useFoodItems, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import ItemsTab from './ItemsTab';
@@ -14,6 +14,7 @@ export default function LibraryPage() {
 	const [activeTab, setActiveTab] = useState<'activity' | 'food'>('activity');
 	const [activeSubTab, setActiveSubTab] = useState<'items' | 'categories'>('items');
 	const [searchQuery, setSearchQuery] = useState('');
+	const [showAddSheet, setShowAddSheet] = useState(false);
 
 	const allItems = useMemo(
 		() => (activeTab === 'activity' ? activityItems : foodItems)
@@ -47,10 +48,30 @@ export default function LibraryPage() {
 		[allCategories, searchQuery]
 	);
 
-	return (
-		<div className="space-y-4">
-			<h2 className="text-2xl font-bold text-heading">Item Library</h2>
+	const count = activeSubTab === 'items' ? currentItems.length : currentCategories.length;
+	const countLabel = activeSubTab === 'items'
+		? `${count} item${count !== 1 ? 's' : ''}`
+		: `${count} ${count !== 1 ? 'categories' : 'category'}`;
 
+	return (
+		<div className="space-y-3">
+			{/* Header with title + add button */}
+			<div className="flex items-center justify-between">
+				<div>
+					<h2 className="text-2xl font-bold text-heading">Library</h2>
+					<p className="text-xs text-subtle mt-0.5">{countLabel}</p>
+				</div>
+				<button
+					type="button"
+					onClick={() => setShowAddSheet(true)}
+					className="p-2 rounded-lg text-label hover:text-heading hover:bg-[var(--bg-inset)] transition-colors"
+					aria-label={activeSubTab === 'items' ? 'Add item' : 'Add category'}
+				>
+					<Plus className="w-5 h-5" strokeWidth={1.5} />
+				</button>
+			</div>
+
+			{/* Type filter */}
 			<SegmentedControl
 				options={[
 					{ value: 'activity' as const, label: 'Activities', activeClass: 'type-activity' },
@@ -58,18 +79,23 @@ export default function LibraryPage() {
 				]}
 				value={activeTab}
 				onchange={setActiveTab}
-			/>
-
-			<SegmentedControl
-				options={[
-					{ value: 'items' as const, label: `Items (${allItems.length})` },
-					{ value: 'categories' as const, label: `Categories (${allCategories.length})` }
-				]}
-				value={activeSubTab}
-				onchange={setActiveSubTab}
+				variant="segment"
 				size="sm"
 			/>
 
+			{/* Sub-tab filter */}
+			<SegmentedControl
+				options={[
+					{ value: 'items' as const, label: 'Items' },
+					{ value: 'categories' as const, label: 'Categories' }
+				]}
+				value={activeSubTab}
+				onchange={setActiveSubTab}
+				variant="segment"
+				size="sm"
+			/>
+
+			{/* Search */}
 			<div className="relative">
 				<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle" strokeWidth={2} />
 				<input
@@ -77,7 +103,7 @@ export default function LibraryPage() {
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
 					placeholder={`Search ${activeSubTab}...`}
-					className="form-input pl-10 pr-8"
+					className="form-input-sm pl-9 pr-8"
 				/>
 				{searchQuery && (
 					<button
@@ -94,9 +120,11 @@ export default function LibraryPage() {
 			{activeSubTab === 'items' ? (
 				<ItemsTab
 					items={currentItems}
-					categories={currentCategories}
+					categories={allCategories}
 					activeTab={activeTab}
 					searchQuery={searchQuery}
+					showAddSheet={showAddSheet}
+					onCloseAddSheet={() => setShowAddSheet(false)}
 				/>
 			) : (
 				<CategoriesTab
@@ -104,6 +132,8 @@ export default function LibraryPage() {
 					allItems={allItems}
 					activeTab={activeTab}
 					searchQuery={searchQuery}
+					showAddSheet={showAddSheet}
+					onCloseAddSheet={() => setShowAddSheet(false)}
 				/>
 			)}
 		</div>
