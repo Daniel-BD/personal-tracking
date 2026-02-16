@@ -4,6 +4,7 @@ import {
 	getCategoryNameById,
 	getEntryCategoryNames,
 	getCategorySentimentCounts,
+	getDaySentimentCounts,
 } from '../utils/category-utils';
 import { makeEntry, makeItem, makeCategory, makeValidData, resetIdCounter } from '@/shared/store/__tests__/fixtures';
 
@@ -164,5 +165,76 @@ describe('getCategorySentimentCounts', () => {
 		const categories = [makeCategory({ id: 'c1', sentiment: 'limit' }), makeCategory({ id: 'c2', sentiment: 'limit' })];
 		const result = getCategorySentimentCounts(['c1', 'c2'], categories);
 		expect(result).toEqual({ positive: 0, limit: 2 });
+	});
+});
+
+describe('getDaySentimentCounts', () => {
+	it('aggregates sentiment counts across multiple entries', () => {
+		const foodCats = [
+			makeCategory({ id: 'fc1', sentiment: 'positive' }),
+			makeCategory({ id: 'fc2', sentiment: 'limit' }),
+		];
+		const item1 = makeItem({ id: 'fi1', categories: ['fc1'] });
+		const item2 = makeItem({ id: 'fi2', categories: ['fc2'] });
+		const data = makeValidData({ foodItems: [item1, item2], foodCategories: foodCats });
+		const entries = [
+			makeEntry({ type: 'food', itemId: 'fi1', categoryOverrides: null }),
+			makeEntry({ type: 'food', itemId: 'fi2', categoryOverrides: null }),
+		];
+		expect(getDaySentimentCounts(entries, data)).toEqual({ positive: 1, limit: 1 });
+	});
+
+	it('aggregates across both activity and food entries', () => {
+		const actCats = [makeCategory({ id: 'ac1', sentiment: 'positive' })];
+		const foodCats = [makeCategory({ id: 'fc1', sentiment: 'limit' })];
+		const actItem = makeItem({ id: 'ai1', categories: ['ac1'] });
+		const foodItem = makeItem({ id: 'fi1', categories: ['fc1'] });
+		const data = makeValidData({
+			activityItems: [actItem],
+			activityCategories: actCats,
+			foodItems: [foodItem],
+			foodCategories: foodCats,
+		});
+		const entries = [
+			makeEntry({ type: 'activity', itemId: 'ai1', categoryOverrides: null }),
+			makeEntry({ type: 'food', itemId: 'fi1', categoryOverrides: null }),
+		];
+		expect(getDaySentimentCounts(entries, data)).toEqual({ positive: 1, limit: 1 });
+	});
+
+	it('returns zeros when no entries have sentiment categories', () => {
+		const foodCats = [makeCategory({ id: 'fc1', sentiment: 'neutral' })];
+		const item = makeItem({ id: 'fi1', categories: ['fc1'] });
+		const data = makeValidData({ foodItems: [item], foodCategories: foodCats });
+		const entries = [makeEntry({ type: 'food', itemId: 'fi1', categoryOverrides: null })];
+		expect(getDaySentimentCounts(entries, data)).toEqual({ positive: 0, limit: 0 });
+	});
+
+	it('returns zeros for empty entries array', () => {
+		const data = makeValidData();
+		expect(getDaySentimentCounts([], data)).toEqual({ positive: 0, limit: 0 });
+	});
+
+	it('counts multiple categories per entry', () => {
+		const foodCats = [
+			makeCategory({ id: 'fc1', sentiment: 'positive' }),
+			makeCategory({ id: 'fc2', sentiment: 'positive' }),
+			makeCategory({ id: 'fc3', sentiment: 'limit' }),
+		];
+		const item = makeItem({ id: 'fi1', categories: ['fc1', 'fc2', 'fc3'] });
+		const data = makeValidData({ foodItems: [item], foodCategories: foodCats });
+		const entries = [makeEntry({ type: 'food', itemId: 'fi1', categoryOverrides: null })];
+		expect(getDaySentimentCounts(entries, data)).toEqual({ positive: 2, limit: 1 });
+	});
+
+	it('uses category overrides when present', () => {
+		const foodCats = [
+			makeCategory({ id: 'fc1', sentiment: 'positive' }),
+			makeCategory({ id: 'fc2', sentiment: 'limit' }),
+		];
+		const item = makeItem({ id: 'fi1', categories: ['fc1'] });
+		const data = makeValidData({ foodItems: [item], foodCategories: foodCats });
+		const entries = [makeEntry({ type: 'food', itemId: 'fi1', categoryOverrides: ['fc2'] })];
+		expect(getDaySentimentCounts(entries, data)).toEqual({ positive: 0, limit: 1 });
 	});
 });
