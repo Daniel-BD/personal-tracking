@@ -26,17 +26,12 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 
 	const currentScore = useMemo(() => {
 		if (weeklyData.length === 0) return 0;
-		// Average of last 2 weeks or current week
-		const recentWeeks = weeklyData.slice(-2);
-		return recentWeeks.reduce((sum, w) => sum + calculateBalanceScore(w), 0) / recentWeeks.length;
+		return calculateBalanceScore(weeklyData[weeklyData.length - 1]);
 	}, [weeklyData]);
 
 	const previousScore = useMemo(() => {
-		if (weeklyData.length < 4) return currentScore;
-		// Average of 2 weeks before current
-		const previousWeeks = weeklyData.slice(-4, -2);
-		if (previousWeeks.length === 0) return currentScore;
-		return previousWeeks.reduce((sum, w) => sum + calculateBalanceScore(w), 0) / previousWeeks.length;
+		if (weeklyData.length < 2) return currentScore;
+		return calculateBalanceScore(weeklyData[weeklyData.length - 2]);
 	}, [weeklyData, currentScore]);
 
 	const scoreChange = useMemo(() => {
@@ -79,7 +74,7 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 						}}
 					/>
 				</div>
-				<p className="text-xs text-body">Positive ÷ (Positive + Limit)</p>
+				<p className="text-xs text-body">This week · Positive ÷ (Positive + Limit)</p>
 			</div>
 
 			{/* Weekly breakdown chart */}
