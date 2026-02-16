@@ -5,10 +5,12 @@ interface Props {
 	onclose: () => void;
 	children: ReactNode;
 	title?: string;
-	headerAction?: ReactNode;
+	actionLabel?: string;
+	onAction?: () => void;
+	actionDisabled?: boolean;
 }
 
-export default function BottomSheet({ open, onclose, children, title, headerAction }: Props) {
+export default function BottomSheet({ open, onclose, children, title, actionLabel, onAction, actionDisabled }: Props) {
 	const sheetRef = useRef<HTMLDivElement>(null);
 	const oncloseRef = useRef(onclose);
 	oncloseRef.current = onclose;
@@ -66,14 +68,23 @@ export default function BottomSheet({ open, onclose, children, title, headerActi
 					<div className="w-10 h-1 rounded-full bg-[var(--text-muted)] opacity-40" />
 				</div>
 
-				{(title || headerAction) && (
+				{(title || actionLabel) && (
 					<div className="px-5 pb-3 flex-shrink-0 flex items-center justify-between gap-3">
 						{title && (
 							<h3 id={titleId} className="text-lg font-semibold text-heading">
 								{title}
 							</h3>
 						)}
-						{headerAction}
+						{actionLabel && (
+							<button
+								type="button"
+								onClick={onAction}
+								disabled={actionDisabled}
+								className="btn-primary btn-sm rounded-full px-4"
+							>
+								{actionLabel}
+							</button>
+						)}
 					</div>
 				)}
 

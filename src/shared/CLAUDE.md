@@ -30,6 +30,7 @@ Instead of React Context, the store uses a module-level singleton with `useSyncE
 ### Tests
 
 Test files in `store/__tests__/`:
+
 - `fixtures.ts` — Shared test helpers (`makeEntry`, `makeItem`, `makeCategory`, `makeValidData`, `flushPromises`)
 - `store-crud.test.ts` — CRUD operations (categories, items, entries, dashboard cards)
 - `migration.test.ts` — Data migration + dashboard initialization
@@ -56,7 +57,27 @@ Test files in `store/__tests__/`:
 
 Must NOT import from `store/` or `features/`. Pure and generic.
 
-- **`BottomSheet.tsx`** — Slide-up sheet (~85vh max) with backdrop, handle bar, escape-to-close. Locks body scroll when open. Supports optional `headerAction` prop (ReactNode) rendered trailing in the header row.
+### Design Principle: Declarative Props Over Raw ReactNode
+
+Shared UI components should own their own visual output. Instead of accepting `ReactNode` for structural parts (headers, action buttons, footers), accept **primitive props** (strings, callbacks, booleans) and render the UI internally. This keeps styling consistent across all usages and prevents callers from accidentally diverging.
+
+Good — component controls the rendering:
+
+```tsx
+<BottomSheet title="Edit Item" actionLabel="Save" onAction={handleSave} actionDisabled={!isValid}>
+```
+
+Bad — caller can pass anything, styling drifts between usages:
+
+```tsx
+<BottomSheet headerAction={<button className="...">Save</button>}>
+```
+
+Reserve `children` for the body/content area where each usage genuinely needs different markup.
+
+### Components
+
+- **`BottomSheet.tsx`** — Slide-up sheet (~85vh max) with backdrop, handle bar, escape-to-close. Locks body scroll when open. Accepts `title`, `actionLabel`, `onAction`, and `actionDisabled` — the component renders the pill-shaped action button itself.
 - **`SegmentedControl.tsx`** — Generic pill/segment toggle. Supports `'pill'` (default, gap-separated) and `'segment'` (iOS-style connected, inset background) variants. Also supports `size` prop (`'default'`, `'sm'`, `'xs'`).
 - **`MultiSelectFilter.tsx`** — Searchable multi-select dropdown (used on Log page).
 - **`NativePickerInput.tsx`** — iOS-safe date/time picker. Renders a styled `<div>` for display with a transparent native `<input>` overlay on top that captures taps, reliably opening the OS picker. Supports optional `onClear` prop for clearable time fields.

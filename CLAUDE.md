@@ -66,7 +66,7 @@ Navigation uses a 5-tab bottom nav bar defined in `App.tsx`.
 - **Category overrides**: Entries can override their item's default categories via `categoryOverrides`. Use `getEntryCategoryIds()` from `@/features/tracking` to get effective categories.
 - **Category sentiment**: Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`). Defaults to `'neutral'`. Legacy data auto-migrated on load.
 - **Toast system**: `showToast()` from `shared/ui/Toast.tsx` is a module-level function (no provider needed). Toasts auto-dismiss after 3.5s, optionally include an action button.
-- **Bottom sheet pattern**: `BottomSheet` component provides slide-up sheets with backdrop, handle bar, escape-to-close. Supports `headerAction` prop.
+- **Bottom sheet pattern**: `BottomSheet` component provides slide-up sheets with backdrop, handle bar, escape-to-close. Accepts `title`, `actionLabel`, `onAction`, and `actionDisabled` props — the component renders the pill-shaped action button itself (no raw `ReactNode` for the header action).
 - **Favorites**: `TrackerData.favoriteItems` stores item IDs. `toggleFavorite()` and `isFavorite()` in `store.ts`.
 - **Swipe gestures**: `useSwipeGesture` hook from `@/features/tracking` encapsulates touch-based swipe-left to reveal Edit/Delete actions.
 
