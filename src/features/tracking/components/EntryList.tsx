@@ -210,6 +210,8 @@ export default function EntryList({ entries, showType = false }: Props) {
 				open={editingEntry !== null}
 				onclose={cancelEdit}
 				title={editingEntry ? `Edit ${getItemName(editingEntry.type, editingEntry.itemId)}` : undefined}
+				actionLabel={editingEntry ? 'Save' : undefined}
+				onAction={saveEdit}
 			>
 				{editingEntry && (
 					<div className="space-y-4">
@@ -245,16 +247,10 @@ export default function EntryList({ entries, showType = false }: Props) {
 							/>
 						</div>
 
-						<div className="flex gap-2 pt-2">
-							<button onClick={saveEdit} className="btn btn-primary flex-1">
-								Save
-							</button>
-							<button
-								onClick={() => handleDelete(editingEntry.id)}
-								className="btn btn-danger"
-								aria-label="Delete entry"
-							>
-								<Trash2 className="w-5 h-5" strokeWidth={2} />
+						<div className="pt-2">
+							<button onClick={() => handleDelete(editingEntry.id)} className="btn btn-danger w-full">
+								<Trash2 className="w-4 h-4 mr-2" strokeWidth={2} />
+								Delete Entry
 							</button>
 						</div>
 					</div>

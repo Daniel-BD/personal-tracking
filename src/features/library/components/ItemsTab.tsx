@@ -163,11 +163,9 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 				open={showAddSheet}
 				onclose={onCloseAddSheet}
 				title={`Add ${activeTab === 'activity' ? 'Activity' : 'Food'} Item`}
-				headerAction={
-					<button onClick={handleAdd} disabled={!formName.trim()} className="btn-primary btn-sm rounded-full px-4">
-						Add
-					</button>
-				}
+				actionLabel="Add"
+				onAction={handleAdd}
+				actionDisabled={!formName.trim()}
 			>
 				<div className="space-y-4">
 					<div>
@@ -201,17 +199,9 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 				open={editingItem !== null}
 				onclose={cancelEdit}
 				title={editingItem ? `Edit ${editingItem.name}` : undefined}
-				headerAction={
-					editingItem ? (
-						<button
-							onClick={handleSaveEdit}
-							disabled={!formName.trim()}
-							className="btn-primary btn-sm rounded-full px-4"
-						>
-							Save
-						</button>
-					) : undefined
-				}
+				actionLabel={editingItem ? 'Save' : undefined}
+				onAction={handleSaveEdit}
+				actionDisabled={!formName.trim()}
 			>
 				{editingItem && (
 					<div className="space-y-4">

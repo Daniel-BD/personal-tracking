@@ -184,11 +184,9 @@ export default function CategoriesTab({
 				open={showAddSheet}
 				onclose={onCloseAddSheet}
 				title="Add Category"
-				headerAction={
-					<button onClick={handleAdd} disabled={!formName.trim()} className="btn-primary btn-sm rounded-full px-4">
-						Add
-					</button>
-				}
+				actionLabel="Add"
+				onAction={handleAdd}
+				actionDisabled={!formName.trim()}
 			>
 				<div className="space-y-4">
 					<div>
@@ -217,17 +215,9 @@ export default function CategoriesTab({
 				open={editingCategory !== null}
 				onclose={cancelEdit}
 				title={editingCategory ? `Edit ${editingCategory.name}` : undefined}
-				headerAction={
-					editingCategory ? (
-						<button
-							onClick={handleSaveEdit}
-							disabled={!formName.trim()}
-							className="btn-primary btn-sm rounded-full px-4"
-						>
-							Save
-						</button>
-					) : undefined
-				}
+				actionLabel={editingCategory ? 'Save' : undefined}
+				onAction={handleSaveEdit}
+				actionDisabled={!formName.trim()}
 			>
 				{editingCategory && (
 					<div className="space-y-4">

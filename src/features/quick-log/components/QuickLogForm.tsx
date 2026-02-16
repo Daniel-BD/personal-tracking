@@ -177,16 +177,9 @@ export default function QuickLogForm() {
 				open={sheetOpen}
 				onclose={() => setSheetOpen(false)}
 				title={sheetMode === 'create' ? 'New item' : `Log ${selectedItem?.item.name ?? ''}`}
-				headerAction={
-					<button
-						type="button"
-						onClick={handleLog}
-						disabled={isLogDisabled}
-						className="px-4 py-1.5 text-sm font-semibold rounded-full bg-[var(--color-activity)] text-white transition-colors hover:bg-[var(--color-activity-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
-					>
-						{sheetMode === 'create' ? 'Create' : 'Log'}
-					</button>
-				}
+				actionLabel={sheetMode === 'create' ? 'Create' : 'Log'}
+				onAction={handleLog}
+				actionDisabled={isLogDisabled}
 			>
 				<div className="space-y-5">
 					{/* Item name — only for create mode */}
