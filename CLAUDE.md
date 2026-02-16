@@ -2,7 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Documentation is split across directories.** Each `src/` subdirectory has its own `CLAUDE.md` with context relevant to that area. Only app-wide essentials are here.
 
 ## Important Workflow Rules
 
