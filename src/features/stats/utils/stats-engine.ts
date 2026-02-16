@@ -68,6 +68,21 @@ export function getLastNWeeks(count: number = 8): Array<{ key: string; start: Da
 }
 
 /**
+ * Calculate how many days have elapsed in the current week (1–7).
+ * Compares the week's start (Monday) to today. Accepts an optional
+ * `today` parameter for testing.
+ */
+export function getDaysElapsedInCurrentWeek(weekStart: Date, today?: Date): number {
+	const now = today ? new Date(today) : new Date();
+	now.setHours(0, 0, 0, 0);
+	const start = new Date(weekStart);
+	start.setHours(0, 0, 0, 0);
+	const diffMs = now.getTime() - start.getTime();
+	const diffDays = Math.floor(diffMs / 86400000) + 1; // +1 to include today
+	return Math.max(1, Math.min(7, diffDays));
+}
+
+/**
  * Check if an entry's date falls within a week
  */
 function isEntryInWeek(entry: Entry, weekStart: Date, weekEnd: Date): boolean {
