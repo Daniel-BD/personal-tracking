@@ -80,7 +80,7 @@ export default function BottomSheet({ open, onclose, children, title, actionLabe
 								type="button"
 								onClick={onAction}
 								disabled={actionDisabled}
-								className="btn-primary btn-sm rounded-full px-4"
+								className="btn-primary btn-sm !rounded-full px-4"
 							>
 								{actionLabel}
 							</button>
