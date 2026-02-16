@@ -16,6 +16,8 @@ interface GoalCardProps {
 	currentCount: number;
 	baselineAvg: number;
 	deltaPercent: number;
+	/** Days elapsed in the current week (1–7). Used for pace-adjusted display. */
+	daysElapsed: number;
 	onRemove: () => void;
 }
 
@@ -26,6 +28,7 @@ export default function GoalCard({
 	currentCount,
 	baselineAvg,
 	deltaPercent,
+	daysElapsed,
 	onRemove,
 }: GoalCardProps) {
 	const color = SENTIMENT_COLORS[sentiment];
@@ -39,15 +42,16 @@ export default function GoalCard({
 		return `${sign}${absPercent}%`;
 	}, [isStable, deltaPercent, absPercent]);
 
+	const proratedBaseline = baselineAvg * (daysElapsed / 7);
 	const deltaEvents = useMemo(() => {
 		if (isStable) return null;
-		const raw = currentCount - baselineAvg;
+		const raw = currentCount - proratedBaseline;
 		const sign = raw >= 0 ? '+' : '−';
 		const abs = Math.abs(raw);
 		const formatted = Number.isInteger(abs) ? abs.toString() : abs.toFixed(1);
 		const unit = abs === 1 ? 'event' : 'events';
 		return `(${sign}${formatted} ${unit})`;
-	}, [isStable, currentCount, baselineAvg]);
+	}, [isStable, currentCount, proratedBaseline]);
 
 	const avgFormatted = Number.isInteger(baselineAvg) ? baselineAvg.toString() : baselineAvg.toFixed(1);
 
@@ -72,6 +76,7 @@ export default function GoalCard({
 			<div className="mt-1.5 space-y-0">
 				<div className="text-sm font-semibold text-heading">
 					This week: {currentCount} {currentCount === 1 ? 'event' : 'events'}
+					{daysElapsed < 7 && <span className="text-xs font-normal text-label"> (day {daysElapsed}/7)</span>}
 				</div>
 				<div className="text-xs text-label">
 					4-week avg: {avgFormatted} {avgFormatted === '1' ? 'event' : 'events'}
@@ -84,6 +89,7 @@ export default function GoalCard({
 					{changeText}
 				</span>
 				{deltaEvents && <span className="text-[10px] text-label">{deltaEvents}</span>}
+				{!isStable && daysElapsed < 7 && <span className="text-[10px] text-label">vs pace</span>}
 			</div>
 
 			{/* 4. Sparkline */}

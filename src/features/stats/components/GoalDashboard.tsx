@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTrackerData } from '@/shared/store/hooks';
-import { getLastNWeeks } from '../utils/stats-engine';
+import { getLastNWeeks, getDaysElapsedInCurrentWeek } from '../utils/stats-engine';
 import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking';
 import { formatDateLocal } from '@/shared/lib/date-utils';
 import GoalCard from './GoalCard';
@@ -13,6 +13,10 @@ export default function GoalDashboard() {
 
 	// Recalculate week boundaries when entries change (new entries may span a new week)
 	const weeks = useMemo(() => getLastNWeeks(8), [data.entries]);
+
+	// How many days have elapsed in the current (partial) week
+	const currentWeek = weeks[weeks.length - 1];
+	const daysElapsed = currentWeek ? getDaysElapsedInCurrentWeek(currentWeek.start) : 7;
 
 	const dashboardData = useMemo(() => {
 		if (!data.dashboardCards) return [];
@@ -52,8 +56,11 @@ export default function GoalDashboard() {
 				const baselineSum = baselineWeeks.reduce((sum, w) => sum + w.count, 0);
 				const baselineAvg = baselineSum / 4;
 
-				const delta = currentCount - baselineAvg;
-				const deltaPercent = baselineAvg === 0 ? (currentCount > 0 ? 1 : 0) : delta / baselineAvg;
+				// Pro-rate: scale baseline down to match elapsed days so partial weeks
+				// are compared fairly (e.g. day 1 compares against 1/7 of the avg)
+				const proratedBaseline = baselineAvg * (daysElapsed / 7);
+				const delta = currentCount - proratedBaseline;
+				const deltaPercent = proratedBaseline === 0 ? (currentCount > 0 ? 1 : 0) : delta / proratedBaseline;
 
 				return {
 					categoryId,
@@ -62,12 +69,12 @@ export default function GoalDashboard() {
 					sparklineData,
 					currentCount,
 					baselineAvg,
-					delta,
 					deltaPercent,
+					daysElapsed,
 				};
 			})
 			.filter((item): item is NonNullable<typeof item> => item !== null);
-	}, [data, weeks]);
+	}, [data, weeks, daysElapsed]);
 
 	return (
 		<div className="space-y-4">
@@ -95,6 +102,7 @@ export default function GoalDashboard() {
 						currentCount={card.currentCount}
 						baselineAvg={card.baselineAvg}
 						deltaPercent={card.deltaPercent}
+						daysElapsed={card.daysElapsed}
 						onRemove={() => removeDashboardCard(card.categoryId)}
 					/>
 				))}

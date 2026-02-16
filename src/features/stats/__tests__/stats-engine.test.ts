@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
 	getWeekStartDate,
+	getDaysElapsedInCurrentWeek,
 	processFoodEntriesByWeek,
 	calculateBalanceScore,
 	getScoreChange,
@@ -38,6 +39,37 @@ describe('getWeekStartDate', () => {
 		expect(result.getFullYear()).toBe(2024);
 		expect(result.getMonth()).toBe(11); // December
 		expect(result.getDate()).toBe(30);
+	});
+});
+
+describe('getDaysElapsedInCurrentWeek', () => {
+	it('returns 1 on the first day of the week (Monday)', () => {
+		const monday = new Date('2026-02-16T00:00:00'); // a Monday
+		expect(getDaysElapsedInCurrentWeek(monday, monday)).toBe(1);
+	});
+
+	it('returns 3 on Wednesday of the same week', () => {
+		const monday = new Date('2026-02-16T00:00:00');
+		const wednesday = new Date('2026-02-18T00:00:00');
+		expect(getDaysElapsedInCurrentWeek(monday, wednesday)).toBe(3);
+	});
+
+	it('returns 7 on Sunday (last day of the week)', () => {
+		const monday = new Date('2026-02-16T00:00:00');
+		const sunday = new Date('2026-02-22T00:00:00');
+		expect(getDaysElapsedInCurrentWeek(monday, sunday)).toBe(7);
+	});
+
+	it('clamps to 7 if today is after the week end', () => {
+		const monday = new Date('2026-02-09T00:00:00');
+		const nextMonday = new Date('2026-02-16T00:00:00');
+		expect(getDaysElapsedInCurrentWeek(monday, nextMonday)).toBe(7);
+	});
+
+	it('clamps to 1 if today is before the week start', () => {
+		const monday = new Date('2026-02-16T00:00:00');
+		const beforeStart = new Date('2026-02-15T00:00:00');
+		expect(getDaysElapsedInCurrentWeek(monday, beforeStart)).toBe(1);
 	});
 });
 
