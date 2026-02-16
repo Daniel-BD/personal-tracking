@@ -37,3 +37,18 @@ export function getCategorySentimentCounts(
 	}
 	return { positive, limit };
 }
+
+export function getDaySentimentCounts(entries: Entry[], data: TrackerData): { positive: number; limit: number } {
+	let positive = 0;
+	let limit = 0;
+
+	for (const entry of entries) {
+		const categoryIds = getEntryCategoryIds(entry, data);
+		const categories = entry.type === 'activity' ? data.activityCategories : data.foodCategories;
+		const counts = getCategorySentimentCounts(categoryIds, categories);
+		positive += counts.positive;
+		limit += counts.limit;
+	}
+
+	return { positive, limit };
+}

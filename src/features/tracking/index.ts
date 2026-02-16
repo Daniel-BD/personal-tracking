@@ -13,6 +13,7 @@ export {
 	getCategoryNameById,
 	getEntryCategoryNames,
 	getCategorySentimentCounts,
+	getDaySentimentCounts,
 } from './utils/category-utils';
 export {
 	getEntriesGroupedByDate,

@@ -7,6 +7,7 @@ import { useTrackerData } from '@/shared/store/hooks';
 import { getEntriesGroupedByDate } from '../utils/entry-grouping';
 import { getEntryCategoryIds } from '../utils/category-utils';
 import CategoryLine from './CategoryLine';
+import DaySentimentSummary from './DaySentimentSummary';
 import { formatDate, formatTime } from '@/shared/lib/date-utils';
 import CategoryPicker from './CategoryPicker';
 import NativePickerInput from '@/shared/ui/NativePickerInput';
@@ -107,8 +108,9 @@ export default function EntryList({ entries, showType = false }: Props) {
 				{groupedArray.map(([dateStr, dateEntries]) => (
 					<div key={dateStr}>
 						{/* Date header — sticky, uppercase, muted */}
-						<div className="sticky top-0 z-10 bg-[var(--bg-page)] py-1.5">
+						<div className="sticky top-0 z-10 bg-[var(--bg-page)] py-1.5 flex items-center justify-between">
 							<h3 className="text-[11px] font-semibold text-subtle uppercase tracking-wider">{formatDate(dateStr)}</h3>
+							<DaySentimentSummary entries={dateEntries} data={data} />
 						</div>
 
 						{/* Grouped entry rows — flat, divider-separated */}
