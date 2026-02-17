@@ -1,5 +1,5 @@
-import type { Entry, TrackerData } from '@/shared/lib/types';
-import { filterEntriesByType, getDaySentimentCounts } from '@/features/tracking';
+import type { Entry, Item, Category, TrackerData } from '@/shared/lib/types';
+import { getDaySentimentCounts } from '@/features/tracking';
 
 export interface DailyBalanceResult {
 	score: number;
@@ -8,11 +8,17 @@ export interface DailyBalanceResult {
 	hasEntries: boolean;
 }
 
-export function calculateDailyBalance(entries: Entry[], data: TrackerData, today: string): DailyBalanceResult {
-	const todayFoodEntries = filterEntriesByType(entries, 'food').filter((e) => e.date === today);
+export function calculateDailyBalance(
+	entries: Entry[],
+	foodItems: Item[],
+	foodCategories: Category[],
+	today: string,
+): DailyBalanceResult {
+	const todayFoodEntries = entries.filter((e) => e.type === 'food' && e.date === today);
 	if (todayFoodEntries.length === 0) {
 		return { score: 0, positive: 0, limit: 0, hasEntries: false };
 	}
+	const data = { foodItems, foodCategories } as TrackerData;
 	const counts = getDaySentimentCounts(todayFoodEntries, data);
 	const total = counts.positive + counts.limit;
 	return {

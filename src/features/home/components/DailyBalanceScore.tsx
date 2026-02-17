@@ -1,15 +1,16 @@
 import { useMemo } from 'react';
-import { useEntries, useTrackerData } from '@/shared/store/hooks';
+import { useEntries, useFoodItems, useFoodCategories } from '@/shared/store/hooks';
 import { getTodayDate } from '@/shared/lib/types';
 import { calculateDailyBalance } from '../utils/daily-balance';
 
 export default function DailyBalanceScore() {
 	const entries = useEntries();
-	const data = useTrackerData();
+	const foodItems = useFoodItems();
+	const foodCategories = useFoodCategories();
 
 	const { score, positive, limit, hasEntries } = useMemo(
-		() => calculateDailyBalance(entries, data, getTodayDate()),
-		[entries, data],
+		() => calculateDailyBalance(entries, foodItems, foodCategories, getTodayDate()),
+		[entries, foodItems, foodCategories],
 	);
 
 	if (!hasEntries) return null;
