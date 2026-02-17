@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import type { Category, EntryType } from '@/shared/lib/types';
 import { addCategory } from '@/shared/store/store';
 
@@ -11,6 +11,14 @@ interface Props {
 
 export default function CategoryPicker({ selected, categories, onchange, type }: Props) {
 	const [searchText, setSearchText] = useState('');
+	const inputRowRef = useRef<HTMLDivElement>(null);
+
+	const scrollInputIntoView = useCallback(() => {
+		// Delay lets the mobile keyboard open and viewport resize before scrolling
+		setTimeout(() => {
+			inputRowRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+		}, 100);
+	}, []);
 
 	function removeCategory(categoryId: string) {
 		onchange(selected.filter((id) => id !== categoryId));
@@ -75,7 +83,7 @@ export default function CategoryPicker({ selected, categories, onchange, type }:
 	);
 
 	return (
-		<div className="space-y-2">
+		<div className="space-y-2 pb-8">
 			{selectedCategories.length > 0 && (
 				<div className="flex flex-wrap gap-2">
 					{selectedCategories.map((category) => (
@@ -97,11 +105,12 @@ export default function CategoryPicker({ selected, categories, onchange, type }:
 			)}
 
 			{type && (
-				<div className="flex gap-2">
+				<div ref={inputRowRef} className="flex gap-2">
 					<input
 						type="text"
 						value={searchText}
 						onChange={(e) => setSearchText(e.target.value)}
+						onFocus={scrollInputIntoView}
 						onKeyDown={handleKeyDown}
 						placeholder="Search or add category..."
 						className="form-input-sm flex-1"
