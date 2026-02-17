@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useEntries, useFoodItems, useFoodCategories } from '@/shared/store/hooks';
 import { getTodayDate } from '@/shared/lib/types';
+import SentimentPills from '@/shared/ui/SentimentPills';
 import { calculateDailyBalance } from '../utils/daily-balance';
 
 export default function DailyBalanceScore() {
@@ -23,15 +24,7 @@ export default function DailyBalanceScore() {
 					<span className="text-lg font-bold" style={{ color: 'var(--color-activity)' }}>
 						{Math.round(score)}%
 					</span>
-					{(positive > 0 || limit > 0) && (
-						<span className="text-xs text-[var(--text-muted)]">
-							{positive}
-							<span style={{ color: 'var(--color-success)' }}> pos</span>
-							{' · '}
-							{limit}
-							<span style={{ color: 'var(--color-danger)' }}> lim</span>
-						</span>
-					)}
+					<SentimentPills positive={positive} limit={limit} />
 				</div>
 			</div>
 			<div className="bg-[var(--bg-inset)] rounded-full h-2.5 overflow-hidden mt-2">

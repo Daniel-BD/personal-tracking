@@ -69,6 +69,7 @@ Navigation uses a 5-tab bottom nav bar defined in `App.tsx`.
 - **Bottom sheet pattern**: `BottomSheet` component provides slide-up sheets with backdrop, handle bar, escape-to-close. Accepts `title`, `actionLabel`, `onAction`, and `actionDisabled` props — the component renders the pill-shaped action button itself (no raw `ReactNode` for the header action).
 - **Favorites**: `TrackerData.favoriteItems` stores item IDs. `toggleFavorite()` and `isFavorite()` in `store.ts`.
 - **Swipe gestures**: `useSwipeGesture` hook from `@/features/tracking` encapsulates touch-based swipe-left to reveal Edit/Delete actions.
+- **Sentiment pills**: `SentimentPills` from `@/shared/ui/SentimentPills` renders compact positive/limit count pills (green `N+`, red `N−`). Used by `DaySentimentSummary` (log screen day headers) and `DailyBalanceScore` (home screen). Takes `{ positive, limit }` number props.
 
 ### High-Level File Structure
 
