@@ -14,7 +14,7 @@ vi.mock('@/shared/lib/github', () => ({
 	validateToken: vi.fn(),
 }));
 
-import { importData, dataStore, toggleFavorite, isFavorite, addItem, deleteItem } from '../store';
+import { importData, dataStore, toggleFavorite, isFavorite, deleteItem } from '../store';
 import { isConfigured, fetchGist, updateGist, getConfig } from '@/shared/lib/github';
 
 describe('favorites', () => {

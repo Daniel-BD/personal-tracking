@@ -9,7 +9,7 @@ import {
 	useActivityCategories,
 	useFoodCategories,
 } from '@/shared/store/hooks';
-import { getCategoryNames, toggleFavorite, isFavorite } from '@/shared/store/store';
+import { getCategoryNames, toggleFavorite } from '@/shared/store/store';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import StarIcon from '@/shared/ui/StarIcon';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
@@ -26,17 +26,8 @@ export default function QuickLogForm() {
 	const foodCategories = useFoodCategories();
 	const inputRef = useRef<HTMLInputElement>(null);
 
-	const {
-		query,
-		setQuery,
-		isFocused,
-		setIsFocused,
-		searchResults,
-		showResults,
-		hasExactMatch,
-		favoriteItemsList,
-		resetSearch,
-	} = useQuickLogSearch(activityItems, foodItems, favoriteIds);
+	const { query, setQuery, setIsFocused, searchResults, showResults, hasExactMatch, favoriteItemsList, resetSearch } =
+		useQuickLogSearch(activityItems, foodItems, favoriteIds);
 
 	const {
 		sheetOpen,

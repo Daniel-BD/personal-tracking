@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Entry, Item, Category } from '@/shared/lib/types';
+import type { Item, Category } from '@/shared/lib/types';
 import { filterEntriesByType, filterEntriesByItems, filterEntriesByCategories } from '@/features/tracking';
 import { makeEntry, makeItem, makeCategory, makeValidData } from '@/shared/store/__tests__/fixtures';
 

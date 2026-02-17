@@ -38,7 +38,7 @@ export function getEntriesGroupedByDate(entries: Entry[]): Map<string, Entry[]> 
 
 	// Sort entries within each day by time (latest first)
 	// Entries without time come after entries with time
-	for (const [date, dateEntries] of grouped) {
+	for (const [, dateEntries] of grouped) {
 		dateEntries.sort((a, b) => {
 			if (a.time && b.time) {
 				return b.time.localeCompare(a.time);

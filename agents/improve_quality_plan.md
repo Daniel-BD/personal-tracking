@@ -2,11 +2,33 @@
 
 Comprehensive audit of the personal-tracking PWA codebase. Items are ordered by priority within each tier, based on impact to code quality, maintainability, and professional standards.
 
+## Progress
+
+- [x] 1. Add ESLint with TypeScript support
+- [x] 2. Add pre-commit hooks (Husky + lint-staged)
+- [x] 3. Add format check to CI pipeline
+- [ ] 4. Fix inconsistent callback prop naming
+- [ ] 5. Replace native `confirm()` dialogs with custom UI
+- [ ] 6. Add Error Boundaries
+- [ ] 7. Add test coverage for React components
+- [ ] 8. Implement PWA service worker for offline support
+- [ ] 9. Enable stricter TypeScript checks
+- [ ] 10. Add Zod for runtime data validation
+- [ ] 11. Add timeout and retry logic to GitHub API calls
+- [ ] 12. Add Vite build optimizations and route-level code splitting
+- [ ] 13. Consistent use of predefined CSS utility classes
+- [ ] 14. Extract hardcoded UI strings for i18n readiness
+- [ ] 15. Add `clsx` + `tailwind-merge` for conditional classNames
+- [ ] 16. Extract duplicated form state patterns into a shared hook
+- [ ] 17. Document magic timeout values
+- [ ] 18. Add a `type-check` npm script
+- [ ] 19. Consider adding `.editorconfig`
+
 ---
 
 ## Tier 1 — High Priority (Foundational quality gaps)
 
-### 1. Add ESLint with TypeScript support
+### 1. Add ESLint with TypeScript support ✅ DONE
 
 **Problem:** No linter exists in the project. Prettier only handles formatting (whitespace, quotes, semicolons) — it does not catch logical issues, unused imports, React hook rule violations, accessibility problems, or TypeScript anti-patterns.
 
@@ -23,7 +45,7 @@ Comprehensive audit of the personal-tracking PWA codebase. Items are ordered by 
 
 ---
 
-### 2. Add pre-commit hooks (Husky + lint-staged)
+### 2. Add pre-commit hooks (Husky + lint-staged) ✅ DONE
 
 **Problem:** `CLAUDE.md` says "Always run `npm run format` before committing" — but this is purely manual. Nothing enforces it. Unformatted code can (and likely does) slip into commits.
 
@@ -36,7 +58,7 @@ Comprehensive audit of the personal-tracking PWA codebase. Items are ordered by 
 
 ---
 
-### 3. Add format check to CI pipeline
+### 3. Add format check to CI pipeline ✅ DONE
 
 **Problem:** The `test.yml` GitHub Actions workflow runs tests and builds, but never checks formatting. A PR with bad formatting would pass CI.
 

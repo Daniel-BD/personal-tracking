@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Important Workflow Rules
 
-- **Always run `npm run format` before committing** to auto-format all code with Prettier. This must happen before every commit.
+- **Always run `npm run format` before committing** to auto-format all code with Prettier. Pre-commit hooks (Husky + lint-staged) enforce this automatically, but run it manually when needed.
 - **Always verify changes build successfully** before considering a task complete. Run `npm run build` after making changes and fix any errors before finishing.
 - **Always update the relevant CLAUDE.md file(s)** when making changes to the codebase (new components, changed patterns, modified architecture, renamed files, etc.) so they continue to accurately reflect the actual code. Update the root file for app-wide changes, or the subdirectory file for localized changes.
 - **Add or update tests** when creating or modifying features. Keep tests focused and minimal — a few good tests that cover core logic and edge cases are better than many fragile tests that are expensive to maintain. Test files live alongside the code they test in `__tests__/` directories.
@@ -23,6 +23,7 @@ npm run build        # Production build (tsc + vite build — always run before 
 npm run preview      # Preview production build
 npm run test         # Run tests once (vitest run)
 npm run test:watch   # Run tests in watch mode (vitest)
+npm run lint         # Run ESLint on src/ (always run before finishing)
 npm run format       # Auto-format all code with Prettier (always run before committing)
 npm run format:check # Check if code is formatted (CI-friendly, no writes)
 ```
@@ -41,7 +42,9 @@ A personal activity and food tracking PWA built for mobile-first usage. Users lo
 - **Build**: Vite 7
 - **Icons**: Lucide React (tree-shakeable, outline-style icons)
 - **Charting**: Recharts 3 (Stats page: sparklines, bar charts, stacked charts)
+- **Linting**: ESLint 9 (flat config in `eslint.config.js` — typescript-eslint, react-hooks, react-refresh)
 - **Formatting**: Prettier (config in `.prettierrc` — tabs, single quotes, 120 print width)
+- **Pre-commit**: Husky + lint-staged (auto-runs ESLint and Prettier on staged files)
 - **Storage**: LocalStorage (source of truth) + optional GitHub Gist sync (backup only)
 
 ## Architecture Overview

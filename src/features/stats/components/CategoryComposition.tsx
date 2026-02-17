@@ -66,7 +66,7 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 
 	const isMobile = useIsMobile();
 
-	const handleBarClick = (data: any) => {
+	const handleBarClick = (data: { weekKey?: string }) => {
 		const week = weeklyData.find((w) => w.weekKey === data.weekKey);
 		if (week) {
 			setModal({ isOpen: true, week });
