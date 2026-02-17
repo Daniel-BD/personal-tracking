@@ -1,16 +1,15 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { isConfigured } from '@/shared/lib/github';
 import { forceRefresh, addEntry } from '@/shared/store/store';
-import { useEntries, useActivityItems, useFoodItems, useSyncStatus } from '@/shared/store/hooks';
-import { compareMonths, filterEntriesByType } from '@/features/tracking';
+import { useActivityItems, useFoodItems, useSyncStatus } from '@/shared/store/hooks';
 import { getTodayDate, getCurrentTime } from '@/shared/lib/types';
 import { showToast } from '@/shared/ui/Toast';
 import { QuickLogForm } from '@/features/quick-log';
+import DailyBalanceScore from './DailyBalanceScore';
 
 export default function HomePage() {
-	const entries = useEntries();
 	const activityItems = useActivityItems();
 	const foodItems = useFoodItems();
 	const syncStatus = useSyncStatus();
@@ -51,9 +50,6 @@ export default function HomePage() {
 		await forceRefresh();
 	}
 
-	const activityComparison = useMemo(() => compareMonths(filterEntriesByType(entries, 'activity')), [entries]);
-	const foodComparison = useMemo(() => compareMonths(filterEntriesByType(entries, 'food')), [entries]);
-
 	return (
 		<div className="space-y-6">
 			{!configured ? (
@@ -93,20 +89,8 @@ export default function HomePage() {
 					{/* Quick Log form — borderless, command-palette style */}
 					<QuickLogForm />
 
-					{/* Monthly stats — visually secondary */}
-					<div className="pt-4 border-t border-[var(--border-subtle)]">
-						<div className="text-xs font-medium text-label uppercase tracking-wide">This month</div>
-						<div className="flex gap-6 mt-1.5">
-							<div className="flex items-baseline gap-1.5">
-								<span className="text-lg font-semibold text-[var(--color-activity)]">{activityComparison.current}</span>
-								<span className="text-xs text-label">activities</span>
-							</div>
-							<div className="flex items-baseline gap-1.5">
-								<span className="text-lg font-semibold text-[var(--color-food)]">{foodComparison.current}</span>
-								<span className="text-xs text-label">food</span>
-							</div>
-						</div>
-					</div>
+					{/* Daily balance score */}
+					<DailyBalanceScore />
 				</>
 			)}
 		</div>
