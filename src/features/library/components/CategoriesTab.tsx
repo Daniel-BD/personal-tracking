@@ -4,6 +4,7 @@ import type { Item, Category, CategorySentiment, EntryType } from '@/shared/lib/
 import { addCategory, updateCategory, deleteCategory } from '@/shared/store/store';
 import { useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
 import BottomSheet from '@/shared/ui/BottomSheet';
+import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import SentimentPicker from './SentimentPicker';
 
 interface Props {
@@ -26,6 +27,9 @@ export default function CategoriesTab({
 	const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 	const [formName, setFormName] = useState('');
 	const [formSentiment, setFormSentiment] = useState<CategorySentiment>('neutral');
+	const [deletingCategory, setDeletingCategory] = useState<{ id: string; name: string; itemCount: number } | null>(
+		null,
+	);
 
 	const {
 		swipedEntryId,
@@ -82,13 +86,12 @@ export default function CategoriesTab({
 	function handleDelete(categoryId: string) {
 		const itemCount = getItemCountForCategory(categoryId);
 		const category = categories.find((c) => c.id === categoryId);
-		if (
-			!confirm(
-				`Delete category "${category?.name}"? It will be removed from ${itemCount} item${itemCount !== 1 ? 's' : ''}.`,
-			)
-		)
-			return;
-		deleteCategory(activeTab, categoryId);
+		setDeletingCategory({ id: categoryId, name: category?.name ?? '', itemCount });
+	}
+
+	function confirmDeleteCategory() {
+		if (!deletingCategory) return;
+		deleteCategory(activeTab, deletingCategory.id);
 		resetSwipe();
 		cancelEdit();
 	}
@@ -178,6 +181,20 @@ export default function CategoriesTab({
 					})}
 				</div>
 			)}
+
+			{/* Delete Category Confirm Dialog */}
+			<ConfirmDialog
+				open={deletingCategory !== null}
+				onClose={() => setDeletingCategory(null)}
+				onConfirm={confirmDeleteCategory}
+				title="Delete Category"
+				message={
+					deletingCategory
+						? `Delete "${deletingCategory.name}"? It will be removed from ${deletingCategory.itemCount} item${deletingCategory.itemCount !== 1 ? 's' : ''}.`
+						: undefined
+				}
+				confirmLabel="Delete"
+			/>
 
 			{/* Add Category Bottom Sheet */}
 			<BottomSheet

@@ -8,7 +8,7 @@ Comprehensive audit of the personal-tracking PWA codebase. Items are ordered by 
 - [x] 2. Add pre-commit hooks (Husky + lint-staged)
 - [x] 3. Add format check to CI pipeline
 - [x] 4. Fix inconsistent callback prop naming
-- [ ] 5. Replace native `confirm()` dialogs with custom UI
+- [x] 5. Replace native `confirm()` dialogs with custom UI
 - [ ] 6. Add Error Boundaries
 - [ ] 7. Add test coverage for React components
 - [ ] 8. Implement PWA service worker for offline support

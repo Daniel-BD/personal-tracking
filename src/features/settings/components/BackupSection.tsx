@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getConfig, saveConfig, createGist, listUserGists } from '@/shared/lib/github';
 import { backupToGist, restoreFromBackupGist } from '@/shared/store/store';
+import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import type { GistInfo } from '../types';
 
 interface Props {
@@ -13,6 +14,7 @@ export default function BackupSection({ token, onBrowseGists, selectedGistId }: 
 	const [backupGistId, setBackupGistId] = useState(getConfig().backupGistId || '');
 	const [backupStatus, setBackupStatus] = useState<'idle' | 'backing-up' | 'restoring' | 'success' | 'error'>('idle');
 	const [backupMessage, setBackupMessage] = useState('');
+	const [confirmRestoreOpen, setConfirmRestoreOpen] = useState(false);
 
 	// Handle gist selection from parent's shared gist list
 	useEffect(() => {
@@ -59,17 +61,16 @@ export default function BackupSection({ token, onBrowseGists, selectedGistId }: 
 		}
 	}
 
-	async function handleRestoreFromBackup() {
+	function handleRestoreFromBackup() {
 		if (!backupGistId.trim()) {
 			setBackupMessage('Please set a backup Gist ID first');
 			setBackupStatus('error');
 			return;
 		}
+		setConfirmRestoreOpen(true);
+	}
 
-		if (!confirm('This will replace all current data with the backup. Are you sure?')) {
-			return;
-		}
-
+	async function confirmRestore() {
 		setBackupStatus('restoring');
 		setBackupMessage('');
 		try {
@@ -169,6 +170,15 @@ export default function BackupSection({ token, onBrowseGists, selectedGistId }: 
 					{backupMessage}
 				</p>
 			)}
+
+			<ConfirmDialog
+				open={confirmRestoreOpen}
+				onClose={() => setConfirmRestoreOpen(false)}
+				onConfirm={confirmRestore}
+				title="Restore from Backup"
+				message="This will replace all current data with the backup. Are you sure?"
+				confirmLabel="Restore"
+			/>
 		</div>
 	);
 }
