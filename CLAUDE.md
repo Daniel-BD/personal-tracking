@@ -50,7 +50,7 @@ All data lives in a single `TrackerData` object containing items, categories, en
 
 ### Routes
 
-- `/` — Home (quick-log command palette, favorites, monthly stats)
+- `/` — Home (quick-log command palette, favorites, daily balance score)
 - `/log` — Filterable entry list with swipe actions
 - `/stats` — Goal dashboard, balance score, category composition, frequency ranking
 - `/library` — Item & category CRUD management
