@@ -1,4 +1,4 @@
-import type { TrackerData, Entry, Item, Category, CategorySentiment, EntryType } from '@/shared/lib/types';
+import type { TrackerData, Entry, Item, Category, CategorySentiment } from '@/shared/lib/types';
 
 let idCounter = 0;
 

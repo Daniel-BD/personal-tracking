@@ -120,7 +120,7 @@ describe('store CRUD', () => {
 
 		it('addItem creates with category IDs', () => {
 			const cat = addCategory('food', 'Fruit');
-			const item = addItem('food', 'Apple', [cat.id]);
+			addItem('food', 'Apple', [cat.id]);
 			expect(dataStore.getSnapshot().foodItems[0].categories).toEqual([cat.id]);
 		});
 
@@ -137,7 +137,7 @@ describe('store CRUD', () => {
 
 		it('deleteItem removes item, its entries, and favorite status', () => {
 			const item = addItem('food', 'Apple', []);
-			const entry = addEntry('food', item.id, '2025-01-15');
+			addEntry('food', item.id, '2025-01-15');
 			toggleFavorite(item.id);
 
 			deleteItem('food', item.id);
