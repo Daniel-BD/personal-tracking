@@ -10,7 +10,7 @@ Comprehensive audit of the personal-tracking PWA codebase. Items are ordered by 
 
 **Problem:** No linter exists in the project. Prettier only handles formatting (whitespace, quotes, semicolons) — it does not catch logical issues, unused imports, React hook rule violations, accessibility problems, or TypeScript anti-patterns.
 
-**Current state:** Zero linting. The only code quality gate is `tsc` during `npm run build`.
+**Current state:** Zero linting. Tests and `tsc` run in CI, but the only static analysis gate is `tsc` during `npm run build` — there is no lint step.
 
 **What to do:**
 - Install `eslint`, `@eslint/js`, `typescript-eslint`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`
@@ -71,10 +71,11 @@ Comprehensive audit of the personal-tracking PWA codebase. Items are ordered by 
 - Not accessible in the same way as in-app UI
 
 **Affected files:**
-- `src/features/tracking/components/EntryList.tsx:49`
-- `src/features/library/components/ItemsTab.tsx:74`
-- `src/features/library/components/CategoriesTab.tsx:87`
-- `src/features/settings/components/ExportImportSection.tsx:23`
+- `src/features/tracking/components/EntryList.tsx` — delete entry
+- `src/features/library/components/ItemsTab.tsx` — delete item
+- `src/features/library/components/CategoriesTab.tsx` — delete category
+- `src/features/settings/components/ExportImportSection.tsx` — import data
+- `src/features/settings/components/BackupSection.tsx` — restore backup
 
 **What to do:** Create a `ConfirmDialog` component (reusing the existing `BottomSheet` pattern) and replace all `confirm()` calls.
 
@@ -168,13 +169,13 @@ This allows dead code and unused function parameters to accumulate silently.
 
 ---
 
-### 12. Add Vite build optimizations
+### 12. Add Vite build optimizations and route-level code splitting
 
-**Problem:** The Vite config is minimal — no explicit chunk splitting, no source maps config, no minification strategy. Recharts (charting library) likely dominates the bundle.
+**Problem:** The Vite config is minimal — no explicit chunk splitting, no source maps config, no minification strategy. All route components are eagerly imported in `App.tsx`, so the Stats page (with Recharts) and Settings page (with GitHub integration) add weight even if the user never visits them.
 
 **What to do:**
-- Add `build.rollupOptions.output.manualChunks` to split `recharts` into its own chunk (lazy-loaded when user visits Stats page)
-- Consider lazy-loading the Stats route with `React.lazy()` since it's the heaviest feature
+- Add `build.rollupOptions.output.manualChunks` to split `recharts` into its own chunk
+- Lazy-load heavy routes with `React.lazy()` + `<Suspense>` in `App.tsx` (Stats and Settings pages are the best candidates)
 - Add `build.sourcemap: 'hidden'` for production debugging without exposing maps
 - Add `vite-plugin-visualizer` as a dev dependency for bundle analysis
 
@@ -220,41 +221,34 @@ This allows dead code and unused function parameters to accumulate silently.
 
 ---
 
-### 15. Add `clsx` or `tailwind-merge` for conditional classNames
+### 15. Add `clsx` + `tailwind-merge` for conditional classNames
 
 **Problem:** Conditional className logic uses template literals with ternaries:
 ```tsx
 className={`base-classes ${condition ? 'active-classes' : ''}`}
 ```
-This works but gets hard to read with multiple conditions, and empty strings can result in double spaces (cosmetic, not functional).
+This works but gets hard to read with multiple conditions, and empty strings can result in double spaces (cosmetic, not functional). Additionally, when composing Tailwind classes from multiple sources (e.g., a component's base classes + props), conflicting classes like `p-2` and `p-4` both apply instead of the last one winning.
 
 **What to do:**
-- Install `clsx` (tiny, no dependencies)
-- Refactor complex className expressions to use `clsx()`:
+- Install `clsx` and `tailwind-merge`
+- Create a `cn()` utility (the standard pattern in Tailwind projects):
+  ```ts
+  import { clsx, type ClassValue } from 'clsx';
+  import { twMerge } from 'tailwind-merge';
+  export function cn(...inputs: ClassValue[]) {
+    return twMerge(clsx(inputs));
+  }
+  ```
+- Refactor complex className expressions to use `cn()`:
   ```tsx
-  className={clsx('base-classes', condition && 'active-classes', otherCondition && 'other-classes')}
+  className={cn('base-classes', condition && 'active-classes', otherCondition && 'other-classes')}
   ```
 
-**Why it's Tier 3:** The current approach works fine. `clsx` is a readability improvement, not a correctness fix.
+**Why it's Tier 3:** The current approach works fine. This is a readability and composability improvement, not a correctness fix.
 
 ---
 
-### 16. Route-level code splitting with React.lazy
-
-**Problem:** All route components are eagerly imported in `App.tsx`. The Stats page (with Recharts) and Settings page (with GitHub integration) add significant weight even if the user never visits them.
-
-**What to do:**
-- Wrap route components in `React.lazy()`:
-  ```tsx
-  const StatsPage = React.lazy(() => import('@/features/stats'));
-  const SettingsPage = React.lazy(() => import('@/features/settings'));
-  ```
-- Add a `<Suspense fallback={<Loading />}>` wrapper
-- Combined with manual chunks (item 12), this significantly reduces initial load time
-
----
-
-### 17. Extract duplicated form state patterns into a shared hook
+### 16. Extract duplicated form state patterns into a shared hook
 
 **Problem:** `ItemsTab.tsx` and `CategoriesTab.tsx` both have nearly identical patterns for:
 - Form state (`formName`, `formCategories`, `editingItem`)
@@ -268,7 +262,7 @@ This works but gets hard to read with multiple conditions, and empty strings can
 
 ---
 
-### 18. Document magic timeout values
+### 17. Document magic timeout values
 
 **Problem:** Three components use `setTimeout` with unexplained magic numbers:
 - `QuickLogForm.tsx:90` — `setTimeout(() => setIsFocused(false), 200)`
@@ -286,7 +280,7 @@ These delays exist to work around browser focus/blur timing, but there's no comm
 
 ---
 
-### 19. Add a `type-check` npm script
+### 18. Add a `type-check` npm script
 
 **Problem:** Type checking currently only happens as part of `npm run build` (which runs `tsc -b`). There's no standalone way to type-check without building.
 
@@ -296,7 +290,7 @@ These delays exist to work around browser focus/blur timing, but there's no comm
 
 ---
 
-### 20. Consider adding `.editorconfig`
+### 19. Consider adding `.editorconfig`
 
 **Problem:** Without `.editorconfig`, contributors using editors other than those with Prettier integration may use different indentation, line endings, or charset defaults.
 
@@ -319,15 +313,14 @@ These delays exist to work around browser focus/blur timing, but there's no comm
 | 9 | Stricter TypeScript checks | Medium | Low | Code quality |
 | 10 | Add Zod for validation | Medium | Medium | Architecture |
 | 11 | API timeout + retry | Medium | Low | Reliability |
-| 12 | Vite build optimizations | Medium | Low | Performance |
+| 12 | Vite build optimizations + code splitting | Medium | Low | Performance |
 | 13 | Consistent CSS classes | Low | Low | Code quality |
 | 14 | i18n string extraction | Low (until needed) | High | Architecture |
-| 15 | Add clsx | Low | Low | Code quality |
-| 16 | Route code splitting | Low | Low | Performance |
-| 17 | Extract form hook | Low | Low | Code quality |
-| 18 | Document timeouts | Low | Low | Code quality |
-| 19 | Add type-check script | Low | Low | Tooling |
-| 20 | Add .editorconfig | Low | Low | Tooling |
+| 15 | Add clsx + tailwind-merge | Low | Low | Code quality |
+| 16 | Extract form hook | Low | Low | Code quality |
+| 17 | Document timeouts | Low | Low | Code quality |
+| 18 | Add type-check script | Low | Low | Tooling |
+| 19 | Add .editorconfig | Low | Low | Tooling |
 
 ---
 
