@@ -42,7 +42,7 @@ A personal activity and food tracking PWA built for mobile-first usage. Users lo
 - **Build**: Vite 7
 - **Icons**: Lucide React (tree-shakeable, outline-style icons)
 - **Charting**: Recharts 3 (Stats page: sparklines, bar charts, stacked charts)
-- **Linting**: ESLint 9 (flat config in `eslint.config.js` — typescript-eslint, react-hooks, react-refresh)
+- **Linting**: ESLint 9 (flat config in `eslint.config.js` — typescript-eslint, react-hooks, react-refresh, jsx-a11y)
 - **Formatting**: Prettier (config in `.prettierrc` — tabs, single quotes, 120 print width)
 - **Pre-commit**: Husky + lint-staged (auto-runs ESLint and Prettier on staged files)
 - **Storage**: LocalStorage (source of truth) + optional GitHub Gist sync (backup only)
