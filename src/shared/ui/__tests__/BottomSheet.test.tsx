@@ -7,7 +7,7 @@ afterEach(cleanup);
 describe('BottomSheet', () => {
 	it('renders nothing when closed', () => {
 		const { container } = render(
-			<BottomSheet open={false} onclose={() => {}}>
+			<BottomSheet open={false} onClose={() => {}}>
 				<p>body</p>
 			</BottomSheet>,
 		);
@@ -16,7 +16,7 @@ describe('BottomSheet', () => {
 
 	it('renders title and children when open', () => {
 		render(
-			<BottomSheet open={true} onclose={() => {}} title="My Title">
+			<BottomSheet open={true} onClose={() => {}} title="My Title">
 				<p>body content</p>
 			</BottomSheet>,
 		);
@@ -27,7 +27,7 @@ describe('BottomSheet', () => {
 	it('renders pill-shaped action button when actionLabel is provided', () => {
 		const onAction = vi.fn();
 		render(
-			<BottomSheet open={true} onclose={() => {}} title="Title" actionLabel="Save" onAction={onAction}>
+			<BottomSheet open={true} onClose={() => {}} title="Title" actionLabel="Save" onAction={onAction}>
 				<p>body</p>
 			</BottomSheet>,
 		);
@@ -45,7 +45,7 @@ describe('BottomSheet', () => {
 		render(
 			<BottomSheet
 				open={true}
-				onclose={() => {}}
+				onClose={() => {}}
 				title="Title"
 				actionLabel="Save"
 				onAction={() => {}}
@@ -61,7 +61,7 @@ describe('BottomSheet', () => {
 
 	it('does not render action button when actionLabel is omitted', () => {
 		render(
-			<BottomSheet open={true} onclose={() => {}} title="Title">
+			<BottomSheet open={true} onClose={() => {}} title="Title">
 				<p>body</p>
 			</BottomSheet>,
 		);
@@ -71,34 +71,34 @@ describe('BottomSheet', () => {
 		expect(buttons.length).toBe(0);
 	});
 
-	it('calls onclose when backdrop is clicked', () => {
-		const onclose = vi.fn();
+	it('calls onClose when backdrop is clicked', () => {
+		const onClose = vi.fn();
 		render(
-			<BottomSheet open={true} onclose={onclose} title="Title">
+			<BottomSheet open={true} onClose={onClose} title="Title">
 				<p>body</p>
 			</BottomSheet>,
 		);
 
 		const backdrop = document.querySelector('.animate-fade-in')!;
 		fireEvent.click(backdrop);
-		expect(onclose).toHaveBeenCalledOnce();
+		expect(onClose).toHaveBeenCalledOnce();
 	});
 
-	it('calls onclose when Escape is pressed', () => {
-		const onclose = vi.fn();
+	it('calls onClose when Escape is pressed', () => {
+		const onClose = vi.fn();
 		render(
-			<BottomSheet open={true} onclose={onclose} title="Title">
+			<BottomSheet open={true} onClose={onClose} title="Title">
 				<p>body</p>
 			</BottomSheet>,
 		);
 
 		fireEvent.keyDown(document, { key: 'Escape' });
-		expect(onclose).toHaveBeenCalledOnce();
+		expect(onClose).toHaveBeenCalledOnce();
 	});
 
 	it('has dialog role and aria-modal', () => {
 		render(
-			<BottomSheet open={true} onclose={() => {}} title="Title">
+			<BottomSheet open={true} onClose={() => {}} title="Title">
 				<p>body</p>
 			</BottomSheet>,
 		);

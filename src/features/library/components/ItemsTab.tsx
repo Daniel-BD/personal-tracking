@@ -161,7 +161,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 			{/* Add Item Bottom Sheet */}
 			<BottomSheet
 				open={showAddSheet}
-				onclose={onCloseAddSheet}
+				onClose={onCloseAddSheet}
 				title={`Add ${activeTab === 'activity' ? 'Activity' : 'Food'} Item`}
 				actionLabel="Add"
 				onAction={handleAdd}
@@ -187,7 +187,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 						<CategoryPicker
 							selected={formCategories}
 							categories={categories}
-							onchange={setFormCategories}
+							onChange={setFormCategories}
 							type={activeTab}
 						/>
 					</div>
@@ -197,7 +197,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 			{/* Edit Item Bottom Sheet */}
 			<BottomSheet
 				open={editingItem !== null}
-				onclose={cancelEdit}
+				onClose={cancelEdit}
 				title={editingItem ? `Edit ${editingItem.name}` : undefined}
 				actionLabel={editingItem ? 'Save' : undefined}
 				onAction={handleSaveEdit}
@@ -222,7 +222,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 							<CategoryPicker
 								selected={formCategories}
 								categories={categories}
-								onchange={setFormCategories}
+								onChange={setFormCategories}
 								type={activeTab}
 							/>
 						</div>

@@ -10,12 +10,12 @@ interface FilterOption {
 interface Props {
 	options: FilterOption[];
 	selected: string[];
-	onchange: (selectedIds: string[]) => void;
+	onChange: (selectedIds: string[]) => void;
 	placeholder?: string;
 	label?: string;
 }
 
-export default function MultiSelectFilter({ options, selected, onchange, placeholder = 'Search...', label }: Props) {
+export default function MultiSelectFilter({ options, selected, onChange, placeholder = 'Search...', label }: Props) {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [showDropdown, setShowDropdown] = useState(false);
 
@@ -28,18 +28,18 @@ export default function MultiSelectFilter({ options, selected, onchange, placeho
 
 	function toggleOption(optionId: string) {
 		if (selected.includes(optionId)) {
-			onchange(selected.filter((id) => id !== optionId));
+			onChange(selected.filter((id) => id !== optionId));
 		} else {
-			onchange([...selected, optionId]);
+			onChange([...selected, optionId]);
 		}
 	}
 
 	function removeOption(optionId: string) {
-		onchange(selected.filter((id) => id !== optionId));
+		onChange(selected.filter((id) => id !== optionId));
 	}
 
 	function clearAll() {
-		onchange([]);
+		onChange([]);
 		setSearchQuery('');
 	}
 

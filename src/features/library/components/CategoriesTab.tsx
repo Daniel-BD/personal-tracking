@@ -182,7 +182,7 @@ export default function CategoriesTab({
 			{/* Add Category Bottom Sheet */}
 			<BottomSheet
 				open={showAddSheet}
-				onclose={onCloseAddSheet}
+				onClose={onCloseAddSheet}
 				title="Add Category"
 				actionLabel="Add"
 				onAction={handleAdd}
@@ -213,7 +213,7 @@ export default function CategoriesTab({
 			{/* Edit Category Bottom Sheet */}
 			<BottomSheet
 				open={editingCategory !== null}
-				onclose={cancelEdit}
+				onClose={cancelEdit}
 				title={editingCategory ? `Edit ${editingCategory.name}` : undefined}
 				actionLabel={editingCategory ? 'Save' : undefined}
 				onAction={handleSaveEdit}

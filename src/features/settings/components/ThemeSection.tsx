@@ -22,7 +22,7 @@ export default function ThemeSection() {
 					{ value: 'system' as const, label: 'System' },
 				]}
 				value={themePreference}
-				onchange={handleThemeChange}
+				onChange={handleThemeChange}
 				variant="segment"
 			/>
 		</div>
