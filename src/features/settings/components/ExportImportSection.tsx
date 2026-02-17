@@ -1,5 +1,6 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { exportData, importData } from '@/shared/store/store';
+import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 
 interface Props {
 	onMessage: (message: string, isError: boolean) => void;
@@ -7,6 +8,7 @@ interface Props {
 
 export default function ExportImportSection({ onMessage }: Props) {
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	const [pendingFile, setPendingFile] = useState<File | null>(null);
 
 	function handleExport() {
 		exportData();
@@ -19,12 +21,12 @@ export default function ExportImportSection({ onMessage }: Props) {
 	function handleFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
 		const file = event.target.files?.[0];
 		if (!file) return;
+		setPendingFile(file);
+		event.target.value = '';
+	}
 
-		if (!confirm('This will replace all current data. Are you sure?')) {
-			event.target.value = '';
-			return;
-		}
-
+	function handleConfirmImport() {
+		if (!pendingFile) return;
 		const reader = new FileReader();
 		reader.onload = (e) => {
 			const content = e.target?.result as string;
@@ -34,9 +36,9 @@ export default function ExportImportSection({ onMessage }: Props) {
 			} else {
 				onMessage('Import failed: Invalid file format', true);
 			}
-			if (fileInputRef.current) fileInputRef.current.value = '';
+			setPendingFile(null);
 		};
-		reader.readAsText(file);
+		reader.readAsText(pendingFile);
 	}
 
 	return (
@@ -59,6 +61,14 @@ export default function ExportImportSection({ onMessage }: Props) {
 				className="hidden"
 				ref={fileInputRef}
 				onChange={handleFileSelect}
+			/>
+			<ConfirmDialog
+				open={pendingFile !== null}
+				onClose={() => setPendingFile(null)}
+				onConfirm={handleConfirmImport}
+				title="Import Data"
+				message="This will replace all current data. Are you sure?"
+				confirmLabel="Import"
 			/>
 		</div>
 	);

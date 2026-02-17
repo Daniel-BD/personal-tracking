@@ -12,6 +12,7 @@ import { formatDate, formatTime } from '@/shared/lib/date-utils';
 import CategoryPicker from './CategoryPicker';
 import NativePickerInput from '@/shared/ui/NativePickerInput';
 import BottomSheet from '@/shared/ui/BottomSheet';
+import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import { useSwipeGesture, ACTION_WIDTH } from '../hooks/useSwipeGesture';
 
 interface Props {
@@ -28,6 +29,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 	const [editTime, setEditTime] = useState('');
 	const [editNotes, setEditNotes] = useState('');
 	const [editCategories, setEditCategories] = useState<string[]>([]);
+	const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
 
 	const {
 		swipedEntryId,
@@ -46,11 +48,14 @@ export default function EntryList({ entries, showType = false }: Props) {
 	}
 
 	function handleDelete(id: string) {
-		if (confirm('Delete this entry?')) {
-			deleteEntry(id);
-			resetSwipe();
-			cancelEdit();
-		}
+		setDeletingEntryId(id);
+	}
+
+	function confirmDeleteEntry() {
+		if (!deletingEntryId) return;
+		deleteEntry(deletingEntryId);
+		resetSwipe();
+		cancelEdit();
 	}
 
 	const startEdit = useCallback(
@@ -204,6 +209,16 @@ export default function EntryList({ entries, showType = false }: Props) {
 					</div>
 				))}
 			</div>
+
+			{/* Delete Entry Confirm Dialog */}
+			<ConfirmDialog
+				open={deletingEntryId !== null}
+				onClose={() => setDeletingEntryId(null)}
+				onConfirm={confirmDeleteEntry}
+				title="Delete Entry"
+				message="This entry will be permanently deleted."
+				confirmLabel="Delete"
+			/>
 
 			{/* Edit Bottom Sheet */}
 			<BottomSheet

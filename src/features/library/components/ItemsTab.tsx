@@ -5,6 +5,7 @@ import { addItem, updateItem, deleteItem, toggleFavorite, isFavorite } from '@/s
 import { CategoryPicker, CategoryLine, useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
 import StarIcon from '@/shared/ui/StarIcon';
 import BottomSheet from '@/shared/ui/BottomSheet';
+import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 
 interface Props {
 	items: Item[];
@@ -19,6 +20,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 	const [editingItem, setEditingItem] = useState<Item | null>(null);
 	const [formName, setFormName] = useState('');
 	const [formCategories, setFormCategories] = useState<string[]>([]);
+	const [deletingItem, setDeletingItem] = useState<{ id: string; name: string } | null>(null);
 
 	const {
 		swipedEntryId,
@@ -70,9 +72,12 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 
 	function handleDelete(id: string) {
 		const item = items.find((i) => i.id === id) || (editingItem?.id === id ? editingItem : null);
-		const name = item?.name ? `"${item.name}"` : 'this item';
-		if (!confirm(`Delete item ${name} and all its entries?`)) return;
-		deleteItem(activeTab, id);
+		setDeletingItem({ id, name: item?.name ?? '' });
+	}
+
+	function confirmDeleteItem() {
+		if (!deletingItem) return;
+		deleteItem(activeTab, deletingItem.id);
 		resetSwipe();
 		cancelEdit();
 	}
@@ -157,6 +162,20 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 					})}
 				</div>
 			)}
+
+			{/* Delete Item Confirm Dialog */}
+			<ConfirmDialog
+				open={deletingItem !== null}
+				onClose={() => setDeletingItem(null)}
+				onConfirm={confirmDeleteItem}
+				title="Delete Item"
+				message={
+					deletingItem?.name
+						? `Delete "${deletingItem.name}" and all its entries?`
+						: 'Delete this item and all its entries?'
+				}
+				confirmLabel="Delete"
+			/>
 
 			{/* Add Item Bottom Sheet */}
 			<BottomSheet
