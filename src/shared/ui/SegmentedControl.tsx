@@ -9,7 +9,7 @@ interface Option<T extends string> {
 interface Props<T extends string> {
 	options: Option<T>[];
 	value: T;
-	onchange: (value: T) => void;
+	onChange: (value: T) => void;
 	variant?: 'pill' | 'segment';
 	size?: 'default' | 'sm' | 'xs';
 }
@@ -48,7 +48,7 @@ function getButtonClass<T extends string>(
 export default function SegmentedControl<T extends string>({
 	options,
 	value,
-	onchange,
+	onChange,
 	variant = 'pill',
 	size = 'default',
 }: Props<T>) {
@@ -59,7 +59,7 @@ export default function SegmentedControl<T extends string>({
 					<button
 						key={option.value}
 						type="button"
-						onClick={() => onchange(option.value)}
+						onClick={() => onChange(option.value)}
 						disabled={option.disabled}
 						title={option.title}
 						className={getButtonClass(option, value === option.value, variant, size)}
@@ -77,7 +77,7 @@ export default function SegmentedControl<T extends string>({
 				<button
 					key={option.value}
 					type="button"
-					onClick={() => onchange(option.value)}
+					onClick={() => onChange(option.value)}
 					disabled={option.disabled}
 					title={option.title}
 					className={getButtonClass(option, value === option.value, variant, size)}

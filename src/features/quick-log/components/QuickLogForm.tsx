@@ -166,7 +166,7 @@ export default function QuickLogForm() {
 			{/* Create + Log bottom sheet */}
 			<BottomSheet
 				open={sheetOpen}
-				onclose={() => setSheetOpen(false)}
+				onClose={() => setSheetOpen(false)}
 				title={sheetMode === 'create' ? 'New item' : `Log ${selectedItem?.item.name ?? ''}`}
 				actionLabel={sheetMode === 'create' ? 'Create' : 'Log'}
 				onAction={handleLog}
@@ -201,7 +201,7 @@ export default function QuickLogForm() {
 									{ value: 'food' as EntryType, label: 'Food', activeClass: 'type-food' },
 								]}
 								value={itemType}
-								onchange={setItemType}
+								onChange={setItemType}
 								variant="segment"
 								size="sm"
 							/>
@@ -236,7 +236,7 @@ export default function QuickLogForm() {
 						<CategoryPicker
 							selected={logCategories}
 							categories={categoriesForType}
-							onchange={setLogCategories}
+							onChange={setLogCategories}
 							type={sheetMode === 'create' ? itemType : (selectedItem?.type ?? itemType)}
 						/>
 					</div>

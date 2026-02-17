@@ -24,7 +24,7 @@ describe('CategoryPicker', () => {
 
 	it('scrolls input row into view on focus', () => {
 		const scrollIntoView = vi.fn();
-		render(<CategoryPicker selected={[]} categories={categories} onchange={vi.fn()} type="food" />);
+		render(<CategoryPicker selected={[]} categories={categories} onChange={vi.fn()} type="food" />);
 
 		const input = screen.getByPlaceholderText('Search or add category...');
 		// Mock scrollIntoView on the input's parent div (the ref target)
@@ -42,7 +42,7 @@ describe('CategoryPicker', () => {
 
 	it('renders bottom padding for keyboard clearance', () => {
 		const { container } = render(
-			<CategoryPicker selected={[]} categories={categories} onchange={vi.fn()} type="food" />,
+			<CategoryPicker selected={[]} categories={categories} onChange={vi.fn()} type="food" />,
 		);
 
 		const outerDiv = container.firstElementChild as HTMLElement;

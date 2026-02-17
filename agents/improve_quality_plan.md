@@ -7,7 +7,7 @@ Comprehensive audit of the personal-tracking PWA codebase. Items are ordered by 
 - [x] 1. Add ESLint with TypeScript support
 - [x] 2. Add pre-commit hooks (Husky + lint-staged)
 - [x] 3. Add format check to CI pipeline
-- [ ] 4. Fix inconsistent callback prop naming
+- [x] 4. Fix inconsistent callback prop naming
 - [ ] 5. Replace native `confirm()` dialogs with custom UI
 - [ ] 6. Add Error Boundaries
 - [ ] 7. Add test coverage for React components
@@ -70,7 +70,7 @@ Comprehensive audit of the personal-tracking PWA codebase. Items are ordered by 
 
 ---
 
-### 4. Fix inconsistent callback prop naming (`onchange` vs `onChange`)
+### 4. Fix inconsistent callback prop naming (`onchange` vs `onChange`) ✅ DONE
 
 **Problem:** Several shared UI components use lowercase `onchange` and `onclose` for callback props, violating React's universal camelCase convention. This is confusing for anyone reading the code and inconsistent with the rest of the React ecosystem.
 

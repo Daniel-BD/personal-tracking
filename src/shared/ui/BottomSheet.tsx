@@ -2,7 +2,7 @@ import { useEffect, useRef, useId, type ReactNode } from 'react';
 
 interface Props {
 	open: boolean;
-	onclose: () => void;
+	onClose: () => void;
 	children: ReactNode;
 	title?: string;
 	actionLabel?: string;
@@ -10,10 +10,10 @@ interface Props {
 	actionDisabled?: boolean;
 }
 
-export default function BottomSheet({ open, onclose, children, title, actionLabel, onAction, actionDisabled }: Props) {
+export default function BottomSheet({ open, onClose, children, title, actionLabel, onAction, actionDisabled }: Props) {
 	const sheetRef = useRef<HTMLDivElement>(null);
-	const oncloseRef = useRef(onclose);
-	oncloseRef.current = onclose;
+	const onCloseRef = useRef(onClose);
+	onCloseRef.current = onClose;
 	const titleId = useId();
 
 	// Save and restore original body overflow
@@ -27,12 +27,12 @@ export default function BottomSheet({ open, onclose, children, title, actionLabe
 		}
 	}, [open]);
 
-	// Keyboard handling — uses ref so effect doesn't re-run on onclose identity changes
+	// Keyboard handling — uses ref so effect doesn't re-run on onClose identity changes
 	useEffect(() => {
 		if (!open) return;
 
 		function handleKeyDown(e: KeyboardEvent) {
-			if (e.key === 'Escape') oncloseRef.current();
+			if (e.key === 'Escape') onCloseRef.current();
 		}
 
 		document.addEventListener('keydown', handleKeyDown);
@@ -52,7 +52,7 @@ export default function BottomSheet({ open, onclose, children, title, actionLabe
 	return (
 		<div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden">
 			{/* Backdrop */}
-			<div className="absolute inset-0 bg-black/40 animate-fade-in" onClick={onclose} />
+			<div className="absolute inset-0 bg-black/40 animate-fade-in" onClick={onClose} />
 
 			{/* Sheet */}
 			<div

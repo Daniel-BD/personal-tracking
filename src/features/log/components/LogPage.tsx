@@ -66,7 +66,7 @@ export default function LogPage() {
 					{ value: 'food' as const, label: 'Food', activeClass: 'type-food' },
 				]}
 				value={typeFilter}
-				onchange={handleTypeChange}
+				onChange={handleTypeChange}
 				variant="segment"
 				size="sm"
 			/>
@@ -138,14 +138,14 @@ export default function LogPage() {
 			)}
 
 			{/* Filter Bottom Sheet */}
-			<BottomSheet open={showFilterSheet} onclose={() => setShowFilterSheet(false)} title="Filters">
+			<BottomSheet open={showFilterSheet} onClose={() => setShowFilterSheet(false)} title="Filters">
 				<div className="space-y-5">
 					{categoryOptions.length > 0 && (
 						<MultiSelectFilter
 							label="Categories"
 							options={categoryOptions}
 							selected={selectedCategories}
-							onchange={setSelectedCategories}
+							onChange={setSelectedCategories}
 							placeholder="Search categories..."
 						/>
 					)}
@@ -155,7 +155,7 @@ export default function LogPage() {
 							label="Items"
 							options={itemOptions}
 							selected={selectedItems}
-							onchange={setSelectedItems}
+							onChange={setSelectedItems}
 							placeholder="Search items..."
 						/>
 					)}

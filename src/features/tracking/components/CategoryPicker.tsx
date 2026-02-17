@@ -5,11 +5,11 @@ import { addCategory } from '@/shared/store/store';
 interface Props {
 	selected: string[];
 	categories: Category[];
-	onchange: (categoryIds: string[]) => void;
+	onChange: (categoryIds: string[]) => void;
 	type?: EntryType;
 }
 
-export default function CategoryPicker({ selected, categories, onchange, type }: Props) {
+export default function CategoryPicker({ selected, categories, onChange, type }: Props) {
 	const [searchText, setSearchText] = useState('');
 	const inputRowRef = useRef<HTMLDivElement>(null);
 
@@ -21,14 +21,14 @@ export default function CategoryPicker({ selected, categories, onchange, type }:
 	}, []);
 
 	function removeCategory(categoryId: string) {
-		onchange(selected.filter((id) => id !== categoryId));
+		onChange(selected.filter((id) => id !== categoryId));
 	}
 
 	function toggleCategory(categoryId: string) {
 		if (selected.includes(categoryId)) {
 			removeCategory(categoryId);
 		} else {
-			onchange([...selected, categoryId]);
+			onChange([...selected, categoryId]);
 			setSearchText('');
 		}
 	}
@@ -45,11 +45,11 @@ export default function CategoryPicker({ selected, categories, onchange, type }:
 
 		if (existing) {
 			if (!selected.includes(existing.id)) {
-				onchange([...selected, existing.id]);
+				onChange([...selected, existing.id]);
 			}
 		} else {
 			const newCategory = addCategory(type, trimmedName);
-			onchange([...selected, newCategory.id]);
+			onChange([...selected, newCategory.id]);
 		}
 
 		setSearchText('');

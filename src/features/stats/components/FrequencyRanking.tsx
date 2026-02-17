@@ -107,7 +107,7 @@ export default function FrequencyRanking({ entries, data }: Props) {
 					{ value: '30d' as const, label: '30 days' },
 				]}
 				value={timePeriod}
-				onchange={setTimePeriod}
+				onChange={setTimePeriod}
 				variant="segment"
 				size="sm"
 			/>
@@ -119,7 +119,7 @@ export default function FrequencyRanking({ entries, data }: Props) {
 					{ value: 'food' as const, label: 'Food', activeClass: 'type-food' },
 				]}
 				value={typeFilter}
-				onchange={setTypeFilter}
+				onChange={setTypeFilter}
 				variant="segment"
 				size="sm"
 			/>
@@ -130,7 +130,7 @@ export default function FrequencyRanking({ entries, data }: Props) {
 					{ value: 'categories' as const, label: 'Categories' },
 				]}
 				value={viewMode}
-				onchange={setViewMode}
+				onChange={setViewMode}
 				variant="segment"
 				size="sm"
 			/>

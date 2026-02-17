@@ -208,7 +208,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 			{/* Edit Bottom Sheet */}
 			<BottomSheet
 				open={editingEntry !== null}
-				onclose={cancelEdit}
+				onClose={cancelEdit}
 				title={editingEntry ? `Edit ${getItemName(editingEntry.type, editingEntry.itemId)}` : undefined}
 				actionLabel={editingEntry ? 'Save' : undefined}
 				onAction={saveEdit}
@@ -242,7 +242,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 							<CategoryPicker
 								selected={editCategories}
 								categories={getCategoriesForType(editingEntry.type)}
-								onchange={setEditCategories}
+								onChange={setEditCategories}
 								type={editingEntry.type}
 							/>
 						</div>

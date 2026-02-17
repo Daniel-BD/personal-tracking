@@ -76,7 +76,7 @@ export default function LibraryPage() {
 					{ value: 'food' as const, label: 'Food', activeClass: 'type-food' },
 				]}
 				value={activeTab}
-				onchange={setActiveTab}
+				onChange={setActiveTab}
 				variant="segment"
 				size="sm"
 			/>
@@ -88,7 +88,7 @@ export default function LibraryPage() {
 					{ value: 'categories' as const, label: 'Categories' },
 				]}
 				value={activeSubTab}
-				onchange={setActiveSubTab}
+				onChange={setActiveSubTab}
 				variant="segment"
 				size="sm"
 			/>

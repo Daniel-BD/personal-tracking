@@ -39,7 +39,7 @@ export default function StatsPage() {
 					{ value: 'monthly' as const, label: 'Monthly', disabled: true, title: 'Monthly view coming soon' },
 				]}
 				value={period}
-				onchange={setPeriod}
+				onChange={setPeriod}
 				variant="segment"
 				size="sm"
 			/>
