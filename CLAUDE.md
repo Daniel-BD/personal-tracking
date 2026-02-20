@@ -38,7 +38,7 @@ A personal activity and food tracking PWA built for mobile-first usage. Users lo
 
 - **Framework**: React 19 with React Router 7
 - **Styling**: Tailwind CSS v4 (Vite plugin, not PostCSS)
-- **Language**: TypeScript (strict mode)
+- **Language**: TypeScript (strict mode, `noUnusedLocals`, `noUnusedParameters` — prefix unused params with `_`)
 - **Build**: Vite 7
 - **Icons**: Lucide React (tree-shakeable, outline-style icons)
 - **Charting**: Recharts 3 (Stats page: sparklines, bar charts, stacked charts)
