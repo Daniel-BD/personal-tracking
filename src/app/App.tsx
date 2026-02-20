@@ -9,6 +9,7 @@ import { SettingsPage } from '@/features/settings';
 import { StatsPage } from '@/features/stats';
 import NavIcon from '@/shared/ui/NavIcon';
 import ToastContainer from '@/shared/ui/Toast';
+import ReloadPrompt from '@/shared/ui/ReloadPrompt';
 import ErrorBoundary from '@/shared/ui/ErrorBoundary';
 
 const routeConfig: { path: string; label: string; icon: string; Component: ComponentType }[] = [
@@ -91,6 +92,7 @@ export default function App() {
 			<div className="h-16" />
 
 			<ToastContainer />
+			<ReloadPrompt />
 		</div>
 	);
 }

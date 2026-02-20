@@ -45,6 +45,7 @@ A personal activity and food tracking PWA built for mobile-first usage. Users lo
 - **Linting**: ESLint 9 (flat config in `eslint.config.js` — typescript-eslint, react-hooks, react-refresh, jsx-a11y)
 - **Formatting**: Prettier (config in `.prettierrc` — tabs, single quotes, 120 print width)
 - **Pre-commit**: Husky + lint-staged (auto-runs ESLint and Prettier on staged files)
+- **PWA**: vite-plugin-pwa (Workbox-based service worker, precaching, update prompt via `ReloadPrompt` component)
 - **Storage**: LocalStorage (source of truth) + optional GitHub Gist sync (backup only)
 
 ## Architecture Overview

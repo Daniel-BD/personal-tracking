@@ -10,8 +10,8 @@ Comprehensive audit of the personal-tracking PWA codebase. Items are ordered by 
 - [x] 4. Fix inconsistent callback prop naming
 - [x] 5. Replace native `confirm()` dialogs with custom UI
 - [x] 6. Add Error Boundaries
-- [ ] 7. Add test coverage for React components
-- [ ] 8. Implement PWA service worker for offline support
+- [x] 7. ~~Add test coverage for React components~~ SKIPPED
+- [x] 8. Implement PWA service worker for offline support
 - [ ] 9. Enable stricter TypeScript checks
 - [ ] 10. Add Zod for runtime data validation
 - [ ] 11. Add timeout and retry logic to GitHub API calls
