@@ -104,6 +104,29 @@ describe('ErrorBoundary', () => {
 		expect(reloadMock).toHaveBeenCalledOnce();
 	});
 
+	it('recovers and renders children after Try again when error is resolved', () => {
+		let shouldThrow = true;
+		function ConditionalThrower() {
+			if (shouldThrow) throw new Error('Test error');
+			return <p>Rendered successfully</p>;
+		}
+
+		render(
+			<ErrorBoundary>
+				<ConditionalThrower />
+			</ErrorBoundary>,
+		);
+
+		expect(screen.getByText('Something went wrong')).toBeTruthy();
+
+		// Resolve the error before clicking Try again
+		shouldThrow = false;
+		fireEvent.click(screen.getByText('Try again'));
+
+		expect(screen.getByText('Rendered successfully')).toBeTruthy();
+		expect(screen.queryByText('Something went wrong')).toBeNull();
+	});
+
 	it('logs error to console when a child throws', () => {
 		render(
 			<ErrorBoundary>

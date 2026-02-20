@@ -42,7 +42,11 @@ export default class ErrorBoundary extends Component<Props, State> {
 		const { label } = this.props;
 
 		return (
-			<div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+			<div
+				className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center"
+				role="alert"
+				aria-live="assertive"
+			>
 				<div className="card p-8 max-w-sm w-full space-y-4">
 					<div
 						className="w-12 h-12 rounded-full flex items-center justify-center mx-auto"
