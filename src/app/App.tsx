@@ -9,6 +9,7 @@ import { SettingsPage } from '@/features/settings';
 import { StatsPage } from '@/features/stats';
 import NavIcon from '@/shared/ui/NavIcon';
 import ToastContainer from '@/shared/ui/Toast';
+import ErrorBoundary from '@/shared/ui/ErrorBoundary';
 
 const navItems = [
 	{ to: '/', label: 'Home', icon: 'home' },
@@ -39,11 +40,46 @@ export default function App() {
 		<div className="min-h-screen flex flex-col">
 			<main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
 				<Routes>
-					<Route path="/" element={<HomePage />} />
-					<Route path="/log" element={<LogPage />} />
-					<Route path="/stats" element={<StatsPage />} />
-					<Route path="/library" element={<LibraryPage />} />
-					<Route path="/settings" element={<SettingsPage />} />
+					<Route
+						path="/"
+						element={
+							<ErrorBoundary label="Home">
+								<HomePage />
+							</ErrorBoundary>
+						}
+					/>
+					<Route
+						path="/log"
+						element={
+							<ErrorBoundary label="Log">
+								<LogPage />
+							</ErrorBoundary>
+						}
+					/>
+					<Route
+						path="/stats"
+						element={
+							<ErrorBoundary label="Stats">
+								<StatsPage />
+							</ErrorBoundary>
+						}
+					/>
+					<Route
+						path="/library"
+						element={
+							<ErrorBoundary label="Library">
+								<LibraryPage />
+							</ErrorBoundary>
+						}
+					/>
+					<Route
+						path="/settings"
+						element={
+							<ErrorBoundary label="Settings">
+								<SettingsPage />
+							</ErrorBoundary>
+						}
+					/>
 				</Routes>
 			</main>
 
