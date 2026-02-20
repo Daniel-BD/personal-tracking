@@ -4,6 +4,9 @@ import { TrackerDataSchema } from './schemas';
 
 const GIST_FILENAME = 'tracker-data.json';
 const GITHUB_API_BASE = 'https://api.github.com';
+const API_TIMEOUT_MS = 15_000;
+const MAX_RETRIES = 2;
+const RETRY_BASE_DELAY_MS = 1000;
 
 export interface GistConfig {
 	token: string;
@@ -47,23 +50,60 @@ export function isConfigured(): boolean {
 	return !!config.token && !!config.gistId;
 }
 
-async function apiRequest<T>(endpoint: string, token: string, options: RequestInit = {}): Promise<T> {
-	const response = await fetch(`${GITHUB_API_BASE}${endpoint}`, {
-		...options,
-		headers: {
-			Authorization: `Bearer ${token}`,
-			Accept: 'application/vnd.github+json',
-			'X-GitHub-Api-Version': '2022-11-28',
-			...options.headers,
-		},
-	});
+function isRetryable(error: unknown): boolean {
+	if (error instanceof DOMException && error.name === 'AbortError') return true;
+	if (error instanceof TypeError) return true; // network errors
+	if (error instanceof Error && error.message.includes('GitHub API error: 5')) return true;
+	return false;
+}
 
-	if (!response.ok) {
-		const errorText = await response.text();
-		throw new Error(`GitHub API error: ${response.status} - ${errorText}`);
+function delay(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function apiRequest<T>(endpoint: string, token: string, options: RequestInit = {}): Promise<T> {
+	let lastError: unknown;
+
+	for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+		if (attempt > 0) {
+			await delay(RETRY_BASE_DELAY_MS * 2 ** (attempt - 1));
+		}
+
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+
+		try {
+			const response = await fetch(`${GITHUB_API_BASE}${endpoint}`, {
+				...options,
+				signal: controller.signal,
+				headers: {
+					Authorization: `Bearer ${token}`,
+					Accept: 'application/vnd.github+json',
+					'X-GitHub-Api-Version': '2022-11-28',
+					...options.headers,
+				},
+			});
+
+			clearTimeout(timeoutId);
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				throw new Error(`GitHub API error: ${response.status} - ${errorText}`);
+			}
+
+			return response.json();
+		} catch (error) {
+			clearTimeout(timeoutId);
+			lastError = error;
+
+			if (attempt < MAX_RETRIES && isRetryable(error)) {
+				continue;
+			}
+			throw error;
+		}
 	}
 
-	return response.json();
+	throw lastError;
 }
 
 export async function fetchGist(gistId: string, token: string): Promise<TrackerData> {
