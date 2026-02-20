@@ -1,5 +1,6 @@
 import type { TrackerData, GistResponse } from './types';
 import { createEmptyData } from './types';
+import { TrackerDataSchema } from './schemas';
 
 const GIST_FILENAME = 'tracker-data.json';
 const GITHUB_API_BASE = 'https://api.github.com';
@@ -74,7 +75,9 @@ export async function fetchGist(gistId: string, token: string): Promise<TrackerD
 	}
 
 	try {
-		return JSON.parse(file.content) as TrackerData;
+		const raw = JSON.parse(file.content);
+		const result = TrackerDataSchema.safeParse(raw);
+		return result.success ? result.data : createEmptyData();
 	} catch {
 		return createEmptyData();
 	}

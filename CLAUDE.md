@@ -46,6 +46,7 @@ A personal activity and food tracking PWA built for mobile-first usage. Users lo
 - **Formatting**: Prettier (config in `.prettierrc` — tabs, single quotes, 120 print width)
 - **Pre-commit**: Husky + lint-staged (auto-runs ESLint and Prettier on staged files)
 - **PWA**: vite-plugin-pwa (Workbox-based service worker, precaching, update prompt via `ReloadPrompt` component)
+- **Validation**: Zod (schemas in `shared/lib/schemas.ts` — types in `types.ts` are derived via `z.infer`)
 - **Storage**: LocalStorage (source of truth) + optional GitHub Gist sync (backup only)
 
 ## Architecture Overview
