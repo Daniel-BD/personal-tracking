@@ -1,5 +1,5 @@
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, type ComponentType } from 'react';
 import { getStoredTheme, applyTheme } from '@/shared/lib/theme';
 import { initializeStore } from '@/shared/store/store';
 import { HomePage } from '@/features/home';
@@ -11,12 +11,12 @@ import NavIcon from '@/shared/ui/NavIcon';
 import ToastContainer from '@/shared/ui/Toast';
 import ErrorBoundary from '@/shared/ui/ErrorBoundary';
 
-const navItems = [
-	{ to: '/', label: 'Home', icon: 'home' },
-	{ to: '/log', label: 'Log', icon: 'list' },
-	{ to: '/stats', label: 'Stats', icon: 'chart' },
-	{ to: '/library', label: 'Library', icon: 'book' },
-	{ to: '/settings', label: 'Settings', icon: 'settings' },
+const routeConfig: { path: string; label: string; icon: string; Component: ComponentType }[] = [
+	{ path: '/', label: 'Home', icon: 'home', Component: HomePage },
+	{ path: '/log', label: 'Log', icon: 'list', Component: LogPage },
+	{ path: '/stats', label: 'Stats', icon: 'chart', Component: StatsPage },
+	{ path: '/library', label: 'Library', icon: 'book', Component: LibraryPage },
+	{ path: '/settings', label: 'Settings', icon: 'settings', Component: SettingsPage },
 ];
 
 export default function App() {
@@ -40,46 +40,17 @@ export default function App() {
 		<div className="min-h-screen flex flex-col">
 			<main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
 				<Routes>
-					<Route
-						path="/"
-						element={
-							<ErrorBoundary label="Home">
-								<HomePage />
-							</ErrorBoundary>
-						}
-					/>
-					<Route
-						path="/log"
-						element={
-							<ErrorBoundary label="Log">
-								<LogPage />
-							</ErrorBoundary>
-						}
-					/>
-					<Route
-						path="/stats"
-						element={
-							<ErrorBoundary label="Stats">
-								<StatsPage />
-							</ErrorBoundary>
-						}
-					/>
-					<Route
-						path="/library"
-						element={
-							<ErrorBoundary label="Library">
-								<LibraryPage />
-							</ErrorBoundary>
-						}
-					/>
-					<Route
-						path="/settings"
-						element={
-							<ErrorBoundary label="Settings">
-								<SettingsPage />
-							</ErrorBoundary>
-						}
-					/>
+					{routeConfig.map(({ path, label, Component }) => (
+						<Route
+							key={path}
+							path={path}
+							element={
+								<ErrorBoundary label={label}>
+									<Component />
+								</ErrorBoundary>
+							}
+						/>
+					))}
 				</Routes>
 			</main>
 
@@ -92,19 +63,19 @@ export default function App() {
 				}}
 			>
 				<div className="max-w-4xl mx-auto flex justify-around">
-					{navItems.map((item) => {
-						const isActive = item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to);
+					{routeConfig.map(({ path, label, icon }) => {
+						const isActive = path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 						return (
 							<NavLink
-								key={item.to}
-								to={item.to}
+								key={path}
+								to={path}
 								className="flex flex-col items-center py-2 px-3 text-xs transition-colors relative"
 								style={{ color: isActive ? 'var(--color-activity)' : 'var(--text-muted)' }}
 							>
 								<span className="mb-1">
-									<NavIcon icon={item.icon} />
+									<NavIcon icon={icon} />
 								</span>
-								<span>{item.label}</span>
+								<span>{label}</span>
 								{isActive && (
 									<span
 										className="absolute bottom-1 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full"

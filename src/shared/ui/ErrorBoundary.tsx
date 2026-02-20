@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { CircleAlert } from 'lucide-react';
 
 interface Props {
 	children: ReactNode;
@@ -41,27 +42,17 @@ export default class ErrorBoundary extends Component<Props, State> {
 		const { label } = this.props;
 
 		return (
-			<div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+			<div
+				className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center"
+				role="alert"
+				aria-live="assertive"
+			>
 				<div className="card p-8 max-w-sm w-full space-y-4">
 					<div
 						className="w-12 h-12 rounded-full flex items-center justify-center mx-auto"
 						style={{ background: 'var(--color-danger-bg)' }}
 					>
-						<svg
-							width="24"
-							height="24"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							style={{ color: 'var(--color-danger)' }}
-						>
-							<circle cx="12" cy="12" r="10" />
-							<line x1="12" y1="8" x2="12" y2="12" />
-							<line x1="12" y1="16" x2="12.01" y2="16" />
-						</svg>
+						<CircleAlert size={24} style={{ color: 'var(--color-danger)' }} />
 					</div>
 
 					<div className="space-y-1">
