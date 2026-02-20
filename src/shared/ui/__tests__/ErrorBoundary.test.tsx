@@ -87,6 +87,23 @@ describe('ErrorBoundary', () => {
 		expect(screen.getByText('Something went wrong')).toBeTruthy();
 	});
 
+	it('calls window.location.reload when Reload page is clicked', () => {
+		const reloadMock = vi.fn();
+		Object.defineProperty(window, 'location', {
+			value: { ...window.location, reload: reloadMock },
+			writable: true,
+		});
+
+		render(
+			<ErrorBoundary>
+				<ThrowingComponent shouldThrow={true} />
+			</ErrorBoundary>,
+		);
+
+		fireEvent.click(screen.getByText('Reload page'));
+		expect(reloadMock).toHaveBeenCalledOnce();
+	});
+
 	it('logs error to console when a child throws', () => {
 		render(
 			<ErrorBoundary>
