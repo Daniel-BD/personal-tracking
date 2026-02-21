@@ -53,49 +53,58 @@ export default function HomePage() {
 		await forceRefresh();
 	}
 
-	return (
-		<div className="space-y-6">
-			{!configured ? (
-				<div
-					className="card p-4"
-					style={{ background: 'var(--color-warning-bg)', borderColor: 'var(--color-warning-border)' }}
+	if (!configured) {
+		return (
+			<div
+				className="card p-4"
+				style={{ background: 'var(--color-warning-bg)', borderColor: 'var(--color-warning-border)' }}
+			>
+				<h2 className="font-semibold" style={{ color: 'var(--color-warning-text)' }}>
+					{t('setupRequired.title')}
+				</h2>
+				<p className="text-sm mt-1" style={{ color: 'var(--color-warning-text)', opacity: 0.85 }}>
+					{t('setupRequired.message')}
+				</p>
+				<a
+					href="/settings"
+					className="inline-block mt-2 px-4 py-2 rounded-md text-sm font-medium text-white transition-colors"
+					style={{ background: 'var(--color-warning)' }}
 				>
-					<h2 className="font-semibold" style={{ color: 'var(--color-warning-text)' }}>
-						{t('setupRequired.title')}
-					</h2>
-					<p className="text-sm mt-1" style={{ color: 'var(--color-warning-text)', opacity: 0.85 }}>
-						{t('setupRequired.message')}
-					</p>
-					<a
-						href="/settings"
-						className="inline-block mt-2 px-4 py-2 rounded-md text-sm font-medium text-white transition-colors"
-						style={{ background: 'var(--color-warning)' }}
-					>
-						{t('setupRequired.cta')}
-					</a>
-				</div>
-			) : (
-				<>
-					{/* Header */}
-					<div className="flex justify-between items-center">
-						<h2 className="text-2xl font-bold text-heading">{t('title')}</h2>
-						<button
-							onClick={handleRefresh}
-							disabled={syncStatus === 'syncing'}
-							className="p-2 rounded-md text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-inset)] disabled:opacity-50 transition-colors"
-							aria-label={t('refreshAriaLabel')}
-						>
-							<RefreshCw className={cn('w-5 h-5', syncStatus === 'syncing' && 'animate-spin')} strokeWidth={1.5} />
-						</button>
-					</div>
+					{t('setupRequired.cta')}
+				</a>
+			</div>
+		);
+	}
 
-					{/* Daily balance score */}
-					<DailyBalanceScore />
+	return (
+		<div className="flex flex-col h-full">
+			<QuickLogForm>
+				{({ searchInput, itemsList }) => (
+					<>
+						{/* Non-scrolling header: title + search input + balance score */}
+						<div className="flex-shrink-0 space-y-4">
+							<div className="flex justify-between items-center">
+								<h2 className="text-2xl font-bold text-heading">{t('title')}</h2>
+								<button
+									onClick={handleRefresh}
+									disabled={syncStatus === 'syncing'}
+									className="p-2 rounded-md text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-inset)] disabled:opacity-50 transition-colors"
+									aria-label={t('refreshAriaLabel')}
+								>
+									<RefreshCw className={cn('w-5 h-5', syncStatus === 'syncing' && 'animate-spin')} strokeWidth={1.5} />
+								</button>
+							</div>
 
-					{/* Quick Log form — borderless, command-palette style */}
-					<QuickLogForm />
-				</>
-			)}
+							{searchInput}
+
+							<DailyBalanceScore />
+						</div>
+
+						{/* Scrollable favorites / recent list */}
+						<div className="flex-1 min-h-0 overflow-y-auto mt-2">{itemsList}</div>
+					</>
+				)}
+			</QuickLogForm>
 		</div>
 	);
 }

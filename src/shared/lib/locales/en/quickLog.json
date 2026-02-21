@@ -2,6 +2,9 @@
 	"searchPlaceholder": "Search or create item...",
 	"createButton": "Create \"{{name}}\"",
 	"favoritesLabel": "Favorites",
+	"recentLabel": "Recent",
+	"noFavorites": "No favorites yet",
+	"noRecent": "No recent items",
 	"removeFromFavoritesAriaLabel": "Remove from favorites",
 	"quickLogAriaLabel": "Quick log {{name}}",
 	"sheet": {
