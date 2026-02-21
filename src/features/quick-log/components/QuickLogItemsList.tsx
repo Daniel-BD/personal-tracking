@@ -25,9 +25,9 @@ export default function QuickLogItemsList({ favoriteItemsList, recentItemsList, 
 	const emptyMessage = tab === 'favorites' ? t('noFavorites') : t('noRecent');
 
 	return (
-		<div className="flex flex-col min-h-0">
-			{/* Segmented control */}
-			<div className="py-3">
+		<div className="flex flex-col flex-1 min-h-0">
+			{/* Segmented control — never scrolls */}
+			<div className="py-3 flex-shrink-0">
 				<SegmentedControl
 					options={[
 						{ value: 'favorites' as Tab, label: t('favoritesLabel') },
@@ -40,46 +40,48 @@ export default function QuickLogItemsList({ favoriteItemsList, recentItemsList, 
 				/>
 			</div>
 
-			{/* Items list */}
+			{/* Items list — scroll container, fills remaining height */}
 			{isEmpty ? (
 				<p className="text-sm text-[var(--text-muted)] px-1 py-3">{emptyMessage}</p>
 			) : (
-				<div className="space-y-0.5">
-					{items.map((unified) => (
-						<div
-							key={`${unified.type}-${unified.item.id}`}
-							className="w-full px-1 py-2.5 hover:bg-[var(--bg-card-hover)] rounded-md flex items-center gap-3 transition-colors"
-						>
-							{tab === 'favorites' ? (
+				<div className="flex-1 min-h-0 overflow-y-auto">
+					<div className="space-y-0.5">
+						{items.map((unified) => (
+							<div
+								key={`${unified.type}-${unified.item.id}`}
+								className="w-full px-1 py-2.5 hover:bg-[var(--bg-card-hover)] rounded-md flex items-center gap-3 transition-colors"
+							>
+								{tab === 'favorites' ? (
+									<button
+										type="button"
+										onClick={() => toggleFavorite(unified.item.id)}
+										className="flex-shrink-0 p-1"
+										aria-label={t('removeFromFavoritesAriaLabel')}
+									>
+										<StarIcon filled className="w-4 h-4" />
+									</button>
+								) : (
+									<span className="flex-shrink-0 w-6" />
+								)}
 								<button
 									type="button"
-									onClick={() => toggleFavorite(unified.item.id)}
-									className="flex-shrink-0 p-1"
-									aria-label={t('removeFromFavoritesAriaLabel')}
+									onClick={() => onSelectExisting(unified)}
+									className="flex-1 text-left flex items-center gap-3 min-w-0"
 								>
-									<StarIcon filled className="w-4 h-4" />
+									<span className="text-sm">{getTypeIcon(unified.type)}</span>
+									<span className="text-body truncate">{unified.item.name}</span>
 								</button>
-							) : (
-								<span className="flex-shrink-0 w-6" />
-							)}
-							<button
-								type="button"
-								onClick={() => onSelectExisting(unified)}
-								className="flex-1 text-left flex items-center gap-3 min-w-0"
-							>
-								<span className="text-sm">{getTypeIcon(unified.type)}</span>
-								<span className="text-body truncate">{unified.item.name}</span>
-							</button>
-							<button
-								type="button"
-								onClick={() => onQuickLog(unified)}
-								className="flex-shrink-0 p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--color-activity)] hover:bg-[var(--bg-inset)] transition-colors"
-								aria-label={t('quickLogAriaLabel', { name: unified.item.name })}
-							>
-								<Zap className="w-4 h-4" strokeWidth={2} />
-							</button>
-						</div>
-					))}
+								<button
+									type="button"
+									onClick={() => onQuickLog(unified)}
+									className="flex-shrink-0 p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--color-activity)] hover:bg-[var(--bg-inset)] transition-colors"
+									aria-label={t('quickLogAriaLabel', { name: unified.item.name })}
+								>
+									<Zap className="w-4 h-4" strokeWidth={2} />
+								</button>
+							</div>
+						))}
+					</div>
 				</div>
 			)}
 		</div>
