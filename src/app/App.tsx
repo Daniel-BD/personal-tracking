@@ -8,6 +8,7 @@ import { LogPage } from '@/features/log';
 import { LibraryPage } from '@/features/library';
 import NavIcon from '@/shared/ui/NavIcon';
 import ToastContainer from '@/shared/ui/Toast';
+import SyncToast from '@/shared/ui/SyncToast';
 import ReloadPrompt from '@/shared/ui/ReloadPrompt';
 import ErrorBoundary from '@/shared/ui/ErrorBoundary';
 
@@ -107,6 +108,7 @@ export default function App() {
 			<div className="h-16" />
 
 			<ToastContainer />
+			<SyncToast />
 			<ReloadPrompt />
 		</div>
 	);

@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import type { TrackerData } from '@/shared/lib/types';
-import { makeValidData, flushPromises } from './fixtures';
+import { makeValidData } from './fixtures';
 
 // Mock the github module before importing store
 vi.mock('@/shared/lib/github', () => ({
@@ -28,16 +28,23 @@ import {
 } from '../store';
 import { getConfig, isConfigured, fetchGist, updateGist } from '@/shared/lib/github';
 
+/** Advance the debounce timer (500ms) and flush async push operations. */
+async function flushDebouncedSync() {
+	await vi.advanceTimersByTimeAsync(500);
+}
+
 describe('gist sync', () => {
 	beforeEach(() => {
+		vi.useFakeTimers();
 		localStorage.clear();
 
 		// Disable gist sync during reset
 		(isConfigured as Mock).mockReturnValue(false);
 		importData(JSON.stringify(makeValidData()));
 
-		// Reset all mocks after the import-triggered pushToGist
+		// Reset all mocks and clear timers from the import-triggered push
 		vi.clearAllMocks();
+		vi.clearAllTimers();
 
 		// Default mock config for gist tests
 		(getConfig as Mock).mockReturnValue({
@@ -45,6 +52,10 @@ describe('gist sync', () => {
 			gistId: 'test-gist-id',
 			backupGistId: 'backup-gist-id',
 		});
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
 	});
 
 	// ── loadFromGist ────────────────────────────────────────
@@ -58,8 +69,9 @@ describe('gist sync', () => {
 			expect(fetchGist).not.toHaveBeenCalled();
 		});
 
-		it('fetches and sets data when configured', async () => {
+		it('merges remote data with local data when configured', async () => {
 			(isConfigured as Mock).mockReturnValue(true);
+			(updateGist as Mock).mockResolvedValueOnce(undefined);
 			const remoteData = makeValidData({
 				foodItems: [{ id: 'r1', name: 'Remote Apple', categories: [] }],
 			});
@@ -71,6 +83,55 @@ describe('gist sync', () => {
 			const snapshot = dataStore.getSnapshot();
 			expect(snapshot.foodItems).toHaveLength(1);
 			expect(snapshot.foodItems[0].name).toBe('Remote Apple');
+		});
+
+		it('pushes merged data back to gist after loading', async () => {
+			(isConfigured as Mock).mockReturnValue(true);
+			(updateGist as Mock).mockResolvedValueOnce(undefined);
+			const remoteData = makeValidData({
+				foodItems: [{ id: 'r1', name: 'Remote Apple', categories: [] }],
+			});
+			(fetchGist as Mock).mockResolvedValueOnce(remoteData);
+
+			await loadFromGist();
+
+			expect(updateGist).toHaveBeenCalledWith('test-gist-id', 'test-token', expect.objectContaining({}));
+		});
+
+		it('preserves local data not yet pushed to remote', async () => {
+			// Simulate the data loss scenario:
+			// 1. User added data locally (saved to localStorage)
+			// 2. Push to gist never completed (app was closed)
+			// 3. App reopens, loadFromGist must not overwrite local data
+
+			// Set up local data that "wasn't pushed yet"
+			(isConfigured as Mock).mockReturnValue(false);
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodItems: [{ id: 'local-1', name: 'Local Banana', categories: [] }],
+					}),
+				),
+			);
+			vi.clearAllMocks();
+			vi.clearAllTimers();
+			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
+			(isConfigured as Mock).mockReturnValue(true);
+
+			// Remote has different (stale) data
+			const remoteData = makeValidData({
+				foodItems: [{ id: 'remote-1', name: 'Remote Apple', categories: [] }],
+			});
+			(fetchGist as Mock).mockResolvedValueOnce(remoteData);
+			(updateGist as Mock).mockResolvedValueOnce(undefined);
+
+			await loadFromGist();
+
+			// Both local AND remote items should be present (merged, not replaced)
+			const snapshot = dataStore.getSnapshot();
+			const names = snapshot.foodItems.map((i) => i.name);
+			expect(names).toContain('Local Banana');
+			expect(names).toContain('Remote Apple');
 		});
 
 		it('sets sync status to error on fetch failure', async () => {
@@ -97,9 +158,9 @@ describe('gist sync', () => {
 			(fetchGist as Mock).mockResolvedValue(remoteData);
 			(updateGist as Mock).mockResolvedValue(undefined);
 
-			// Add a local item — this triggers pushToGist
+			// Add a local item — this triggers a debounced push
 			addItem('food', 'Local Banana', []);
-			await flushPromises();
+			await flushDebouncedSync();
 
 			// updateGist should have been called with merged data
 			expect(updateGist).toHaveBeenCalled();
@@ -122,6 +183,7 @@ describe('gist sync', () => {
 				),
 			);
 			vi.clearAllMocks();
+			vi.clearAllTimers();
 			(isConfigured as Mock).mockReturnValue(true);
 			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
 
@@ -134,7 +196,7 @@ describe('gist sync', () => {
 
 			// Trigger push by adding an entry
 			addEntry('food', 'shared-id', '2025-01-15');
-			await flushPromises();
+			await flushDebouncedSync();
 
 			expect(updateGist).toHaveBeenCalled();
 			const pushedData = (updateGist as Mock).mock.calls[0][2] as TrackerData;
@@ -159,6 +221,7 @@ describe('gist sync', () => {
 				),
 			);
 			vi.clearAllMocks();
+			vi.clearAllTimers();
 			(isConfigured as Mock).mockReturnValue(true);
 			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
 
@@ -174,7 +237,7 @@ describe('gist sync', () => {
 
 			// Delete one item locally — triggers pushToGist with pendingDeletion
 			deleteItem('food', 'delete-me');
-			await flushPromises();
+			await flushDebouncedSync();
 
 			expect(updateGist).toHaveBeenCalled();
 			const pushedData = (updateGist as Mock).mock.calls[0][2] as TrackerData;
@@ -213,6 +276,7 @@ describe('gist sync', () => {
 				),
 			);
 			vi.clearAllMocks();
+			vi.clearAllTimers();
 			(isConfigured as Mock).mockReturnValue(true);
 			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
 
@@ -244,7 +308,7 @@ describe('gist sync', () => {
 			(updateGist as Mock).mockResolvedValue(undefined);
 
 			deleteEntry('e-delete');
-			await flushPromises();
+			await flushDebouncedSync();
 
 			expect(updateGist).toHaveBeenCalled();
 			const pushedData = (updateGist as Mock).mock.calls[0][2] as TrackerData;
@@ -271,6 +335,7 @@ describe('gist sync', () => {
 				),
 			);
 			vi.clearAllMocks();
+			vi.clearAllTimers();
 			(isConfigured as Mock).mockReturnValue(true);
 			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
 
@@ -287,7 +352,7 @@ describe('gist sync', () => {
 
 			// Remove cat2 card locally — triggers push
 			removeDashboardCard('cat2');
-			await flushPromises();
+			await flushDebouncedSync();
 
 			expect(updateGist).toHaveBeenCalled();
 			const pushedData = (updateGist as Mock).mock.calls[0][2] as TrackerData;
@@ -295,6 +360,29 @@ describe('gist sync', () => {
 			expect(cardCategoryIds).toContain('cat1');
 			expect(cardCategoryIds).not.toContain('cat2'); // deleted locally
 			expect(cardCategoryIds).toContain('cat3'); // new from remote
+		});
+
+		it('debounces rapid mutations into a single push', async () => {
+			(isConfigured as Mock).mockReturnValue(true);
+			(fetchGist as Mock).mockResolvedValue(makeValidData());
+			(updateGist as Mock).mockResolvedValue(undefined);
+
+			// Rapid-fire three operations
+			addItem('food', 'Item A', []);
+			addItem('food', 'Item B', []);
+			addItem('food', 'Item C', []);
+
+			await flushDebouncedSync();
+
+			// Only one push should have occurred despite three mutations
+			expect(updateGist).toHaveBeenCalledTimes(1);
+
+			// The pushed data should include all three items
+			const pushedData = (updateGist as Mock).mock.calls[0][2] as TrackerData;
+			const names = pushedData.foodItems.map((i) => i.name);
+			expect(names).toContain('Item A');
+			expect(names).toContain('Item B');
+			expect(names).toContain('Item C');
 		});
 	});
 
@@ -311,6 +399,7 @@ describe('gist sync', () => {
 				),
 			);
 			vi.clearAllMocks();
+			vi.clearAllTimers();
 			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: 'backup-id' });
 			(updateGist as Mock).mockResolvedValue(undefined);
 
@@ -347,6 +436,7 @@ describe('gist sync', () => {
 				),
 			);
 			vi.clearAllMocks();
+			vi.clearAllTimers();
 			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: 'backup-id' });
 			(isConfigured as Mock).mockReturnValue(false); // prevent pushToGist side effects
 
@@ -381,21 +471,21 @@ describe('gist sync', () => {
 
 		it('addItem triggers push to gist', async () => {
 			addItem('food', 'New Item', []);
-			await flushPromises();
+			await flushDebouncedSync();
 
 			expect(updateGist).toHaveBeenCalled();
 		});
 
 		it('addEntry triggers push to gist', async () => {
 			addEntry('food', 'item1', '2025-01-15');
-			await flushPromises();
+			await flushDebouncedSync();
 
 			expect(updateGist).toHaveBeenCalled();
 		});
 
 		it('addCategory triggers push to gist', async () => {
 			addCategory('food', 'New Category', 'neutral');
-			await flushPromises();
+			await flushDebouncedSync();
 
 			expect(updateGist).toHaveBeenCalled();
 		});

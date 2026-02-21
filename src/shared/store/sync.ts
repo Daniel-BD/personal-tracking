@@ -135,6 +135,7 @@ export async function pushToGist(
 }
 
 export async function loadFromGistFn(
+	getCurrentData: () => TrackerData,
 	setData: (data: TrackerData) => void,
 	setSyncStatus: (status: 'idle' | 'syncing' | 'error') => void,
 ): Promise<void> {
@@ -146,8 +147,11 @@ export async function loadFromGistFn(
 	setSyncStatus('syncing');
 	try {
 		const raw = await fetchGist(config.gistId, config.token);
-		const data = migrateData(raw);
-		setData(data);
+		const remoteData = migrateData(raw);
+		const localData = getCurrentData();
+		const mergedData = mergeTrackerData(localData, remoteData);
+		setData(mergedData);
+		await updateGist(config.gistId, config.token, mergedData);
 		clearPendingDeletions();
 		setSyncStatus('idle');
 	} catch (error) {

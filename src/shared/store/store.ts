@@ -112,15 +112,50 @@ export const syncStatusStore = {
 };
 
 // ============================================================
-// Gist sync wrappers
+// Gist sync wrappers (debounced + serialized)
 // ============================================================
 
+const PUSH_DEBOUNCE_MS = 500;
+let pushTimer: ReturnType<typeof setTimeout> | null = null;
+let activePush: Promise<void> | null = null;
+let pushQueued = false;
+
 function triggerPush(): void {
-	pushToGist(() => currentData, setData, setSyncStatus);
+	if (pushTimer) clearTimeout(pushTimer);
+	pushTimer = setTimeout(executePush, PUSH_DEBOUNCE_MS);
+}
+
+async function executePush(): Promise<void> {
+	pushTimer = null;
+
+	if (activePush) {
+		// A push is already in-flight — queue another after it finishes
+		pushQueued = true;
+		return;
+	}
+
+	activePush = pushToGist(() => currentData, setData, setSyncStatus);
+	try {
+		await activePush;
+	} finally {
+		activePush = null;
+		if (pushQueued) {
+			pushQueued = false;
+			executePush();
+		}
+	}
+}
+
+/** Flush any pending debounced push immediately (e.g. on page hide). */
+export function flushPendingSync(): void {
+	if (pushTimer) {
+		clearTimeout(pushTimer);
+		void executePush();
+	}
 }
 
 export async function loadFromGist(): Promise<void> {
-	await loadFromGistFn(setData, setSyncStatus);
+	await loadFromGistFn(() => currentData, setData, setSyncStatus);
 }
 
 export async function forceRefresh(): Promise<void> {
@@ -376,6 +411,14 @@ let storeInitialized = false;
 export function initializeStore(): void {
 	if (storeInitialized) return;
 	storeInitialized = true;
+
+	// Flush pending sync when user leaves the page or switches tabs
+	document.addEventListener('visibilitychange', () => {
+		if (document.visibilityState === 'hidden') {
+			flushPendingSync();
+		}
+	});
+
 	if (isConfigured()) {
 		loadFromGist();
 	}
