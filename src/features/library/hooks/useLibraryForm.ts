@@ -23,7 +23,9 @@ export function useLibraryForm<
 	// Reset form when add sheet opens
 	useEffect(() => {
 		if (showAddSheet) {
+			setEditing(null);
 			setFields(defaults);
+			setDeleting(null);
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- Only reset when the sheet opens, not when defaults ref changes
 	}, [showAddSheet]);
@@ -35,11 +37,13 @@ export function useLibraryForm<
 	function resetForm() {
 		setEditing(null);
 		setFields(defaults);
+		setDeleting(null);
 	}
 
 	function startEdit(entity: TEditing, formValues: TFields) {
 		setEditing({ ...entity });
 		setFields(formValues);
+		setDeleting(null);
 	}
 
 	return {
