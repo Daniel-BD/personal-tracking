@@ -1,14 +1,22 @@
 import { useState, useMemo } from 'react';
-import type { EntryType, Item } from '@/shared/lib/types';
+import type { EntryType, Item, Entry } from '@/shared/lib/types';
 
 export interface UnifiedItem {
 	item: Item;
 	type: EntryType;
 }
 
-export function useQuickLogSearch(activityItems: Item[], foodItems: Item[], favoriteIds: string[]) {
+export function useQuickLogSearch(activityItems: Item[], foodItems: Item[], favoriteIds: string[], entries: Entry[]) {
 	const [query, setQuery] = useState('');
 	const [isFocused, setIsFocused] = useState(false);
+
+	// Shared item map — O(N+M) lookup used by both favorites and recent
+	const itemMap = useMemo(() => {
+		const map = new Map<string, UnifiedItem>();
+		for (const item of activityItems) map.set(item.id, { item, type: 'activity' });
+		for (const item of foodItems) map.set(item.id, { item, type: 'food' });
+		return map;
+	}, [activityItems, foodItems]);
 
 	// All items merged
 	const allItems = useMemo(() => {
@@ -17,25 +25,39 @@ export function useQuickLogSearch(activityItems: Item[], foodItems: Item[], favo
 		return [...activities, ...foods];
 	}, [activityItems, foodItems]);
 
-	// Favorite items — Map-based O(N+M) lookup
+	// Favorite items — in order of favoriteIds
 	const favoriteItemsList = useMemo(() => {
 		if (favoriteIds.length === 0) return [];
-
-		const itemMap = new Map<string, UnifiedItem>();
-		for (const item of activityItems) {
-			itemMap.set(item.id, { item, type: 'activity' });
-		}
-		for (const item of foodItems) {
-			itemMap.set(item.id, { item, type: 'food' });
-		}
-
 		const result: UnifiedItem[] = [];
 		for (const itemId of favoriteIds) {
 			const unified = itemMap.get(itemId);
 			if (unified) result.push(unified);
 		}
 		return result;
-	}, [favoriteIds, activityItems, foodItems]);
+	}, [favoriteIds, itemMap]);
+
+	// 20 most recently logged unique items, sorted by date+time descending
+	const recentItemsList = useMemo(() => {
+		if (entries.length === 0) return [];
+
+		const sorted = [...entries].sort((a, b) => {
+			const dateA = a.time ? `${a.date}T${a.time}` : a.date;
+			const dateB = b.time ? `${b.date}T${b.time}` : b.date;
+			return dateB.localeCompare(dateA);
+		});
+
+		const seen = new Set<string>();
+		const result: UnifiedItem[] = [];
+		for (const entry of sorted) {
+			const key = `${entry.type}-${entry.itemId}`;
+			if (seen.has(key)) continue;
+			seen.add(key);
+			const unified = itemMap.get(entry.itemId);
+			if (unified) result.push(unified);
+			if (result.length >= 20) break;
+		}
+		return result;
+	}, [entries, itemMap]);
 
 	// Filtered search results
 	const searchResults = useMemo(() => {
@@ -60,6 +82,7 @@ export function useQuickLogSearch(activityItems: Item[], foodItems: Item[], favo
 		showResults,
 		hasExactMatch,
 		favoriteItemsList,
+		recentItemsList,
 		resetSearch,
 	};
 }

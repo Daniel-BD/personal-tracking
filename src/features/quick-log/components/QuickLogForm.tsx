@@ -1,38 +1,53 @@
-import { useRef } from 'react';
-import { Search, Zap } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { EntryType } from '@/shared/lib/types';
-import { getTypeIcon } from '@/shared/lib/types';
 import {
 	useActivityItems,
 	useFoodItems,
 	useFavoriteItems,
 	useActivityCategories,
 	useFoodCategories,
+	useEntries,
 } from '@/shared/store/hooks';
-import { getCategoryNames, toggleFavorite } from '@/shared/store/store';
 import BottomSheet from '@/shared/ui/BottomSheet';
-import StarIcon from '@/shared/ui/StarIcon';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import { CategoryPicker } from '@/features/tracking';
 import NativePickerInput from '@/shared/ui/NativePickerInput';
 import { useQuickLogSearch } from '../hooks/useQuickLogSearch';
 import { useQuickLogForm } from '../hooks/useQuickLogForm';
+import QuickLogSearchInput from './QuickLogSearchInput';
+import QuickLogItemsList from './QuickLogItemsList';
 
-/** Delay (ms) before closing dropdown on blur, so click events on dropdown options can fire first */
-const BLUR_CLICK_DELAY_MS = 200;
+export type QuickLogSlots = {
+	searchInput: ReactNode;
+	itemsList: ReactNode;
+};
 
-export default function QuickLogForm() {
+interface Props {
+	/** Render prop: receives search input and items list nodes to place in custom layouts. */
+	children?: (slots: QuickLogSlots) => ReactNode;
+}
+
+export default function QuickLogForm({ children }: Props) {
 	const { t } = useTranslation('quickLog');
 	const activityItems = useActivityItems();
 	const foodItems = useFoodItems();
 	const favoriteIds = useFavoriteItems();
 	const activityCategories = useActivityCategories();
 	const foodCategories = useFoodCategories();
-	const inputRef = useRef<HTMLInputElement>(null);
+	const entries = useEntries();
 
-	const { query, setQuery, setIsFocused, searchResults, showResults, hasExactMatch, favoriteItemsList, resetSearch } =
-		useQuickLogSearch(activityItems, foodItems, favoriteIds);
+	const {
+		query,
+		setQuery,
+		setIsFocused,
+		searchResults,
+		showResults,
+		hasExactMatch,
+		favoriteItemsList,
+		recentItemsList,
+		resetSearch,
+	} = useQuickLogSearch(activityItems, foodItems, favoriteIds, entries);
 
 	const {
 		sheetOpen,
@@ -62,110 +77,44 @@ export default function QuickLogForm() {
 	function handleSelectExisting(unified: Parameters<typeof openForExisting>[0]) {
 		openForExisting(unified);
 		resetSearch();
-		inputRef.current?.blur();
 	}
 
 	function handleCreateTap() {
 		openForCreate(query.trim());
 		resetSearch();
-		inputRef.current?.blur();
 	}
+
+	const searchInput = (
+		<QuickLogSearchInput
+			query={query}
+			setQuery={setQuery}
+			setIsFocused={setIsFocused}
+			searchResults={searchResults}
+			showResults={showResults}
+			hasExactMatch={hasExactMatch}
+			onSelectExisting={handleSelectExisting}
+			onCreateTap={handleCreateTap}
+		/>
+	);
+
+	const itemsList = !showResults ? (
+		<QuickLogItemsList
+			favoriteItemsList={favoriteItemsList}
+			recentItemsList={recentItemsList}
+			onSelectExisting={handleSelectExisting}
+			onQuickLog={quickLogItem}
+		/>
+	) : null;
 
 	return (
 		<>
-			{/* Search input — borderless, full-width */}
-			<div className="relative">
-				<div className="flex items-center gap-3 py-2">
-					<Search className="w-5 h-5 text-[var(--text-muted)] flex-shrink-0" strokeWidth={1.5} />
-					<input
-						ref={inputRef}
-						type="text"
-						value={query}
-						onChange={(e) => setQuery(e.target.value)}
-						onFocus={() => setIsFocused(true)}
-						onBlur={() => setTimeout(() => setIsFocused(false), BLUR_CLICK_DELAY_MS)}
-						placeholder={t('searchPlaceholder')}
-						className="flex-1 bg-transparent text-heading text-base placeholder:text-[var(--text-muted)] outline-none"
-					/>
-				</div>
-				<div className="h-px bg-[var(--border-subtle)]" />
-
-				{/* Search results */}
-				{showResults && (
-					<div className="absolute z-20 w-full mt-1 bg-[var(--bg-elevated)] rounded-lg shadow-[var(--shadow-elevated)] border border-[var(--border-default)] max-h-64 overflow-y-auto">
-						{searchResults.map((unified) => (
-							<button
-								key={`${unified.type}-${unified.item.id}`}
-								type="button"
-								onMouseDown={(e) => e.preventDefault()}
-								onClick={() => handleSelectExisting(unified)}
-								className="w-full text-left px-4 py-3 hover:bg-[var(--bg-card-hover)] flex items-center gap-3 border-b border-[var(--border-subtle)] last:border-b-0"
-							>
-								<span className="text-sm">{getTypeIcon(unified.type)}</span>
-								<div className="flex-1 min-w-0">
-									<div className="font-medium text-heading">{unified.item.name}</div>
-									{unified.item.categories.length > 0 && (
-										<div className="text-xs text-label truncate">
-											{getCategoryNames(unified.type, unified.item.categories).join(', ')}
-										</div>
-									)}
-								</div>
-							</button>
-						))}
-
-						{!hasExactMatch && query.trim() && (
-							<button
-								type="button"
-								onMouseDown={(e) => e.preventDefault()}
-								onClick={handleCreateTap}
-								className="w-full text-left px-4 py-3 hover:bg-[var(--bg-card-hover)] flex items-center gap-3 text-[var(--color-activity)]"
-							>
-								<span className="text-sm font-bold">+</span>
-								<span>{t('createButton', { name: query.trim() })}</span>
-							</button>
-						)}
-					</div>
-				)}
-			</div>
-
-			{/* Favorite items — shown when not searching */}
-			{!showResults && favoriteItemsList.length > 0 && (
-				<div className="mt-4">
-					<div className="text-xs font-medium text-label uppercase tracking-wide mb-2">{t('favoritesLabel')}</div>
-					<div className="space-y-0.5">
-						{favoriteItemsList.map((unified) => (
-							<div
-								key={`${unified.type}-${unified.item.id}`}
-								className="w-full px-1 py-2.5 hover:bg-[var(--bg-card-hover)] rounded-md flex items-center gap-3 transition-colors"
-							>
-								<button
-									type="button"
-									onClick={() => toggleFavorite(unified.item.id)}
-									className="flex-shrink-0 p-1"
-									aria-label={t('removeFromFavoritesAriaLabel')}
-								>
-									<StarIcon filled className="w-4 h-4" />
-								</button>
-								<button
-									type="button"
-									onClick={() => handleSelectExisting(unified)}
-									className="flex-1 text-left flex items-center gap-3 min-w-0"
-								>
-									<span className="text-sm">{getTypeIcon(unified.type)}</span>
-									<span className="text-body truncate">{unified.item.name}</span>
-								</button>
-								<button
-									type="button"
-									onClick={() => quickLogItem(unified)}
-									className="flex-shrink-0 p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--color-activity)] hover:bg-[var(--bg-inset)] transition-colors"
-									aria-label={t('quickLogAriaLabel', { name: unified.item.name })}
-								>
-									<Zap className="w-4 h-4" strokeWidth={2} />
-								</button>
-							</div>
-						))}
-					</div>
-				</div>
+			{children ? (
+				children({ searchInput, itemsList })
+			) : (
+				<>
+					{searchInput}
+					{itemsList}
+				</>
 			)}
 
 			{/* Create + Log bottom sheet */}

@@ -4,22 +4,27 @@ Command-palette style quick logging used on the Home page. Exports its public AP
 
 ## Architecture
 
-Business logic is extracted into hooks; `QuickLogForm` is a presentational component wiring hooks to UI.
+Business logic is extracted into hooks; the components are presentational, wiring hook state to UI.
+
+`QuickLogForm` uses a **render prop** (`children`) to let the parent (`HomePage`) control layout placement of the search input and items list while keeping all state internal. When no `children` is passed, it renders both parts in a simple stacked layout.
 
 ## Hooks
 
-- **`useQuickLogSearch.ts`** — Search query state, filtered results, favorites list. Merges activity and food items for unified search.
+- **`useQuickLogSearch.ts`** — Search query state, filtered results, favorites list, and recent items list. Merges activity and food items for unified search. Takes `activityItems`, `foodItems`, `favoriteIds`, and `entries` as arguments. Returns `favoriteItemsList` (ordered by favorite IDs) and `recentItemsList` (20 most recently logged unique items, sorted by date+time desc).
 - **`useQuickLogForm.ts`** — Form state, submit handlers, create-vs-log mode, instant quick-log. Handles both creating new items and logging existing ones.
 
 ## Components
 
-- **`QuickLogForm.tsx`** — Presentational: borderless search input at top, inline search results, favorites list. Tapping an item opens a BottomSheet with date+time (defaulting to today/now), categories, and note. Tapping "Create" opens BottomSheet with type selector. The Log/Create action button sits in the sheet header (top-right, small rounded pill) via `headerAction` prop.
+- **`QuickLogForm.tsx`** — Orchestrator: uses both hooks, renders `QuickLogSearchInput` + `QuickLogItemsList` + BottomSheet. Accepts an optional `children` render prop `(slots: { searchInput, itemsList }) => ReactNode` to let parent components position the slots within a custom layout.
+- **`QuickLogSearchInput.tsx`** — Borderless search input with dropdown results. Accepts search state as props. Contains the blur-delay logic for dropdown click handling.
+- **`QuickLogItemsList.tsx`** — Favorites / Recent segmented list. Has internal `tab` state ('favorites' | 'recent'). Favorites show a star toggle button; recent items show a spacer in place of the star. Both rows have a Zap button for instant quick-log.
 
 ## UX Flow
 
 - Fast path: open → type → tap → Log (3 interactions). No blocking modals, no collapsible sections.
-- **Instant quick-log (Zap)**: Favorite items have a Zap icon button. Tapping it creates an entry with today's date and current time immediately (no sheet), with an undo toast.
-- Favorites show instead of recent items on the Home page.
+- **Instant quick-log (Zap)**: Items in both the Favorites and Recent tabs have a Zap icon button. Tapping it creates an entry with today's date and current time immediately (no sheet), with an undo toast.
+- **Favorites tab** (default): shows items in favorite order, with star button to remove.
+- **Recent tab**: shows the 20 most recently logged unique items, no star button.
 
 ## Tests
 
