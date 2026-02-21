@@ -29,6 +29,8 @@ export function validateAndParseImport(jsonString: string): TrackerData | null {
 		const raw = JSON.parse(jsonString);
 		const result = TrackerDataImportSchema.safeParse(raw);
 		if (!result.success) return null;
+		// Cast is safe: TrackerDataImportSchema allows missing sentiment,
+		// but migrateData() fills it in before the result is used.
 		return migrateData(result.data as TrackerData);
 	} catch {
 		return null;

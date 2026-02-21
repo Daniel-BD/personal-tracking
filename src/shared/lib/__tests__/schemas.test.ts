@@ -97,6 +97,27 @@ describe('Zod schemas', () => {
 			});
 			expect(result.success).toBe(false);
 		});
+
+		it('rejects invalid date format', () => {
+			const result = EntrySchema.safeParse({
+				id: 'e1',
+				type: 'food',
+				itemId: 'i1',
+				date: 'Jan 15, 2025',
+			});
+			expect(result.success).toBe(false);
+		});
+
+		it('rejects invalid time format', () => {
+			const result = EntrySchema.safeParse({
+				id: 'e1',
+				type: 'food',
+				itemId: 'i1',
+				date: '2025-01-15',
+				time: '9:30',
+			});
+			expect(result.success).toBe(false);
+		});
 	});
 
 	describe('DashboardCardSchema', () => {

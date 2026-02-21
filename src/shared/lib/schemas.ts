@@ -22,8 +22,12 @@ export const EntrySchema = z.object({
 	id: z.string(),
 	type: EntryTypeSchema,
 	itemId: z.string(),
-	date: z.string(),
-	time: z.string().nullable().optional(),
+	date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+	time: z
+		.string()
+		.regex(/^\d{2}:\d{2}$/)
+		.nullable()
+		.optional(),
 	notes: z.string().nullable().optional(),
 	categoryOverrides: z.array(z.string()).nullable().optional(),
 });

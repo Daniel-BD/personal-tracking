@@ -13,7 +13,6 @@ export default defineConfig({
 			manifest: false, // use existing manifest.json in static/
 			workbox: {
 				globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2}'],
-				navigateFallback: 'index.html',
 				runtimeCaching: [
 					{
 						urlPattern: /^https:\/\/api\.github\.com\/.*/i,

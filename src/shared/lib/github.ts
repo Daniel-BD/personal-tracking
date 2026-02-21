@@ -114,13 +114,12 @@ export async function fetchGist(gistId: string, token: string): Promise<TrackerD
 		return createEmptyData();
 	}
 
-	try {
-		const raw = JSON.parse(file.content);
-		const result = TrackerDataSchema.safeParse(raw);
-		return result.success ? result.data : createEmptyData();
-	} catch {
-		return createEmptyData();
+	const raw = JSON.parse(file.content);
+	const result = TrackerDataSchema.safeParse(raw);
+	if (!result.success) {
+		throw new Error('Remote Gist data failed validation — refusing to overwrite. Check data format.');
 	}
+	return result.data;
 }
 
 export async function updateGist(gistId: string, token: string, data: TrackerData): Promise<void> {
