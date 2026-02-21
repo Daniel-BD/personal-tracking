@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react';
 import { Search, X, Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useActivityItems, useFoodItems, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import ItemsTab from './ItemsTab';
 import CategoriesTab from './CategoriesTab';
 
 export default function LibraryPage() {
+	const { t } = useTranslation('library');
 	const activityItems = useActivityItems();
 	const foodItems = useFoodItems();
 	const activityCategories = useActivityCategories();
@@ -46,24 +48,21 @@ export default function LibraryPage() {
 	);
 
 	const count = activeSubTab === 'items' ? currentItems.length : currentCategories.length;
-	const countLabel =
-		activeSubTab === 'items'
-			? `${count} item${count !== 1 ? 's' : ''}`
-			: `${count} ${count !== 1 ? 'categories' : 'category'}`;
+	const countLabel = activeSubTab === 'items' ? t('countLabel.item', { count }) : t('countLabel.category', { count });
 
 	return (
 		<div className="space-y-3">
 			{/* Header with title + add button */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h2 className="text-2xl font-bold text-heading">Library</h2>
+					<h2 className="text-2xl font-bold text-heading">{t('title')}</h2>
 					<p className="text-xs text-subtle mt-0.5">{countLabel}</p>
 				</div>
 				<button
 					type="button"
 					onClick={() => setShowAddSheet(true)}
 					className="p-2 rounded-lg text-label hover:text-heading hover:bg-[var(--bg-inset)] transition-colors"
-					aria-label={activeSubTab === 'items' ? 'Add item' : 'Add category'}
+					aria-label={activeSubTab === 'items' ? t('addAriaLabel.item') : t('addAriaLabel.category')}
 				>
 					<Plus className="w-5 h-5" strokeWidth={1.5} />
 				</button>
@@ -72,8 +71,8 @@ export default function LibraryPage() {
 			{/* Type filter */}
 			<SegmentedControl
 				options={[
-					{ value: 'activity' as const, label: 'Activities', activeClass: 'type-activity' },
-					{ value: 'food' as const, label: 'Food', activeClass: 'type-food' },
+					{ value: 'activity' as const, label: t('typeFilter.activities'), activeClass: 'type-activity' },
+					{ value: 'food' as const, label: t('typeFilter.food'), activeClass: 'type-food' },
 				]}
 				value={activeTab}
 				onChange={setActiveTab}
@@ -84,8 +83,8 @@ export default function LibraryPage() {
 			{/* Sub-tab filter */}
 			<SegmentedControl
 				options={[
-					{ value: 'items' as const, label: 'Items' },
-					{ value: 'categories' as const, label: 'Categories' },
+					{ value: 'items' as const, label: t('subTabs.items') },
+					{ value: 'categories' as const, label: t('subTabs.categories') },
 				]}
 				value={activeSubTab}
 				onChange={setActiveSubTab}
@@ -100,7 +99,7 @@ export default function LibraryPage() {
 					type="text"
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
-					placeholder={`Search ${activeSubTab}...`}
+					placeholder={activeSubTab === 'items' ? t('searchPlaceholder.items') : t('searchPlaceholder.categories')}
 					className="form-input-sm pl-9 pr-8"
 				/>
 				{searchQuery && (
@@ -108,7 +107,7 @@ export default function LibraryPage() {
 						type="button"
 						onClick={() => setSearchQuery('')}
 						className="absolute right-3 top-1/2 -translate-y-1/2 text-subtle hover:text-body"
-						aria-label="Clear search"
+						aria-label={t('clearSearchAriaLabel')}
 					>
 						<X className="w-4 h-4" strokeWidth={2} />
 					</button>

@@ -1,0 +1,14 @@
+{
+	"title": "Quick Log",
+	"refreshAriaLabel": "Refresh",
+	"setupRequired": {
+		"title": "Setup Required",
+		"message": "Configure your GitHub token to start tracking.",
+		"cta": "Go to Settings"
+	},
+	"toast": {
+		"ambiguous": "\"{{name}}\" exists in both types. Log manually.",
+		"logged": "Logged \"{{name}}\"",
+		"notFound": "No item named \"{{name}}\" found"
+	}
+}

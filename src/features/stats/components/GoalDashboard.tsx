@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTrackerData } from '@/shared/store/hooks';
 import { getLastNWeeks, getDaysElapsedInCurrentWeek } from '../utils/stats-engine';
 import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking';
@@ -8,6 +9,7 @@ import { removeDashboardCard } from '@/shared/store/store';
 import AddCategoryModal from './AddCategoryModal';
 
 export default function GoalDashboard() {
+	const { t } = useTranslation('stats');
 	const data = useTrackerData();
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -79,13 +81,13 @@ export default function GoalDashboard() {
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
-				<h2 className="text-xl font-bold text-heading">Goals & Trends</h2>
+				<h2 className="text-xl font-bold text-heading">{t('goalDashboard.title')}</h2>
 				<button
 					onClick={() => setIsModalOpen(true)}
 					className="text-sm font-medium transition-colors hover:opacity-80"
 					style={{ color: 'var(--color-activity)' }}
 				>
-					+ Add to dashboard
+					{t('goalDashboard.addToDashboard')}
 				</button>
 			</div>
 
@@ -109,13 +111,13 @@ export default function GoalDashboard() {
 
 				{dashboardData.length === 0 && (
 					<div className="col-span-full py-8 text-center card bg-inset border-dashed">
-						<p className="text-label text-sm">No cards added to your dashboard yet.</p>
+						<p className="text-label text-sm">{t('goalDashboard.noDashboardCards')}</p>
 						<button
 							onClick={() => setIsModalOpen(true)}
 							className="mt-2 text-sm font-semibold"
 							style={{ color: 'var(--color-activity)' }}
 						>
-							Add your first category
+							{t('goalDashboard.addFirstCategory')}
 						</button>
 					</div>
 				)}

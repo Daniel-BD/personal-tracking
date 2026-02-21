@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getConfig } from '@/shared/lib/github';
 import type { GistInfo } from '../types';
 import ThemeSection from './ThemeSection';
@@ -7,6 +8,7 @@ import ExportImportSection from './ExportImportSection';
 import BackupSection from './BackupSection';
 
 export default function SettingsPage() {
+	const { t } = useTranslation('settings');
 	const [existingGists, setExistingGists] = useState<GistInfo[]>([]);
 	const [showGistList, setShowGistList] = useState(false);
 	const [gistSelectMode, setGistSelectMode] = useState<'primary' | 'backup'>('primary');
@@ -37,7 +39,7 @@ export default function SettingsPage() {
 
 	return (
 		<div className="space-y-6">
-			<h2 className="text-2xl font-bold text-heading">Settings</h2>
+			<h2 className="text-2xl font-bold text-heading">{t('title')}</h2>
 
 			<ThemeSection />
 
@@ -47,7 +49,7 @@ export default function SettingsPage() {
 			{showGistList && existingGists.length > 0 && (
 				<div className="card p-6">
 					<h4 className="text-sm font-medium text-body mb-2">
-						{gistSelectMode === 'primary' ? 'Your Gists' : 'Select Backup Gist'}
+						{gistSelectMode === 'primary' ? t('gistList.yourGists') : t('gistList.selectBackup')}
 					</h4>
 					<div className="max-h-60 overflow-y-auto space-y-2">
 						{existingGists.map((gist) => (
@@ -68,7 +70,7 @@ export default function SettingsPage() {
 								</div>
 								{gist.files.includes('tracker-data.json') && (
 									<span className="text-xs" style={{ color: 'var(--color-success)' }}>
-										Contains tracker data
+										{t('gistList.containsTrackerData')}
 									</span>
 								)}
 							</button>
@@ -91,15 +93,13 @@ export default function SettingsPage() {
 			{token && <BackupSection token={token} onBrowseGists={handleBrowseGists} selectedGistId={selectedBackupGistId} />}
 
 			<div className="card p-6">
-				<h3 className="text-lg font-semibold text-heading mb-4">How to get a GitHub Token</h3>
+				<h3 className="text-lg font-semibold text-heading mb-4">{t('tokenGuide.title')}</h3>
 				<ol className="text-sm text-body space-y-2 list-decimal list-inside">
-					<li>
-						Go to GitHub Settings &rarr; Developer settings &rarr; Personal access tokens &rarr; Fine-grained tokens
-					</li>
-					<li>Click &quot;Generate new token&quot;</li>
-					<li>Give it a name like &quot;Activity Tracker&quot;</li>
-					<li>Under &quot;Account permissions&quot;, set Gists to &quot;Read and write&quot;</li>
-					<li>Generate and copy the token</li>
+					<li>{t('tokenGuide.step1')}</li>
+					<li>{t('tokenGuide.step2')}</li>
+					<li>{t('tokenGuide.step3')}</li>
+					<li>{t('tokenGuide.step4')}</li>
+					<li>{t('tokenGuide.step5')}</li>
 				</ol>
 			</div>
 		</div>

@@ -1,5 +1,6 @@
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { lazy, Suspense, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getStoredTheme, applyTheme } from '@/shared/lib/theme';
 import { initializeStore } from '@/shared/store/store';
 import { HomePage } from '@/features/home';
@@ -16,11 +17,11 @@ const StatsPage = lazy(() => import('@/features/stats').then((m) => ({ default: 
 const SettingsPage = lazy(() => import('@/features/settings').then((m) => ({ default: m.SettingsPage })));
 
 const routeConfig = [
-	{ path: '/', label: 'Home', icon: 'home', Component: HomePage },
-	{ path: '/log', label: 'Log', icon: 'list', Component: LogPage },
-	{ path: '/stats', label: 'Stats', icon: 'chart', Component: StatsPage },
-	{ path: '/library', label: 'Library', icon: 'book', Component: LibraryPage },
-	{ path: '/settings', label: 'Settings', icon: 'settings', Component: SettingsPage },
+	{ path: '/', labelKey: 'nav.home', icon: 'home', Component: HomePage },
+	{ path: '/log', labelKey: 'nav.log', icon: 'list', Component: LogPage },
+	{ path: '/stats', labelKey: 'nav.stats', icon: 'chart', Component: StatsPage },
+	{ path: '/library', labelKey: 'nav.library', icon: 'book', Component: LibraryPage },
+	{ path: '/settings', labelKey: 'nav.settings', icon: 'settings', Component: SettingsPage },
 ];
 
 function PageLoader() {
@@ -32,6 +33,7 @@ function PageLoader() {
 }
 
 export default function App() {
+	const { t } = useTranslation('common');
 	const location = useLocation();
 
 	useEffect(() => {
@@ -53,12 +55,12 @@ export default function App() {
 			<main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
 				<Suspense fallback={<PageLoader />}>
 					<Routes>
-						{routeConfig.map(({ path, label, Component }) => (
+						{routeConfig.map(({ path, labelKey, Component }) => (
 							<Route
 								key={path}
 								path={path}
 								element={
-									<ErrorBoundary label={label}>
+									<ErrorBoundary label={t(labelKey)}>
 										<Component />
 									</ErrorBoundary>
 								}
@@ -77,7 +79,7 @@ export default function App() {
 				}}
 			>
 				<div className="max-w-4xl mx-auto flex justify-around">
-					{routeConfig.map(({ path, label, icon }) => {
+					{routeConfig.map(({ path, labelKey, icon }) => {
 						const isActive = path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 						return (
 							<NavLink
@@ -89,7 +91,7 @@ export default function App() {
 								<span className="mb-1">
 									<NavIcon icon={icon} />
 								</span>
-								<span>{label}</span>
+								<span>{t(labelKey)}</span>
 								{isActive && (
 									<span
 										className="absolute bottom-1 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full"

@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { Search, Zap } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { EntryType } from '@/shared/lib/types';
 import { getTypeIcon } from '@/shared/lib/types';
 import {
@@ -19,6 +20,7 @@ import { useQuickLogSearch } from '../hooks/useQuickLogSearch';
 import { useQuickLogForm } from '../hooks/useQuickLogForm';
 
 export default function QuickLogForm() {
+	const { t } = useTranslation('quickLog');
 	const activityItems = useActivityItems();
 	const foodItems = useFoodItems();
 	const favoriteIds = useFavoriteItems();
@@ -79,7 +81,7 @@ export default function QuickLogForm() {
 						onChange={(e) => setQuery(e.target.value)}
 						onFocus={() => setIsFocused(true)}
 						onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-						placeholder="Search or create item..."
+						placeholder={t('searchPlaceholder')}
 						className="flex-1 bg-transparent text-heading text-base placeholder:text-[var(--text-muted)] outline-none"
 					/>
 				</div>
@@ -116,7 +118,7 @@ export default function QuickLogForm() {
 								className="w-full text-left px-4 py-3 hover:bg-[var(--bg-card-hover)] flex items-center gap-3 text-[var(--color-activity)]"
 							>
 								<span className="text-sm font-bold">+</span>
-								<span>Create &ldquo;{query.trim()}&rdquo;</span>
+								<span>{t('createButton', { name: query.trim() })}</span>
 							</button>
 						)}
 					</div>
@@ -126,7 +128,7 @@ export default function QuickLogForm() {
 			{/* Favorite items — shown when not searching */}
 			{!showResults && favoriteItemsList.length > 0 && (
 				<div className="mt-4">
-					<div className="text-xs font-medium text-label uppercase tracking-wide mb-2">Favorites</div>
+					<div className="text-xs font-medium text-label uppercase tracking-wide mb-2">{t('favoritesLabel')}</div>
 					<div className="space-y-0.5">
 						{favoriteItemsList.map((unified) => (
 							<div
@@ -137,7 +139,7 @@ export default function QuickLogForm() {
 									type="button"
 									onClick={() => toggleFavorite(unified.item.id)}
 									className="flex-shrink-0 p-1"
-									aria-label="Remove from favorites"
+									aria-label={t('removeFromFavoritesAriaLabel')}
 								>
 									<StarIcon filled className="w-4 h-4" />
 								</button>
@@ -153,7 +155,7 @@ export default function QuickLogForm() {
 									type="button"
 									onClick={() => quickLogItem(unified)}
 									className="flex-shrink-0 p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--color-activity)] hover:bg-[var(--bg-inset)] transition-colors"
-									aria-label={`Quick log ${unified.item.name}`}
+									aria-label={t('quickLogAriaLabel', { name: unified.item.name })}
 								>
 									<Zap className="w-4 h-4" strokeWidth={2} />
 								</button>
@@ -167,8 +169,10 @@ export default function QuickLogForm() {
 			<BottomSheet
 				open={sheetOpen}
 				onClose={() => setSheetOpen(false)}
-				title={sheetMode === 'create' ? 'New item' : `Log ${selectedItem?.item.name ?? ''}`}
-				actionLabel={sheetMode === 'create' ? 'Create' : 'Log'}
+				title={
+					sheetMode === 'create' ? t('sheet.titleCreate') : t('sheet.titleLog', { name: selectedItem?.item.name ?? '' })
+				}
+				actionLabel={sheetMode === 'create' ? t('sheet.actionCreate') : t('sheet.actionLog')}
 				onAction={handleLog}
 				actionDisabled={isLogDisabled}
 			>
@@ -177,14 +181,14 @@ export default function QuickLogForm() {
 					{sheetMode === 'create' && (
 						<div>
 							<label htmlFor="sheet-name" className="form-label">
-								Name
+								{t('form.nameLabel')}
 							</label>
 							<input
 								id="sheet-name"
 								type="text"
 								value={itemName}
 								onChange={(e) => setItemName(e.target.value)}
-								placeholder="Item name"
+								placeholder={t('form.namePlaceholder')}
 								className="form-input"
 								autoFocus
 							/>
@@ -194,11 +198,11 @@ export default function QuickLogForm() {
 					{/* Type selector — only for create mode */}
 					{sheetMode === 'create' && (
 						<div>
-							<label className="form-label">Type</label>
+							<label className="form-label">{t('form.typeLabel')}</label>
 							<SegmentedControl
 								options={[
-									{ value: 'activity' as EntryType, label: 'Activity', activeClass: 'type-activity' },
-									{ value: 'food' as EntryType, label: 'Food', activeClass: 'type-food' },
+									{ value: 'activity' as EntryType, label: t('common:type.activity'), activeClass: 'type-activity' },
+									{ value: 'food' as EntryType, label: t('common:type.food'), activeClass: 'type-food' },
 								]}
 								value={itemType}
 								onChange={setItemType}
@@ -211,7 +215,7 @@ export default function QuickLogForm() {
 					{/* Date */}
 					<div>
 						<label htmlFor="sheet-date" className="form-label">
-							Date
+							{t('form.dateLabel')}
 						</label>
 						<NativePickerInput id="sheet-date" type="date" value={logDate} onChange={setLogDate} />
 					</div>
@@ -219,7 +223,7 @@ export default function QuickLogForm() {
 					{/* Time */}
 					<div>
 						<label htmlFor="sheet-time" className="form-label">
-							Time
+							{t('form.timeLabel')}
 						</label>
 						<NativePickerInput
 							id="sheet-time"
@@ -232,7 +236,7 @@ export default function QuickLogForm() {
 
 					{/* Categories */}
 					<div>
-						<label className="form-label">Categories</label>
+						<label className="form-label">{t('form.categoriesLabel')}</label>
 						<CategoryPicker
 							selected={logCategories}
 							categories={categoriesForType}
@@ -244,14 +248,14 @@ export default function QuickLogForm() {
 					{/* Note */}
 					<div>
 						<label htmlFor="sheet-note" className="form-label">
-							Note
+							{t('form.noteLabel')}
 						</label>
 						<input
 							id="sheet-note"
 							type="text"
 							value={logNote}
 							onChange={(e) => setLogNote(e.target.value)}
-							placeholder="Add a note..."
+							placeholder={t('form.notePlaceholder')}
 							className="form-input"
 						/>
 					</div>

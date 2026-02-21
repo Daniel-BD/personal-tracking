@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { LineChart, Line, ResponsiveContainer, ReferenceLine, Dot } from 'recharts';
 import type { CategorySentiment } from '@/shared/lib/types';
 
@@ -31,16 +32,17 @@ export default function GoalCard({
 	daysElapsed,
 	onRemove,
 }: GoalCardProps) {
+	const { t } = useTranslation('stats');
 	const color = SENTIMENT_COLORS[sentiment];
 
 	const isStable = Math.abs(deltaPercent) < 0.1;
 	const absPercent = Math.round(Math.abs(deltaPercent) * 100);
 
 	const changeText = useMemo(() => {
-		if (isStable) return 'No meaningful change';
+		if (isStable) return t('goalCard.noMeaningfulChange');
 		const sign = deltaPercent > 0 ? '+' : '−';
 		return `${sign}${absPercent}%`;
-	}, [isStable, deltaPercent, absPercent]);
+	}, [isStable, deltaPercent, absPercent, t]);
 
 	const proratedBaseline = baselineAvg * (daysElapsed / 7);
 	const deltaEvents = useMemo(() => {
@@ -49,9 +51,9 @@ export default function GoalCard({
 		const sign = raw >= 0 ? '+' : '−';
 		const abs = Math.abs(raw);
 		const formatted = Number.isInteger(abs) ? abs.toString() : abs.toFixed(1);
-		const unit = abs === 1 ? 'event' : 'events';
+		const unit = t('goalCard.event', { count: abs });
 		return `(${sign}${formatted} ${unit})`;
-	}, [isStable, currentCount, proratedBaseline]);
+	}, [isStable, currentCount, proratedBaseline, t]);
 
 	const avgFormatted = Number.isInteger(baselineAvg) ? baselineAvg.toString() : baselineAvg.toFixed(1);
 
@@ -61,7 +63,7 @@ export default function GoalCard({
 			<button
 				onClick={onRemove}
 				className="absolute top-2 right-2 p-1 text-label opacity-60 sm:opacity-0 group-hover:opacity-100 transition-opacity hover:text-[var(--color-danger)]"
-				title="Remove from dashboard"
+				title={t('goalCard.removeFromDashboard')}
 			>
 				<X className="w-4 h-4" strokeWidth={2} />
 			</button>
@@ -75,12 +77,12 @@ export default function GoalCard({
 			{/* 2. Current value block — explicit values */}
 			<div className="mt-1.5 space-y-0">
 				<div className="text-sm font-semibold text-heading">
-					This week: {currentCount} {currentCount === 1 ? 'event' : 'events'}
-					{daysElapsed < 7 && <span className="text-xs font-normal text-label"> (day {daysElapsed}/7)</span>}
+					{t('goalCard.thisWeek', { count: currentCount })}
+					{daysElapsed < 7 && (
+						<span className="text-xs font-normal text-label"> {t('goalCard.partialWeek', { day: daysElapsed })}</span>
+					)}
 				</div>
-				<div className="text-xs text-label">
-					4-week avg: {avgFormatted} {avgFormatted === '1' ? 'event' : 'events'}
-				</div>
+				<div className="text-xs text-label">{t('goalCard.baselineAvg', { count: baselineAvg, avg: avgFormatted })}</div>
 			</div>
 
 			{/* 3. Primary change metric */}
@@ -89,7 +91,7 @@ export default function GoalCard({
 					{changeText}
 				</span>
 				{deltaEvents && <span className="text-[10px] text-label">{deltaEvents}</span>}
-				{!isStable && daysElapsed < 7 && <span className="text-[10px] text-label">vs pace</span>}
+				{!isStable && daysElapsed < 7 && <span className="text-[10px] text-label">{t('goalCard.vsPace')}</span>}
 			</div>
 
 			{/* 4. Sparkline */}

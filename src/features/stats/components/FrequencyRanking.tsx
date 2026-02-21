@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { TrackerData, EntryType, Entry } from '@/shared/lib/types';
 import { getTodayDate } from '@/shared/lib/types';
 import { filterEntriesByType, filterEntriesByDateRange, getEntryCategoryIds } from '@/features/tracking';
@@ -69,6 +70,7 @@ interface Props {
 }
 
 export default function FrequencyRanking({ entries, data }: Props) {
+	const { t } = useTranslation('stats');
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('all');
 	const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
 	const [viewMode, setViewMode] = useState<ViewMode>('items');
@@ -98,13 +100,13 @@ export default function FrequencyRanking({ entries, data }: Props) {
 
 	return (
 		<div className="space-y-3">
-			<h2 className="text-lg font-semibold text-heading">Most logged</h2>
+			<h2 className="text-lg font-semibold text-heading">{t('frequencyRanking.title')}</h2>
 
 			<SegmentedControl
 				options={[
-					{ value: 'all' as const, label: 'All time' },
-					{ value: '7d' as const, label: '7 days' },
-					{ value: '30d' as const, label: '30 days' },
+					{ value: 'all' as const, label: t('frequencyRanking.timePeriod.all') },
+					{ value: '7d' as const, label: t('frequencyRanking.timePeriod.7d') },
+					{ value: '30d' as const, label: t('frequencyRanking.timePeriod.30d') },
 				]}
 				value={timePeriod}
 				onChange={setTimePeriod}
@@ -114,9 +116,17 @@ export default function FrequencyRanking({ entries, data }: Props) {
 
 			<SegmentedControl
 				options={[
-					{ value: 'all' as const, label: 'All', activeClass: 'bg-[var(--text-secondary)] text-white' },
-					{ value: 'activity' as const, label: 'Activities', activeClass: 'type-activity' },
-					{ value: 'food' as const, label: 'Food', activeClass: 'type-food' },
+					{
+						value: 'all' as const,
+						label: t('frequencyRanking.typeFilter.all'),
+						activeClass: 'bg-[var(--text-secondary)] text-white',
+					},
+					{
+						value: 'activity' as const,
+						label: t('frequencyRanking.typeFilter.activities'),
+						activeClass: 'type-activity',
+					},
+					{ value: 'food' as const, label: t('frequencyRanking.typeFilter.food'), activeClass: 'type-food' },
 				]}
 				value={typeFilter}
 				onChange={setTypeFilter}
@@ -126,8 +136,8 @@ export default function FrequencyRanking({ entries, data }: Props) {
 
 			<SegmentedControl
 				options={[
-					{ value: 'items' as const, label: 'Items' },
-					{ value: 'categories' as const, label: 'Categories' },
+					{ value: 'items' as const, label: t('frequencyRanking.viewMode.items') },
+					{ value: 'categories' as const, label: t('frequencyRanking.viewMode.categories') },
 				]}
 				value={viewMode}
 				onChange={setViewMode}
@@ -136,7 +146,9 @@ export default function FrequencyRanking({ entries, data }: Props) {
 			/>
 
 			{ranked.length === 0 ? (
-				<p className="text-sm text-label text-center py-4">No {viewMode} logged in this period</p>
+				<p className="text-sm text-label text-center py-4">
+					{t('frequencyRanking.empty', { viewMode: t(`frequencyRanking.viewMode.${viewMode}`).toLowerCase() })}
+				</p>
 			) : (
 				<div className="space-y-1.5">
 					{ranked.map((row, i) => (

@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { exportData, importData } from '@/shared/store/store';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export default function ExportImportSection({ onMessage }: Props) {
+	const { t } = useTranslation('settings');
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [pendingFile, setPendingFile] = useState<File | null>(null);
 
@@ -32,9 +34,9 @@ export default function ExportImportSection({ onMessage }: Props) {
 			const content = e.target?.result as string;
 			const success = importData(content);
 			if (success) {
-				onMessage('Import successful!', false);
+				onMessage(t('exportImport.importSuccess'), false);
 			} else {
-				onMessage('Import failed: Invalid file format', true);
+				onMessage(t('exportImport.importFailed'), true);
 			}
 			setPendingFile(null);
 		};
@@ -43,16 +45,14 @@ export default function ExportImportSection({ onMessage }: Props) {
 
 	return (
 		<div className="card p-6 space-y-4">
-			<h3 className="text-lg font-semibold text-heading">Export &amp; Import</h3>
-			<p className="text-sm text-body">
-				Download your data as a JSON file for safekeeping, or restore from a previous backup.
-			</p>
+			<h3 className="text-lg font-semibold text-heading">{t('exportImport.title')}</h3>
+			<p className="text-sm text-body">{t('exportImport.description')}</p>
 			<div className="flex gap-2">
 				<button onClick={handleExport} className="flex-1 btn-primary">
-					Export JSON
+					{t('exportImport.exportButton')}
 				</button>
 				<button onClick={handleImportClick} className="flex-1 btn-secondary">
-					Import JSON
+					{t('exportImport.importButton')}
 				</button>
 			</div>
 			<input
@@ -66,9 +66,9 @@ export default function ExportImportSection({ onMessage }: Props) {
 				open={pendingFile !== null}
 				onClose={() => setPendingFile(null)}
 				onConfirm={handleConfirmImport}
-				title="Import Data"
-				message="This will replace all current data. Are you sure?"
-				confirmLabel="Import"
+				title={t('exportImport.confirmTitle')}
+				message={t('exportImport.confirmMessage')}
+				confirmLabel={t('exportImport.confirmLabel')}
 			/>
 		</div>
 	);

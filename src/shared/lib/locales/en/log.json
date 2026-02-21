@@ -1,0 +1,29 @@
+{
+	"title": "Log",
+	"subtitle_one": "{{count}} entry",
+	"subtitle_other": "{{count}} entries",
+	"filtered": "(filtered)",
+	"filterAriaLabel": "Open filters",
+	"segmented": {
+		"all": "All",
+		"activities": "Activities",
+		"food": "Food"
+	},
+	"chips": {
+		"clearAll": "Clear all"
+	},
+	"filterSheet": {
+		"title": "Filters",
+		"clearAllFilters": "Clear all filters",
+		"noFilters": "No categories or items to filter by.",
+		"addInLibrary": "Add some in the Library"
+	},
+	"empty": {
+		"noItems": "No items yet",
+		"addInLibrary": "Add some in the Library",
+		"noMatchingEntries": "No entries match your filters",
+		"logFromHome": "Log entries from the Home page",
+		"clearAllFilters": "Clear all filters",
+		"noEntriesYet": "No entries yet"
+	}
+}

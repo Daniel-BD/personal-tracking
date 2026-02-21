@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Pencil, Trash2, FolderOpen } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { Item, Category, CategorySentiment, EntryType } from '@/shared/lib/types';
 import { addCategory, updateCategory, deleteCategory } from '@/shared/store/store';
 import { useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
@@ -24,6 +25,7 @@ export default function CategoriesTab({
 	showAddSheet,
 	onCloseAddSheet,
 }: Props) {
+	const { t } = useTranslation('library');
 	const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 	const [formName, setFormName] = useState('');
 	const [formSentiment, setFormSentiment] = useState<CategorySentiment>('neutral');
@@ -96,6 +98,9 @@ export default function CategoriesTab({
 		cancelEdit();
 	}
 
+	const typeLabel =
+		activeTab === 'activity' ? t('common:type.activities').toLowerCase() : t('common:type.food').toLowerCase();
+
 	return (
 		<>
 			{/* Category list */}
@@ -104,10 +109,10 @@ export default function CategoriesTab({
 					<FolderOpen className="w-10 h-10 text-subtle mx-auto mb-3" strokeWidth={1.5} />
 					<p className="text-label mb-1">
 						{searchQuery.trim()
-							? `No categories match "${searchQuery}"`
-							: `No categories for ${activeTab === 'activity' ? 'activities' : 'food'} yet`}
+							? t('categories.emptySearch', { query: searchQuery })
+							: t('categories.empty', { type: typeLabel })}
 					</p>
-					{!searchQuery.trim() && <p className="text-xs text-subtle">Tap + to add your first category</p>}
+					{!searchQuery.trim() && <p className="text-xs text-subtle">{t('categories.emptyHint')}</p>}
 				</div>
 			) : (
 				<div className="card overflow-hidden">
@@ -170,9 +175,7 @@ export default function CategoriesTab({
 													</span>
 												)}
 											</div>
-											<p className="text-xs text-subtle mt-0.5">
-												{itemCount} item{itemCount !== 1 ? 's' : ''}
-											</p>
+											<p className="text-xs text-subtle mt-0.5">{t('categories.itemCount', { count: itemCount })}</p>
 										</div>
 									</div>
 								</div>
@@ -187,41 +190,44 @@ export default function CategoriesTab({
 				open={deletingCategory !== null}
 				onClose={() => setDeletingCategory(null)}
 				onConfirm={confirmDeleteCategory}
-				title="Delete Category"
+				title={t('categories.deleteDialog.title')}
 				message={
 					deletingCategory
-						? `Delete "${deletingCategory.name}"? It will be removed from ${deletingCategory.itemCount} item${deletingCategory.itemCount !== 1 ? 's' : ''}.`
+						? t('categories.deleteDialog.message', {
+								name: deletingCategory.name,
+								count: deletingCategory.itemCount,
+							})
 						: undefined
 				}
-				confirmLabel="Delete"
+				confirmLabel={t('categories.deleteDialog.confirmLabel')}
 			/>
 
 			{/* Add Category Bottom Sheet */}
 			<BottomSheet
 				open={showAddSheet}
 				onClose={onCloseAddSheet}
-				title="Add Category"
-				actionLabel="Add"
+				title={t('categories.addSheet.title')}
+				actionLabel={t('common:btn.add')}
 				onAction={handleAdd}
 				actionDisabled={!formName.trim()}
 			>
 				<div className="space-y-4">
 					<div>
 						<label htmlFor="addCategoryName" className="form-label">
-							Name
+							{t('categories.form.nameLabel')}
 						</label>
 						<input
 							id="addCategoryName"
 							type="text"
 							value={formName}
 							onChange={(e) => setFormName(e.target.value)}
-							placeholder="Enter category name..."
+							placeholder={t('categories.form.namePlaceholder')}
 							className="form-input"
 							autoFocus
 						/>
 					</div>
 					<div>
-						<label className="form-label">Sentiment</label>
+						<label className="form-label">{t('categories.form.sentimentLabel')}</label>
 						<SentimentPicker value={formSentiment} onChange={setFormSentiment} />
 					</div>
 				</div>
@@ -231,8 +237,8 @@ export default function CategoriesTab({
 			<BottomSheet
 				open={editingCategory !== null}
 				onClose={cancelEdit}
-				title={editingCategory ? `Edit ${editingCategory.name}` : undefined}
-				actionLabel={editingCategory ? 'Save' : undefined}
+				title={editingCategory ? t('categories.editSheet.title', { name: editingCategory.name }) : undefined}
+				actionLabel={editingCategory ? t('common:btn.save') : undefined}
 				onAction={handleSaveEdit}
 				actionDisabled={!formName.trim()}
 			>
@@ -240,7 +246,7 @@ export default function CategoriesTab({
 					<div className="space-y-4">
 						<div>
 							<label htmlFor="editCategoryName" className="form-label">
-								Name
+								{t('categories.form.nameLabel')}
 							</label>
 							<input
 								id="editCategoryName"
@@ -251,13 +257,13 @@ export default function CategoriesTab({
 							/>
 						</div>
 						<div>
-							<label className="form-label">Sentiment</label>
+							<label className="form-label">{t('categories.form.sentimentLabel')}</label>
 							<SentimentPicker value={formSentiment} onChange={setFormSentiment} />
 						</div>
 						<div className="pt-2">
 							<button onClick={() => handleDelete(editingCategory.id)} className="btn btn-danger w-full">
 								<Trash2 className="w-4 h-4 mr-2" strokeWidth={2} />
-								Delete Category
+								{t('categories.deleteButton')}
 							</button>
 						</div>
 					</div>

@@ -1,0 +1,90 @@
+{
+	"title": "Settings",
+	"appearance": {
+		"title": "Appearance",
+		"description": "Choose your preferred color scheme.",
+		"theme": {
+			"light": "Light",
+			"dark": "Dark",
+			"system": "System"
+		}
+	},
+	"gistConfig": {
+		"title": "GitHub Gist Configuration",
+		"description": "Your data is stored in a private GitHub Gist. You'll need a GitHub Personal Access Token with gist scope.",
+		"tokenLabel": "GitHub Personal Access Token",
+		"tokenPlaceholder": "ghp_xxxxxxxxxxxx",
+		"validateButton": "Validate Token",
+		"validatingButton": "Validating...",
+		"gistIdLabel": "Gist ID",
+		"gistIdPlaceholder": "Enter Gist ID or select/create below",
+		"saveLoadButton": "Save & Load",
+		"browseGistsButton": "Browse Gists",
+		"createNewButton": "Create New",
+		"messages": {
+			"enterToken": "Please enter a token",
+			"tokenValid": "Token is valid!",
+			"tokenInvalid": "Invalid token. Please check and try again.",
+			"tokenRequired": "Please enter and validate a token first",
+			"gistIdRequired": "Please enter a Gist ID",
+			"loadGistsFailed": "Failed to load gists",
+			"gistCreated": "New gist created successfully!",
+			"gistCreateFailed": "Failed to create gist",
+			"settingsSaved": "Settings saved! Loading data...",
+			"gistSelected": "Gist selected! Loading data..."
+		}
+	},
+	"gistList": {
+		"yourGists": "Your Gists",
+		"selectBackup": "Select Backup Gist",
+		"containsTrackerData": "Contains tracker data"
+	},
+	"exportImport": {
+		"title": "Export & Import",
+		"description": "Download your data as a JSON file for safekeeping, or restore from a previous backup.",
+		"exportButton": "Export JSON",
+		"importButton": "Import JSON",
+		"confirmTitle": "Import Data",
+		"confirmMessage": "This will replace all current data. Are you sure?",
+		"confirmLabel": "Import",
+		"importSuccess": "Import successful!",
+		"importFailed": "Import failed: Invalid file format"
+	},
+	"backup": {
+		"title": "Backup Gist",
+		"description": "Configure a secondary Gist for manual backups. Use this before making major changes.",
+		"gistIdLabel": "Backup Gist ID",
+		"gistIdPlaceholder": "Enter backup Gist ID",
+		"saveButton": "Save",
+		"browseButton": "Browse",
+		"createNewButton": "Create New",
+		"backupNowButton": "Backup Now",
+		"backingUpButton": "Backing up...",
+		"restoreButton": "Restore from Backup",
+		"restoringButton": "Restoring...",
+		"confirmTitle": "Restore from Backup",
+		"confirmMessage": "This will replace all current data with the backup. Are you sure?",
+		"confirmLabel": "Restore",
+		"messages": {
+			"tokenRequired": "Please enter and validate a token first",
+			"backupGistRequired": "Please set a backup Gist ID first",
+			"backupComplete": "Backup complete!",
+			"backupFailed": "Backup failed",
+			"restoreComplete": "Restore complete!",
+			"restoreFailed": "Restore failed",
+			"backupGistCreated": "Backup gist created!",
+			"createBackupFailed": "Failed to create backup gist",
+			"backupGistIdSaved": "Backup Gist ID saved!",
+			"loadGistsFailed": "Failed to load gists",
+			"backupGistSelected": "Backup Gist selected!"
+		}
+	},
+	"tokenGuide": {
+		"title": "How to get a GitHub Token",
+		"step1": "Go to GitHub Settings → Developer settings → Personal access tokens → Fine-grained tokens",
+		"step2": "Click \"Generate new token\"",
+		"step3": "Give it a name like \"Activity Tracker\"",
+		"step4": "Under \"Account permissions\", set Gists to \"Read and write\"",
+		"step5": "Generate and copy the token"
+	}
+}
