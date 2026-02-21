@@ -100,8 +100,8 @@ export default function HomePage() {
 							<DailyBalanceScore />
 						</div>
 
-						{/* Scrollable favorites / recent list */}
-						<div className="flex-1 min-h-0 overflow-y-auto mt-2">{itemsList}</div>
+						{/* Favorites / recent list — overflow-y-auto lives inside QuickLogItemsList */}
+						<div className="flex flex-col flex-1 min-h-0 mt-2">{itemsList}</div>
 					</>
 				)}
 			</QuickLogForm>
