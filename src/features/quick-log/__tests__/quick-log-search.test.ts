@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { Item, EntryType } from '@/shared/lib/types';
-import { makeItem } from '@/shared/store/__tests__/fixtures';
+import type { Item, Entry, EntryType } from '@/shared/lib/types';
+import { makeItem, makeEntry } from '@/shared/store/__tests__/fixtures';
 
 /**
  * Tests for the pure logic extracted from useQuickLogSearch hook.
@@ -39,6 +39,32 @@ function getFavorites(activityItems: Item[], foodItems: Item[], favoriteIds: str
 
 function hasExactMatch(results: UnifiedItem[], query: string): boolean {
 	return results.some((u) => u.item.name.toLowerCase() === query.trim().toLowerCase());
+}
+
+function getRecentItems(activityItems: Item[], foodItems: Item[], entries: Entry[], limit = 20): UnifiedItem[] {
+	if (entries.length === 0) return [];
+
+	const itemMap = new Map<string, UnifiedItem>();
+	for (const item of activityItems) itemMap.set(item.id, { item, type: 'activity' });
+	for (const item of foodItems) itemMap.set(item.id, { item, type: 'food' });
+
+	const sorted = [...entries].sort((a, b) => {
+		const dateA = a.time ? `${a.date}T${a.time}` : a.date;
+		const dateB = b.time ? `${b.date}T${b.time}` : b.date;
+		return dateB.localeCompare(dateA);
+	});
+
+	const seen = new Set<string>();
+	const result: UnifiedItem[] = [];
+	for (const entry of sorted) {
+		const key = `${entry.type}-${entry.itemId}`;
+		if (seen.has(key)) continue;
+		seen.add(key);
+		const unified = itemMap.get(entry.itemId);
+		if (unified) result.push(unified);
+		if (result.length >= limit) break;
+	}
+	return result;
 }
 
 describe('mergeItems', () => {
@@ -118,6 +144,79 @@ describe('getFavorites', () => {
 		expect(result).toHaveLength(1);
 		expect(result[0].item.name).toBe('Food Version');
 		expect(result[0].type).toBe('food');
+	});
+});
+
+describe('getRecentItems', () => {
+	const actItems = [makeItem({ id: 'a1', name: 'Running' })];
+	const foodItems = [makeItem({ id: 'f1', name: 'Apple' }), makeItem({ id: 'f2', name: 'Banana' })];
+
+	it('returns empty when entries list is empty', () => {
+		expect(getRecentItems(actItems, foodItems, [])).toEqual([]);
+	});
+
+	it('returns items sorted by most recent first (date+time)', () => {
+		const entries = [
+			makeEntry({ type: 'food', itemId: 'f1', date: '2025-01-10', time: '08:00' }),
+			makeEntry({ type: 'food', itemId: 'f2', date: '2025-01-12', time: '09:00' }),
+		];
+		const result = getRecentItems(actItems, foodItems, entries);
+		expect(result.map((u) => u.item.id)).toEqual(['f2', 'f1']);
+	});
+
+	it('uses date only when time is absent', () => {
+		const entries = [
+			makeEntry({ type: 'food', itemId: 'f1', date: '2025-01-10', time: null }),
+			makeEntry({ type: 'food', itemId: 'f2', date: '2025-01-12', time: null }),
+		];
+		const result = getRecentItems(actItems, foodItems, entries);
+		expect(result[0].item.id).toBe('f2');
+	});
+
+	it('deduplicates by type+itemId, keeping only the most recent occurrence', () => {
+		const entries = [
+			makeEntry({ type: 'food', itemId: 'f1', date: '2025-01-10', time: '08:00' }),
+			makeEntry({ type: 'food', itemId: 'f1', date: '2025-01-12', time: '09:00' }), // newer duplicate
+		];
+		const result = getRecentItems(actItems, foodItems, entries);
+		expect(result).toHaveLength(1);
+		expect(result[0].item.id).toBe('f1');
+	});
+
+	it('treats same itemId with different types as distinct', () => {
+		const sharedActItems = [makeItem({ id: 'shared', name: 'Act Version' })];
+		const sharedFoodItems = [makeItem({ id: 'shared', name: 'Food Version' })];
+		const entries = [
+			makeEntry({ type: 'activity', itemId: 'shared', date: '2025-01-10', time: '08:00' }),
+			makeEntry({ type: 'food', itemId: 'shared', date: '2025-01-11', time: '08:00' }),
+		];
+		const result = getRecentItems(sharedActItems, sharedFoodItems, entries);
+		expect(result).toHaveLength(2);
+	});
+
+	it('respects the 20-item limit', () => {
+		const manyFoodItems = Array.from({ length: 25 }, (_, i) => makeItem({ id: `f${i}`, name: `Item ${i}` }));
+		const entries = manyFoodItems.map((item, i) =>
+			makeEntry({ type: 'food', itemId: item.id, date: `2025-01-${String(i + 1).padStart(2, '0')}`, time: '12:00' }),
+		);
+		const result = getRecentItems([], manyFoodItems, entries);
+		expect(result).toHaveLength(20);
+	});
+
+	it('skips entries whose item no longer exists', () => {
+		const entries = [makeEntry({ type: 'food', itemId: 'deleted-item', date: '2025-01-10', time: '08:00' })];
+		const result = getRecentItems(actItems, foodItems, entries);
+		expect(result).toHaveLength(0);
+	});
+
+	it('sorts correctly when insertion order differs from chronological order', () => {
+		// Entries appended in reverse date order (simulates past-date logging)
+		const entries = [
+			makeEntry({ type: 'food', itemId: 'f2', date: '2025-01-05', time: '10:00' }), // oldest, appended first
+			makeEntry({ type: 'food', itemId: 'f1', date: '2025-01-15', time: '10:00' }), // newest, appended second
+		];
+		const result = getRecentItems(actItems, foodItems, entries);
+		expect(result[0].item.id).toBe('f1'); // most recent date wins, not insertion order
 	});
 });
 
