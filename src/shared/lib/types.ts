@@ -1,60 +1,33 @@
-export type CategorySentiment = 'positive' | 'neutral' | 'limit';
+import type { z } from 'zod';
+import type {
+	CategorySentimentSchema,
+	CategorySchema,
+	ItemSchema,
+	EntryTypeSchema,
+	EntrySchema,
+	DashboardCardSchema,
+	TrackerDataSchema,
+	GistFileSchema,
+	GistResponseSchema,
+} from './schemas';
 
-export interface Category {
-	id: string;
-	name: string;
-	sentiment: CategorySentiment;
-}
+// ── Types derived from Zod schemas (single source of truth) ──
 
-export interface Item {
-	id: string;
-	name: string;
-	categories: string[]; // Array of category IDs
-}
+export type CategorySentiment = z.infer<typeof CategorySentimentSchema>;
+export type Category = z.infer<typeof CategorySchema>;
+export type Item = z.infer<typeof ItemSchema>;
 export type ActivityItem = Item;
 export type FoodItem = Item;
-
-export type EntryType = 'activity' | 'food';
-
-export interface Entry {
-	id: string;
-	type: EntryType;
-	itemId: string;
-	date: string; // YYYY-MM-DD format
-	time: string | null; // HH:MM format, optional
-	notes: string | null;
-	categoryOverrides: string[] | null; // Array of category IDs
-}
-
-export interface DashboardCard {
-	categoryId: string;
-	baseline: 'rolling_4_week_avg';
-	comparison: 'last_week';
-}
-
-export interface TrackerData {
-	activityItems: ActivityItem[];
-	foodItems: FoodItem[];
-	activityCategories: Category[];
-	foodCategories: Category[];
-	entries: Entry[];
-	dashboardCards?: DashboardCard[];
-	dashboardInitialized?: boolean;
-	favoriteItems?: string[]; // Array of item IDs
-}
-
-export interface GistFile {
-	filename: string;
-	content: string;
-}
-
-export interface GistResponse {
-	id: string;
-	files: Record<string, GistFile>;
-	updated_at: string;
-}
+export type EntryType = z.infer<typeof EntryTypeSchema>;
+export type Entry = z.infer<typeof EntrySchema>;
+export type DashboardCard = z.infer<typeof DashboardCardSchema>;
+export type TrackerData = z.infer<typeof TrackerDataSchema>;
+export type GistFile = z.infer<typeof GistFileSchema>;
+export type GistResponse = z.infer<typeof GistResponseSchema>;
 
 export type SyncStatus = 'idle' | 'syncing' | 'error';
+
+// ── Factory & utility functions ────────────────────────────
 
 export function createEmptyData(): TrackerData {
 	return {

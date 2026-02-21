@@ -22,7 +22,8 @@
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
 		"react-router-dom": "^7.6.1",
-		"recharts": "^3.7.0"
+		"recharts": "^3.7.0",
+		"zod": "^4.3.6"
 	},
 	"lint-staged": {
 		"*.{ts,tsx}": [
@@ -51,6 +52,7 @@
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.56.0",
 		"vite": "^7.2.6",
+		"vite-plugin-pwa": "^1.2.0",
 		"vitest": "^4.0.18"
 	}
 }
