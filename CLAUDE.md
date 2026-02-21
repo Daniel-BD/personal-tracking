@@ -42,6 +42,7 @@ A personal activity and food tracking PWA built for mobile-first usage. Users lo
 - **Language**: TypeScript (strict mode, `noUnusedLocals`, `noUnusedParameters` — prefix unused params with `_`)
 - **Build**: Vite 7
 - **Icons**: Lucide React (tree-shakeable, outline-style icons)
+- **Animations**: Framer Motion (micro-animations, spring-based transitions)
 - **Charting**: Recharts 3 (Stats page: sparklines, bar charts, stacked charts)
 - **Linting**: ESLint 9 (flat config in `eslint.config.js` — typescript-eslint, react-hooks, react-refresh, jsx-a11y)
 - **Formatting**: Prettier (config in `.prettierrc` — tabs, single quotes, 120 print width)
@@ -75,6 +76,7 @@ Navigation uses a 5-tab bottom nav bar defined in `App.tsx`.
 - **Category sentiment**: Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`). Defaults to `'neutral'`. Legacy data auto-migrated on load.
 - **Gist sync**: CRUD operations trigger a **debounced push** (500ms) to GitHub Gist. Pushes are serialized (only one in-flight at a time; subsequent mutations queue another push). On app load, `loadFromGistFn` **merges** local + remote data (local wins on conflict) instead of replacing — this prevents data loss when a push didn't complete before the app was closed. A `visibilitychange` listener flushes pending syncs when the page becomes hidden. `flushPendingSync()` is exported from `store.ts` for imperative use.
 - **Sync toast**: `SyncToast` from `@/shared/ui/SyncToast` subscribes to `useSyncStatus()` and shows a small floating pill at the top of the screen: "Syncing…" (with spinner) → "Synced" (with checkmark, auto-dismisses after 1.5s) → "Sync failed" (on error, auto-dismisses after 2.5s). Only visible when Gist sync is configured.
+- **Micro-animations**: `ZapButton.tsx` in `shared/ui` uses Framer Motion for a creative "lightning" effect when quick-logging items.
 - **Toast system**: `showToast()` from `shared/ui/Toast.tsx` is a module-level function (no provider needed). Toasts auto-dismiss after 3.5s, optionally include an action button.
 - **Bottom sheet pattern**: `BottomSheet` component provides slide-up sheets with backdrop, handle bar, escape-to-close. Accepts `title`, `actionLabel`, `onAction`, and `actionDisabled` props — the component renders the pill-shaped action button itself (no raw `ReactNode` for the header action).
 - **Confirm dialog pattern**: `ConfirmDialog` from `@/shared/ui/ConfirmDialog` wraps `BottomSheet` to replace native `confirm()` calls. Accepts `open`, `onClose`, `onConfirm`, `title`, `message` (optional), and `confirmLabel` (defaults to `'Delete'`). The confirm button is always danger-styled. Use this for all destructive action confirmations.

@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getTypeIcon } from '@/shared/lib/types';
 import { toggleFavorite } from '@/shared/store/store';
 import StarIcon from '@/shared/ui/StarIcon';
+import ZapButton from '@/shared/ui/ZapButton';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import type { UnifiedItem } from '../hooks/useQuickLogSearch';
 
@@ -70,14 +70,10 @@ export default function QuickLogItemsList({ favoriteItemsList, recentItemsList, 
 								<span className="text-sm">{getTypeIcon(unified.type)}</span>
 								<span className="text-body truncate">{unified.item.name}</span>
 							</button>
-							<button
-								type="button"
+							<ZapButton
 								onClick={() => onQuickLog(unified)}
-								className="flex-shrink-0 p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--color-activity)] hover:bg-[var(--bg-inset)] transition-colors"
-								aria-label={t('quickLogAriaLabel', { name: unified.item.name })}
-							>
-								<Zap className="w-4 h-4" strokeWidth={2} />
-							</button>
+								ariaLabel={t('quickLogAriaLabel', { name: unified.item.name })}
+							/>
 						</div>
 					))}
 				</div>
