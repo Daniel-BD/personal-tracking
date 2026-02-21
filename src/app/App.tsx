@@ -1,24 +1,35 @@
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
-import { useEffect, type ComponentType } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { getStoredTheme, applyTheme } from '@/shared/lib/theme';
 import { initializeStore } from '@/shared/store/store';
 import { HomePage } from '@/features/home';
 import { LogPage } from '@/features/log';
 import { LibraryPage } from '@/features/library';
-import { SettingsPage } from '@/features/settings';
-import { StatsPage } from '@/features/stats';
 import NavIcon from '@/shared/ui/NavIcon';
 import ToastContainer from '@/shared/ui/Toast';
 import ReloadPrompt from '@/shared/ui/ReloadPrompt';
 import ErrorBoundary from '@/shared/ui/ErrorBoundary';
 
-const routeConfig: { path: string; label: string; icon: string; Component: ComponentType }[] = [
+// Heavy routes are lazy-loaded so their chunks (including recharts) are only
+// fetched when the user first navigates to that tab.
+const StatsPage = lazy(() => import('@/features/stats').then((m) => ({ default: m.StatsPage })));
+const SettingsPage = lazy(() => import('@/features/settings').then((m) => ({ default: m.SettingsPage })));
+
+const routeConfig = [
 	{ path: '/', label: 'Home', icon: 'home', Component: HomePage },
 	{ path: '/log', label: 'Log', icon: 'list', Component: LogPage },
 	{ path: '/stats', label: 'Stats', icon: 'chart', Component: StatsPage },
 	{ path: '/library', label: 'Library', icon: 'book', Component: LibraryPage },
 	{ path: '/settings', label: 'Settings', icon: 'settings', Component: SettingsPage },
 ];
+
+function PageLoader() {
+	return (
+		<div className="flex items-center justify-center py-24" style={{ color: 'var(--text-muted)' }} aria-label="Loading">
+			<div className="w-6 h-6 rounded-full border-2 border-current border-t-transparent animate-spin" />
+		</div>
+	);
+}
 
 export default function App() {
 	const location = useLocation();
@@ -40,19 +51,21 @@ export default function App() {
 	return (
 		<div className="min-h-screen flex flex-col">
 			<main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
-				<Routes>
-					{routeConfig.map(({ path, label, Component }) => (
-						<Route
-							key={path}
-							path={path}
-							element={
-								<ErrorBoundary label={label}>
-									<Component />
-								</ErrorBoundary>
-							}
-						/>
-					))}
-				</Routes>
+				<Suspense fallback={<PageLoader />}>
+					<Routes>
+						{routeConfig.map(({ path, label, Component }) => (
+							<Route
+								key={path}
+								path={path}
+								element={
+									<ErrorBoundary label={label}>
+										<Component />
+									</ErrorBoundary>
+								}
+							/>
+						))}
+					</Routes>
+				</Suspense>
 			</main>
 
 			<nav
