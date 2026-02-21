@@ -4,6 +4,7 @@ import type { TrackerData, EntryType, Entry } from '@/shared/lib/types';
 import { getTodayDate } from '@/shared/lib/types';
 import { filterEntriesByType, filterEntriesByDateRange, getEntryCategoryIds } from '@/features/tracking';
 import { getDateNDaysAgo } from '@/shared/lib/date-utils';
+import { cn } from '@/shared/lib/cn';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 
 type TimePeriod = 'all' | '7d' | '30d';
@@ -161,9 +162,10 @@ export default function FrequencyRanking({ entries, data }: Props) {
 								</div>
 								<div className="h-1 rounded-full bg-[var(--bg-inset)] overflow-hidden">
 									<div
-										className={`h-full rounded-full transition-all ${
-											row.type === 'activity' ? 'bg-[var(--color-activity)]' : 'bg-[var(--color-food)]'
-										}`}
+										className={cn(
+											'h-full rounded-full transition-all',
+											row.type === 'activity' ? 'bg-[var(--color-activity)]' : 'bg-[var(--color-food)]',
+										)}
 										style={{ width: `${(row.count / maxCount) * 100}%` }}
 									/>
 								</div>

@@ -24,6 +24,7 @@ npm run preview      # Preview production build
 npm run test         # Run tests once (vitest run)
 npm run test:watch   # Run tests in watch mode (vitest)
 npm run lint         # Run ESLint on src/ (always run before finishing)
+npm run type-check   # Type-check without building (tsc --noEmit)
 npm run format       # Auto-format all code with Prettier (always run before committing)
 npm run format:check # Check if code is formatted (CI-friendly, no writes)
 ```
@@ -47,7 +48,9 @@ A personal activity and food tracking PWA built for mobile-first usage. Users lo
 - **Pre-commit**: Husky + lint-staged (auto-runs ESLint and Prettier on staged files)
 - **PWA**: vite-plugin-pwa (Workbox-based service worker, precaching, update prompt via `ReloadPrompt` component)
 - **Validation**: Zod (schemas in `shared/lib/schemas.ts` — types in `types.ts` are derived via `z.infer`)
+- **Class names**: `cn()` from `shared/lib/cn.ts` (`clsx` + `tailwind-merge`) for conditional/merged class names
 - **Storage**: LocalStorage (source of truth) + optional GitHub Gist sync (backup only)
+- **Editor config**: `.editorconfig` at repo root (tabs, UTF-8, LF line endings)
 
 ## Architecture Overview
 
@@ -76,6 +79,7 @@ Navigation uses a 5-tab bottom nav bar defined in `App.tsx`.
 - **Error boundary pattern**: `ErrorBoundary` from `@/shared/ui/ErrorBoundary` is a class component (React requirement). Wraps each route in `App.tsx` to catch render errors and show a user-friendly fallback with "Reload page" and "Try again" buttons. Accepts an optional `label` prop (e.g., `"Stats"`) shown in the fallback message.
 - **Favorites**: `TrackerData.favoriteItems` stores item IDs. `toggleFavorite()` and `isFavorite()` in `store.ts`.
 - **Swipe gestures**: `useSwipeGesture` hook from `@/features/tracking` encapsulates touch-based swipe-left to reveal Edit/Delete actions.
+- **Library form hook**: `useLibraryForm` from `features/library/hooks/useLibraryForm.ts` encapsulates the shared add/edit/delete sheet lifecycle used by both `ItemsTab` and `CategoriesTab`. Generic over entity, form fields, and deleting state types.
 - **Sentiment pills**: `SentimentPills` from `@/shared/ui/SentimentPills` renders compact positive/limit count pills (green `N+`, red `N−`). Used by `DaySentimentSummary` (log screen day headers) and `DailyBalanceScore` (home screen). Takes `{ positive, limit }` number props.
 
 ### High-Level File Structure
@@ -155,6 +159,16 @@ Dark mode is applied via `.dark` class on `<html>`, managed by `theme.ts`. Tailw
 - **Text**: `.text-heading`, `.text-body`, `.text-label`, `.text-subtle`
 - **Type accents**: `.type-activity`, `.type-food`, `.type-activity-muted`, `.type-food-muted`
 - **Animation**: `.animate-fade-in`, `.animate-slide-up`
+
+### Conditional ClassNames
+
+Use the `cn()` utility from `@/shared/lib/cn` for conditional class composition instead of template literals with ternaries:
+```tsx
+// Preferred
+className={cn('base-classes', condition && 'conditional-classes', isActive ? 'active' : 'inactive')}
+// Avoid
+className={`base-classes ${condition ? 'conditional-classes' : ''}`}
+```
 
 ### Color Conventions
 

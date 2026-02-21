@@ -2,6 +2,9 @@ import { useState, useMemo, useRef, useCallback } from 'react';
 import type { Category, EntryType } from '@/shared/lib/types';
 import { addCategory } from '@/shared/store/store';
 
+/** Delay (ms) to let the mobile keyboard finish opening and viewport resize before scrolling into view */
+const KEYBOARD_RESIZE_DELAY_MS = 100;
+
 interface Props {
 	selected: string[];
 	categories: Category[];
@@ -17,7 +20,7 @@ export default function CategoryPicker({ selected, categories, onChange, type }:
 		// Delay lets the mobile keyboard open and viewport resize before scrolling
 		setTimeout(() => {
 			inputRowRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-		}, 100);
+		}, KEYBOARD_RESIZE_DELAY_MS);
 	}, []);
 
 	function removeCategory(categoryId: string) {

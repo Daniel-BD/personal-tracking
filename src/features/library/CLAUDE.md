@@ -9,6 +9,10 @@ Library page for item & category CRUD management. Visually aligned with the Log 
 - **`CategoriesTab.tsx`** — Category list with swipe gestures + add/edit BottomSheets. Non-neutral sentiments display as colored badges (green for positive, red for limit) next to the category name.
 - **`SentimentPicker.tsx`** — Positive/neutral/limit radio group for setting category sentiment when creating or editing categories.
 
+## Hooks
+
+- **`useLibraryForm`** — Shared hook used by both `ItemsTab` and `CategoriesTab` for the add/edit/delete sheet lifecycle. Manages form fields, editing entity, deleting state, and form reset on sheet open. Generic over entity type (`TEditing`), form fields (`TFields`), and deleting state (`TDeleting`).
+
 ## Design Notes
 
 - Uses `useSwipeGesture` from `@/features/tracking` for swipe-left actions (matching Log page behavior).
