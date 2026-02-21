@@ -15,9 +15,9 @@ Comprehensive audit of the personal-tracking PWA codebase. Items are ordered by 
 - [x] 9. Enable stricter TypeScript checks
 - [x] 10. Add Zod for runtime data validation
 - [x] 11. Add timeout and retry logic to GitHub API calls
-- [ ] 12. Add Vite build optimizations and route-level code splitting
-- [ ] 13. Consistent use of predefined CSS utility classes
-- [ ] 14. Extract hardcoded UI strings for i18n readiness
+- [x] 12. Add Vite build optimizations and route-level code splitting
+- [x] 13. Consistent use of predefined CSS utility classes
+- [x] 14. Extract hardcoded UI strings for i18n readiness
 - [ ] 15. Add `clsx` + `tailwind-merge` for conditional classNames
 - [ ] 16. Extract duplicated form state patterns into a shared hook
 - [ ] 17. Document magic timeout values
