@@ -14,28 +14,28 @@ describe('formatTime', () => {
 		expect(formatTime(null)).toBe('');
 	});
 
-	it('formats midnight as 12:00 AM', () => {
-		expect(formatTime('00:00')).toBe('12:00 AM');
+	it('formats midnight as 00:00', () => {
+		expect(formatTime('00:00')).toBe('00:00');
 	});
 
-	it('formats noon as 12:00 PM', () => {
-		expect(formatTime('12:00')).toBe('12:00 PM');
+	it('formats noon as 12:00', () => {
+		expect(formatTime('12:00')).toBe('12:00');
 	});
 
-	it('formats 14:30 as 2:30 PM', () => {
-		expect(formatTime('14:30')).toBe('2:30 PM');
+	it('formats 14:30 as 14:30', () => {
+		expect(formatTime('14:30')).toBe('14:30');
 	});
 
-	it('formats 23:59 as 11:59 PM', () => {
-		expect(formatTime('23:59')).toBe('11:59 PM');
+	it('formats 23:59 as 23:59', () => {
+		expect(formatTime('23:59')).toBe('23:59');
 	});
 
-	it('formats single-digit hour correctly', () => {
-		expect(formatTime('09:05')).toBe('9:05 AM');
+	it('zero-pads single-digit hour', () => {
+		expect(formatTime('09:05')).toBe('09:05');
 	});
 
-	it('formats 1 PM correctly', () => {
-		expect(formatTime('13:00')).toBe('1:00 PM');
+	it('formats 13:00 as 13:00', () => {
+		expect(formatTime('13:00')).toBe('13:00');
 	});
 });
 
