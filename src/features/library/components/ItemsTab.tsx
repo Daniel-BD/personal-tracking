@@ -96,7 +96,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 					{!searchQuery.trim() && <p className="text-xs text-subtle">Tap + to add your first item</p>}
 				</div>
 			) : (
-				<div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-default)] overflow-hidden">
+				<div className="card overflow-hidden">
 					{items.map((item, idx) => {
 						const isLastInGroup = idx === items.length - 1;
 						const isSwiped = swipedEntryId === item.id;

@@ -82,7 +82,7 @@ export default function LogPage() {
 								key={catId}
 								type="button"
 								onClick={() => setSelectedCategories((prev) => prev.filter((id) => id !== catId))}
-								className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-[var(--color-activity-bg)] text-[var(--color-activity-text)] border border-[var(--color-activity-border)] transition-colors hover:bg-[var(--color-activity-bg-strong)]"
+								className="chip chip-active"
 							>
 								{cat.name}
 								<X className="w-3 h-3" strokeWidth={2} />
@@ -97,7 +97,7 @@ export default function LogPage() {
 								key={itemId}
 								type="button"
 								onClick={() => setSelectedItems((prev) => prev.filter((id) => id !== itemId))}
-								className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-[var(--bg-inset)] text-label border border-[var(--border-default)] transition-colors hover:bg-[var(--bg-card-hover)]"
+								className="chip"
 							>
 								{item.name}
 								<X className="w-3 h-3" strokeWidth={2} />

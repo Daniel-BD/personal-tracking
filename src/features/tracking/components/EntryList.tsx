@@ -119,7 +119,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 						</div>
 
 						{/* Grouped entry rows — flat, divider-separated */}
-						<div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-default)] overflow-hidden">
+						<div className="card overflow-hidden">
 							{dateEntries.map((entry, idx) => {
 								const categoryIds = getEntryCategoryIds(entry, data);
 								const typeCategories = entry.type === 'activity' ? data.activityCategories : data.foodCategories;

@@ -110,7 +110,7 @@ export default function CategoriesTab({
 					{!searchQuery.trim() && <p className="text-xs text-subtle">Tap + to add your first category</p>}
 				</div>
 			) : (
-				<div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-default)] overflow-hidden">
+				<div className="card overflow-hidden">
 					{categories.map((category, idx) => {
 						const itemCount = getItemCountForCategory(category.id);
 						const isLastInGroup = idx === categories.length - 1;
