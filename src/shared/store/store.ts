@@ -20,6 +20,7 @@ import { isConfigured } from '@/shared/lib/github';
 import { migrateData, initializeDefaultDashboardCards } from './migration';
 import {
 	pendingDeletions,
+	persistPendingDeletions,
 	clearPendingDeletions,
 	pushToGist,
 	loadFromGistFn,
@@ -202,6 +203,7 @@ export function updateCategory(type: EntryType, id: string, name: string, sentim
 
 export function deleteCategory(type: EntryType, categoryId: string): void {
 	pendingDeletions[getCategoriesKey(type)].add(categoryId);
+	persistPendingDeletions();
 
 	const catKey = getCategoriesKey(type);
 	const itemsKey = getItemsKey(type);
@@ -262,6 +264,8 @@ export function deleteItem(type: EntryType, id: string): void {
 		.filter((e) => e.type === type && e.itemId === id)
 		.forEach((e) => pendingDeletions.entries.add(e.id));
 
+	persistPendingDeletions();
+
 	const key = getItemsKey(type);
 	updateData((data) => ({
 		...data,
@@ -294,6 +298,7 @@ export function addDashboardCard(categoryId: string): void {
 
 export function removeDashboardCard(categoryId: string): void {
 	pendingDeletions.dashboardCards.add(categoryId);
+	persistPendingDeletions();
 
 	updateData((data) => ({
 		...data,
@@ -316,6 +321,7 @@ export function toggleFavorite(itemId: string): void {
 	} else {
 		pendingDeletions.favoriteItems.delete(itemId);
 	}
+	persistPendingDeletions();
 
 	updateData((data) => {
 		const favs = data.favoriteItems || [];
@@ -374,6 +380,7 @@ export function updateEntry(id: string, updates: Partial<Omit<Entry, 'id' | 'typ
 
 export function deleteEntry(id: string): void {
 	pendingDeletions.entries.add(id);
+	persistPendingDeletions();
 
 	updateData((data) => ({
 		...data,

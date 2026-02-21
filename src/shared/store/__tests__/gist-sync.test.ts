@@ -26,6 +26,7 @@ import {
 	backupToGist,
 	restoreFromBackupGist,
 } from '../store';
+import { pendingDeletions, clearPendingDeletions } from '../sync';
 import { getConfig, isConfigured, fetchGist, updateGist } from '@/shared/lib/github';
 
 /** Advance the debounce timer (500ms) and flush async push operations. */
@@ -457,6 +458,138 @@ describe('gist sync', () => {
 			(getConfig as Mock).mockReturnValue({ token: '', gistId: null, backupGistId: null });
 
 			await expect(restoreFromBackupGist('backup-id')).rejects.toThrow();
+		});
+	});
+
+	// ── Pending deletions persistence ────────────────────────
+
+	describe('pending deletions persistence', () => {
+		it('persists pending deletions to localStorage when deleting an item', () => {
+			(isConfigured as Mock).mockReturnValue(false);
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodItems: [{ id: 'delete-me', name: 'Doomed', categories: [] }],
+					}),
+				),
+			);
+			vi.clearAllMocks();
+			vi.clearAllTimers();
+
+			deleteItem('food', 'delete-me');
+
+			const stored = localStorage.getItem('pending_deletions');
+			expect(stored).toBeTruthy();
+			const parsed = JSON.parse(stored!);
+			expect(parsed.foodItems).toContain('delete-me');
+		});
+
+		it('persists pending deletions to localStorage when deleting an entry', () => {
+			(isConfigured as Mock).mockReturnValue(false);
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodItems: [{ id: 'item1', name: 'Apple', categories: [] }],
+						entries: [
+							{
+								id: 'entry1',
+								type: 'food' as const,
+								itemId: 'item1',
+								date: '2025-01-15',
+								time: null,
+								notes: null,
+								categoryOverrides: null,
+							},
+						],
+					}),
+				),
+			);
+			vi.clearAllMocks();
+			vi.clearAllTimers();
+
+			deleteEntry('entry1');
+
+			const stored = localStorage.getItem('pending_deletions');
+			expect(stored).toBeTruthy();
+			const parsed = JSON.parse(stored!);
+			expect(parsed.entries).toContain('entry1');
+		});
+
+		it('clearPendingDeletions removes from localStorage', () => {
+			(isConfigured as Mock).mockReturnValue(false);
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodItems: [{ id: 'item1', name: 'Apple', categories: [] }],
+					}),
+				),
+			);
+			vi.clearAllMocks();
+
+			deleteItem('food', 'item1');
+			expect(localStorage.getItem('pending_deletions')).toBeTruthy();
+
+			clearPendingDeletions();
+			expect(localStorage.getItem('pending_deletions')).toBeNull();
+		});
+
+		it('deleted items stay deleted after simulated page reload with failed push', async () => {
+			// Set up: item exists locally and on remote
+			(isConfigured as Mock).mockReturnValue(false);
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodItems: [
+							{ id: 'keep-me', name: 'Keeper', categories: [] },
+							{ id: 'delete-me', name: 'Doomed', categories: [] },
+						],
+					}),
+				),
+			);
+			vi.clearAllMocks();
+			vi.clearAllTimers();
+			(isConfigured as Mock).mockReturnValue(true);
+			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
+
+			// Push will fail (simulating app close / network failure)
+			(fetchGist as Mock).mockRejectedValueOnce(new Error('Network error'));
+
+			// Delete the item — push fails
+			deleteItem('food', 'delete-me');
+			await flushDebouncedSync();
+
+			// Verify pending deletions survived in localStorage
+			const stored = localStorage.getItem('pending_deletions');
+			expect(stored).toBeTruthy();
+			expect(JSON.parse(stored!).foodItems).toContain('delete-me');
+
+			// Simulate "page reload": clear in-memory pending deletions, reload from localStorage
+			// (This is what loadPersistedPendingDeletions does at module init)
+			pendingDeletions.foodItems.clear();
+			pendingDeletions.entries.clear();
+
+			// Re-read from localStorage (what would happen on fresh module load)
+			const persisted = JSON.parse(localStorage.getItem('pending_deletions')!);
+			for (const id of persisted.foodItems || []) pendingDeletions.foodItems.add(id);
+			for (const id of persisted.entries || []) pendingDeletions.entries.add(id);
+
+			// Now simulate a fresh loadFromGist with remote still having the deleted item
+			const remoteData = makeValidData({
+				foodItems: [
+					{ id: 'keep-me', name: 'Keeper', categories: [] },
+					{ id: 'delete-me', name: 'Doomed', categories: [] },
+				],
+			});
+			(fetchGist as Mock).mockResolvedValueOnce(remoteData);
+			(updateGist as Mock).mockResolvedValueOnce(undefined);
+
+			await loadFromGist();
+
+			// The deleted item should NOT have been restored from remote
+			const snapshot = dataStore.getSnapshot();
+			const ids = snapshot.foodItems.map((i) => i.id);
+			expect(ids).toContain('keep-me');
+			expect(ids).not.toContain('delete-me');
 		});
 	});
 

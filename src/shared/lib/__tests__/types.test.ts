@@ -54,6 +54,12 @@ describe('getTodayDate', () => {
 		const today = getTodayDate();
 		expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 	});
+
+	it('uses local date, not UTC', () => {
+		const now = new Date();
+		const expectedLocal = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+		expect(getTodayDate()).toBe(expectedLocal);
+	});
 });
 
 describe('getCurrentTime', () => {

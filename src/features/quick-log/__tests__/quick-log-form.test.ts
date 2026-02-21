@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { EntryType } from '@/shared/lib/types';
+import { getTodayDate, getCurrentTime } from '@/shared/lib/types';
 import { makeItem } from '@/shared/store/__tests__/fixtures';
 
 vi.mock('@/shared/lib/github', () => ({
@@ -14,7 +15,9 @@ vi.mock('@/shared/store/sync', () => ({
 		foodCategories: new Set(),
 		entries: new Set(),
 		dashboardCards: new Set(),
+		favoriteItems: new Set(),
 	},
+	persistPendingDeletions: vi.fn(),
 	clearPendingDeletions: vi.fn(),
 	pushToGist: vi.fn(),
 	loadFromGistFn: vi.fn(),
@@ -35,11 +38,7 @@ interface UnifiedItem {
  * to test without React hooks.
  */
 function quickLogItem(unified: UnifiedItem) {
-	const today = new Date();
-	const date = today.toISOString().split('T')[0];
-	const time = today.toTimeString().slice(0, 5);
-
-	return addEntry(unified.type, unified.item.id, date, time, null, null);
+	return addEntry(unified.type, unified.item.id, getTodayDate(), getCurrentTime(), null, null);
 }
 
 describe('quickLogItem', () => {
@@ -62,8 +61,7 @@ describe('quickLogItem', () => {
 
 		const entry = quickLogItem(unified);
 
-		const today = new Date().toISOString().split('T')[0];
-		expect(entry.date).toBe(today);
+		expect(entry.date).toBe(getTodayDate());
 		expect(entry.time).toMatch(/^\d{2}:\d{2}$/);
 		expect(entry.type).toBe('food');
 		expect(entry.itemId).toBe('f1');

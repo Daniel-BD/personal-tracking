@@ -14,6 +14,7 @@ vi.mock('@/shared/store/sync', () => ({
 		dashboardCards: new Set(),
 		favoriteItems: new Set(),
 	},
+	persistPendingDeletions: vi.fn(),
 	clearPendingDeletions: vi.fn(),
 	pushToGist: vi.fn(),
 	loadFromGistFn: vi.fn(),

@@ -10,6 +10,7 @@ import type {
 	GistFileSchema,
 	GistResponseSchema,
 } from './schemas';
+import { formatDateLocal } from './date-utils';
 
 // ── Types derived from Zod schemas (single source of truth) ──
 
@@ -47,7 +48,7 @@ export function generateId(): string {
 }
 
 export function getTodayDate(): string {
-	return new Date().toISOString().split('T')[0];
+	return formatDateLocal(new Date());
 }
 
 export function getCurrentTime(): string {

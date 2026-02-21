@@ -7,6 +7,7 @@ import i18n from '@/shared/lib/i18n';
 /**
  * Tracks IDs that have been deleted locally but not yet synced.
  * This prevents deleted items from being restored during merge.
+ * Persisted to localStorage so deletions survive page reloads.
  */
 interface PendingDeletions {
 	entries: Set<string>;
@@ -18,6 +19,18 @@ interface PendingDeletions {
 	favoriteItems: Set<string>;
 }
 
+const PENDING_DELETIONS_KEY = 'pending_deletions';
+
+const PENDING_DELETION_KEYS: (keyof PendingDeletions)[] = [
+	'entries',
+	'activityItems',
+	'foodItems',
+	'activityCategories',
+	'foodCategories',
+	'dashboardCards',
+	'favoriteItems',
+];
+
 export const pendingDeletions: PendingDeletions = {
 	entries: new Set(),
 	activityItems: new Set(),
@@ -28,14 +41,50 @@ export const pendingDeletions: PendingDeletions = {
 	favoriteItems: new Set(),
 };
 
+/** Persist pending deletions to localStorage so they survive page reloads. */
+export function persistPendingDeletions(): void {
+	if (typeof localStorage === 'undefined') return;
+	const serialized: Record<string, string[]> = {};
+	for (const key of PENDING_DELETION_KEYS) {
+		if (pendingDeletions[key].size > 0) {
+			serialized[key] = Array.from(pendingDeletions[key]);
+		}
+	}
+	if (Object.keys(serialized).length === 0) {
+		localStorage.removeItem(PENDING_DELETIONS_KEY);
+	} else {
+		localStorage.setItem(PENDING_DELETIONS_KEY, JSON.stringify(serialized));
+	}
+}
+
+/** Load persisted pending deletions from localStorage (called at module init). */
+function loadPersistedPendingDeletions(): void {
+	if (typeof localStorage === 'undefined') return;
+	const stored = localStorage.getItem(PENDING_DELETIONS_KEY);
+	if (!stored) return;
+	try {
+		const parsed = JSON.parse(stored) as Record<string, string[]>;
+		for (const key of PENDING_DELETION_KEYS) {
+			const ids = parsed[key];
+			if (Array.isArray(ids)) {
+				for (const id of ids) pendingDeletions[key].add(id);
+			}
+		}
+	} catch {
+		// Corrupt data — ignore and start fresh
+	}
+}
+
+// Restore any pending deletions from a previous session
+loadPersistedPendingDeletions();
+
 export function clearPendingDeletions(): void {
-	pendingDeletions.entries.clear();
-	pendingDeletions.activityItems.clear();
-	pendingDeletions.foodItems.clear();
-	pendingDeletions.activityCategories.clear();
-	pendingDeletions.foodCategories.clear();
-	pendingDeletions.dashboardCards.clear();
-	pendingDeletions.favoriteItems.clear();
+	for (const key of PENDING_DELETION_KEYS) {
+		pendingDeletions[key].clear();
+	}
+	if (typeof localStorage !== 'undefined') {
+		localStorage.removeItem(PENDING_DELETIONS_KEY);
+	}
 }
 
 /**
