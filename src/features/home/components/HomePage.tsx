@@ -89,11 +89,11 @@ export default function HomePage() {
 						</button>
 					</div>
 
-					{/* Quick Log form — borderless, command-palette style */}
-					<QuickLogForm />
-
 					{/* Daily balance score */}
 					<DailyBalanceScore />
+
+					{/* Quick Log form — borderless, command-palette style */}
+					<QuickLogForm />
 				</>
 			)}
 		</div>
