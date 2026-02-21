@@ -1,5 +1,6 @@
 import type { TrackerData, DashboardCard } from '@/shared/lib/types';
 import { getConfig, fetchGist, updateGist, isConfigured } from '@/shared/lib/github';
+import { migrateData } from './migration';
 import { showToast } from '@/shared/ui/Toast';
 import i18n from '@/shared/lib/i18n';
 
@@ -118,7 +119,8 @@ export async function pushToGist(
 
 	setSyncStatus('syncing');
 	try {
-		const remoteData = await fetchGist(config.gistId, config.token);
+		const remoteRaw = await fetchGist(config.gistId, config.token);
+		const remoteData = migrateData(remoteRaw);
 		const localData = getCurrentData();
 		const mergedData = mergeTrackerData(localData, remoteData);
 		setData(mergedData);
@@ -143,7 +145,8 @@ export async function loadFromGistFn(
 
 	setSyncStatus('syncing');
 	try {
-		const data = await fetchGist(config.gistId, config.token);
+		const raw = await fetchGist(config.gistId, config.token);
+		const data = migrateData(raw);
 		setData(data);
 		clearPendingDeletions();
 		setSyncStatus('idle');
@@ -173,7 +176,8 @@ export async function restoreFromBackupGistFn(
 		throw new Error('Token and backup Gist ID are required');
 	}
 
-	const data = await fetchGist(backupGistId, config.token);
+	const raw = await fetchGist(backupGistId, config.token);
+	const data = migrateData(raw);
 	setData(data);
 	clearPendingDeletions();
 	triggerPush();
