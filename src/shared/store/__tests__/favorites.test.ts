@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import type { TrackerData } from '@/shared/lib/types';
-import { makeValidData, flushPromises } from './fixtures';
+import { makeValidData } from './fixtures';
 
 // Mock the github module before importing store
 vi.mock('@/shared/lib/github', () => ({
@@ -17,12 +17,23 @@ vi.mock('@/shared/lib/github', () => ({
 import { importData, dataStore, toggleFavorite, isFavorite, deleteItem } from '../store';
 import { isConfigured, fetchGist, updateGist, getConfig } from '@/shared/lib/github';
 
+/** Advance the debounce timer (500ms) and flush async push operations. */
+async function flushDebouncedSync() {
+	await vi.advanceTimersByTimeAsync(500);
+}
+
 describe('favorites', () => {
 	beforeEach(() => {
+		vi.useFakeTimers();
 		localStorage.clear();
 		(isConfigured as Mock).mockReturnValue(false);
 		importData(JSON.stringify(makeValidData()));
 		vi.clearAllMocks();
+		vi.clearAllTimers();
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
 	});
 
 	it('toggleFavorite adds an item to favorites', () => {
@@ -91,6 +102,7 @@ describe('favorites', () => {
 			),
 		);
 		vi.clearAllMocks();
+		vi.clearAllTimers();
 
 		(isConfigured as Mock).mockReturnValue(true);
 		(getConfig as Mock).mockReturnValue({ token: 'tok', gistId: 'gist', backupGistId: null });
@@ -108,7 +120,7 @@ describe('favorites', () => {
 
 		// Delete the item — triggers merge with remote
 		deleteItem('food', 'gone');
-		await flushPromises();
+		await flushDebouncedSync();
 
 		expect(updateGist).toHaveBeenCalled();
 		const pushed = (updateGist as Mock).mock.calls[0][2] as TrackerData;
@@ -130,6 +142,7 @@ describe('favorites', () => {
 			),
 		);
 		vi.clearAllMocks();
+		vi.clearAllTimers();
 
 		(isConfigured as Mock).mockReturnValue(true);
 		(getConfig as Mock).mockReturnValue({ token: 'tok', gistId: 'gist', backupGistId: null });
@@ -147,7 +160,7 @@ describe('favorites', () => {
 
 		// Unfavorite apple — triggers merge with remote
 		toggleFavorite('apple');
-		await flushPromises();
+		await flushDebouncedSync();
 
 		expect(updateGist).toHaveBeenCalled();
 		const pushed = (updateGist as Mock).mock.calls[0][2] as TrackerData;
@@ -166,6 +179,7 @@ describe('favorites', () => {
 			),
 		);
 		vi.clearAllMocks();
+		vi.clearAllTimers();
 
 		(isConfigured as Mock).mockReturnValue(true);
 		(getConfig as Mock).mockReturnValue({ token: 'tok', gistId: 'gist', backupGistId: null });
@@ -180,7 +194,7 @@ describe('favorites', () => {
 		// Unfavorite then re-favorite
 		toggleFavorite('apple'); // unfavorite
 		toggleFavorite('apple'); // re-favorite
-		await flushPromises();
+		await flushDebouncedSync();
 
 		expect(updateGist).toHaveBeenCalled();
 		const calls = (updateGist as Mock).mock.calls;
@@ -199,7 +213,7 @@ describe('favorites', () => {
 		(updateGist as Mock).mockResolvedValue(undefined);
 
 		toggleFavorite('some-id');
-		await flushPromises();
+		await flushDebouncedSync();
 
 		expect(updateGist).toHaveBeenCalled();
 	});
