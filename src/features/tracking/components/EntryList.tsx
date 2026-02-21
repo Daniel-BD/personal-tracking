@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { Entry, EntryType } from '@/shared/lib/types';
 import { getItemById, deleteEntry, updateEntry, toggleFavorite, isFavorite } from '@/shared/store/store';
 import StarIcon from '@/shared/ui/StarIcon';
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export default function EntryList({ entries, showType = false }: Props) {
+	const { t } = useTranslation('log');
 	const data = useTrackerData();
 	const groupedEntries = useMemo(() => getEntriesGroupedByDate(entries), [entries]);
 
@@ -215,45 +217,47 @@ export default function EntryList({ entries, showType = false }: Props) {
 				open={deletingEntryId !== null}
 				onClose={() => setDeletingEntryId(null)}
 				onConfirm={confirmDeleteEntry}
-				title="Delete Entry"
-				message="This entry will be permanently deleted."
-				confirmLabel="Delete"
+				title={t('deleteConfirm.title')}
+				message={t('deleteConfirm.message')}
+				confirmLabel={t('deleteConfirm.confirm')}
 			/>
 
 			{/* Edit Bottom Sheet */}
 			<BottomSheet
 				open={editingEntry !== null}
 				onClose={cancelEdit}
-				title={editingEntry ? `Edit ${getItemName(editingEntry.type, editingEntry.itemId)}` : undefined}
-				actionLabel={editingEntry ? 'Save' : undefined}
+				title={
+					editingEntry ? t('editEntry.title', { name: getItemName(editingEntry.type, editingEntry.itemId) }) : undefined
+				}
+				actionLabel={editingEntry ? t('editEntry.save') : undefined}
 				onAction={saveEdit}
 			>
 				{editingEntry && (
 					<div className="space-y-4">
 						<div className="grid grid-cols-2 gap-3">
 							<div>
-								<label className="form-label">Date</label>
+								<label className="form-label">{t('editEntry.date')}</label>
 								<NativePickerInput type="date" value={editDate} onChange={setEditDate} />
 							</div>
 							<div>
-								<label className="form-label">Time</label>
+								<label className="form-label">{t('editEntry.time')}</label>
 								<NativePickerInput type="time" value={editTime} onChange={setEditTime} />
 							</div>
 						</div>
 
 						<div>
-							<label className="form-label">Notes</label>
+							<label className="form-label">{t('editEntry.notes')}</label>
 							<input
 								type="text"
 								value={editNotes}
 								onChange={(e) => setEditNotes(e.target.value)}
-								placeholder="Optional notes..."
+								placeholder={t('editEntry.notesPlaceholder')}
 								className="form-input"
 							/>
 						</div>
 
 						<div>
-							<label className="form-label">Categories</label>
+							<label className="form-label">{t('editEntry.categories')}</label>
 							<CategoryPicker
 								selected={editCategories}
 								categories={getCategoriesForType(editingEntry.type)}
@@ -265,7 +269,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 						<div className="pt-2">
 							<button onClick={() => handleDelete(editingEntry.id)} className="btn btn-danger w-full">
 								<Trash2 className="w-4 h-4 mr-2" strokeWidth={2} />
-								Delete Entry
+								{t('editEntry.deleteButton')}
 							</button>
 						</div>
 					</div>

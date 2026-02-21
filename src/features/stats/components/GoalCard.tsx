@@ -51,7 +51,7 @@ export default function GoalCard({
 		const sign = raw >= 0 ? '+' : '−';
 		const abs = Math.abs(raw);
 		const formatted = Number.isInteger(abs) ? abs.toString() : abs.toFixed(1);
-		const unit = t('goalCard.event', { count: abs });
+		const unit = t('goalCard.event', { count: Math.round(abs) });
 		return `(${sign}${formatted} ${unit})`;
 	}, [isStable, currentCount, proratedBaseline, t]);
 
@@ -82,7 +82,9 @@ export default function GoalCard({
 						<span className="text-xs font-normal text-label"> {t('goalCard.partialWeek', { day: daysElapsed })}</span>
 					)}
 				</div>
-				<div className="text-xs text-label">{t('goalCard.baselineAvg', { count: baselineAvg, avg: avgFormatted })}</div>
+				<div className="text-xs text-label">
+					{t('goalCard.baselineAvg', { count: Math.round(baselineAvg), avg: avgFormatted })}
+				</div>
 			</div>
 
 			{/* 3. Primary change metric */}
