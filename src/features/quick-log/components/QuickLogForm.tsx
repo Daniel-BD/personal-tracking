@@ -19,6 +19,9 @@ import NativePickerInput from '@/shared/ui/NativePickerInput';
 import { useQuickLogSearch } from '../hooks/useQuickLogSearch';
 import { useQuickLogForm } from '../hooks/useQuickLogForm';
 
+/** Delay (ms) before closing dropdown on blur, so click events on dropdown options can fire first */
+const BLUR_CLICK_DELAY_MS = 200;
+
 export default function QuickLogForm() {
 	const { t } = useTranslation('quickLog');
 	const activityItems = useActivityItems();
@@ -80,7 +83,7 @@ export default function QuickLogForm() {
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
 						onFocus={() => setIsFocused(true)}
-						onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+						onBlur={() => setTimeout(() => setIsFocused(false), BLUR_CLICK_DELAY_MS)}
 						placeholder={t('searchPlaceholder')}
 						className="flex-1 bg-transparent text-heading text-base placeholder:text-[var(--text-muted)] outline-none"
 					/>

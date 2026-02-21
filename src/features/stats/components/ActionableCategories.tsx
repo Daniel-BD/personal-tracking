@@ -6,6 +6,7 @@ import { getLastNWeeks, getTopLimitCategories, getLaggingPositiveCategories } fr
 import { addDashboardCard } from '@/shared/store/store';
 import { showToast } from '@/shared/ui/Toast';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
+import { cn } from '@/shared/lib/cn';
 
 const MAX_DASHBOARD_CARDS = 6;
 
@@ -112,9 +113,11 @@ function Panel({ title, subtitle, rows, accent, followedIds, onFollow, following
 								<button
 									onClick={() => onFollow(row.categoryId, row.categoryName)}
 									disabled={isFollowed}
-									className={`text-xs font-medium px-2 py-0.5 rounded transition-colors whitespace-nowrap ${
-										isFollowed ? 'text-label cursor-default' : 'text-body hover:bg-[var(--bg-inset)]'
-									} ${!isMobile && !isFollowed ? 'sm:opacity-0 sm:group-hover:opacity-100' : ''}`}
+									className={cn(
+										'text-xs font-medium px-2 py-0.5 rounded transition-colors whitespace-nowrap',
+										isFollowed ? 'text-label cursor-default' : 'text-body hover:bg-[var(--bg-inset)]',
+										!isMobile && !isFollowed && 'sm:opacity-0 sm:group-hover:opacity-100',
+									)}
 								>
 									{isFollowed ? followingLabel : followLabel}
 								</button>

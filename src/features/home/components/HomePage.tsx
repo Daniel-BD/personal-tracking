@@ -6,6 +6,7 @@ import { isConfigured } from '@/shared/lib/github';
 import { forceRefresh, addEntry } from '@/shared/store/store';
 import { useActivityItems, useFoodItems, useSyncStatus } from '@/shared/store/hooks';
 import { getTodayDate, getCurrentTime } from '@/shared/lib/types';
+import { cn } from '@/shared/lib/cn';
 import { showToast } from '@/shared/ui/Toast';
 import { QuickLogForm } from '@/features/quick-log';
 import DailyBalanceScore from './DailyBalanceScore';
@@ -84,7 +85,7 @@ export default function HomePage() {
 							className="p-2 rounded-md text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-inset)] disabled:opacity-50 transition-colors"
 							aria-label={t('refreshAriaLabel')}
 						>
-							<RefreshCw className={`w-5 h-5 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} strokeWidth={1.5} />
+							<RefreshCw className={cn('w-5 h-5', syncStatus === 'syncing' && 'animate-spin')} strokeWidth={1.5} />
 						</button>
 					</div>
 

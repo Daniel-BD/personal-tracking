@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { X, Check } from 'lucide-react';
+import { cn } from '@/shared/lib/cn';
 
 interface FilterOption {
 	id: string;
@@ -14,6 +15,9 @@ interface Props {
 	placeholder?: string;
 	label?: string;
 }
+
+/** Delay (ms) before closing dropdown on blur, so click events on dropdown options can fire first */
+const BLUR_CLICK_DELAY_MS = 200;
 
 export default function MultiSelectFilter({ options, selected, onChange, placeholder = 'Search...', label }: Props) {
 	const [searchQuery, setSearchQuery] = useState('');
@@ -77,7 +81,7 @@ export default function MultiSelectFilter({ options, selected, onChange, placeho
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
 					onFocus={() => setShowDropdown(true)}
-					onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+					onBlur={() => setTimeout(() => setShowDropdown(false), BLUR_CLICK_DELAY_MS)}
 					placeholder={placeholder}
 					className="form-input"
 				/>
@@ -95,11 +99,12 @@ export default function MultiSelectFilter({ options, selected, onChange, placeho
 									className="w-full text-left px-3 py-2 hover:bg-[var(--bg-card-hover)] flex items-center gap-2 border-b border-[var(--border-subtle)] last:border-b-0"
 								>
 									<span
-										className={`flex-shrink-0 w-4 h-4 border rounded flex items-center justify-center ${
+										className={cn(
+											'flex-shrink-0 w-4 h-4 border rounded flex items-center justify-center',
 											selected.includes(option.id)
 												? 'bg-[var(--color-activity)] border-[var(--color-activity)]'
-												: 'border-[var(--border-input)]'
-										}`}
+												: 'border-[var(--border-input)]',
+										)}
 									>
 										{selected.includes(option.id) && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
 									</span>

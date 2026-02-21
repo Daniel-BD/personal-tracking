@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
 import { Pencil, Trash2, PackageOpen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Item, Category, EntryType } from '@/shared/lib/types';
 import { addItem, updateItem, deleteItem, toggleFavorite, isFavorite } from '@/shared/store/store';
 import { CategoryPicker, CategoryLine, useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
+import { cn } from '@/shared/lib/cn';
 import StarIcon from '@/shared/ui/StarIcon';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
+import { useLibraryForm } from '../hooks/useLibraryForm';
 
 interface Props {
 	items: Item[];
@@ -17,12 +18,14 @@ interface Props {
 	onCloseAddSheet: () => void;
 }
 
+const ITEM_FORM_DEFAULTS = { name: '', categories: [] as string[] };
+
 export default function ItemsTab({ items, categories, activeTab, searchQuery, showAddSheet, onCloseAddSheet }: Props) {
 	const { t } = useTranslation('library');
-	const [editingItem, setEditingItem] = useState<Item | null>(null);
-	const [formName, setFormName] = useState('');
-	const [formCategories, setFormCategories] = useState<string[]>([]);
-	const [deletingItem, setDeletingItem] = useState<{ id: string; name: string } | null>(null);
+	const { editing, fields, deleting, setDeleting, setField, resetForm, startEdit } = useLibraryForm<
+		Item,
+		typeof ITEM_FORM_DEFAULTS
+	>({ showAddSheet, defaults: ITEM_FORM_DEFAULTS });
 
 	const {
 		swipedEntryId,
@@ -35,53 +38,34 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 		isTouching,
 	} = useSwipeGesture();
 
-	// Reset form when add sheet opens
-	useEffect(() => {
-		if (showAddSheet) {
-			setFormName('');
-			setFormCategories([]);
-		}
-	}, [showAddSheet]);
-
 	function handleAdd() {
-		if (!formName.trim()) return;
-		addItem(activeTab, formName.trim(), formCategories);
-		setFormName('');
-		setFormCategories([]);
+		if (!fields.name.trim()) return;
+		addItem(activeTab, fields.name.trim(), fields.categories);
+		resetForm();
 		onCloseAddSheet();
 	}
 
-	function startEdit(item: Item) {
-		setEditingItem({ ...item });
-		setFormName(item.name);
-		setFormCategories([...item.categories]);
+	function handleStartEdit(item: Item) {
+		startEdit(item, { name: item.name, categories: [...item.categories] });
 		resetSwipe();
 	}
 
 	function handleSaveEdit() {
-		if (!editingItem || !formName.trim()) return;
-		updateItem(activeTab, editingItem.id, formName.trim(), formCategories);
-		setEditingItem(null);
-		setFormName('');
-		setFormCategories([]);
-	}
-
-	function cancelEdit() {
-		setEditingItem(null);
-		setFormName('');
-		setFormCategories([]);
+		if (!editing || !fields.name.trim()) return;
+		updateItem(activeTab, editing.id, fields.name.trim(), fields.categories);
+		resetForm();
 	}
 
 	function handleDelete(id: string) {
-		const item = items.find((i) => i.id === id) || (editingItem?.id === id ? editingItem : null);
-		setDeletingItem({ id, name: item?.name ?? '' });
+		const item = items.find((i) => i.id === id) || (editing?.id === id ? editing : null);
+		setDeleting({ id, name: item?.name ?? '' });
 	}
 
 	function confirmDeleteItem() {
-		if (!deletingItem) return;
-		deleteItem(activeTab, deletingItem.id);
+		if (!deleting) return;
+		deleteItem(activeTab, deleting.id);
 		resetSwipe();
-		cancelEdit();
+		resetForm();
 	}
 
 	const typeLabel = activeTab === 'activity' ? t('common:type.activity') : t('common:type.food');
@@ -111,7 +95,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 								<div className="absolute inset-0 flex items-center justify-end">
 									<button
 										type="button"
-										onClick={() => startEdit(item)}
+										onClick={() => handleStartEdit(item)}
 										style={{ background: 'var(--color-activity)', width: ACTION_WIDTH }}
 										className="h-full flex items-center justify-center"
 										aria-label="Edit item"
@@ -131,9 +115,10 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 
 								{/* Row content */}
 								<div
-									className={`relative bg-[var(--bg-card)] px-4 py-3 transition-transform ${
-										!isLastInGroup ? 'border-b border-[var(--border-subtle)]' : ''
-									}`}
+									className={cn(
+										'relative bg-[var(--bg-card)] px-4 py-3 transition-transform',
+										!isLastInGroup && 'border-b border-[var(--border-subtle)]',
+									)}
 									style={{
 										transform: isSwiped ? `translateX(${swipeOffset}px)` : 'translateX(0)',
 										transition: isTouching() ? 'none' : 'transform 0.25s ease-out',
@@ -141,7 +126,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 									onTouchStart={(e) => handleTouchStart(e, item.id)}
 									onTouchMove={handleTouchMove}
 									onTouchEnd={handleTouchEnd}
-									onClick={() => handleRowTap(() => startEdit(item))}
+									onClick={() => handleRowTap(() => handleStartEdit(item))}
 								>
 									<div className="flex items-center justify-between gap-3">
 										<div className="flex-1 min-w-0">
@@ -171,13 +156,13 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 
 			{/* Delete Item Confirm Dialog */}
 			<ConfirmDialog
-				open={deletingItem !== null}
-				onClose={() => setDeletingItem(null)}
+				open={deleting !== null}
+				onClose={() => setDeleting(null)}
 				onConfirm={confirmDeleteItem}
 				title={t('items.deleteDialog.title')}
 				message={
-					deletingItem?.name
-						? t('items.deleteDialog.messageWithName', { name: deletingItem.name })
+					deleting?.name
+						? t('items.deleteDialog.messageWithName', { name: deleting.name })
 						: t('items.deleteDialog.messageGeneric')
 				}
 				confirmLabel={t('items.deleteDialog.confirmLabel')}
@@ -192,7 +177,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 				})}
 				actionLabel={t('common:btn.add')}
 				onAction={handleAdd}
-				actionDisabled={!formName.trim()}
+				actionDisabled={!fields.name.trim()}
 			>
 				<div className="space-y-4">
 					<div>
@@ -202,8 +187,8 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 						<input
 							id="addItemName"
 							type="text"
-							value={formName}
-							onChange={(e) => setFormName(e.target.value)}
+							value={fields.name}
+							onChange={(e) => setField('name', e.target.value)}
 							placeholder={t('items.form.namePlaceholder')}
 							className="form-input"
 							autoFocus
@@ -212,9 +197,9 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 					<div>
 						<label className="form-label">{t('items.form.categoriesLabel')}</label>
 						<CategoryPicker
-							selected={formCategories}
+							selected={fields.categories}
 							categories={categories}
-							onChange={setFormCategories}
+							onChange={(val) => setField('categories', val)}
 							type={activeTab}
 						/>
 					</div>
@@ -223,14 +208,14 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 
 			{/* Edit Item Bottom Sheet */}
 			<BottomSheet
-				open={editingItem !== null}
-				onClose={cancelEdit}
-				title={editingItem ? t('items.editSheet.title', { name: editingItem.name }) : undefined}
-				actionLabel={editingItem ? t('common:btn.save') : undefined}
+				open={editing !== null}
+				onClose={resetForm}
+				title={editing ? t('items.editSheet.title', { name: editing.name }) : undefined}
+				actionLabel={editing ? t('common:btn.save') : undefined}
 				onAction={handleSaveEdit}
-				actionDisabled={!formName.trim()}
+				actionDisabled={!fields.name.trim()}
 			>
-				{editingItem && (
+				{editing && (
 					<div className="space-y-4">
 						<div>
 							<label htmlFor="editItemName" className="form-label">
@@ -239,22 +224,22 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 							<input
 								id="editItemName"
 								type="text"
-								value={formName}
-								onChange={(e) => setFormName(e.target.value)}
+								value={fields.name}
+								onChange={(e) => setField('name', e.target.value)}
 								className="form-input"
 							/>
 						</div>
 						<div>
 							<label className="form-label">{t('items.form.categoriesLabel')}</label>
 							<CategoryPicker
-								selected={formCategories}
+								selected={fields.categories}
 								categories={categories}
-								onChange={setFormCategories}
+								onChange={(val) => setField('categories', val)}
 								type={activeTab}
 							/>
 						</div>
 						<div className="pt-2">
-							<button onClick={() => handleDelete(editingItem.id)} className="btn btn-danger w-full">
+							<button onClick={() => handleDelete(editing.id)} className="btn btn-danger w-full">
 								<Trash2 className="w-4 h-4 mr-2" strokeWidth={2} />
 								{t('items.deleteButton')}
 							</button>

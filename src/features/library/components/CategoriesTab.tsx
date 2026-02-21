@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
 import { Pencil, Trash2, FolderOpen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Item, Category, CategorySentiment, EntryType } from '@/shared/lib/types';
 import { addCategory, updateCategory, deleteCategory } from '@/shared/store/store';
 import { useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
+import { cn } from '@/shared/lib/cn';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import SentimentPicker from './SentimentPicker';
+import { useLibraryForm } from '../hooks/useLibraryForm';
 
 interface Props {
 	categories: Category[];
@@ -17,6 +18,8 @@ interface Props {
 	onCloseAddSheet: () => void;
 }
 
+const CATEGORY_FORM_DEFAULTS = { name: '', sentiment: 'neutral' as CategorySentiment };
+
 export default function CategoriesTab({
 	categories,
 	allItems,
@@ -26,12 +29,11 @@ export default function CategoriesTab({
 	onCloseAddSheet,
 }: Props) {
 	const { t } = useTranslation('library');
-	const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-	const [formName, setFormName] = useState('');
-	const [formSentiment, setFormSentiment] = useState<CategorySentiment>('neutral');
-	const [deletingCategory, setDeletingCategory] = useState<{ id: string; name: string; itemCount: number } | null>(
-		null,
-	);
+	const { editing, fields, deleting, setDeleting, setField, resetForm, startEdit } = useLibraryForm<
+		Category,
+		typeof CATEGORY_FORM_DEFAULTS,
+		{ id: string; name: string; itemCount: number }
+	>({ showAddSheet, defaults: CATEGORY_FORM_DEFAULTS });
 
 	const {
 		swipedEntryId,
@@ -44,58 +46,39 @@ export default function CategoriesTab({
 		isTouching,
 	} = useSwipeGesture();
 
-	// Reset form when add sheet opens
-	useEffect(() => {
-		if (showAddSheet) {
-			setFormName('');
-			setFormSentiment('neutral');
-		}
-	}, [showAddSheet]);
-
 	function getItemCountForCategory(categoryId: string): number {
 		return allItems.filter((item) => item.categories.includes(categoryId)).length;
 	}
 
 	function handleAdd() {
-		if (!formName.trim()) return;
-		addCategory(activeTab, formName.trim(), formSentiment);
-		setFormName('');
-		setFormSentiment('neutral');
+		if (!fields.name.trim()) return;
+		addCategory(activeTab, fields.name.trim(), fields.sentiment);
+		resetForm();
 		onCloseAddSheet();
 	}
 
-	function startEdit(category: Category) {
-		setEditingCategory({ ...category });
-		setFormName(category.name);
-		setFormSentiment(category.sentiment);
+	function handleStartEdit(category: Category) {
+		startEdit(category, { name: category.name, sentiment: category.sentiment });
 		resetSwipe();
 	}
 
 	function handleSaveEdit() {
-		if (!editingCategory || !formName.trim()) return;
-		updateCategory(activeTab, editingCategory.id, formName.trim(), formSentiment);
-		setEditingCategory(null);
-		setFormName('');
-		setFormSentiment('neutral');
-	}
-
-	function cancelEdit() {
-		setEditingCategory(null);
-		setFormName('');
-		setFormSentiment('neutral');
+		if (!editing || !fields.name.trim()) return;
+		updateCategory(activeTab, editing.id, fields.name.trim(), fields.sentiment);
+		resetForm();
 	}
 
 	function handleDelete(categoryId: string) {
 		const itemCount = getItemCountForCategory(categoryId);
 		const category = categories.find((c) => c.id === categoryId);
-		setDeletingCategory({ id: categoryId, name: category?.name ?? '', itemCount });
+		setDeleting({ id: categoryId, name: category?.name ?? '', itemCount });
 	}
 
 	function confirmDeleteCategory() {
-		if (!deletingCategory) return;
-		deleteCategory(activeTab, deletingCategory.id);
+		if (!deleting) return;
+		deleteCategory(activeTab, deleting.id);
 		resetSwipe();
-		cancelEdit();
+		resetForm();
 	}
 
 	const typeLabel =
@@ -127,7 +110,7 @@ export default function CategoriesTab({
 								<div className="absolute inset-0 flex items-center justify-end">
 									<button
 										type="button"
-										onClick={() => startEdit(category)}
+										onClick={() => handleStartEdit(category)}
 										style={{ background: 'var(--color-activity)', width: ACTION_WIDTH }}
 										className="h-full flex items-center justify-center"
 										aria-label="Edit category"
@@ -147,9 +130,10 @@ export default function CategoriesTab({
 
 								{/* Row content */}
 								<div
-									className={`relative bg-[var(--bg-card)] px-4 py-3 transition-transform ${
-										!isLastInGroup ? 'border-b border-[var(--border-subtle)]' : ''
-									}`}
+									className={cn(
+										'relative bg-[var(--bg-card)] px-4 py-3 transition-transform',
+										!isLastInGroup && 'border-b border-[var(--border-subtle)]',
+									)}
 									style={{
 										transform: isSwiped ? `translateX(${swipeOffset}px)` : 'translateX(0)',
 										transition: isTouching() ? 'none' : 'transform 0.25s ease-out',
@@ -157,7 +141,7 @@ export default function CategoriesTab({
 									onTouchStart={(e) => handleTouchStart(e, category.id)}
 									onTouchMove={handleTouchMove}
 									onTouchEnd={handleTouchEnd}
-									onClick={() => handleRowTap(() => startEdit(category))}
+									onClick={() => handleRowTap(() => handleStartEdit(category))}
 								>
 									<div className="flex items-center justify-between gap-3">
 										<div className="flex-1 min-w-0">
@@ -165,11 +149,12 @@ export default function CategoriesTab({
 												<span className="font-medium text-heading truncate">{category.name}</span>
 												{category.sentiment && category.sentiment !== 'neutral' && (
 													<span
-														className={`text-xs font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+														className={cn(
+															'text-xs font-medium px-1.5 py-0.5 rounded-full flex-shrink-0',
 															category.sentiment === 'positive'
 																? 'bg-[var(--color-success-bg)] text-[var(--color-success-text)]'
-																: 'bg-[var(--color-danger-bg)] text-[var(--color-danger-text)]'
-														}`}
+																: 'bg-[var(--color-danger-bg)] text-[var(--color-danger-text)]',
+														)}
 													>
 														{category.sentiment}
 													</span>
@@ -187,15 +172,15 @@ export default function CategoriesTab({
 
 			{/* Delete Category Confirm Dialog */}
 			<ConfirmDialog
-				open={deletingCategory !== null}
-				onClose={() => setDeletingCategory(null)}
+				open={deleting !== null}
+				onClose={() => setDeleting(null)}
 				onConfirm={confirmDeleteCategory}
 				title={t('categories.deleteDialog.title')}
 				message={
-					deletingCategory
+					deleting
 						? t('categories.deleteDialog.message', {
-								name: deletingCategory.name,
-								count: deletingCategory.itemCount,
+								name: deleting.name,
+								count: deleting.itemCount,
 							})
 						: undefined
 				}
@@ -209,7 +194,7 @@ export default function CategoriesTab({
 				title={t('categories.addSheet.title')}
 				actionLabel={t('common:btn.add')}
 				onAction={handleAdd}
-				actionDisabled={!formName.trim()}
+				actionDisabled={!fields.name.trim()}
 			>
 				<div className="space-y-4">
 					<div>
@@ -219,8 +204,8 @@ export default function CategoriesTab({
 						<input
 							id="addCategoryName"
 							type="text"
-							value={formName}
-							onChange={(e) => setFormName(e.target.value)}
+							value={fields.name}
+							onChange={(e) => setField('name', e.target.value)}
 							placeholder={t('categories.form.namePlaceholder')}
 							className="form-input"
 							autoFocus
@@ -228,21 +213,21 @@ export default function CategoriesTab({
 					</div>
 					<div>
 						<label className="form-label">{t('categories.form.sentimentLabel')}</label>
-						<SentimentPicker value={formSentiment} onChange={setFormSentiment} />
+						<SentimentPicker value={fields.sentiment} onChange={(val) => setField('sentiment', val)} />
 					</div>
 				</div>
 			</BottomSheet>
 
 			{/* Edit Category Bottom Sheet */}
 			<BottomSheet
-				open={editingCategory !== null}
-				onClose={cancelEdit}
-				title={editingCategory ? t('categories.editSheet.title', { name: editingCategory.name }) : undefined}
-				actionLabel={editingCategory ? t('common:btn.save') : undefined}
+				open={editing !== null}
+				onClose={resetForm}
+				title={editing ? t('categories.editSheet.title', { name: editing.name }) : undefined}
+				actionLabel={editing ? t('common:btn.save') : undefined}
 				onAction={handleSaveEdit}
-				actionDisabled={!formName.trim()}
+				actionDisabled={!fields.name.trim()}
 			>
-				{editingCategory && (
+				{editing && (
 					<div className="space-y-4">
 						<div>
 							<label htmlFor="editCategoryName" className="form-label">
@@ -251,17 +236,17 @@ export default function CategoriesTab({
 							<input
 								id="editCategoryName"
 								type="text"
-								value={formName}
-								onChange={(e) => setFormName(e.target.value)}
+								value={fields.name}
+								onChange={(e) => setField('name', e.target.value)}
 								className="form-input"
 							/>
 						</div>
 						<div>
 							<label className="form-label">{t('categories.form.sentimentLabel')}</label>
-							<SentimentPicker value={formSentiment} onChange={setFormSentiment} />
+							<SentimentPicker value={fields.sentiment} onChange={(val) => setField('sentiment', val)} />
 						</div>
 						<div className="pt-2">
-							<button onClick={() => handleDelete(editingCategory.id)} className="btn btn-danger w-full">
+							<button onClick={() => handleDelete(editing.id)} className="btn btn-danger w-full">
 								<Trash2 className="w-4 h-4 mr-2" strokeWidth={2} />
 								{t('categories.deleteButton')}
 							</button>
