@@ -1,0 +1,78 @@
+{
+	"title": "Library",
+	"typeFilter": {
+		"activities": "Activities",
+		"food": "Food"
+	},
+	"subTabs": {
+		"items": "Items",
+		"categories": "Categories"
+	},
+	"addAriaLabel": {
+		"item": "Add item",
+		"category": "Add category"
+	},
+	"clearSearchAriaLabel": "Clear search",
+	"searchPlaceholder": {
+		"items": "Search items...",
+		"categories": "Search categories..."
+	},
+	"countLabel": {
+		"item_one": "{{count}} item",
+		"item_other": "{{count}} items",
+		"category_one": "{{count}} category",
+		"category_other": "{{count}} categories"
+	},
+	"items": {
+		"empty": "No {{type}} items yet",
+		"emptySearch": "No {{type}} items match \"{{query}}\"",
+		"emptyHint": "Tap + to add your first item",
+		"addSheet": {
+			"title": "Add {{type}} Item"
+		},
+		"editSheet": {
+			"title": "Edit {{name}}"
+		},
+		"deleteDialog": {
+			"title": "Delete Item",
+			"messageWithName": "Delete \"{{name}}\" and all its entries?",
+			"messageGeneric": "Delete this item and all its entries?",
+			"confirmLabel": "Delete"
+		},
+		"deleteButton": "Delete Item",
+		"form": {
+			"nameLabel": "Name",
+			"namePlaceholder": "Enter name...",
+			"categoriesLabel": "Categories"
+		},
+		"favoriteAriaLabel": {
+			"add": "Add to favorites",
+			"remove": "Remove from favorites"
+		}
+	},
+	"categories": {
+		"empty": "No categories for {{type}} yet",
+		"emptySearch": "No categories match \"{{query}}\"",
+		"emptyHint": "Tap + to add your first category",
+		"addSheet": {
+			"title": "Add Category"
+		},
+		"editSheet": {
+			"title": "Edit {{name}}"
+		},
+		"deleteDialog": {
+			"title": "Delete Category",
+			"message_one": "Delete \"{{name}}\"? It will be removed from {{count}} item.",
+			"message_other": "Delete \"{{name}}\"? It will be removed from {{count}} items.",
+			"confirmLabel": "Delete"
+		},
+		"deleteButton": "Delete Category",
+		"itemCount_one": "{{count}} item",
+		"itemCount_other": "{{count}} items",
+		"form": {
+			"nameLabel": "Name",
+			"namePlaceholder": "Enter category name...",
+			"sentimentLabel": "Sentiment"
+		}
+	}
+}

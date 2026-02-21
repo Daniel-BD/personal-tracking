@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getConfig, saveConfig, validateToken, createGist, listUserGists } from '@/shared/lib/github';
 import { loadFromGist } from '@/shared/store/store';
 import type { GistInfo } from '../types';
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function GistConfigSection({ onBrowseGists, selectedGistId }: Props) {
+	const { t } = useTranslation('settings');
 	const [token, setToken] = useState(getConfig().token);
 	const [gistId, setGistId] = useState(getConfig().gistId || '');
 	const [status, setStatus] = useState<'idle' | 'validating' | 'valid' | 'invalid' | 'loading'>('idle');
@@ -19,14 +21,14 @@ export default function GistConfigSection({ onBrowseGists, selectedGistId }: Pro
 		if (selectedGistId) {
 			setGistId(selectedGistId);
 			saveConfig({ gistId: selectedGistId });
-			setMessage('Gist selected! Loading data...');
+			setMessage(t('gistConfig.messages.gistSelected'));
 			loadFromGist();
 		}
-	}, [selectedGistId]);
+	}, [selectedGistId, t]);
 
 	async function handleValidate() {
 		if (!token.trim()) {
-			setMessage('Please enter a token');
+			setMessage(t('gistConfig.messages.enterToken'));
 			setStatus('invalid');
 			return;
 		}
@@ -37,17 +39,17 @@ export default function GistConfigSection({ onBrowseGists, selectedGistId }: Pro
 		const isValid = await validateToken(token.trim());
 		if (isValid) {
 			setStatus('valid');
-			setMessage('Token is valid!');
+			setMessage(t('gistConfig.messages.tokenValid'));
 			saveConfig({ token: token.trim(), gistId: gistId || null });
 		} else {
 			setStatus('invalid');
-			setMessage('Invalid token. Please check and try again.');
+			setMessage(t('gistConfig.messages.tokenInvalid'));
 		}
 	}
 
 	async function handleLoadGists() {
 		if (!token.trim()) {
-			setMessage('Please enter and validate a token first');
+			setMessage(t('gistConfig.messages.tokenRequired'));
 			return;
 		}
 
@@ -57,14 +59,14 @@ export default function GistConfigSection({ onBrowseGists, selectedGistId }: Pro
 			onBrowseGists(gists, 'primary');
 			setStatus('idle');
 		} catch {
-			setMessage('Failed to load gists');
+			setMessage(t('gistConfig.messages.loadGistsFailed'));
 			setStatus('invalid');
 		}
 	}
 
 	async function handleCreateGist() {
 		if (!token.trim()) {
-			setMessage('Please enter and validate a token first');
+			setMessage(t('gistConfig.messages.tokenRequired'));
 			return;
 		}
 
@@ -73,74 +75,73 @@ export default function GistConfigSection({ onBrowseGists, selectedGistId }: Pro
 			const newGistId = await createGist(token.trim());
 			setGistId(newGistId);
 			saveConfig({ token: token.trim(), gistId: newGistId });
-			setMessage('New gist created successfully!');
+			setMessage(t('gistConfig.messages.gistCreated'));
 			setStatus('valid');
 		} catch {
-			setMessage('Failed to create gist');
+			setMessage(t('gistConfig.messages.gistCreateFailed'));
 			setStatus('invalid');
 		}
 	}
 
 	function handleSaveGistId() {
 		if (!gistId.trim()) {
-			setMessage('Please enter a Gist ID');
+			setMessage(t('gistConfig.messages.gistIdRequired'));
 			return;
 		}
 
 		saveConfig({ token: token.trim(), gistId: gistId.trim() });
-		setMessage('Settings saved! Loading data...');
+		setMessage(t('gistConfig.messages.settingsSaved'));
 		loadFromGist();
 	}
 
 	return (
 		<div className="card p-6 space-y-4">
-			<h3 className="text-lg font-semibold text-heading">GitHub Gist Configuration</h3>
+			<h3 className="text-lg font-semibold text-heading">{t('gistConfig.title')}</h3>
 
 			<p className="text-sm text-body">
-				Your data is stored in a private GitHub Gist. You&apos;ll need a GitHub Personal Access Token with{' '}
-				<code className="bg-[var(--bg-inset)] px-1 rounded text-heading">gist</code> scope.
+				{t('gistConfig.description')} <code className="bg-[var(--bg-inset)] px-1 rounded text-heading">gist</code>
 			</p>
 
 			<div className="space-y-2">
 				<label htmlFor="token" className="form-label">
-					GitHub Personal Access Token
+					{t('gistConfig.tokenLabel')}
 				</label>
 				<input
 					id="token"
 					type="password"
 					value={token}
 					onChange={(e) => setToken(e.target.value)}
-					placeholder="ghp_xxxxxxxxxxxx"
+					placeholder={t('gistConfig.tokenPlaceholder')}
 					className="form-input"
 				/>
 				<button onClick={handleValidate} disabled={status === 'validating'} className="w-full btn-primary">
-					{status === 'validating' ? 'Validating...' : 'Validate Token'}
+					{status === 'validating' ? t('gistConfig.validatingButton') : t('gistConfig.validateButton')}
 				</button>
 			</div>
 
 			{(status === 'valid' || gistId) && (
 				<div className="border-t border-[var(--border-default)] pt-4 space-y-2">
 					<label htmlFor="gistId" className="form-label">
-						Gist ID
+						{t('gistConfig.gistIdLabel')}
 					</label>
 					<input
 						id="gistId"
 						type="text"
 						value={gistId}
 						onChange={(e) => setGistId(e.target.value)}
-						placeholder="Enter Gist ID or select/create below"
+						placeholder={t('gistConfig.gistIdPlaceholder')}
 						className="form-input"
 					/>
 
 					<div className="flex gap-2">
 						<button onClick={handleSaveGistId} className="flex-1 btn-success">
-							Save &amp; Load
+							{t('gistConfig.saveLoadButton')}
 						</button>
 						<button onClick={handleLoadGists} className="flex-1 btn-secondary">
-							Browse Gists
+							{t('gistConfig.browseGistsButton')}
 						</button>
 						<button onClick={handleCreateGist} className="flex-1 btn-primary">
-							Create New
+							{t('gistConfig.createNewButton')}
 						</button>
 					</div>
 				</div>

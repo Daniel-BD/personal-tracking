@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import type { WeeklyData } from '../utils/stats-engine';
 import { calculateBalanceScore, getScoreChange, formatWeekLabel } from '../utils/stats-engine';
@@ -9,6 +10,7 @@ interface BalanceOverviewProps {
 }
 
 export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
+	const { t } = useTranslation('stats');
 	const data = useMemo(() => {
 		return weeklyData.map((week) => {
 			const { positive, neutral, limit } = week.sentimentCounts;
@@ -45,7 +47,7 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 			{/* Score Card */}
 			<div className="card p-4 sm:p-6 space-y-4">
 				<div className="flex items-baseline justify-between">
-					<h3 className="text-lg font-semibold">Balance Score</h3>
+					<h3 className="text-lg font-semibold">{t('balanceOverview.scoreTitle')}</h3>
 					<div className="flex items-center gap-2">
 						<span className="text-4xl font-bold" style={{ color: 'var(--color-activity)' }}>
 							{Math.round(currentScore)}%
@@ -74,12 +76,12 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 						}}
 					/>
 				</div>
-				<p className="text-xs text-body">This week · Positive ÷ (Positive + Limit)</p>
+				<p className="text-xs text-body">{t('balanceOverview.scoreMeterDescription')}</p>
 			</div>
 
 			{/* Weekly breakdown chart */}
 			<div className="card p-4 sm:p-6 space-y-4">
-				<h3 className="text-lg font-semibold">Weekly Breakdown</h3>
+				<h3 className="text-lg font-semibold">{t('balanceOverview.weeklyBreakdownTitle')}</h3>
 				<ResponsiveContainer width="100%" height={280}>
 					<BarChart
 						data={data}
@@ -96,24 +98,34 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 								borderRadius: '8px',
 							}}
 						/>
-						<Bar dataKey="positive" stackId="sentiment" fill="var(--color-success)" name="Positive">
+						<Bar
+							dataKey="positive"
+							stackId="sentiment"
+							fill="var(--color-success)"
+							name={t('balanceOverview.chartPositive')}
+						>
 							{data.map((entry, index) => (
 								<Cell key={`positive-${index}`} opacity={entry.opacity} />
 							))}
 						</Bar>
-						<Bar dataKey="neutral" stackId="sentiment" fill="var(--color-neutral)" name="Neutral">
+						<Bar
+							dataKey="neutral"
+							stackId="sentiment"
+							fill="var(--color-neutral)"
+							name={t('balanceOverview.chartNeutral')}
+						>
 							{data.map((entry, index) => (
 								<Cell key={`neutral-${index}`} opacity={entry.opacity} />
 							))}
 						</Bar>
-						<Bar dataKey="limit" stackId="sentiment" fill="var(--color-danger)" name="Limit">
+						<Bar dataKey="limit" stackId="sentiment" fill="var(--color-danger)" name={t('balanceOverview.chartLimit')}>
 							{data.map((entry, index) => (
 								<Cell key={`limit-${index}`} opacity={entry.opacity} />
 							))}
 						</Bar>
 					</BarChart>
 				</ResponsiveContainer>
-				<p className="text-xs text-body">Faded weeks have less than 5 logged events</p>
+				<p className="text-xs text-body">{t('balanceOverview.lowDataWarning')}</p>
 			</div>
 		</div>
 	);

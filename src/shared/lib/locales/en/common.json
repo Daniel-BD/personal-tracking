@@ -1,0 +1,32 @@
+{
+	"nav": {
+		"home": "Home",
+		"log": "Log",
+		"stats": "Stats",
+		"library": "Library",
+		"settings": "Settings"
+	},
+	"btn": {
+		"save": "Save",
+		"cancel": "Cancel",
+		"delete": "Delete",
+		"add": "Add",
+		"create": "Create",
+		"log": "Log",
+		"import": "Import",
+		"export": "Export"
+	},
+	"type": {
+		"activity": "Activity",
+		"food": "Food",
+		"activities": "Activities"
+	},
+	"sync": {
+		"syncFailed": "Sync failed — changes saved locally",
+		"loadFailed": "Failed to load from Gist"
+	},
+	"reload": {
+		"newVersionAvailable": "New version available",
+		"reloadButton": "Reload"
+	}
+}

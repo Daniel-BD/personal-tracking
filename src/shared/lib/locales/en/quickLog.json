@@ -1,0 +1,23 @@
+{
+	"searchPlaceholder": "Search or create item...",
+	"createButton": "Create \"{{name}}\"",
+	"favoritesLabel": "Favorites",
+	"removeFromFavoritesAriaLabel": "Remove from favorites",
+	"quickLogAriaLabel": "Quick log {{name}}",
+	"sheet": {
+		"titleCreate": "New item",
+		"titleLog": "Log {{name}}",
+		"actionCreate": "Create",
+		"actionLog": "Log"
+	},
+	"form": {
+		"nameLabel": "Name",
+		"namePlaceholder": "Item name",
+		"typeLabel": "Type",
+		"dateLabel": "Date",
+		"timeLabel": "Time",
+		"categoriesLabel": "Categories",
+		"noteLabel": "Note",
+		"notePlaceholder": "Add a note..."
+	}
+}

@@ -1,0 +1,79 @@
+{
+	"title": "Eating patterns",
+	"subtitle": "What your eating events are made of",
+	"period": {
+		"weekly": "Weekly",
+		"monthly": "Monthly",
+		"monthlyComingSoon": "Monthly view coming soon"
+	},
+	"empty": {
+		"noFoodEntries": "No food entries logged yet",
+		"startLogging": "Start logging food items to see your eating patterns"
+	},
+	"goalDashboard": {
+		"title": "Goals & Trends",
+		"addToDashboard": "+ Add to dashboard",
+		"noDashboardCards": "No cards added to your dashboard yet.",
+		"addFirstCategory": "Add your first category"
+	},
+	"goalCard": {
+		"removeFromDashboard": "Remove from dashboard",
+		"thisWeek_one": "This week: {{count}} event",
+		"thisWeek_other": "This week: {{count}} events",
+		"partialWeek": "(day {{day}}/7)",
+		"baselineAvg_one": "4-week avg: {{avg}} event",
+		"baselineAvg_other": "4-week avg: {{avg}} events",
+		"noMeaningfulChange": "No meaningful change",
+		"vsPace": "vs pace",
+		"event_one": "event",
+		"event_other": "events"
+	},
+	"balanceOverview": {
+		"scoreTitle": "Balance Score",
+		"scoreMeterDescription": "This week · Positive ÷ (Positive + Limit)",
+		"weeklyBreakdownTitle": "Weekly Breakdown",
+		"chartPositive": "Positive",
+		"chartNeutral": "Neutral",
+		"chartLimit": "Limit",
+		"lowDataWarning": "Faded weeks have less than 5 logged events"
+	},
+	"focusAreas": {
+		"title": "Focus Areas",
+		"limitPanel": {
+			"title": "Top Limit Categories",
+			"subtitle": "These dominate your limit choices"
+		},
+		"positivePanel": {
+			"title": "Lagging Positive Categories",
+			"subtitle": "These show up less often than your other positives"
+		},
+		"following": "✓ Following",
+		"follow": "+ Follow",
+		"dashboardFull": "Dashboard is full. Remove a category to add another.",
+		"addedToDashboard": "{{name}} added to your dashboard"
+	},
+	"addCategoryModal": {
+		"title": "Add to Dashboard",
+		"searchPlaceholder": "Search categories...",
+		"added": "Added",
+		"noResults": "No categories found matching \"{{search}}\""
+	},
+	"frequencyRanking": {
+		"title": "Most logged",
+		"timePeriod": {
+			"all": "All time",
+			"7d": "7 days",
+			"30d": "30 days"
+		},
+		"typeFilter": {
+			"all": "All",
+			"activities": "Activities",
+			"food": "Food"
+		},
+		"viewMode": {
+			"items": "Items",
+			"categories": "Categories"
+		},
+		"empty": "No {{viewMode}} logged in this period"
+	}
+}

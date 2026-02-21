@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { TrackerData } from '@/shared/lib/types';
 import type { ActionableCategoryRow } from '../utils/stats-engine';
 import { getLastNWeeks, getTopLimitCategories, getLaggingPositiveCategories } from '../utils/stats-engine';
@@ -13,6 +14,7 @@ interface ActionableCategoriesProps {
 }
 
 export default function ActionableCategories({ data }: ActionableCategoriesProps) {
+	const { t } = useTranslation('stats');
 	const weeks = useMemo(() => getLastNWeeks(8), []);
 
 	const limitRows = useMemo(() => getTopLimitCategories(data.entries, data, weeks), [data, weeks]);
@@ -30,36 +32,40 @@ export default function ActionableCategories({ data }: ActionableCategoriesProps
 	function handleFollow(categoryId: string, categoryName: string) {
 		if (followedIds.has(categoryId)) return;
 		if (cardCount >= MAX_DASHBOARD_CARDS) {
-			showToast('Dashboard is full. Remove a category to add another.');
+			showToast(t('focusAreas.dashboardFull'));
 			return;
 		}
 		addDashboardCard(categoryId);
-		showToast(`${categoryName} added to your dashboard`);
+		showToast(t('focusAreas.addedToDashboard', { name: categoryName }));
 	}
 
 	return (
 		<div className="space-y-4">
-			<h2 className="text-xl font-bold text-heading">Focus Areas</h2>
+			<h2 className="text-xl font-bold text-heading">{t('focusAreas.title')}</h2>
 
 			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 				{limitRows.length > 0 && (
 					<Panel
-						title="Top Limit Categories"
-						subtitle="These dominate your limit choices"
+						title={t('focusAreas.limitPanel.title')}
+						subtitle={t('focusAreas.limitPanel.subtitle')}
 						rows={limitRows}
 						accent="limit"
 						followedIds={followedIds}
 						onFollow={handleFollow}
+						followingLabel={t('focusAreas.following')}
+						followLabel={t('focusAreas.follow')}
 					/>
 				)}
 				{positiveRows.length > 0 && (
 					<Panel
-						title="Lagging Positive Categories"
-						subtitle="These show up less often than your other positives"
+						title={t('focusAreas.positivePanel.title')}
+						subtitle={t('focusAreas.positivePanel.subtitle')}
 						rows={positiveRows}
 						accent="positive"
 						followedIds={followedIds}
 						onFollow={handleFollow}
+						followingLabel={t('focusAreas.following')}
+						followLabel={t('focusAreas.follow')}
 					/>
 				)}
 			</div>
@@ -74,9 +80,11 @@ interface PanelProps {
 	accent: 'limit' | 'positive';
 	followedIds: Set<string>;
 	onFollow: (categoryId: string, categoryName: string) => void;
+	followingLabel: string;
+	followLabel: string;
 }
 
-function Panel({ title, subtitle, rows, accent, followedIds, onFollow }: PanelProps) {
+function Panel({ title, subtitle, rows, accent, followedIds, onFollow, followingLabel, followLabel }: PanelProps) {
 	const isMobile = useIsMobile();
 	const barColor = accent === 'limit' ? 'var(--color-danger)' : 'var(--color-food)';
 	const maxValue = Math.max(...rows.map((r) => r.value), 1);
@@ -108,7 +116,7 @@ function Panel({ title, subtitle, rows, accent, followedIds, onFollow }: PanelPr
 										isFollowed ? 'text-label cursor-default' : 'text-body hover:bg-[var(--bg-inset)]'
 									} ${!isMobile && !isFollowed ? 'sm:opacity-0 sm:group-hover:opacity-100' : ''}`}
 								>
-									{isFollowed ? '\u2713 Following' : '+ Follow'}
+									{isFollowed ? followingLabel : followLabel}
 								</button>
 							</div>
 

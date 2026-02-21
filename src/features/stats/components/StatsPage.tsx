@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTrackerData } from '@/shared/store/hooks';
 import BalanceOverview from './BalanceOverview';
 import ActionableCategories from './ActionableCategories';
@@ -11,6 +12,7 @@ import { getLastNWeeks, processFoodEntriesByWeek } from '../utils/stats-engine';
 type PeriodType = 'weekly' | 'monthly';
 
 export default function StatsPage() {
+	const { t } = useTranslation('stats');
 	const data = useTrackerData();
 	const [period, setPeriod] = useState<PeriodType>('weekly');
 
@@ -28,15 +30,20 @@ export default function StatsPage() {
 		<div className="space-y-4 sm:space-y-6 pb-6">
 			{/* Header */}
 			<div className="space-y-2">
-				<h1 className="text-2xl font-bold">Eating patterns</h1>
-				<p className="text-body">What your eating events are made of</p>
+				<h1 className="text-2xl font-bold">{t('title')}</h1>
+				<p className="text-body">{t('subtitle')}</p>
 			</div>
 
 			{/* Period toggle */}
 			<SegmentedControl
 				options={[
-					{ value: 'weekly' as const, label: 'Weekly' },
-					{ value: 'monthly' as const, label: 'Monthly', disabled: true, title: 'Monthly view coming soon' },
+					{ value: 'weekly' as const, label: t('period.weekly') },
+					{
+						value: 'monthly' as const,
+						label: t('period.monthly'),
+						disabled: true,
+						title: t('period.monthlyComingSoon'),
+					},
 				]}
 				value={period}
 				onChange={setPeriod}
@@ -47,8 +54,8 @@ export default function StatsPage() {
 			{/* Empty state */}
 			{!hasData && (
 				<div className="card p-8 text-center space-y-2">
-					<p className="text-body">No food entries logged yet</p>
-					<p className="text-sm text-label">Start logging food items to see your eating patterns</p>
+					<p className="text-body">{t('empty.noFoodEntries')}</p>
+					<p className="text-sm text-label">{t('empty.startLogging')}</p>
 				</div>
 			)}
 

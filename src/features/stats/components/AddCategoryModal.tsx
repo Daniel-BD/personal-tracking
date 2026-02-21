@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useDashboardCards, useFoodCategories, useActivityCategories } from '@/shared/store/hooks';
 import { addDashboardCard } from '@/shared/store/store';
 
@@ -8,6 +9,7 @@ interface AddCategoryModalProps {
 }
 
 export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
+	const { t } = useTranslation('stats');
 	const dashboardCards = useDashboardCards();
 	const foodCategories = useFoodCategories();
 	const activityCategories = useActivityCategories();
@@ -44,7 +46,7 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="p-4 border-b flex items-center justify-between">
-					<h3 className="text-lg font-bold">Add to Dashboard</h3>
+					<h3 className="text-lg font-bold">{t('addCategoryModal.title')}</h3>
 					<button onClick={onClose} className="p-1 hover:bg-inset rounded-full transition-colors">
 						<X className="w-5 h-5" strokeWidth={2} />
 					</button>
@@ -53,7 +55,7 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 				<div className="p-4">
 					<input
 						type="text"
-						placeholder="Search categories..."
+						placeholder={t('addCategoryModal.searchPlaceholder')}
 						className="form-input"
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
@@ -85,13 +87,13 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 										{category.type}
 									</span>
 								</div>
-								{isAdded && <span className="text-xs font-medium text-label">Added</span>}
+								{isAdded && <span className="text-xs font-medium text-label">{t('addCategoryModal.added')}</span>}
 							</button>
 						);
 					})}
 
 					{filteredCategories.length === 0 && (
-						<div className="py-8 text-center text-label">No categories found matching &quot;{search}&quot;</div>
+						<div className="py-8 text-center text-label">{t('addCategoryModal.noResults', { search })}</div>
 					)}
 				</div>
 			</div>

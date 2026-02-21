@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getConfig, saveConfig, createGist, listUserGists } from '@/shared/lib/github';
 import { backupToGist, restoreFromBackupGist } from '@/shared/store/store';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function BackupSection({ token, onBrowseGists, selectedGistId }: Props) {
+	const { t } = useTranslation('settings');
 	const [backupGistId, setBackupGistId] = useState(getConfig().backupGistId || '');
 	const [backupStatus, setBackupStatus] = useState<'idle' | 'backing-up' | 'restoring' | 'success' | 'error'>('idle');
 	const [backupMessage, setBackupMessage] = useState('');
@@ -21,14 +23,14 @@ export default function BackupSection({ token, onBrowseGists, selectedGistId }: 
 		if (selectedGistId) {
 			setBackupGistId(selectedGistId);
 			saveConfig({ backupGistId: selectedGistId });
-			setBackupMessage('Backup Gist selected!');
+			setBackupMessage(t('backup.messages.backupGistSelected'));
 			setBackupStatus('success');
 		}
-	}, [selectedGistId]);
+	}, [selectedGistId, t]);
 
 	async function handleBrowseGistsForBackup() {
 		if (!token.trim()) {
-			setBackupMessage('Please enter and validate a token first');
+			setBackupMessage(t('backup.messages.tokenRequired'));
 			setBackupStatus('error');
 			return;
 		}
@@ -37,14 +39,14 @@ export default function BackupSection({ token, onBrowseGists, selectedGistId }: 
 			const gists = await listUserGists(token.trim());
 			onBrowseGists(gists, 'backup');
 		} catch {
-			setBackupMessage('Failed to load gists');
+			setBackupMessage(t('backup.messages.loadGistsFailed'));
 			setBackupStatus('error');
 		}
 	}
 
 	async function handleBackupNow() {
 		if (!backupGistId.trim()) {
-			setBackupMessage('Please set a backup Gist ID first');
+			setBackupMessage(t('backup.messages.backupGistRequired'));
 			setBackupStatus('error');
 			return;
 		}
@@ -53,17 +55,17 @@ export default function BackupSection({ token, onBrowseGists, selectedGistId }: 
 		setBackupMessage('');
 		try {
 			await backupToGist(backupGistId.trim());
-			setBackupMessage('Backup complete!');
+			setBackupMessage(t('backup.messages.backupComplete'));
 			setBackupStatus('success');
 		} catch {
-			setBackupMessage('Backup failed');
+			setBackupMessage(t('backup.messages.backupFailed'));
 			setBackupStatus('error');
 		}
 	}
 
 	function handleRestoreFromBackup() {
 		if (!backupGistId.trim()) {
-			setBackupMessage('Please set a backup Gist ID first');
+			setBackupMessage(t('backup.messages.backupGistRequired'));
 			setBackupStatus('error');
 			return;
 		}
@@ -75,17 +77,17 @@ export default function BackupSection({ token, onBrowseGists, selectedGistId }: 
 		setBackupMessage('');
 		try {
 			await restoreFromBackupGist(backupGistId.trim());
-			setBackupMessage('Restore complete!');
+			setBackupMessage(t('backup.messages.restoreComplete'));
 			setBackupStatus('success');
 		} catch {
-			setBackupMessage('Restore failed');
+			setBackupMessage(t('backup.messages.restoreFailed'));
 			setBackupStatus('error');
 		}
 	}
 
 	async function handleCreateBackupGist() {
 		if (!token.trim()) {
-			setBackupMessage('Please enter and validate a token first');
+			setBackupMessage(t('backup.messages.tokenRequired'));
 			setBackupStatus('error');
 			return;
 		}
@@ -95,48 +97,46 @@ export default function BackupSection({ token, onBrowseGists, selectedGistId }: 
 			const newGistId = await createGist(token.trim());
 			setBackupGistId(newGistId);
 			saveConfig({ backupGistId: newGistId });
-			setBackupMessage('Backup gist created!');
+			setBackupMessage(t('backup.messages.backupGistCreated'));
 			setBackupStatus('success');
 		} catch {
-			setBackupMessage('Failed to create backup gist');
+			setBackupMessage(t('backup.messages.createBackupFailed'));
 			setBackupStatus('error');
 		}
 	}
 
 	function handleSaveBackupGistId() {
 		saveConfig({ backupGistId: backupGistId.trim() || null });
-		setBackupMessage('Backup Gist ID saved!');
+		setBackupMessage(t('backup.messages.backupGistIdSaved'));
 		setBackupStatus('success');
 	}
 
 	return (
 		<div className="card p-6 space-y-4">
-			<h3 className="text-lg font-semibold text-heading">Backup Gist</h3>
-			<p className="text-sm text-body">
-				Configure a secondary Gist for manual backups. Use this before making major changes.
-			</p>
+			<h3 className="text-lg font-semibold text-heading">{t('backup.title')}</h3>
+			<p className="text-sm text-body">{t('backup.description')}</p>
 
 			<div className="space-y-2">
 				<label htmlFor="backupGistId" className="form-label">
-					Backup Gist ID
+					{t('backup.gistIdLabel')}
 				</label>
 				<input
 					id="backupGistId"
 					type="text"
 					value={backupGistId}
 					onChange={(e) => setBackupGistId(e.target.value)}
-					placeholder="Enter backup Gist ID"
+					placeholder={t('backup.gistIdPlaceholder')}
 					className="form-input"
 				/>
 				<div className="flex gap-2">
 					<button onClick={handleSaveBackupGistId} className="flex-1 btn-secondary">
-						Save
+						{t('backup.saveButton')}
 					</button>
 					<button onClick={handleBrowseGistsForBackup} className="flex-1 btn-secondary">
-						Browse
+						{t('backup.browseButton')}
 					</button>
 					<button onClick={handleCreateBackupGist} className="flex-1 btn-primary">
-						Create New
+						{t('backup.createNewButton')}
 					</button>
 				</div>
 			</div>
@@ -149,14 +149,14 @@ export default function BackupSection({ token, onBrowseGists, selectedGistId }: 
 							disabled={backupStatus === 'backing-up' || backupStatus === 'restoring'}
 							className="flex-1 btn-success"
 						>
-							{backupStatus === 'backing-up' ? 'Backing up...' : 'Backup Now'}
+							{backupStatus === 'backing-up' ? t('backup.backingUpButton') : t('backup.backupNowButton')}
 						</button>
 						<button
 							onClick={handleRestoreFromBackup}
 							disabled={backupStatus === 'backing-up' || backupStatus === 'restoring'}
 							className="flex-1 btn-danger"
 						>
-							{backupStatus === 'restoring' ? 'Restoring...' : 'Restore from Backup'}
+							{backupStatus === 'restoring' ? t('backup.restoringButton') : t('backup.restoreButton')}
 						</button>
 					</div>
 				</div>
@@ -175,9 +175,9 @@ export default function BackupSection({ token, onBrowseGists, selectedGistId }: 
 				open={confirmRestoreOpen}
 				onClose={() => setConfirmRestoreOpen(false)}
 				onConfirm={confirmRestore}
-				title="Restore from Backup"
-				message="This will replace all current data with the backup. Are you sure?"
-				confirmLabel="Restore"
+				title={t('backup.confirmTitle')}
+				message={t('backup.confirmMessage')}
+				confirmLabel={t('backup.confirmLabel')}
 			/>
 		</div>
 	);

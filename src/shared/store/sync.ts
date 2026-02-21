@@ -1,6 +1,7 @@
 import type { TrackerData, DashboardCard } from '@/shared/lib/types';
 import { getConfig, fetchGist, updateGist, isConfigured } from '@/shared/lib/github';
 import { showToast } from '@/shared/ui/Toast';
+import i18n from '@/shared/lib/i18n';
 
 /**
  * Tracks IDs that have been deleted locally but not yet synced.
@@ -127,7 +128,7 @@ export async function pushToGist(
 	} catch (error) {
 		console.error('Failed to sync to Gist:', error);
 		setSyncStatus('error');
-		showToast('Sync failed — changes saved locally');
+		showToast(i18n.t('common:sync.syncFailed'));
 	}
 }
 
@@ -149,7 +150,7 @@ export async function loadFromGistFn(
 	} catch (error) {
 		console.error('Failed to load from Gist:', error);
 		setSyncStatus('error');
-		showToast('Failed to load from Gist');
+		showToast(i18n.t('common:sync.loadFailed'));
 	}
 }
 

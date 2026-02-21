@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import '@/shared/lib/i18n'; // initialise i18next before rendering
 import App from './App';
 import './app.css';
 

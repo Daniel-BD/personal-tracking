@@ -372,6 +372,36 @@ input[type='datetime-local'] {
 }
 
 /* ============================================================
+   Filter Chips / Tags
+   ============================================================ */
+
+/**
+ * .chip — pill-shaped removable filter tag (neutral / generic)
+ * .chip-active — activity-accent variant (blue) for category filters
+ *
+ * Usage: <button className="chip">Label <X /></button>
+ *        <button className="chip chip-active">Category <X /></button>
+ */
+.chip {
+	@apply inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-colors;
+	background: var(--bg-inset);
+	color: var(--text-tertiary);
+	border-color: var(--border-default);
+}
+.chip:hover {
+	background: var(--bg-card-hover);
+}
+
+.chip-active {
+	background: var(--color-activity-bg);
+	color: var(--color-activity-text);
+	border-color: var(--color-activity-border);
+}
+.chip-active:hover {
+	background: var(--color-activity-bg-strong);
+}
+
+/* ============================================================
    Animations
    ============================================================ */
 @keyframes fade-in {

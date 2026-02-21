@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Pencil, Trash2, PackageOpen } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { Item, Category, EntryType } from '@/shared/lib/types';
 import { addItem, updateItem, deleteItem, toggleFavorite, isFavorite } from '@/shared/store/store';
 import { CategoryPicker, CategoryLine, useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function ItemsTab({ items, categories, activeTab, searchQuery, showAddSheet, onCloseAddSheet }: Props) {
+	const { t } = useTranslation('library');
 	const [editingItem, setEditingItem] = useState<Item | null>(null);
 	const [formName, setFormName] = useState('');
 	const [formCategories, setFormCategories] = useState<string[]>([]);
@@ -82,7 +84,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 		cancelEdit();
 	}
 
-	const typeLabel = activeTab === 'activity' ? 'activity' : 'food';
+	const typeLabel = activeTab === 'activity' ? t('common:type.activity') : t('common:type.food');
 
 	return (
 		<>
@@ -91,12 +93,14 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 				<div className="text-center py-12">
 					<PackageOpen className="w-10 h-10 text-subtle mx-auto mb-3" strokeWidth={1.5} />
 					<p className="text-label mb-1">
-						{searchQuery.trim() ? `No ${typeLabel} items match "${searchQuery}"` : `No ${typeLabel} items yet`}
+						{searchQuery.trim()
+							? t('items.emptySearch', { type: typeLabel, query: searchQuery })
+							: t('items.empty', { type: typeLabel })}
 					</p>
-					{!searchQuery.trim() && <p className="text-xs text-subtle">Tap + to add your first item</p>}
+					{!searchQuery.trim() && <p className="text-xs text-subtle">{t('items.emptyHint')}</p>}
 				</div>
 			) : (
-				<div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-default)] overflow-hidden">
+				<div className="card overflow-hidden">
 					{items.map((item, idx) => {
 						const isLastInGroup = idx === items.length - 1;
 						const isSwiped = swipedEntryId === item.id;
@@ -151,7 +155,9 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 												toggleFavorite(item.id);
 											}}
 											className="p-0.5 flex-shrink-0"
-											aria-label={isFavorite(item.id) ? 'Remove from favorites' : 'Add to favorites'}
+											aria-label={
+												isFavorite(item.id) ? t('items.favoriteAriaLabel.remove') : t('items.favoriteAriaLabel.add')
+											}
 										>
 											<StarIcon filled={isFavorite(item.id)} className="w-4 h-4" />
 										</button>
@@ -168,41 +174,43 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 				open={deletingItem !== null}
 				onClose={() => setDeletingItem(null)}
 				onConfirm={confirmDeleteItem}
-				title="Delete Item"
+				title={t('items.deleteDialog.title')}
 				message={
 					deletingItem?.name
-						? `Delete "${deletingItem.name}" and all its entries?`
-						: 'Delete this item and all its entries?'
+						? t('items.deleteDialog.messageWithName', { name: deletingItem.name })
+						: t('items.deleteDialog.messageGeneric')
 				}
-				confirmLabel="Delete"
+				confirmLabel={t('items.deleteDialog.confirmLabel')}
 			/>
 
 			{/* Add Item Bottom Sheet */}
 			<BottomSheet
 				open={showAddSheet}
 				onClose={onCloseAddSheet}
-				title={`Add ${activeTab === 'activity' ? 'Activity' : 'Food'} Item`}
-				actionLabel="Add"
+				title={t('items.addSheet.title', {
+					type: activeTab === 'activity' ? t('common:type.activity') : t('common:type.food'),
+				})}
+				actionLabel={t('common:btn.add')}
 				onAction={handleAdd}
 				actionDisabled={!formName.trim()}
 			>
 				<div className="space-y-4">
 					<div>
 						<label htmlFor="addItemName" className="form-label">
-							Name
+							{t('items.form.nameLabel')}
 						</label>
 						<input
 							id="addItemName"
 							type="text"
 							value={formName}
 							onChange={(e) => setFormName(e.target.value)}
-							placeholder="Enter name..."
+							placeholder={t('items.form.namePlaceholder')}
 							className="form-input"
 							autoFocus
 						/>
 					</div>
 					<div>
-						<label className="form-label">Categories</label>
+						<label className="form-label">{t('items.form.categoriesLabel')}</label>
 						<CategoryPicker
 							selected={formCategories}
 							categories={categories}
@@ -217,8 +225,8 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 			<BottomSheet
 				open={editingItem !== null}
 				onClose={cancelEdit}
-				title={editingItem ? `Edit ${editingItem.name}` : undefined}
-				actionLabel={editingItem ? 'Save' : undefined}
+				title={editingItem ? t('items.editSheet.title', { name: editingItem.name }) : undefined}
+				actionLabel={editingItem ? t('common:btn.save') : undefined}
 				onAction={handleSaveEdit}
 				actionDisabled={!formName.trim()}
 			>
@@ -226,7 +234,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 					<div className="space-y-4">
 						<div>
 							<label htmlFor="editItemName" className="form-label">
-								Name
+								{t('items.form.nameLabel')}
 							</label>
 							<input
 								id="editItemName"
@@ -237,7 +245,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 							/>
 						</div>
 						<div>
-							<label className="form-label">Categories</label>
+							<label className="form-label">{t('items.form.categoriesLabel')}</label>
 							<CategoryPicker
 								selected={formCategories}
 								categories={categories}
@@ -248,7 +256,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 						<div className="pt-2">
 							<button onClick={() => handleDelete(editingItem.id)} className="btn btn-danger w-full">
 								<Trash2 className="w-4 h-4 mr-2" strokeWidth={2} />
-								Delete Item
+								{t('items.deleteButton')}
 							</button>
 						</div>
 					</div>
