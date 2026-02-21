@@ -150,7 +150,7 @@ async function executePush(): Promise<void> {
 export function flushPendingSync(): void {
 	if (pushTimer) {
 		clearTimeout(pushTimer);
-		executePush();
+		void executePush();
 	}
 }
 

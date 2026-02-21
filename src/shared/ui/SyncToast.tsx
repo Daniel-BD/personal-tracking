@@ -36,7 +36,7 @@ export default function SyncToast() {
 	if (phase === 'hidden') return null;
 
 	return (
-		<div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
+		<div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 animate-fade-in" aria-live="polite">
 			<div
 				className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-lg backdrop-blur-sm transition-colors duration-200"
 				style={{
