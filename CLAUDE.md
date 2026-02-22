@@ -83,6 +83,7 @@ Navigation uses a 5-tab bottom nav bar defined in `App.tsx`.
 - **Swipe gestures**: `useSwipeGesture` hook from `@/features/tracking` encapsulates touch-based swipe-left to reveal Edit/Delete actions.
 - **Library form hook**: `useLibraryForm` from `features/library/hooks/useLibraryForm.ts` encapsulates the shared add/edit/delete sheet lifecycle used by both `ItemsTab` and `CategoriesTab`. Generic over entity, form fields, and deleting state types.
 - **Sentiment pills**: `SentimentPills` from `@/shared/ui/SentimentPills` renders compact positive/limit count pills (green `N+`, red `N−`). Used by `DaySentimentSummary` (log screen day headers) and `DailyBalanceScore` (home screen). Takes `{ positive, limit }` number props.
+- **Animation approach**: Zero-dependency, two complementary techniques sharing the same easing language. (1) **Value interpolation** — `useAnimatedValue` hook from `@/shared/lib/animation` (RAF-based, easeOutCubic). Used by `DailyBalanceScore`. (2) **Visual effects** — CSS keyframes in `app.css` (runs on compositor thread). Used by `QuickLogButton`. Shared easing functions live in `shared/lib/animation.ts`. CSS curve equivalents are documented there. Performance rule: only animate `transform` and `opacity` in CSS keyframes. Always respect `prefers-reduced-motion`.
 
 ### High-Level File Structure
 
@@ -161,6 +162,7 @@ Dark mode is applied via `.dark` class on `<html>`, managed by `theme.ts`. Tailw
 - **Text**: `.text-heading`, `.text-body`, `.text-label`, `.text-subtle`
 - **Type accents**: `.type-activity`, `.type-food`, `.type-activity-muted`, `.type-food-muted`
 - **Animation**: `.animate-fade-in`, `.animate-slide-up`
+- **Quick Log button**: `.ql-btn`, `.ql-btn--pressed`, `.ql-btn--firing` + child classes `.ql-glow`, `.ql-burst`, `.ql-spark`, `.ql-flash-overlay`, `.ql-icon`
 
 ### Conditional ClassNames
 

@@ -17,7 +17,8 @@ Business logic is extracted into hooks; the components are presentational, wirin
 
 - **`QuickLogForm.tsx`** — Orchestrator: uses both hooks, renders `QuickLogSearchInput` + `QuickLogItemsList` + BottomSheet. Accepts an optional `children` render prop `(slots: { searchInput, itemsList }) => ReactNode` to let parent components position the slots within a custom layout.
 - **`QuickLogSearchInput.tsx`** — Borderless search input with dropdown results. Accepts search state as props. Contains the blur-delay logic for dropdown click handling.
-- **`QuickLogItemsList.tsx`** — Favorites / Recent segmented list. Has internal `tab` state ('favorites' | 'recent'). Favorites show a star toggle button; recent items show a spacer in place of the star. Both rows have a Zap button for instant quick-log.
+- **`QuickLogItemsList.tsx`** — Favorites / Recent segmented list. Has internal `tab` state ('favorites' | 'recent'). Favorites show a star toggle button; recent items show a spacer in place of the star. Both rows use `QuickLogButton` for instant quick-log.
+- **`QuickLogButton.tsx`** — Animated Zap icon button with a 5-phase microinteraction (press → spring snap → glow/burst/sparks → confirmation flash). Uses CSS keyframes (defined in `app.css` under `.ql-btn*` classes) with only `transform` and `opacity` animated for compositor performance. Prevents double-clicks during the ~450ms animation. Respects `prefers-reduced-motion`.
 
 ## UX Flow
 
@@ -30,3 +31,4 @@ Business logic is extracted into hooks; the components are presentational, wirin
 
 - `__tests__/quick-log-search.test.ts` — Search, merge, favorites logic
 - `__tests__/quick-log-form.test.ts` — Instant quick-log entry creation
+- `__tests__/quick-log-button.test.tsx` — QuickLogButton rendering, click handling, double-click prevention, animation classes

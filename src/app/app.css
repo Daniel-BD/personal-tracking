@@ -431,3 +431,217 @@ input[type='datetime-local'] {
 .animate-slide-up {
 	animation: slide-up 0.25s ease-out;
 }
+
+/* ============================================================
+   Quick Log Button — Microinteraction
+   ============================================================
+   5-phase animation: press → snap → glow/burst/sparks → flash.
+   Only transforms and opacity are animated for compositor perf.
+   Easing curves match shared/lib/animation.ts motion language.
+   ============================================================ */
+
+.ql-btn {
+	overflow: visible;
+	transition:
+		transform 90ms cubic-bezier(0.2, 0.8, 0.4, 1),
+		color 150ms ease,
+		background-color 150ms ease;
+}
+
+/* 1. Physical Press — scale down + slight darken */
+.ql-btn--pressed {
+	transform: scale(0.9) translateY(2px);
+}
+
+/* 2. Energy Snap — spring pop (button body) */
+.ql-btn--firing {
+	animation: ql-snap 130ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes ql-snap {
+	0% {
+		transform: scale(0.9) translateY(2px);
+	}
+	60% {
+		transform: scale(1.08);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+/* Lightning icon — snap + wobble, then flash white */
+.ql-btn--firing .ql-icon {
+	animation:
+		ql-icon-snap 160ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+		ql-icon-flash 160ms ease-in-out 270ms forwards;
+}
+
+@keyframes ql-icon-snap {
+	0% {
+		transform: scale(1) rotate(0deg);
+	}
+	25% {
+		transform: scale(1.2) rotate(-6deg);
+	}
+	60% {
+		transform: scale(1.1) rotate(4deg);
+	}
+	100% {
+		transform: scale(1) rotate(0deg);
+	}
+}
+
+@keyframes ql-icon-flash {
+	0%,
+	100% {
+		color: inherit;
+	}
+	15%,
+	75% {
+		color: white;
+	}
+}
+
+/* Glow — pre-blurred radial gradient behind icon, only opacity animates */
+.ql-glow {
+	position: absolute;
+	inset: -4px;
+	border-radius: 50%;
+	background: radial-gradient(circle, var(--color-activity) 0%, transparent 70%);
+	filter: blur(14px);
+	opacity: 0;
+	pointer-events: none;
+}
+
+.ql-btn--firing .ql-glow {
+	animation: ql-glow-pulse 200ms ease-out forwards;
+}
+
+@keyframes ql-glow-pulse {
+	0% {
+		opacity: 0;
+	}
+	35% {
+		opacity: 0.7;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+
+/* Burst ring — expanding circle stroke */
+.ql-burst {
+	position: absolute;
+	inset: 0;
+	border: 2px solid var(--color-activity);
+	border-radius: 50%;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.ql-btn--firing .ql-burst {
+	animation: ql-burst-expand 180ms ease-out 110ms forwards;
+}
+
+@keyframes ql-burst-expand {
+	0% {
+		transform: scale(1);
+		opacity: 0.8;
+	}
+	100% {
+		transform: scale(1.9);
+		opacity: 0;
+	}
+}
+
+/* Spark particles — 6 tiny circles bursting outward */
+.ql-spark {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 3px;
+	height: 3px;
+	margin-top: -1.5px;
+	margin-left: -1.5px;
+	border-radius: 50%;
+	background: var(--color-activity);
+	opacity: 0;
+	pointer-events: none;
+}
+
+.ql-btn--firing .ql-spark {
+	animation: ql-spark-fly 180ms ease-out forwards;
+	animation-delay: calc(130ms + var(--spark-stagger, 0ms));
+}
+
+@keyframes ql-spark-fly {
+	0% {
+		transform: translate(0, 0) scale(1);
+		opacity: 1;
+	}
+	100% {
+		transform: translate(var(--spark-tx), var(--spark-ty)) scale(0.6);
+		opacity: 0;
+	}
+}
+
+/* Flash overlay — confirmation pulse */
+.ql-flash-overlay {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background: var(--color-activity);
+	opacity: 0;
+	pointer-events: none;
+}
+
+.ql-btn--firing .ql-flash-overlay {
+	animation: ql-flash 160ms ease-in-out 270ms forwards;
+}
+
+@keyframes ql-flash {
+	0% {
+		opacity: 0;
+	}
+	12% {
+		opacity: 1;
+	}
+	75% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+
+/* Reduced motion — skip complex animation, show simple opacity pulse */
+@media (prefers-reduced-motion: reduce) {
+	.ql-btn {
+		transition: none;
+	}
+	.ql-btn--pressed {
+		transform: none;
+	}
+	.ql-btn--firing,
+	.ql-btn--firing .ql-icon,
+	.ql-btn--firing .ql-glow,
+	.ql-btn--firing .ql-burst,
+	.ql-btn--firing .ql-spark {
+		animation: none;
+	}
+	.ql-btn--firing .ql-flash-overlay {
+		animation: ql-flash-reduced 300ms ease-in-out forwards;
+	}
+}
+
+@keyframes ql-flash-reduced {
+	0%,
+	100% {
+		opacity: 0;
+	}
+	20%,
+	80% {
+		opacity: 0.5;
+	}
+}
