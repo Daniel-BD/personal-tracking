@@ -1,5 +1,16 @@
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { describe, it, expect, afterEach, vi } from 'vitest';
+
+// Mock motion/react — useAnimate returns a no-op animate and a ref
+vi.mock('motion/react', () => ({
+	useAnimate: () => {
+		const scope = { current: null };
+		const animate = () => ({ then: (cb: () => void) => cb() });
+		return [scope, animate];
+	},
+	useReducedMotion: () => false,
+}));
+
 import QuickLogButton from '../components/QuickLogButton';
 
 afterEach(cleanup);
@@ -30,28 +41,17 @@ describe('QuickLogButton', () => {
 		expect(onClick).toHaveBeenCalledOnce();
 	});
 
-	it('applies pressed class on pointer down', () => {
-		render(<QuickLogButton onClick={vi.fn()} ariaLabel="Quick log" />);
-		const btn = screen.getByRole('button');
-
-		fireEvent.pointerDown(btn);
-		expect(btn.className).toContain('ql-btn--pressed');
-
-		fireEvent.pointerUp(btn);
-		expect(btn.className).not.toContain('ql-btn--pressed');
-	});
-
-	it('applies firing class on click', () => {
-		render(<QuickLogButton onClick={vi.fn()} ariaLabel="Quick log" />);
-		const btn = screen.getByRole('button');
-
-		fireEvent.click(btn);
-		expect(btn.className).toContain('ql-btn--firing');
-	});
-
 	it('renders spark elements for the particle effect', () => {
 		const { container } = render(<QuickLogButton onClick={vi.fn()} ariaLabel="Quick log" />);
-		const sparks = container.querySelectorAll('.ql-spark');
+		const sparks = container.querySelectorAll('[class*="ql-spark"]');
 		expect(sparks).toHaveLength(6);
+	});
+
+	it('renders all effect layers', () => {
+		const { container } = render(<QuickLogButton onClick={vi.fn()} ariaLabel="Quick log" />);
+		expect(container.querySelector('.ql-glow')).toBeTruthy();
+		expect(container.querySelector('.ql-burst')).toBeTruthy();
+		expect(container.querySelector('.ql-flash-overlay')).toBeTruthy();
+		expect(container.querySelector('.ql-icon')).toBeTruthy();
 	});
 });

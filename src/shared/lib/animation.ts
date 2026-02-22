@@ -7,18 +7,20 @@ import { useState, useEffect, useRef } from 'react';
  *
  * 1. Value interpolation (JS)  — `useAnimatedValue` hook (RAF-based)
  *    For animating numeric values that drive React state (counters, progress).
+ *    Used by `DailyBalanceScore`.
  *
- * 2. Visual effects (CSS)      — keyframes in app.css
+ * 2. DOM animations (Motion)   — `useAnimate` from `motion/react`
  *    For multi-layered visual effects (burst, glow, particles).
- *    CSS animations run on the compositor thread for best perf.
+ *    WAAPI-based, runs on the compositor thread. Used by `QuickLogButton`.
  *
- * Both share the same easing functions / cubic-bezier curves to keep
- * motion language consistent across the app.
+ * Both share the same easing language. Key cubic-bezier curves:
+ *   easeOutCubic  → cubic-bezier(0.33, 1, 0.68, 1) or [0.33, 1, 0.68, 1]
+ *   spring        → cubic-bezier(0.34, 1.56, 0.64, 1) or [0.34, 1.56, 0.64, 1]
+ *   press         → cubic-bezier(0.2, 0.8, 0.4, 1)  or [0.2, 0.8, 0.4, 1]
  *
- * CSS curve equivalents (for use in keyframe declarations):
- *   easeOutCubic  → cubic-bezier(0.33, 1, 0.68, 1)
- *   spring        → cubic-bezier(0.34, 1.56, 0.64, 1)
- *   press         → cubic-bezier(0.2, 0.8, 0.4, 1)
+ * Performance rule: only animate `transform` and `opacity` in DOM
+ * animations. Always respect `prefers-reduced-motion` (Motion's
+ * `useReducedMotion` hook).
  */
 
 // ── Easing functions (JS) ──────────────────────────────────────────
