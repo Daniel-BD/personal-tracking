@@ -43,9 +43,9 @@ describe('QuickLogButton', () => {
 
 	it('renders all effect layers', () => {
 		const { container } = render(<QuickLogButton onClick={vi.fn()} ariaLabel="Quick log" />);
-		expect(container.querySelector('.ql-ripple')).toBeTruthy();
-		expect(container.querySelector('.ql-settle')).toBeTruthy();
+		expect(container.querySelector('.ql-progress')).toBeTruthy();
 		expect(container.querySelector('.ql-icon')).toBeTruthy();
-		expect(container.querySelector('.ql-sweep')).toBeTruthy();
+		expect(container.querySelector('.ql-ripple')).toBeFalsy();
+		expect(container.querySelector('.ql-sweep')).toBeFalsy();
 	});
 });
