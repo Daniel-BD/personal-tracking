@@ -58,8 +58,8 @@ export default function QuickLogButton({ onClick, ariaLabel }: Props) {
 		}
 
 		// Read computed icon color for the flash phase (works in light + dark mode)
-		const iconEl = scope.current?.querySelector('.ql-icon');
-		const iconColor = iconEl ? getComputedStyle(iconEl).color : '#9ca3af';
+		const iconEl = scope.current!.querySelector('.ql-icon')!;
+		const iconColor = getComputedStyle(iconEl).color;
 
 		await Promise.all([
 			// 1. Button snap — spring pop from pressed to overshoot to rest

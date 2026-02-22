@@ -5,7 +5,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 vi.mock('motion/react', () => ({
 	useAnimate: () => {
 		const scope = { current: null };
-		const animate = () => ({ then: (cb: () => void) => cb() });
+		const animate = () => Promise.resolve();
 		return [scope, animate];
 	},
 	useReducedMotion: () => false,
