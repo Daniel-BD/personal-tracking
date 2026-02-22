@@ -1,14 +1,9 @@
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo } from 'react';
 import { useEntries, useFoodItems, useFoodCategories } from '@/shared/store/hooks';
 import { getTodayDate } from '@/shared/lib/types';
+import { useAnimatedValue } from '@/shared/lib/animation';
 import SentimentPills from '@/shared/ui/SentimentPills';
 import { calculateDailyBalance } from '../utils/daily-balance';
-
-const ANIMATION_DURATION = 900; // ms
-
-function easeOutCubic(t: number): number {
-	return 1 - Math.pow(1 - t, 3);
-}
 
 export default function DailyBalanceScore() {
 	const entries = useEntries();
@@ -20,46 +15,7 @@ export default function DailyBalanceScore() {
 		[entries, foodItems, foodCategories],
 	);
 
-	const [displayScore, setDisplayScore] = useState(0);
-	const displayScoreRef = useRef(0);
-	const animFrameRef = useRef<number | null>(null);
-
-	useEffect(() => {
-		if (!hasEntries) return;
-
-		if (animFrameRef.current !== null) {
-			cancelAnimationFrame(animFrameRef.current);
-		}
-
-		const startValue = displayScoreRef.current;
-		const targetValue = score;
-		const startTime = performance.now();
-
-		const animate = (currentTime: number) => {
-			const elapsed = currentTime - startTime;
-			const progress = Math.min(elapsed / ANIMATION_DURATION, 1);
-			const eased = easeOutCubic(progress);
-			const current = startValue + (targetValue - startValue) * eased;
-
-			displayScoreRef.current = current;
-			setDisplayScore(current);
-
-			if (progress < 1) {
-				animFrameRef.current = requestAnimationFrame(animate);
-			} else {
-				animFrameRef.current = null;
-			}
-		};
-
-		animFrameRef.current = requestAnimationFrame(animate);
-
-		return () => {
-			if (animFrameRef.current !== null) {
-				cancelAnimationFrame(animFrameRef.current);
-				animFrameRef.current = null;
-			}
-		};
-	}, [score, hasEntries]);
+	const displayScore = useAnimatedValue(score, { duration: 900, enabled: hasEntries });
 
 	if (!hasEntries) return null;
 

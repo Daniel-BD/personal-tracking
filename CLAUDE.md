@@ -42,6 +42,7 @@ A personal activity and food tracking PWA built for mobile-first usage. Users lo
 - **Language**: TypeScript (strict mode, `noUnusedLocals`, `noUnusedParameters` — prefix unused params with `_`)
 - **Build**: Vite 7
 - **Icons**: Lucide React (tree-shakeable, outline-style icons)
+- **Animation**: Motion (`motion/react`) — WAAPI-based DOM animations (useAnimate, useReducedMotion). Used for multi-element effects like QuickLogButton. Value interpolation uses a lightweight RAF-based hook (`useAnimatedValue` in `shared/lib/animation.ts`).
 - **Charting**: Recharts 3 (Stats page: sparklines, bar charts, stacked charts)
 - **Linting**: ESLint 9 (flat config in `eslint.config.js` — typescript-eslint, react-hooks, react-refresh, jsx-a11y)
 - **Formatting**: Prettier (config in `.prettierrc` — tabs, single quotes, 120 print width)
@@ -83,6 +84,7 @@ Navigation uses a 5-tab bottom nav bar defined in `App.tsx`.
 - **Swipe gestures**: `useSwipeGesture` hook from `@/features/tracking` encapsulates touch-based swipe-left to reveal Edit/Delete actions.
 - **Library form hook**: `useLibraryForm` from `features/library/hooks/useLibraryForm.ts` encapsulates the shared add/edit/delete sheet lifecycle used by both `ItemsTab` and `CategoriesTab`. Generic over entity, form fields, and deleting state types.
 - **Sentiment pills**: `SentimentPills` from `@/shared/ui/SentimentPills` renders compact positive/limit count pills (green `N+`, red `N−`). Used by `DaySentimentSummary` (log screen day headers) and `DailyBalanceScore` (home screen). Takes `{ positive, limit }` number props.
+- **Animation approach**: Two complementary techniques sharing the same easing language. (1) **Value interpolation** — `useAnimatedValue` hook from `@/shared/lib/animation` (RAF-based, easeOutCubic). Used by `DailyBalanceScore`. (2) **DOM animations** — Motion's `useAnimate` from `motion/react` (WAAPI-based). Used by `QuickLogButton` for multi-element orchestrated effects. Shared easing functions live in `shared/lib/animation.ts`. Cubic-bezier curve equivalents are documented there. Performance rule: only animate `transform` and `opacity` in DOM keyframes. Always respect `prefers-reduced-motion` (use Motion's `useReducedMotion` hook).
 
 ### High-Level File Structure
 
@@ -161,6 +163,7 @@ Dark mode is applied via `.dark` class on `<html>`, managed by `theme.ts`. Tailw
 - **Text**: `.text-heading`, `.text-body`, `.text-label`, `.text-subtle`
 - **Type accents**: `.type-activity`, `.type-food`, `.type-activity-muted`, `.type-food-muted`
 - **Animation**: `.animate-fade-in`, `.animate-slide-up`
+- **Quick Log button**: `.ql-btn` + child classes `.ql-glow`, `.ql-burst`, `.ql-spark`, `.ql-flash-overlay`, `.ql-icon` (static positioning only — animation driven by Motion in QuickLogButton.tsx)
 
 ### Conditional ClassNames
 
