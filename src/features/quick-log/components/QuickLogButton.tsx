@@ -27,11 +27,7 @@ export default function QuickLogButton({ onClick, ariaLabel }: Props) {
 
 		// Reduced motion: simple color pulse
 		if (reducedMotion) {
-			await animate(
-				scope.current!,
-				{ color: ['var(--text-muted)', 'var(--color-favorite)', ''] },
-				{ duration: 0.5 },
-			);
+			await animate(scope.current!, { color: ['var(--text-muted)', 'var(--color-favorite)', ''] }, { duration: 0.5 });
 			firingRef.current = false;
 			return;
 		}
