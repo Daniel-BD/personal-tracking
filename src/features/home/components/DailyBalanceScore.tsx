@@ -64,7 +64,7 @@ export default function DailyBalanceScore() {
 	if (!hasEntries) return null;
 
 	return (
-		<div className="pt-4 border-t border-[var(--border-subtle)]">
+		<div>
 			<div className="flex items-baseline justify-between">
 				<span className="text-xs font-medium text-label uppercase tracking-wide">Balance Score</span>
 				<div className="flex items-center gap-2">
