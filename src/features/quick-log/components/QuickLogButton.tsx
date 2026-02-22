@@ -4,7 +4,7 @@ import { useAnimate, useReducedMotion } from 'motion/react';
 import { cn } from '@/shared/lib/cn';
 
 interface Props {
-	onClick: () => void;
+	onClick: () => void | Promise<void>;
 	ariaLabel: string;
 }
 
@@ -25,33 +25,37 @@ export default function QuickLogButton({ onClick, ariaLabel }: Props) {
 	const handleClick = useCallback(async () => {
 		if (firingRef.current) return;
 		firingRef.current = true;
-		onClick();
 
-		// Reduced motion: simple opacity pulse for the highlight
-		if (reducedMotion) {
-			await animate('.ql-icon-yellow', { opacity: [0, 1, 0] }, { duration: 0.5 });
+		try {
+			// Tactile feedback as per repository pattern
+			navigator.vibrate?.(10);
+			await onClick();
+
+			// Reduced motion: simple opacity pulse for the highlight
+			if (reducedMotion) {
+				await animate('.ql-icon-yellow', { opacity: [0, 1, 0] }, { duration: 0.5 });
+				return;
+			}
+
+			// Main animation
+			await Promise.all([
+				// Animate color to yellow via opacity overlay
+				animate('.ql-icon-yellow', { opacity: 1 }, { duration: 0.15 }),
+				// Animate progress circle fill
+				animate('.ql-progress', { strokeDashoffset: 0, opacity: 1 }, { duration: 0.5, ease: 'linear' }),
+			]);
+
+			// Settle and reset
+			await Promise.all([
+				animate('.ql-icon-yellow', { opacity: 0 }, { duration: 0.2, delay: 0.1 }),
+				animate('.ql-progress', { opacity: 0 }, { duration: 0.2, delay: 0.1 }),
+			]);
+
+			// Prepare for next interaction
+			await animate('.ql-progress', { strokeDashoffset: PROGRESS_CIRCLE_CIRCUMFERENCE }, { duration: 0 });
+		} finally {
 			firingRef.current = false;
-			return;
 		}
-
-		// Main animation
-		await Promise.all([
-			// Animate color to yellow via opacity overlay
-			animate('.ql-icon-yellow', { opacity: 1 }, { duration: 0.15 }),
-			// Animate progress circle fill
-			animate('.ql-progress', { strokeDashoffset: 0, opacity: 1 }, { duration: 0.5, ease: 'linear' }),
-		]);
-
-		// Settle and reset
-		await Promise.all([
-			animate('.ql-icon-yellow', { opacity: 0 }, { duration: 0.2, delay: 0.1 }),
-			animate('.ql-progress', { opacity: 0 }, { duration: 0.2, delay: 0.1 }),
-		]);
-
-		// Prepare for next interaction
-		await animate('.ql-progress', { strokeDashoffset: PROGRESS_CIRCLE_CIRCUMFERENCE }, { duration: 0 });
-
-		firingRef.current = false;
 	}, [onClick, animate, reducedMotion]);
 
 	return (
