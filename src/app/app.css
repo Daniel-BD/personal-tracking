@@ -433,11 +433,7 @@ input[type='datetime-local'] {
 }
 
 /* ============================================================
-   Quick Log Button — "Energy Ripple" Microinteraction
-   ============================================================
-   Animation logic is driven by Motion (useAnimate) in
-   QuickLogButton.tsx. CSS only defines static positioning
-   and styling for the effect layers.
+   Quick Log Button
    ============================================================ */
 
 .ql-btn {
@@ -447,47 +443,9 @@ input[type='datetime-local'] {
 		background-color 150ms ease;
 }
 
-/* Ripple — single thin ring expanding from icon center */
-.ql-ripple {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	width: 18px;
-	height: 18px;
-	margin: -9px 0 0 -9px;
-	border: 1.5px solid var(--color-activity);
-	border-radius: 50%;
-	opacity: 0;
-	pointer-events: none;
-}
-
-/* Settle — subtle background brighten overlay */
-.ql-settle {
-	position: absolute;
-	inset: 0;
-	border-radius: inherit;
-	background: white;
-	opacity: 0;
-	pointer-events: none;
-}
-
-/* Icon wrapper — clips the sweep highlight */
 .ql-icon {
 	position: relative;
-	overflow: hidden;
-}
-
-/* Sweep — diagonal light across the icon */
-.ql-sweep {
-	position: absolute;
-	inset: 0;
-	background: linear-gradient(
-		110deg,
-		transparent 25%,
-		rgba(255, 255, 255, 0.35) 45%,
-		rgba(255, 255, 255, 0.35) 55%,
-		transparent 75%
-	);
-	transform: translateX(-130%);
-	pointer-events: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }

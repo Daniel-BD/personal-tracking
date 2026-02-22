@@ -18,7 +18,7 @@ Business logic is extracted into hooks; the components are presentational, wirin
 - **`QuickLogForm.tsx`** — Orchestrator: uses both hooks, renders `QuickLogSearchInput` + `QuickLogItemsList` + BottomSheet. Accepts an optional `children` render prop `(slots: { searchInput, itemsList }) => ReactNode` to let parent components position the slots within a custom layout.
 - **`QuickLogSearchInput.tsx`** — Borderless search input with dropdown results. Accepts search state as props. Contains the blur-delay logic for dropdown click handling.
 - **`QuickLogItemsList.tsx`** — Favorites / Recent segmented list. Has internal `tab` state ('favorites' | 'recent'). Favorites show a star toggle button; recent items show a spacer in place of the star. Both rows use `QuickLogButton` for instant quick-log.
-- **`QuickLogButton.tsx`** — Animated Zap icon button with a 5-phase "Energy Ripple" microinteraction (~420ms): press compression → tight pop release → clean ripple ring → icon highlight sweep → micro confirmation settle. Uses Motion's `useAnimate` (WAAPI-based) for all animations; CSS in `app.css` only provides static positioning for effect layers (`.ql-ripple`, `.ql-settle`, `.ql-icon`, `.ql-sweep`). Prevents double-clicks during animation via a ref guard. Respects `prefers-reduced-motion` via Motion's `useReducedMotion` hook.
+- **`QuickLogButton.tsx`** — Animated Zap icon button. When clicked, it animates the icon color to yellow (`var(--color-favorite)`) and draws a clockwise progress circle around it. Uses Motion's `useAnimate` (WAAPI-based) for animations. Prevents double-clicks during animation via a ref guard. Respects `prefers-reduced-motion` by using a simple color pulse.
 
 ## UX Flow
 
