@@ -1,8 +1,3 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-
 ## Important Workflow Rules
 
 - **Always run `npm run format` before committing** to auto-format all code with Prettier. Pre-commit hooks (Husky + lint-staged) enforce this automatically, but run it manually when needed.
