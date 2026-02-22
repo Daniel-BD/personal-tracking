@@ -8,11 +8,13 @@ interface Props {
 	ariaLabel: string;
 }
 
+const PROGRESS_CIRCLE_CIRCUMFERENCE = 70; // Approx 2 * PI * 11 (radius)
+
 /**
  * Animated quick-log (Zap) button.
  *
  * When pressed:
- * 1. Animates icon color to yellow (var(--color-favorite)).
+ * 1. Animates icon color to yellow by fading in a layered icon.
  * 2. Simultaneously animates a progress circle clockwise around the icon.
  */
 export default function QuickLogButton({ onClick, ariaLabel }: Props) {
@@ -25,32 +27,32 @@ export default function QuickLogButton({ onClick, ariaLabel }: Props) {
 		firingRef.current = true;
 		onClick();
 
-		// Reduced motion: simple color pulse
+		// Reduced motion: simple opacity pulse for the highlight
 		if (reducedMotion) {
-			await animate(scope.current!, { color: ['var(--text-muted)', 'var(--color-favorite)', ''] }, { duration: 0.5 });
+			await animate('.ql-icon-yellow', { opacity: [0, 1, 0] }, { duration: 0.5 });
 			firingRef.current = false;
 			return;
 		}
 
 		// Main animation
 		await Promise.all([
-			// Animate color to yellow
-			animate(scope.current!, { color: 'var(--color-favorite)' }, { duration: 0.15 }),
-			// Animate progress circle (70 is approx circumference for r=11)
+			// Animate color to yellow via opacity overlay
+			animate('.ql-icon-yellow', { opacity: 1 }, { duration: 0.15 }),
+			// Animate progress circle fill
 			animate('.ql-progress', { strokeDashoffset: 0, opacity: 1 }, { duration: 0.5, ease: 'linear' }),
 		]);
 
 		// Settle and reset
 		await Promise.all([
-			animate(scope.current!, { color: '' }, { duration: 0.2, delay: 0.1 }),
+			animate('.ql-icon-yellow', { opacity: 0 }, { duration: 0.2, delay: 0.1 }),
 			animate('.ql-progress', { opacity: 0 }, { duration: 0.2, delay: 0.1 }),
 		]);
 
 		// Prepare for next interaction
-		animate('.ql-progress', { strokeDashoffset: 70 }, { duration: 0 });
+		await animate('.ql-progress', { strokeDashoffset: PROGRESS_CIRCLE_CIRCUMFERENCE }, { duration: 0 });
 
 		firingRef.current = false;
-	}, [onClick, animate, scope, reducedMotion]);
+	}, [onClick, animate, reducedMotion]);
 
 	return (
 		<button
@@ -76,16 +78,20 @@ export default function QuickLogButton({ onClick, ariaLabel }: Props) {
 					fill="none"
 					stroke="currentColor"
 					strokeWidth="2"
-					strokeDasharray="70"
-					strokeDashoffset="70"
+					strokeDasharray={PROGRESS_CIRCLE_CIRCUMFERENCE}
+					strokeDashoffset={PROGRESS_CIRCLE_CIRCUMFERENCE}
 					strokeLinecap="round"
-					className="ql-progress opacity-0"
+					className="ql-progress opacity-0 text-[var(--color-favorite)]"
 				/>
 			</svg>
 
-			{/* Lightning icon */}
+			{/* Lightning icon with layered yellow highlight */}
 			<div className="ql-icon">
 				<Zap className="w-4 h-4" strokeWidth={2} />
+				<Zap
+					className="ql-icon-yellow absolute inset-0 w-4 h-4 text-[var(--color-favorite)] opacity-0"
+					strokeWidth={2}
+				/>
 			</div>
 		</button>
 	);
