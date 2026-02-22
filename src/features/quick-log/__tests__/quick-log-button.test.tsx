@@ -41,17 +41,11 @@ describe('QuickLogButton', () => {
 		expect(onClick).toHaveBeenCalledOnce();
 	});
 
-	it('renders spark elements for the particle effect', () => {
-		const { container } = render(<QuickLogButton onClick={vi.fn()} ariaLabel="Quick log" />);
-		const sparks = container.querySelectorAll('[class*="ql-spark"]');
-		expect(sparks).toHaveLength(6);
-	});
-
 	it('renders all effect layers', () => {
 		const { container } = render(<QuickLogButton onClick={vi.fn()} ariaLabel="Quick log" />);
-		expect(container.querySelector('.ql-glow')).toBeTruthy();
-		expect(container.querySelector('.ql-burst')).toBeTruthy();
-		expect(container.querySelector('.ql-flash-overlay')).toBeTruthy();
+		expect(container.querySelector('.ql-ripple')).toBeTruthy();
+		expect(container.querySelector('.ql-settle')).toBeTruthy();
 		expect(container.querySelector('.ql-icon')).toBeTruthy();
+		expect(container.querySelector('.ql-sweep')).toBeTruthy();
 	});
 });
