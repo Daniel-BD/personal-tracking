@@ -35,9 +35,9 @@ export function easeOutCubic(t: number): number {
 interface UseAnimatedValueOptions {
 	/** Animation duration in ms (default 900). */
 	duration?: number;
-	/** Easing function (default easeOutCubic). Must be a stable reference. */
+	/** Easing function (default easeOutCubic). */
 	easing?: (t: number) => number;
-	/** Set false to skip animation and return 0 (default true). */
+	/** Set false to skip animation and freeze at current value (default true). */
 	enabled?: boolean;
 }
 

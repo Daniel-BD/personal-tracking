@@ -163,7 +163,7 @@ Dark mode is applied via `.dark` class on `<html>`, managed by `theme.ts`. Tailw
 - **Text**: `.text-heading`, `.text-body`, `.text-label`, `.text-subtle`
 - **Type accents**: `.type-activity`, `.type-food`, `.type-activity-muted`, `.type-food-muted`
 - **Animation**: `.animate-fade-in`, `.animate-slide-up`
-- **Quick Log button**: `.ql-btn` + child classes `.ql-glow`, `.ql-burst`, `.ql-spark`, `.ql-flash-overlay`, `.ql-icon` (static positioning only — animation driven by Motion in QuickLogButton.tsx)
+- **Quick Log button**: `.ql-btn` + child classes `.ql-ripple`, `.ql-settle`, `.ql-icon`, `.ql-sweep` (static positioning only — animation driven by Motion in QuickLogButton.tsx)
 
 ### Conditional ClassNames
 
