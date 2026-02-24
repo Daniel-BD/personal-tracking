@@ -6,3 +6,4 @@ export { default as BalanceOverview } from './components/BalanceOverview';
 export { default as ActionableCategories } from './components/ActionableCategories';
 export { default as CategoryComposition } from './components/CategoryComposition';
 export { default as FrequencyRanking } from './components/FrequencyRanking';
+export { default as CategoryDetailPage } from './components/CategoryDetailPage';

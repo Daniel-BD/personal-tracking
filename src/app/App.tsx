@@ -15,6 +15,7 @@ import ErrorBoundary from '@/shared/ui/ErrorBoundary';
 // Heavy routes are lazy-loaded so their chunks (including recharts) are only
 // fetched when the user first navigates to that tab.
 const StatsPage = lazy(() => import('@/features/stats').then((m) => ({ default: m.StatsPage })));
+const CategoryDetailPage = lazy(() => import('@/features/stats').then((m) => ({ default: m.CategoryDetailPage })));
 const SettingsPage = lazy(() => import('@/features/settings').then((m) => ({ default: m.SettingsPage })));
 
 const routeConfig = [
@@ -67,6 +68,14 @@ export default function App() {
 								}
 							/>
 						))}
+						<Route
+							path="/stats/category/:categoryId"
+							element={
+								<ErrorBoundary label="Category Detail">
+									<CategoryDetailPage />
+								</ErrorBoundary>
+							}
+						/>
 					</Routes>
 				</Suspense>
 			</main>

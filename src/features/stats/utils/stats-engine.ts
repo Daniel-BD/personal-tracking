@@ -344,6 +344,39 @@ function countCategoriesBySentiment(
 }
 
 /**
+ * Extract the ISO week number from a week key like "2026-W09".
+ */
+export function getWeekNumber(weekKey: string): number {
+	const match = weekKey.match(/W(\d+)$/);
+	return match ? parseInt(match[1], 10) : 0;
+}
+
+/**
+ * Get per-day-of-week counts for entries within a week.
+ * Returns an array of 7 objects (Mon–Sun) with day label and count.
+ */
+export function getDailyBreakdown(
+	entries: Entry[],
+	weekStart: Date,
+	weekEnd: Date,
+): Array<{ day: string; count: number }> {
+	const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+	const counts = [0, 0, 0, 0, 0, 0, 0];
+
+	for (const entry of entries) {
+		const entryDate = new Date(entry.date + 'T00:00:00');
+		if (entryDate >= weekStart && entryDate <= weekEnd) {
+			// getDay() returns 0=Sun, 1=Mon, ... 6=Sat → shift to Mon-first
+			const jsDay = entryDate.getDay();
+			const idx = jsDay === 0 ? 6 : jsDay - 1;
+			counts[idx]++;
+		}
+	}
+
+	return dayLabels.map((day, i) => ({ day, count: counts[i] }));
+}
+
+/**
  * Top Limit Categories (last 4 weeks)
  */
 export function getTopLimitCategories(
