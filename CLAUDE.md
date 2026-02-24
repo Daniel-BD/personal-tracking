@@ -57,6 +57,7 @@ All data lives in a single `TrackerData` object containing items, categories, en
 - `/` — Home (quick-log command palette, favorites, daily balance score)
 - `/log` — Filterable entry list with swipe actions
 - `/stats` — Goal dashboard, balance score, category composition, frequency ranking
+- `/stats/category/:categoryId` — Category detail page (8-week trend chart, daily breakdown tooltip, week history grid). Opened by tapping a GoalCard.
 - `/library` — Item & category CRUD management
 - `/settings` — Theme, Gist sync, export/import, backup
 

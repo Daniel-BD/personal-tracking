@@ -20,6 +20,7 @@ interface GoalCardProps {
 	/** Days elapsed in the current week (1–7). Used for pace-adjusted display. */
 	daysElapsed: number;
 	onRemove: () => void;
+	onCardClick?: () => void;
 }
 
 export default function GoalCard({
@@ -31,6 +32,7 @@ export default function GoalCard({
 	deltaPercent,
 	daysElapsed,
 	onRemove,
+	onCardClick,
 }: GoalCardProps) {
 	const { t } = useTranslation('stats');
 	const color = SENTIMENT_COLORS[sentiment];
@@ -58,10 +60,24 @@ export default function GoalCard({
 	const avgFormatted = Number.isInteger(baselineAvg) ? baselineAvg.toString() : baselineAvg.toFixed(1);
 
 	return (
-		<div className="card p-4 flex flex-col justify-between relative group h-full min-h-[160px]">
+		<div
+			className="card p-4 flex flex-col justify-between relative group h-full min-h-[160px] cursor-pointer active:scale-[0.98] transition-transform"
+			onClick={onCardClick}
+			role="button"
+			tabIndex={0}
+			onKeyDown={(e) => {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					onCardClick?.();
+				}
+			}}
+		>
 			{/* Remove button */}
 			<button
-				onClick={onRemove}
+				onClick={(e) => {
+					e.stopPropagation();
+					onRemove();
+				}}
 				className="absolute top-2 right-2 p-1 text-label opacity-60 sm:opacity-0 group-hover:opacity-100 transition-opacity hover:text-[var(--color-danger)]"
 				title={t('goalCard.removeFromDashboard')}
 			>

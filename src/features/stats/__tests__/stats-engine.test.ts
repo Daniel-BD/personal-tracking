@@ -10,6 +10,8 @@ import {
 	groupCategoriesForWeek,
 	getTopLimitCategories,
 	getLaggingPositiveCategories,
+	getWeekNumber,
+	getDailyBreakdown,
 	type WeeklyData,
 } from '../utils/stats-engine';
 import { makeEntry, makeItem, makeCategory, makeValidData, resetIdCounter } from '@/shared/store/__tests__/fixtures';
@@ -562,5 +564,59 @@ describe('getLaggingPositiveCategories', () => {
 		);
 		const result = getLaggingPositiveCategories(entries, data, weeks, 2);
 		expect(result).toHaveLength(2);
+	});
+});
+
+describe('getWeekNumber', () => {
+	it('extracts week number from standard key', () => {
+		expect(getWeekNumber('2026-W09')).toBe(9);
+	});
+
+	it('extracts double-digit week number', () => {
+		expect(getWeekNumber('2025-W41')).toBe(41);
+	});
+
+	it('returns 0 for invalid key', () => {
+		expect(getWeekNumber('invalid')).toBe(0);
+	});
+});
+
+describe('getDailyBreakdown', () => {
+	it('returns 7 days (Mon–Sun) with correct counts', () => {
+		const weekStart = new Date('2025-01-13T00:00:00'); // Monday
+		const weekEnd = new Date('2025-01-19T23:59:59'); // Sunday
+		const entries = [
+			makeEntry({ date: '2025-01-13' }), // Monday
+			makeEntry({ date: '2025-01-13' }), // Monday (2nd)
+			makeEntry({ date: '2025-01-15' }), // Wednesday
+			makeEntry({ date: '2025-01-17' }), // Friday
+			makeEntry({ date: '2025-01-19' }), // Sunday
+		];
+		const result = getDailyBreakdown(entries, weekStart, weekEnd);
+		expect(result).toHaveLength(7);
+		expect(result.map((d) => d.day)).toEqual(['M', 'T', 'W', 'T', 'F', 'S', 'S']);
+		expect(result[0].count).toBe(2); // Monday
+		expect(result[1].count).toBe(0); // Tuesday
+		expect(result[2].count).toBe(1); // Wednesday
+		expect(result[3].count).toBe(0); // Thursday
+		expect(result[4].count).toBe(1); // Friday
+		expect(result[5].count).toBe(0); // Saturday
+		expect(result[6].count).toBe(1); // Sunday
+	});
+
+	it('returns all zeros when no entries fall in the week', () => {
+		const weekStart = new Date('2025-01-13T00:00:00');
+		const weekEnd = new Date('2025-01-19T23:59:59');
+		const entries = [makeEntry({ date: '2025-01-20' })]; // Outside range
+		const result = getDailyBreakdown(entries, weekStart, weekEnd);
+		expect(result.every((d) => d.count === 0)).toBe(true);
+	});
+
+	it('returns all zeros for empty entries', () => {
+		const weekStart = new Date('2025-01-13T00:00:00');
+		const weekEnd = new Date('2025-01-19T23:59:59');
+		const result = getDailyBreakdown([], weekStart, weekEnd);
+		expect(result).toHaveLength(7);
+		expect(result.every((d) => d.count === 0)).toBe(true);
 	});
 });

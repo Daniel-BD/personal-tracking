@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTrackerData } from '@/shared/store/hooks';
 import { getLastNWeeks, getDaysElapsedInCurrentWeek } from '../utils/stats-engine';
@@ -10,6 +11,7 @@ import AddCategoryModal from './AddCategoryModal';
 
 export default function GoalDashboard() {
 	const { t } = useTranslation('stats');
+	const navigate = useNavigate();
 	const data = useTrackerData();
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -106,6 +108,7 @@ export default function GoalDashboard() {
 						deltaPercent={card.deltaPercent}
 						daysElapsed={card.daysElapsed}
 						onRemove={() => removeDashboardCard(card.categoryId)}
+						onCardClick={() => navigate(`/stats/category/${card.categoryId}`)}
 					/>
 				))}
 

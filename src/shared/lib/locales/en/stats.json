@@ -75,5 +75,19 @@
 			"categories": "Categories"
 		},
 		"empty": "No {{viewMode}} logged in this period"
+	},
+	"categoryDetail": {
+		"thisWeek_one": "This week: {{count}} event",
+		"thisWeek_other": "This week: {{count}} events",
+		"baselineAvg": "4-week avg: {{avg}} events",
+		"event_one": "event",
+		"event_other": "events",
+		"notFound": "Category not found",
+		"goBack": "Go back to Stats",
+		"last8Weeks": "Last 8 weeks",
+		"weekLabel": "Wk {{week}}",
+		"weekBreakdownTitle": "Week {{week}} Breakdown",
+		"weekBreakdownTotal_one": "Total: {{count}}",
+		"weekBreakdownTotal_other": "Total: {{count}}"
 	}
 }
