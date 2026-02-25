@@ -35,7 +35,7 @@ export default function WeekHistoryGrid({
 	return (
 		<div className="space-y-3">
 			<h3 className="text-sm font-semibold text-heading">{t('categoryDetail.last8Weeks')}</h3>
-			<div className="grid grid-cols-2 gap-2">
+			<div className="grid grid-cols-4 gap-2">
 				{weeks.map((week, index) => {
 					const isCurrentWeek = index === currentWeekIndex;
 					const isSelected = index === selectedWeekIndex;
@@ -45,7 +45,7 @@ export default function WeekHistoryGrid({
 							key={week.weekNumber}
 							onClick={() => onSelectWeek(index)}
 							className={cn(
-								'card p-3 flex items-center justify-between text-left transition-all',
+								'card px-2 py-2.5 flex flex-col items-center text-center transition-all',
 								isSelected && 'ring-1',
 							)}
 							style={
@@ -56,13 +56,11 @@ export default function WeekHistoryGrid({
 								} as React.CSSProperties
 							}
 						>
-							<div>
-								<div className="text-xs font-semibold text-heading">
-									{t('categoryDetail.weekLabel', { week: week.weekNumber })}
-								</div>
-								<div className="text-lg font-bold text-heading">{week.count}</div>
+							<div className="text-[11px] font-medium text-label">
+								{t('categoryDetail.weekLabel', { week: week.weekNumber })}
 							</div>
-							<div className="text-xs font-medium" style={{ color: getChangeColor(week.percentChange, sentiment) }}>
+							<div className="text-base font-bold text-heading">{week.count}</div>
+							<div className="text-[11px] font-medium" style={{ color: getChangeColor(week.percentChange, sentiment) }}>
 								{formatChange(week.percentChange)}
 							</div>
 						</button>

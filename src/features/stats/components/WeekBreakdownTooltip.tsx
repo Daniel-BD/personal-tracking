@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts';
 import type { CategorySentiment } from '@/shared/lib/types';
 
 const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
@@ -28,26 +27,26 @@ export default function WeekBreakdownTooltip({ weekNumber, total, dailyData, sen
 				</span>
 				<span className="text-xs text-label">{t('categoryDetail.weekBreakdownTotal', { count: total })}</span>
 			</div>
-			<div className="h-20">
-				<ResponsiveContainer width="100%" height="100%">
-					<BarChart data={dailyData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
-						<XAxis
-							dataKey="day"
-							tickLine={false}
-							axisLine={false}
-							tick={{ fontSize: 11, fill: 'var(--text-tertiary)' }}
-						/>
-						<Bar dataKey="count" radius={[3, 3, 0, 0]} isAnimationActive={false}>
-							{dailyData.map((entry, index) => (
-								<Cell
-									key={index}
-									fill={entry.count > 0 ? color : 'var(--bg-inset)'}
-									opacity={entry.count > 0 ? 0.4 + (entry.count / maxCount) * 0.6 : 0.3}
+			<div className="flex items-end justify-between gap-1 h-20">
+				{dailyData.map((entry, index) => {
+					const heightPercent = maxCount > 0 ? (entry.count / maxCount) * 100 : 0;
+					return (
+						<div key={index} className="flex flex-col items-center flex-1 h-full">
+							<div className="flex-1 flex items-end w-full">
+								<div
+									className="w-full rounded-t-[3px] min-h-[4px]"
+									style={{
+										height: `${Math.max(heightPercent, 6)}%`,
+										backgroundColor: entry.count > 0 ? color : 'var(--bg-inset)',
+										opacity: entry.count > 0 ? 0.4 + (entry.count / maxCount) * 0.6 : 0.3,
+									}}
 								/>
-							))}
-						</Bar>
-					</BarChart>
-				</ResponsiveContainer>
+							</div>
+							<span className="text-[11px] font-semibold mt-1 text-heading">{entry.count}</span>
+							<span className="text-[11px] text-[var(--text-tertiary)] leading-tight">{entry.day}</span>
+						</div>
+					);
+				})}
 			</div>
 		</div>
 	);
