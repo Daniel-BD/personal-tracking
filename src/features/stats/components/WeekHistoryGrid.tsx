@@ -16,53 +16,43 @@ interface WeekData {
 
 interface WeekHistoryGridProps {
 	weeks: WeekData[];
-	currentWeekIndex: number;
 	selectedWeekIndex: number | null;
 	sentiment: CategorySentiment;
-	onSelectWeek: (index: number) => void;
+	onSelectWeek: (index: number | null) => void;
 }
 
-export default function WeekHistoryGrid({
-	weeks,
-	currentWeekIndex,
-	selectedWeekIndex,
-	sentiment,
-	onSelectWeek,
-}: WeekHistoryGridProps) {
+export default function WeekHistoryGrid({ weeks, selectedWeekIndex, sentiment, onSelectWeek }: WeekHistoryGridProps) {
 	const { t } = useTranslation('stats');
 	const color = SENTIMENT_COLORS[sentiment];
 
 	return (
 		<div className="space-y-3">
 			<h3 className="text-sm font-semibold text-heading">{t('categoryDetail.last8Weeks')}</h3>
-			<div className="grid grid-cols-2 gap-2">
+			<div className="grid grid-cols-4 gap-2">
 				{weeks.map((week, index) => {
-					const isCurrentWeek = index === currentWeekIndex;
 					const isSelected = index === selectedWeekIndex;
 
 					return (
 						<button
 							key={week.weekNumber}
-							onClick={() => onSelectWeek(index)}
+							onClick={() => onSelectWeek(isSelected ? null : index)}
 							className={cn(
-								'card p-3 flex items-center justify-between text-left transition-all',
-								isSelected && 'ring-1',
+								'card px-2 py-2.5 flex flex-col items-center text-center transition-all',
+								isSelected && 'border-transparent',
 							)}
 							style={
-								{
-									borderLeftWidth: isCurrentWeek ? '3px' : undefined,
-									borderLeftColor: isCurrentWeek ? color : undefined,
-									'--tw-ring-color': isSelected ? color : undefined,
-								} as React.CSSProperties
+								isSelected
+									? ({
+											backgroundColor: `color-mix(in srgb, ${color} 15%, var(--bg-card))`,
+										} as React.CSSProperties)
+									: undefined
 							}
 						>
-							<div>
-								<div className="text-xs font-semibold text-heading">
-									{t('categoryDetail.weekLabel', { week: week.weekNumber })}
-								</div>
-								<div className="text-lg font-bold text-heading">{week.count}</div>
+							<div className={cn('text-[11px] font-medium', isSelected ? 'text-heading' : 'text-label')}>
+								{t('categoryDetail.weekLabel', { week: week.weekNumber })}
 							</div>
-							<div className="text-xs font-medium" style={{ color: getChangeColor(week.percentChange, sentiment) }}>
+							<div className="text-base font-bold text-heading">{week.count}</div>
+							<div className="text-[11px] font-medium" style={{ color: getChangeColor(week.percentChange, sentiment) }}>
 								{formatChange(week.percentChange)}
 							</div>
 						</button>

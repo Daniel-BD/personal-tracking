@@ -12,6 +12,8 @@ import {
 	getLaggingPositiveCategories,
 	getWeekNumber,
 	getDailyBreakdown,
+	calcActualDeltaPercent,
+	formatChangeText,
 	type WeeklyData,
 } from '../utils/stats-engine';
 import { makeEntry, makeItem, makeCategory, makeValidData, resetIdCounter } from '@/shared/store/__tests__/fixtures';
@@ -618,5 +620,45 @@ describe('getDailyBreakdown', () => {
 		const result = getDailyBreakdown([], weekStart, weekEnd);
 		expect(result).toHaveLength(7);
 		expect(result.every((d) => d.count === 0)).toBe(true);
+	});
+});
+
+describe('calcActualDeltaPercent', () => {
+	it('returns positive ratio when current exceeds baseline', () => {
+		expect(calcActualDeltaPercent(6, 4)).toBe(0.5);
+	});
+
+	it('returns negative ratio when current is below baseline', () => {
+		expect(calcActualDeltaPercent(2, 4)).toBe(-0.5);
+	});
+
+	it('returns 0 when current equals baseline', () => {
+		expect(calcActualDeltaPercent(4, 4)).toBe(0);
+	});
+
+	it('returns 1 when baseline is 0 and current > 0', () => {
+		expect(calcActualDeltaPercent(3, 0)).toBe(1);
+	});
+
+	it('returns 0 when both are 0', () => {
+		expect(calcActualDeltaPercent(0, 0)).toBe(0);
+	});
+});
+
+describe('formatChangeText', () => {
+	it('formats positive change', () => {
+		expect(formatChangeText(0.25)).toBe('+25%');
+	});
+
+	it('formats negative change with unicode minus', () => {
+		expect(formatChangeText(-0.1)).toBe('\u221210%');
+	});
+
+	it('formats zero change', () => {
+		expect(formatChangeText(0)).toBe('\u22120%');
+	});
+
+	it('rounds to nearest integer percentage', () => {
+		expect(formatChangeText(0.126)).toBe('+13%');
 	});
 });

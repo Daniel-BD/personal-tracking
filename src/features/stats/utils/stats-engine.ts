@@ -377,6 +377,25 @@ export function getDailyBreakdown(
 }
 
 /**
+ * Format a percentage change as a signed string (e.g. "+25%" or "−10%").
+ * Uses the unicode minus sign (U+2212) for negative values.
+ */
+export function formatChangeText(deltaPercent: number): string {
+	const abs = Math.round(Math.abs(deltaPercent) * 100);
+	const sign = deltaPercent > 0 ? '+' : '\u2212';
+	return `${sign}${abs}%`;
+}
+
+/**
+ * Calculate the actual (non-prorated) percentage change of currentCount vs baselineAvg.
+ * Returns a ratio (e.g. 0.25 = 25% increase). Use `formatChangeText` to display.
+ */
+export function calcActualDeltaPercent(currentCount: number, baselineAvg: number): number {
+	if (baselineAvg === 0) return currentCount > 0 ? 1 : 0;
+	return (currentCount - baselineAvg) / baselineAvg;
+}
+
+/**
  * Top Limit Categories (last 4 weeks)
  */
 export function getTopLimitCategories(

@@ -24,7 +24,8 @@
 		"baselineAvg_one": "4-week avg: {{avg}} event",
 		"baselineAvg_other": "4-week avg: {{avg}} events",
 		"noMeaningfulChange": "No meaningful change",
-		"vsPace": "vs pace",
+		"projected": "projected",
+		"currentlyLabel": "Currently {{change}} vs avg",
 		"event_one": "event",
 		"event_other": "events"
 	},
@@ -79,7 +80,10 @@
 	"categoryDetail": {
 		"thisWeek_one": "This week: {{count}} event",
 		"thisWeek_other": "This week: {{count}} events",
+		"partialWeek": "day {{day}}/7",
 		"baselineAvg": "4-week avg: {{avg}} events",
+		"projected": "projected",
+		"currentlyLabel": "Currently {{change}} vs avg",
 		"event_one": "event",
 		"event_other": "events",
 		"notFound": "Category not found",

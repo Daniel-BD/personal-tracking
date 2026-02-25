@@ -6,7 +6,13 @@ import { useTrackerData } from '@/shared/store/hooks';
 import { formatDateLocal } from '@/shared/lib/date-utils';
 import type { CategorySentiment } from '@/shared/lib/types';
 import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking';
-import { getLastNWeeks, getDaysElapsedInCurrentWeek, getWeekNumber } from '../utils/stats-engine';
+import {
+	getLastNWeeks,
+	getDaysElapsedInCurrentWeek,
+	getWeekNumber,
+	calcActualDeltaPercent,
+	formatChangeText,
+} from '../utils/stats-engine';
 import CategoryTrendChart from './CategoryTrendChart';
 import WeekHistoryGrid from './WeekHistoryGrid';
 
@@ -65,6 +71,9 @@ export default function CategoryDetailPage() {
 	const deltaPercent = proratedBaseline === 0 ? (currentCount > 0 ? 1 : 0) : delta / proratedBaseline;
 	const isStable = Math.abs(deltaPercent) < 0.1;
 
+	// Actual (non-prorated) comparison: current count vs full-week baseline
+	const actualDeltaPercent = calcActualDeltaPercent(currentCount, baselineAvg);
+
 	const sentiment = category?.sentiment ?? 'neutral';
 	const color = SENTIMENT_COLORS[sentiment];
 
@@ -102,6 +111,9 @@ export default function CategoryDetailPage() {
 	const deltaUnit = t('categoryDetail.event', { count: Math.round(deltaRaw) });
 	const deltaEventsText = isStable ? null : `(${changeSign}${deltaFormatted} ${deltaUnit})`;
 
+	// Actual change text (non-prorated)
+	const actualChangeText = formatChangeText(actualDeltaPercent);
+
 	return (
 		<div className="space-y-6 pb-4">
 			{/* Header */}
@@ -122,6 +134,12 @@ export default function CategoryDetailPage() {
 			<div className="card p-4 space-y-1">
 				<div className="text-sm font-semibold text-heading">
 					{t('categoryDetail.thisWeek', { count: currentCount })}
+					{daysElapsed < 7 && (
+						<span className="text-xs font-normal text-label">
+							{' '}
+							({t('categoryDetail.partialWeek', { day: daysElapsed })})
+						</span>
+					)}
 				</div>
 				<div className="text-xs text-label">{t('categoryDetail.baselineAvg', { avg: avgFormatted })}</div>
 				{!isStable && (
@@ -130,6 +148,12 @@ export default function CategoryDetailPage() {
 							{changeText}
 						</span>
 						{deltaEventsText && <span className="text-xs text-label">{deltaEventsText}</span>}
+						{daysElapsed < 7 && <span className="text-[10px] text-label">{t('categoryDetail.projected')}</span>}
+					</div>
+				)}
+				{daysElapsed < 7 && (
+					<div className="text-[11px] text-[var(--text-tertiary)]">
+						{t('categoryDetail.currentlyLabel', { change: actualChangeText })}
 					</div>
 				)}
 			</div>
@@ -146,7 +170,6 @@ export default function CategoryDetailPage() {
 			{/* Week history grid */}
 			<WeekHistoryGrid
 				weeks={weekHistoryData}
-				currentWeekIndex={weeklyStats.length - 1}
 				selectedWeekIndex={selectedWeekIndex}
 				sentiment={sentiment}
 				onSelectWeek={setSelectedWeekIndex}

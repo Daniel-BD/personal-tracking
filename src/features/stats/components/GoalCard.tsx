@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LineChart, Line, ResponsiveContainer, ReferenceLine, Dot } from 'recharts';
 import type { CategorySentiment } from '@/shared/lib/types';
+import { calcActualDeltaPercent, formatChangeText } from '../utils/stats-engine';
 
 const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
 	positive: 'var(--color-success)',
@@ -57,6 +58,9 @@ export default function GoalCard({
 		return `(${sign}${formatted} ${unit})`;
 	}, [isStable, currentCount, proratedBaseline, t]);
 
+	// Actual (non-prorated) comparison: current count vs full-week baseline
+	const actualChangeText = formatChangeText(calcActualDeltaPercent(currentCount, baselineAvg));
+
 	const avgFormatted = Number.isInteger(baselineAvg) ? baselineAvg.toString() : baselineAvg.toFixed(1);
 
 	return (
@@ -104,12 +108,19 @@ export default function GoalCard({
 			</div>
 
 			{/* 3. Primary change metric */}
-			<div className="mt-1 flex items-baseline gap-1.5">
-				<span className="text-lg font-bold" style={{ color: isStable ? undefined : color }}>
-					{changeText}
-				</span>
-				{deltaEvents && <span className="text-[10px] text-label">{deltaEvents}</span>}
-				{!isStable && daysElapsed < 7 && <span className="text-[10px] text-label">{t('goalCard.vsPace')}</span>}
+			<div className="mt-1 space-y-0.5">
+				<div className="flex items-baseline gap-1.5">
+					<span className="text-lg font-bold" style={{ color: isStable ? undefined : color }}>
+						{changeText}
+					</span>
+					{deltaEvents && <span className="text-[10px] text-label">{deltaEvents}</span>}
+					{!isStable && daysElapsed < 7 && <span className="text-[10px] text-label">{t('goalCard.projected')}</span>}
+				</div>
+				{daysElapsed < 7 && (
+					<div className="text-[10px] text-[var(--text-tertiary)]">
+						{t('goalCard.currentlyLabel', { change: actualChangeText })}
+					</div>
+				)}
 			</div>
 
 			{/* 4. Sparkline */}
