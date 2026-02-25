@@ -63,16 +63,7 @@ export default function CategoryTrendChart({
 			{/* Line chart */}
 			<div className="h-48 w-full -mx-2">
 				<ResponsiveContainer width="100%" height="100%">
-					<LineChart
-						data={chartData}
-						margin={{ top: 24, right: 16, left: 8, bottom: 4 }}
-						onClick={(state) => {
-							const idx = typeof state?.activeTooltipIndex === 'number' ? state.activeTooltipIndex : null;
-							if (idx !== null) {
-								onSelectWeek(idx === selectedWeekIndex ? null : idx);
-							}
-						}}
-					>
+					<LineChart data={chartData} margin={{ top: 24, right: 16, left: 8, bottom: 4 }}>
 						<XAxis
 							dataKey="label"
 							tickLine={false}
@@ -94,7 +85,15 @@ export default function CategoryTrendChart({
 								const isLast = index === weeks.length - 1;
 								const r = isSelected || isLast ? 5 : 3;
 								return (
-									<g>
+									<g
+										onClick={(e) => {
+											e.stopPropagation();
+											onSelectWeek(isSelected ? null : index);
+										}}
+										style={{ cursor: 'pointer' }}
+									>
+										{/* Invisible touch target */}
+										<circle cx={cx} cy={cy} r={20} fill="transparent" />
 										<Dot
 											cx={cx}
 											cy={cy}

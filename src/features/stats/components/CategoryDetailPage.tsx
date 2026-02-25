@@ -167,7 +167,6 @@ export default function CategoryDetailPage() {
 			{/* Week history grid */}
 			<WeekHistoryGrid
 				weeks={weekHistoryData}
-				currentWeekIndex={weeklyStats.length - 1}
 				selectedWeekIndex={selectedWeekIndex}
 				sentiment={sentiment}
 				onSelectWeek={setSelectedWeekIndex}
