@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LineChart, Line, ResponsiveContainer, ReferenceLine, Dot } from 'recharts';
 import type { CategorySentiment } from '@/shared/lib/types';
+import { calcActualDeltaPercent, formatChangeText } from '../utils/stats-engine';
 
 const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
 	positive: 'var(--color-success)',
@@ -58,11 +59,7 @@ export default function GoalCard({
 	}, [isStable, currentCount, proratedBaseline, t]);
 
 	// Actual (non-prorated) comparison: current count vs full-week baseline
-	const actualDelta = currentCount - baselineAvg;
-	const actualDeltaPercent = baselineAvg === 0 ? (currentCount > 0 ? 1 : 0) : actualDelta / baselineAvg;
-	const actualAbsPercent = Math.round(Math.abs(actualDeltaPercent) * 100);
-	const actualSign = actualDeltaPercent > 0 ? '+' : '−';
-	const actualChangeText = `${actualSign}${actualAbsPercent}%`;
+	const actualChangeText = formatChangeText(calcActualDeltaPercent(currentCount, baselineAvg));
 
 	const avgFormatted = Number.isInteger(baselineAvg) ? baselineAvg.toString() : baselineAvg.toFixed(1);
 

@@ -6,7 +6,13 @@ import { useTrackerData } from '@/shared/store/hooks';
 import { formatDateLocal } from '@/shared/lib/date-utils';
 import type { CategorySentiment } from '@/shared/lib/types';
 import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking';
-import { getLastNWeeks, getDaysElapsedInCurrentWeek, getWeekNumber } from '../utils/stats-engine';
+import {
+	getLastNWeeks,
+	getDaysElapsedInCurrentWeek,
+	getWeekNumber,
+	calcActualDeltaPercent,
+	formatChangeText,
+} from '../utils/stats-engine';
 import CategoryTrendChart from './CategoryTrendChart';
 import WeekHistoryGrid from './WeekHistoryGrid';
 
@@ -66,8 +72,7 @@ export default function CategoryDetailPage() {
 	const isStable = Math.abs(deltaPercent) < 0.1;
 
 	// Actual (non-prorated) comparison: current count vs full-week baseline
-	const actualDelta = currentCount - baselineAvg;
-	const actualDeltaPercent = baselineAvg === 0 ? (currentCount > 0 ? 1 : 0) : actualDelta / baselineAvg;
+	const actualDeltaPercent = calcActualDeltaPercent(currentCount, baselineAvg);
 
 	const sentiment = category?.sentiment ?? 'neutral';
 	const color = SENTIMENT_COLORS[sentiment];
@@ -107,9 +112,7 @@ export default function CategoryDetailPage() {
 	const deltaEventsText = isStable ? null : `(${changeSign}${deltaFormatted} ${deltaUnit})`;
 
 	// Actual change text (non-prorated)
-	const actualAbsPercent = Math.round(Math.abs(actualDeltaPercent) * 100);
-	const actualSign = actualDeltaPercent > 0 ? '+' : '\u2212';
-	const actualChangeText = `${actualSign}${actualAbsPercent}%`;
+	const actualChangeText = formatChangeText(actualDeltaPercent);
 
 	return (
 		<div className="space-y-6 pb-4">
