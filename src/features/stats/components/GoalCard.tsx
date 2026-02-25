@@ -57,6 +57,13 @@ export default function GoalCard({
 		return `(${sign}${formatted} ${unit})`;
 	}, [isStable, currentCount, proratedBaseline, t]);
 
+	// Actual (non-prorated) comparison: current count vs full-week baseline
+	const actualDelta = currentCount - baselineAvg;
+	const actualDeltaPercent = baselineAvg === 0 ? (currentCount > 0 ? 1 : 0) : actualDelta / baselineAvg;
+	const actualAbsPercent = Math.round(Math.abs(actualDeltaPercent) * 100);
+	const actualSign = actualDeltaPercent > 0 ? '+' : '−';
+	const actualChangeText = `${actualSign}${actualAbsPercent}%`;
+
 	const avgFormatted = Number.isInteger(baselineAvg) ? baselineAvg.toString() : baselineAvg.toFixed(1);
 
 	return (
@@ -104,12 +111,19 @@ export default function GoalCard({
 			</div>
 
 			{/* 3. Primary change metric */}
-			<div className="mt-1 flex items-baseline gap-1.5">
-				<span className="text-lg font-bold" style={{ color: isStable ? undefined : color }}>
-					{changeText}
-				</span>
-				{deltaEvents && <span className="text-[10px] text-label">{deltaEvents}</span>}
-				{!isStable && daysElapsed < 7 && <span className="text-[10px] text-label">{t('goalCard.vsPace')}</span>}
+			<div className="mt-1 space-y-0.5">
+				<div className="flex items-baseline gap-1.5">
+					<span className="text-lg font-bold" style={{ color: isStable ? undefined : color }}>
+						{changeText}
+					</span>
+					{deltaEvents && <span className="text-[10px] text-label">{deltaEvents}</span>}
+					{!isStable && daysElapsed < 7 && <span className="text-[10px] text-label">{t('goalCard.projected')}</span>}
+				</div>
+				{daysElapsed < 7 && (
+					<div className="text-[10px] text-[var(--text-tertiary)]">
+						{t('goalCard.currentlyLabel', { change: actualChangeText })}
+					</div>
+				)}
 			</div>
 
 			{/* 4. Sparkline */}

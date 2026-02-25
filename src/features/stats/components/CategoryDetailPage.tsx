@@ -65,6 +65,10 @@ export default function CategoryDetailPage() {
 	const deltaPercent = proratedBaseline === 0 ? (currentCount > 0 ? 1 : 0) : delta / proratedBaseline;
 	const isStable = Math.abs(deltaPercent) < 0.1;
 
+	// Actual (non-prorated) comparison: current count vs full-week baseline
+	const actualDelta = currentCount - baselineAvg;
+	const actualDeltaPercent = baselineAvg === 0 ? (currentCount > 0 ? 1 : 0) : actualDelta / baselineAvg;
+
 	const sentiment = category?.sentiment ?? 'neutral';
 	const color = SENTIMENT_COLORS[sentiment];
 
@@ -102,6 +106,11 @@ export default function CategoryDetailPage() {
 	const deltaUnit = t('categoryDetail.event', { count: Math.round(deltaRaw) });
 	const deltaEventsText = isStable ? null : `(${changeSign}${deltaFormatted} ${deltaUnit})`;
 
+	// Actual change text (non-prorated)
+	const actualAbsPercent = Math.round(Math.abs(actualDeltaPercent) * 100);
+	const actualSign = actualDeltaPercent > 0 ? '+' : '\u2212';
+	const actualChangeText = `${actualSign}${actualAbsPercent}%`;
+
 	return (
 		<div className="space-y-6 pb-4">
 			{/* Header */}
@@ -122,6 +131,12 @@ export default function CategoryDetailPage() {
 			<div className="card p-4 space-y-1">
 				<div className="text-sm font-semibold text-heading">
 					{t('categoryDetail.thisWeek', { count: currentCount })}
+					{daysElapsed < 7 && (
+						<span className="text-xs font-normal text-label">
+							{' '}
+							({t('categoryDetail.partialWeek', { day: daysElapsed })})
+						</span>
+					)}
 				</div>
 				<div className="text-xs text-label">{t('categoryDetail.baselineAvg', { avg: avgFormatted })}</div>
 				{!isStable && (
@@ -130,6 +145,12 @@ export default function CategoryDetailPage() {
 							{changeText}
 						</span>
 						{deltaEventsText && <span className="text-xs text-label">{deltaEventsText}</span>}
+						{daysElapsed < 7 && <span className="text-[10px] text-label">{t('categoryDetail.projected')}</span>}
+					</div>
+				)}
+				{daysElapsed < 7 && (
+					<div className="text-[11px] text-[var(--text-tertiary)]">
+						{t('categoryDetail.currentlyLabel', { change: actualChangeText })}
 					</div>
 				)}
 			</div>
