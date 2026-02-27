@@ -27,7 +27,13 @@ import {
 	backupToGist,
 	restoreFromBackupGist,
 } from '../store';
-import { pendingDeletions, clearPendingDeletions, filterPendingDeletions, mergeTrackerData } from '../sync';
+import {
+	pendingDeletions,
+	clearPendingDeletions,
+	clearConfirmedDeletions,
+	filterPendingDeletions,
+	mergeTrackerData,
+} from '../sync';
 import { getConfig, isConfigured, fetchGist, updateGist } from '@/shared/lib/github';
 
 /** Advance the debounce timer (500ms) and flush async push operations. */
@@ -317,6 +323,132 @@ describe('gist sync', () => {
 			const entryIds = pushedData.entries.map((e) => e.id);
 			expect(entryIds).toContain('e-keep');
 			expect(entryIds).not.toContain('e-delete');
+		});
+
+		it('does not restore deleted entry when manual sync fetches stale remote after push', async () => {
+			// Regression test for the exact reported bug:
+			// 1. Delete entry → push fires (fetchGist returns stale remote that still has it)
+			//    Old code: clearPendingDeletions() → pendingDeletions cleared
+			// 2. User presses sync button → loadFromGist (fetchGist returns stale remote again)
+			//    Old code: pendingDeletions is empty → deleted entry gets merged back in (BUG)
+			//    New code: pendingDeletions still has the ID → entry filtered out (FIXED)
+
+			(isConfigured as Mock).mockReturnValue(false);
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodItems: [{ id: 'item1', name: 'Apple', categories: [] }],
+						entries: [
+							{
+								id: 'e-keep',
+								type: 'food' as const,
+								itemId: 'item1',
+								date: '2025-01-15',
+								time: null,
+								notes: null,
+								categoryOverrides: null,
+							},
+							{
+								id: 'e-delete',
+								type: 'food' as const,
+								itemId: 'item1',
+								date: '2025-01-16',
+								time: null,
+								notes: null,
+								categoryOverrides: null,
+							},
+						],
+					}),
+				),
+			);
+			vi.clearAllMocks();
+			vi.clearAllTimers();
+			(isConfigured as Mock).mockReturnValue(true);
+			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
+
+			// During the push, remote is STALE — still has the deleted entry
+			const staleRemote = makeValidData({
+				foodItems: [{ id: 'item1', name: 'Apple', categories: [] }],
+				entries: [
+					{
+						id: 'e-keep',
+						type: 'food' as const,
+						itemId: 'item1',
+						date: '2025-01-15',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
+					{
+						id: 'e-delete',
+						type: 'food' as const,
+						itemId: 'item1',
+						date: '2025-01-16',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
+				],
+			});
+			(fetchGist as Mock).mockResolvedValueOnce(staleRemote); // push's fetch
+			(updateGist as Mock).mockResolvedValueOnce(undefined); // push's update
+
+			deleteEntry('e-delete');
+			await flushDebouncedSync(); // push completes, but stale remote → pendingDeletion preserved
+
+			// Pending deletion for e-delete must still be tracked (remote was stale)
+			expect(pendingDeletions.entries.has('e-delete')).toBe(true);
+
+			// User presses sync button — GitHub STILL returns stale data
+			(fetchGist as Mock).mockResolvedValueOnce(staleRemote); // manual sync's fetch
+			(updateGist as Mock).mockResolvedValueOnce(undefined);
+
+			await loadFromGist();
+
+			// Deleted entry must NOT come back despite stale remote
+			const snapshot = dataStore.getSnapshot();
+			expect(snapshot.entries.map((e) => e.id)).not.toContain('e-delete');
+			expect(snapshot.entries.map((e) => e.id)).toContain('e-keep');
+		});
+
+		it('clears pendingDeletion once remote confirms item is gone', async () => {
+			// When remote returns fresh data (no longer has the deleted item),
+			// the pending deletion should be cleared — no stale bookkeeping.
+
+			(isConfigured as Mock).mockReturnValue(false);
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodItems: [{ id: 'item1', name: 'Apple', categories: [] }],
+						entries: [
+							{
+								id: 'e-delete',
+								type: 'food' as const,
+								itemId: 'item1',
+								date: '2025-01-16',
+								time: null,
+								notes: null,
+								categoryOverrides: null,
+							},
+						],
+					}),
+				),
+			);
+			vi.clearAllMocks();
+			vi.clearAllTimers();
+			(isConfigured as Mock).mockReturnValue(true);
+			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
+
+			// Push's fetchGist returns fresh remote (item never existed on remote)
+			const freshRemote = makeValidData({ foodItems: [{ id: 'item1', name: 'Apple', categories: [] }] });
+			(fetchGist as Mock).mockResolvedValueOnce(freshRemote);
+			(updateGist as Mock).mockResolvedValueOnce(undefined);
+
+			deleteEntry('e-delete');
+			await flushDebouncedSync();
+
+			// Remote was fresh (no e-delete) → pendingDeletion should be cleared
+			expect(pendingDeletions.entries.has('e-delete')).toBe(false);
 		});
 
 		it('merges dashboard cards and respects pending deletions', async () => {
@@ -797,6 +929,73 @@ describe('gist sync', () => {
 			expect(fetchGist).toHaveBeenCalledTimes(2);
 			const snapshot = dataStore.getSnapshot();
 			expect(snapshot.foodItems.some((i) => i.name === 'New Item')).toBe(true);
+		});
+	});
+
+	// ── clearConfirmedDeletions ─────────────────────────────
+
+	describe('clearConfirmedDeletions', () => {
+		afterEach(() => {
+			clearPendingDeletions();
+		});
+
+		it('clears IDs not present in remote data', () => {
+			pendingDeletions.entries.add('gone-from-remote');
+			pendingDeletions.foodItems.add('item-gone');
+			const remote = makeValidData(); // empty — none of the IDs are in remote
+
+			clearConfirmedDeletions(remote);
+
+			expect(pendingDeletions.entries.has('gone-from-remote')).toBe(false);
+			expect(pendingDeletions.foodItems.has('item-gone')).toBe(false);
+		});
+
+		it('keeps IDs still present in remote data (stale response)', () => {
+			pendingDeletions.entries.add('still-in-remote');
+			pendingDeletions.foodItems.add('item-still-there');
+			const remote = makeValidData({
+				foodItems: [{ id: 'item-still-there', name: 'Apple', categories: [] }],
+				entries: [
+					{
+						id: 'still-in-remote',
+						type: 'food' as const,
+						itemId: 'item-still-there',
+						date: '2025-01-15',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
+				],
+			});
+
+			clearConfirmedDeletions(remote);
+
+			expect(pendingDeletions.entries.has('still-in-remote')).toBe(true);
+			expect(pendingDeletions.foodItems.has('item-still-there')).toBe(true);
+		});
+
+		it('persists updated pending deletions to localStorage', () => {
+			pendingDeletions.entries.add('gone');
+			pendingDeletions.entries.add('still-here');
+			const remote = makeValidData({
+				entries: [
+					{
+						id: 'still-here',
+						type: 'food' as const,
+						itemId: 'i1',
+						date: '2025-01-15',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
+				],
+			});
+
+			clearConfirmedDeletions(remote);
+
+			const stored = JSON.parse(localStorage.getItem('pending_deletions') ?? '{}');
+			expect(stored.entries ?? []).not.toContain('gone');
+			expect(stored.entries ?? []).toContain('still-here');
 		});
 	});
 

@@ -88,6 +88,53 @@ export function clearPendingDeletions(): void {
 }
 
 /**
+ * Selectively clear pending deletions for IDs confirmed absent from remote.
+ *
+ * Why this exists instead of clearPendingDeletions():
+ * After a successful push, GitHub's Gist API can still return the old (pre-delete)
+ * data for a short window due to caching. If we eagerly cleared all pendingDeletions
+ * after a push, a subsequent sync that hits stale cached data would find the deleted
+ * item in remote with no pendingDeletion to block it — restoring the item.
+ *
+ * By only clearing IDs that are NOT present in the fetched remote, we ensure:
+ * - Stale remote (item still there) → ID stays in pendingDeletions, merge keeps filtering it.
+ * - Fresh remote (item gone) → ID cleared from pendingDeletions, no unnecessary overhead.
+ */
+export function clearConfirmedDeletions(remote: TrackerData): void {
+	const remoteEntryIds = new Set(remote.entries.map((e) => e.id));
+	const remoteActivityItemIds = new Set(remote.activityItems.map((i) => i.id));
+	const remoteFoodItemIds = new Set(remote.foodItems.map((i) => i.id));
+	const remoteActivityCatIds = new Set(remote.activityCategories.map((c) => c.id));
+	const remoteFoodCatIds = new Set(remote.foodCategories.map((c) => c.id));
+	const remoteDashboardCardIds = new Set((remote.dashboardCards || []).map((c) => c.categoryId));
+	const remoteFavoriteIds = new Set(remote.favoriteItems || []);
+
+	for (const id of Array.from(pendingDeletions.entries)) {
+		if (!remoteEntryIds.has(id)) pendingDeletions.entries.delete(id);
+	}
+	for (const id of Array.from(pendingDeletions.activityItems)) {
+		if (!remoteActivityItemIds.has(id)) pendingDeletions.activityItems.delete(id);
+	}
+	for (const id of Array.from(pendingDeletions.foodItems)) {
+		if (!remoteFoodItemIds.has(id)) pendingDeletions.foodItems.delete(id);
+	}
+	for (const id of Array.from(pendingDeletions.activityCategories)) {
+		if (!remoteActivityCatIds.has(id)) pendingDeletions.activityCategories.delete(id);
+	}
+	for (const id of Array.from(pendingDeletions.foodCategories)) {
+		if (!remoteFoodCatIds.has(id)) pendingDeletions.foodCategories.delete(id);
+	}
+	for (const id of Array.from(pendingDeletions.dashboardCards)) {
+		if (!remoteDashboardCardIds.has(id)) pendingDeletions.dashboardCards.delete(id);
+	}
+	for (const id of Array.from(pendingDeletions.favoriteItems)) {
+		if (!remoteFavoriteIds.has(id)) pendingDeletions.favoriteItems.delete(id);
+	}
+
+	persistPendingDeletions();
+}
+
+/**
  * Actively remove any items whose IDs are in pendingDeletions.
  * Applied at load time (loadFromLocalStorage) as defense-in-depth:
  * even if a previous setData() call somehow wrote deleted items back
@@ -203,7 +250,10 @@ export async function pushToGist(
 		const mergedData = mergeTrackerData(localData, remoteData);
 		setData(mergedData);
 		await updateGist(config.gistId, config.token, mergedData);
-		clearPendingDeletions();
+		// Only clear pending deletions for IDs confirmed absent from remote.
+		// If GitHub returns stale cached data (item still present), keep the ID in
+		// pendingDeletions so subsequent syncs continue to filter it correctly.
+		clearConfirmedDeletions(remoteData);
 		setSyncStatus('idle');
 	} catch (error) {
 		console.error('Failed to sync to Gist:', error);
@@ -230,8 +280,10 @@ export async function loadFromGistFn(
 		const mergedData = mergeTrackerData(localData, remoteData);
 		setData(mergedData);
 		await updateGist(config.gistId, config.token, mergedData);
-		// Don't clear pendingDeletions here — only pushToGist should clear them.
-		// A queued push may still need them if its fetchGist returns stale data.
+		// Selectively clear pending deletions for IDs confirmed absent from remote.
+		// A queued push may still need them if its fetchGist returns stale data,
+		// but IDs not present in remote are safe to clear now.
+		clearConfirmedDeletions(remoteData);
 		setSyncStatus('idle');
 	} catch (error) {
 		console.error('Failed to load from Gist:', error);
