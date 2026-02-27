@@ -22,6 +22,7 @@ import {
 	pendingDeletions,
 	persistPendingDeletions,
 	clearPendingDeletions,
+	filterPendingDeletions,
 	pushToGist,
 	loadFromGistFn,
 	backupToGistFn,
@@ -39,7 +40,9 @@ function loadFromLocalStorage(): TrackerData {
 	if (stored) {
 		try {
 			const data = JSON.parse(stored) as TrackerData;
-			return initializeDefaultDashboardCards(migrateData(data));
+			// Filter pending deletions at load time — if a sync wrote deleted items back
+			// to localStorage before the push completed, this ensures they stay deleted.
+			return filterPendingDeletions(initializeDefaultDashboardCards(migrateData(data)));
 		} catch {
 			return createEmptyData();
 		}
