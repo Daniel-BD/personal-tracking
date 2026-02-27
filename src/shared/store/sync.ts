@@ -88,6 +88,28 @@ export function clearPendingDeletions(): void {
 }
 
 /**
+ * Actively remove any items whose IDs are in pendingDeletions.
+ * Applied at load time (loadFromLocalStorage) as defense-in-depth:
+ * even if a previous setData() call somehow wrote deleted items back
+ * to localStorage, this ensures they're filtered out on the next load.
+ */
+export function filterPendingDeletions(data: TrackerData): TrackerData {
+	if (PENDING_DELETION_KEYS.every((key) => pendingDeletions[key].size === 0)) {
+		return data;
+	}
+	return {
+		...data,
+		entries: data.entries.filter((e) => !pendingDeletions.entries.has(e.id)),
+		activityItems: data.activityItems.filter((i) => !pendingDeletions.activityItems.has(i.id)),
+		foodItems: data.foodItems.filter((i) => !pendingDeletions.foodItems.has(i.id)),
+		activityCategories: data.activityCategories.filter((c) => !pendingDeletions.activityCategories.has(c.id)),
+		foodCategories: data.foodCategories.filter((c) => !pendingDeletions.foodCategories.has(c.id)),
+		dashboardCards: (data.dashboardCards || []).filter((c) => !pendingDeletions.dashboardCards.has(c.categoryId)),
+		favoriteItems: (data.favoriteItems || []).filter((id) => !pendingDeletions.favoriteItems.has(id)),
+	};
+}
+
+/**
  * Merges two TrackerData objects to prevent data loss from stale tabs.
  * Strategy: Union of all items by ID, with local taking precedence for conflicts.
  * Respects pending deletions - items deleted locally won't be restored from remote.
@@ -106,8 +128,12 @@ export function mergeTrackerData(local: TrackerData, remote: TrackerData): Track
 		}
 	});
 
-	// Local cards take precedence
-	localCards.forEach((c) => cardMap.set(c.categoryId, c));
+	// Local cards take precedence, but also filter pending deletions
+	localCards.forEach((c) => {
+		if (!pendingDeletions.dashboardCards.has(c.categoryId)) {
+			cardMap.set(c.categoryId, c);
+		}
+	});
 
 	const mergedActivityItems = mergeById(local.activityItems, remote.activityItems, pendingDeletions.activityItems);
 	const mergedFoodItems = mergeById(local.foodItems, remote.foodItems, pendingDeletions.foodItems);
@@ -115,7 +141,7 @@ export function mergeTrackerData(local: TrackerData, remote: TrackerData): Track
 	// Merge favorites: union of both sets, filtered to only existing merged items.
 	// Respects pending deletions — items unfavorited locally won't be restored from remote.
 	const mergedItemIds = new Set([...mergedActivityItems.map((i) => i.id), ...mergedFoodItems.map((i) => i.id)]);
-	const favSet = new Set([...(local.favoriteItems || [])]);
+	const favSet = new Set((local.favoriteItems || []).filter((id) => !pendingDeletions.favoriteItems.has(id)));
 	for (const id of remote.favoriteItems || []) {
 		if (!pendingDeletions.favoriteItems.has(id)) {
 			favSet.add(id);
@@ -141,7 +167,10 @@ export function mergeTrackerData(local: TrackerData, remote: TrackerData): Track
 
 function mergeById<T extends { id: string }>(local: T[], remote: T[], excludeIds: Set<string>): T[] {
 	const localMap = new Map(local.map((item) => [item.id, item]));
-	const merged = [...local];
+	// Filter pending deletions from BOTH local and remote — defense-in-depth.
+	// Normally local shouldn't contain deleted items, but this guards against
+	// edge cases where a setData() call wrote them back before the push completed.
+	const merged = excludeIds.size > 0 ? local.filter((item) => !excludeIds.has(item.id)) : [...local];
 
 	for (const remoteItem of remote) {
 		if (!localMap.has(remoteItem.id) && !excludeIds.has(remoteItem.id)) {
@@ -201,7 +230,8 @@ export async function loadFromGistFn(
 		const mergedData = mergeTrackerData(localData, remoteData);
 		setData(mergedData);
 		await updateGist(config.gistId, config.token, mergedData);
-		clearPendingDeletions();
+		// Don't clear pendingDeletions here — only pushToGist should clear them.
+		// A queued push may still need them if its fetchGist returns stale data.
 		setSyncStatus('idle');
 	} catch (error) {
 		console.error('Failed to load from Gist:', error);

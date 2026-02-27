@@ -23,10 +23,11 @@ import {
 	addCategory,
 	deleteItem,
 	deleteEntry,
+	removeDashboardCard,
 	backupToGist,
 	restoreFromBackupGist,
 } from '../store';
-import { pendingDeletions, clearPendingDeletions } from '../sync';
+import { pendingDeletions, clearPendingDeletions, filterPendingDeletions, mergeTrackerData } from '../sync';
 import { getConfig, isConfigured, fetchGist, updateGist } from '@/shared/lib/github';
 
 /** Advance the debounce timer (500ms) and flush async push operations. */
@@ -590,6 +591,474 @@ describe('gist sync', () => {
 			const ids = snapshot.foodItems.map((i) => i.id);
 			expect(ids).toContain('keep-me');
 			expect(ids).not.toContain('delete-me');
+		});
+	});
+
+	// ── Concurrent load + push serialization ────────────────
+
+	describe('concurrent load and push serialization', () => {
+		it('delete during in-flight loadFromGist does not restore deleted item', async () => {
+			// This test reproduces the race condition:
+			// 1. loadFromGist starts (slow fetch)
+			// 2. User deletes an item → triggers push
+			// 3. Without serialization, push could clear pendingDeletions
+			//    before load finishes, causing load to restore the deleted item
+
+			(isConfigured as Mock).mockReturnValue(false);
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodItems: [
+							{ id: 'keep-me', name: 'Keeper', categories: [] },
+							{ id: 'delete-me', name: 'Doomed', categories: [] },
+						],
+						entries: [
+							{
+								id: 'e-keep',
+								type: 'food' as const,
+								itemId: 'keep-me',
+								date: '2025-01-15',
+								time: null,
+								notes: null,
+								categoryOverrides: null,
+							},
+							{
+								id: 'e-delete',
+								type: 'food' as const,
+								itemId: 'delete-me',
+								date: '2025-01-15',
+								time: null,
+								notes: null,
+								categoryOverrides: null,
+							},
+						],
+					}),
+				),
+			);
+			vi.clearAllMocks();
+			vi.clearAllTimers();
+			(isConfigured as Mock).mockReturnValue(true);
+			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
+
+			// Remote has the same data (synced state before the delete)
+			const remoteData = makeValidData({
+				foodItems: [
+					{ id: 'keep-me', name: 'Keeper', categories: [] },
+					{ id: 'delete-me', name: 'Doomed', categories: [] },
+				],
+				entries: [
+					{
+						id: 'e-keep',
+						type: 'food' as const,
+						itemId: 'keep-me',
+						date: '2025-01-15',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
+					{
+						id: 'e-delete',
+						type: 'food' as const,
+						itemId: 'delete-me',
+						date: '2025-01-15',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
+				],
+			});
+
+			// loadFromGist's fetch resolves slowly (controlled by us)
+			let resolveLoadFetch!: (value: TrackerData) => void;
+			const slowLoadFetch = new Promise<TrackerData>((resolve) => {
+				resolveLoadFetch = resolve;
+			});
+			(fetchGist as Mock).mockReturnValueOnce(slowLoadFetch);
+
+			// Start loadFromGist (simulates app init — does not await)
+			const loadPromise = loadFromGist();
+
+			// User deletes while load is in-flight
+			deleteItem('food', 'delete-me');
+
+			// Advance past debounce — push should be queued (not concurrent)
+			// because loadFromGist holds activeSync
+			(fetchGist as Mock).mockResolvedValueOnce(remoteData);
+			(updateGist as Mock).mockResolvedValue(undefined);
+			await vi.advanceTimersByTimeAsync(500);
+
+			// Now resolve the slow load fetch
+			resolveLoadFetch(remoteData);
+			await loadPromise;
+
+			// Drain any queued push
+			await vi.advanceTimersByTimeAsync(500);
+
+			// The deleted item must NOT have been restored
+			const snapshot = dataStore.getSnapshot();
+			const itemIds = snapshot.foodItems.map((i) => i.id);
+			expect(itemIds).toContain('keep-me');
+			expect(itemIds).not.toContain('delete-me');
+
+			const entryIds = snapshot.entries.map((e) => e.id);
+			expect(entryIds).toContain('e-keep');
+			expect(entryIds).not.toContain('e-delete');
+		});
+
+		it('delete dashboard card during in-flight loadFromGist does not restore card', async () => {
+			(isConfigured as Mock).mockReturnValue(false);
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodCategories: [
+							{ id: 'cat1', name: 'Fruit', sentiment: 'positive' },
+							{ id: 'cat2', name: 'Veggies', sentiment: 'positive' },
+						],
+						dashboardCards: [
+							{ categoryId: 'cat1', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
+							{ categoryId: 'cat2', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
+						],
+					}),
+				),
+			);
+			vi.clearAllMocks();
+			vi.clearAllTimers();
+			(isConfigured as Mock).mockReturnValue(true);
+			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
+
+			const remoteData = makeValidData({
+				foodCategories: [
+					{ id: 'cat1', name: 'Fruit', sentiment: 'positive' },
+					{ id: 'cat2', name: 'Veggies', sentiment: 'positive' },
+				],
+				dashboardCards: [
+					{ categoryId: 'cat1', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
+					{ categoryId: 'cat2', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
+				],
+			});
+
+			// Slow load fetch
+			let resolveLoadFetch!: (value: TrackerData) => void;
+			(fetchGist as Mock).mockReturnValueOnce(
+				new Promise<TrackerData>((resolve) => {
+					resolveLoadFetch = resolve;
+				}),
+			);
+
+			const loadPromise = loadFromGist();
+
+			// User removes dashboard card while load is in-flight
+			removeDashboardCard('cat2');
+
+			(fetchGist as Mock).mockResolvedValueOnce(remoteData);
+			(updateGist as Mock).mockResolvedValue(undefined);
+			await vi.advanceTimersByTimeAsync(500);
+
+			resolveLoadFetch(remoteData);
+			await loadPromise;
+
+			await vi.advanceTimersByTimeAsync(500);
+
+			const snapshot = dataStore.getSnapshot();
+			const cardIds = (snapshot.dashboardCards || []).map((c) => c.categoryId);
+			expect(cardIds).toContain('cat1');
+			expect(cardIds).not.toContain('cat2');
+		});
+
+		it('push queued during load runs after load completes', async () => {
+			(isConfigured as Mock).mockReturnValue(true);
+
+			let resolveLoadFetch!: (value: TrackerData) => void;
+			(fetchGist as Mock).mockReturnValueOnce(
+				new Promise<TrackerData>((resolve) => {
+					resolveLoadFetch = resolve;
+				}),
+			);
+			(updateGist as Mock).mockResolvedValue(undefined);
+
+			const loadPromise = loadFromGist();
+
+			// Add item while load is in-flight — triggers push
+			addItem('food', 'New Item', []);
+			await vi.advanceTimersByTimeAsync(500);
+
+			// Push should NOT have called fetchGist again yet (it's queued behind load)
+			expect(fetchGist).toHaveBeenCalledTimes(1); // Only the load's fetch
+
+			// Resolve load
+			(fetchGist as Mock).mockResolvedValueOnce(makeValidData());
+			resolveLoadFetch(makeValidData());
+			await loadPromise;
+
+			// Drain queued push
+			await vi.advanceTimersByTimeAsync(500);
+
+			// Now the push should have run (its own fetchGist call)
+			expect(fetchGist).toHaveBeenCalledTimes(2);
+			const snapshot = dataStore.getSnapshot();
+			expect(snapshot.foodItems.some((i) => i.name === 'New Item')).toBe(true);
+		});
+	});
+
+	// ── filterPendingDeletions ──────────────────────────────
+
+	describe('filterPendingDeletions', () => {
+		afterEach(() => {
+			clearPendingDeletions();
+		});
+
+		it('returns data unchanged when no pending deletions exist', () => {
+			const data = makeValidData({
+				entries: [
+					{
+						id: 'e1',
+						type: 'food',
+						itemId: 'i1',
+						date: '2025-01-15',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
+				],
+				foodItems: [{ id: 'i1', name: 'Apple', categories: [] }],
+			});
+			const result = filterPendingDeletions(data);
+			expect(result).toBe(data); // Same reference — no filtering needed
+		});
+
+		it('filters entries matching pending deletions', () => {
+			pendingDeletions.entries.add('e-delete');
+			const data = makeValidData({
+				entries: [
+					{
+						id: 'e-keep',
+						type: 'food',
+						itemId: 'i1',
+						date: '2025-01-15',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
+					{
+						id: 'e-delete',
+						type: 'food',
+						itemId: 'i1',
+						date: '2025-01-16',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
+				],
+			});
+			const result = filterPendingDeletions(data);
+			expect(result.entries).toHaveLength(1);
+			expect(result.entries[0].id).toBe('e-keep');
+		});
+
+		it('filters items matching pending deletions', () => {
+			pendingDeletions.foodItems.add('delete-me');
+			const data = makeValidData({
+				foodItems: [
+					{ id: 'keep-me', name: 'Keeper', categories: [] },
+					{ id: 'delete-me', name: 'Doomed', categories: [] },
+				],
+			});
+			const result = filterPendingDeletions(data);
+			expect(result.foodItems).toHaveLength(1);
+			expect(result.foodItems[0].id).toBe('keep-me');
+		});
+
+		it('filters dashboard cards matching pending deletions', () => {
+			pendingDeletions.dashboardCards.add('cat-delete');
+			const data = makeValidData({
+				dashboardCards: [
+					{ categoryId: 'cat-keep', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
+					{ categoryId: 'cat-delete', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
+				],
+			});
+			const result = filterPendingDeletions(data);
+			expect(result.dashboardCards).toHaveLength(1);
+			expect(result.dashboardCards![0].categoryId).toBe('cat-keep');
+		});
+
+		it('filters favorites matching pending deletions', () => {
+			pendingDeletions.favoriteItems.add('fav-delete');
+			const data = makeValidData({
+				favoriteItems: ['fav-keep', 'fav-delete'],
+			});
+			const result = filterPendingDeletions(data);
+			expect(result.favoriteItems).toEqual(['fav-keep']);
+		});
+
+		it('filters categories matching pending deletions', () => {
+			pendingDeletions.activityCategories.add('cat-delete');
+			const data = makeValidData({
+				activityCategories: [
+					{ id: 'cat-keep', name: 'Keep', sentiment: 'neutral' as const },
+					{ id: 'cat-delete', name: 'Delete', sentiment: 'neutral' as const },
+				],
+			});
+			const result = filterPendingDeletions(data);
+			expect(result.activityCategories).toHaveLength(1);
+			expect(result.activityCategories[0].id).toBe('cat-keep');
+		});
+	});
+
+	// ── mergeTrackerData filters local data ─────────────────
+
+	describe('mergeTrackerData filters pending deletions from local data', () => {
+		afterEach(() => {
+			clearPendingDeletions();
+		});
+
+		it('filters deleted entries from local data during merge', () => {
+			pendingDeletions.entries.add('e-delete');
+			const local = makeValidData({
+				entries: [
+					{
+						id: 'e-keep',
+						type: 'food',
+						itemId: 'i1',
+						date: '2025-01-15',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
+					{
+						id: 'e-delete',
+						type: 'food',
+						itemId: 'i1',
+						date: '2025-01-16',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
+				],
+			});
+			const remote = makeValidData();
+			const result = mergeTrackerData(local, remote);
+			expect(result.entries).toHaveLength(1);
+			expect(result.entries[0].id).toBe('e-keep');
+		});
+
+		it('filters deleted items from local data during merge', () => {
+			pendingDeletions.foodItems.add('delete-me');
+			const local = makeValidData({
+				foodItems: [
+					{ id: 'keep-me', name: 'Keeper', categories: [] },
+					{ id: 'delete-me', name: 'Doomed', categories: [] },
+				],
+			});
+			const remote = makeValidData();
+			const result = mergeTrackerData(local, remote);
+			expect(result.foodItems).toHaveLength(1);
+			expect(result.foodItems[0].id).toBe('keep-me');
+		});
+
+		it('filters deleted dashboard cards from local data during merge', () => {
+			pendingDeletions.dashboardCards.add('cat-delete');
+			const local = makeValidData({
+				dashboardCards: [
+					{ categoryId: 'cat-keep', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
+					{ categoryId: 'cat-delete', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
+				],
+			});
+			const remote = makeValidData();
+			const result = mergeTrackerData(local, remote);
+			expect(result.dashboardCards).toHaveLength(1);
+			expect(result.dashboardCards![0].categoryId).toBe('cat-keep');
+		});
+
+		it('filters deleted favorites from local data during merge', () => {
+			pendingDeletions.favoriteItems.add('fav-delete');
+			const local = makeValidData({
+				foodItems: [
+					{ id: 'fav-keep', name: 'Keep', categories: [] },
+					{ id: 'fav-delete', name: 'Delete', categories: [] },
+				],
+				favoriteItems: ['fav-keep', 'fav-delete'],
+			});
+			const remote = makeValidData({
+				foodItems: [
+					{ id: 'fav-keep', name: 'Keep', categories: [] },
+					{ id: 'fav-delete', name: 'Delete', categories: [] },
+				],
+			});
+			const result = mergeTrackerData(local, remote);
+			expect(result.favoriteItems).toEqual(['fav-keep']);
+		});
+
+		it('delete entry → simulated page reload → entry stays deleted after loadFromGist', async () => {
+			// This is the exact user scenario:
+			// 1. Delete entry
+			// 2. Refresh page (push never completed)
+			// 3. loadFromGist fetches remote with the entry
+			// 4. Entry must NOT come back
+
+			(isConfigured as Mock).mockReturnValue(false);
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodItems: [{ id: 'item1', name: 'Apple', categories: [] }],
+						entries: [
+							{
+								id: 'e1',
+								type: 'food' as const,
+								itemId: 'item1',
+								date: '2025-01-15',
+								time: null,
+								notes: null,
+								categoryOverrides: null,
+							},
+						],
+					}),
+				),
+			);
+			vi.clearAllMocks();
+			vi.clearAllTimers();
+
+			// Delete the entry (push will fail — simulating app close before push)
+			(isConfigured as Mock).mockReturnValue(true);
+			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
+			(fetchGist as Mock).mockRejectedValueOnce(new Error('Network error'));
+
+			deleteEntry('e1');
+			await vi.advanceTimersByTimeAsync(500);
+
+			// Verify entry is gone locally
+			expect(dataStore.getSnapshot().entries).toHaveLength(0);
+
+			// Verify pendingDeletions persisted
+			expect(localStorage.getItem('pending_deletions')).toBeTruthy();
+
+			// Simulate page reload: clear in-memory state, reload from localStorage
+			pendingDeletions.entries.clear();
+			const persisted = JSON.parse(localStorage.getItem('pending_deletions')!);
+			for (const id of persisted.entries || []) pendingDeletions.entries.add(id);
+
+			// Remote still has the deleted entry
+			const remoteData = makeValidData({
+				foodItems: [{ id: 'item1', name: 'Apple', categories: [] }],
+				entries: [
+					{
+						id: 'e1',
+						type: 'food' as const,
+						itemId: 'item1',
+						date: '2025-01-15',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
+				],
+			});
+			(fetchGist as Mock).mockResolvedValueOnce(remoteData);
+			(updateGist as Mock).mockResolvedValueOnce(undefined);
+
+			await loadFromGist();
+
+			// The deleted entry must NOT have come back
+			const snapshot = dataStore.getSnapshot();
+			expect(snapshot.entries.map((e) => e.id)).not.toContain('e1');
 		});
 	});
 
