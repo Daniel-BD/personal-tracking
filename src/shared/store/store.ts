@@ -118,7 +118,7 @@ export const syncStatusStore = {
 
 const PUSH_DEBOUNCE_MS = 500;
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
-let activePush: Promise<void> | null = null;
+let activeSync: Promise<void> | null = null;
 let pushQueued = false;
 
 function triggerPush(): void {
@@ -129,17 +129,17 @@ function triggerPush(): void {
 async function executePush(): Promise<void> {
 	pushTimer = null;
 
-	if (activePush) {
-		// A push is already in-flight — queue another after it finishes
+	if (activeSync) {
+		// A sync (push or load) is already in-flight — queue another push after it finishes
 		pushQueued = true;
 		return;
 	}
 
-	activePush = pushToGist(() => currentData, setData, setSyncStatus);
+	activeSync = pushToGist(() => currentData, setData, setSyncStatus);
 	try {
-		await activePush;
+		await activeSync;
 	} finally {
-		activePush = null;
+		activeSync = null;
 		if (pushQueued) {
 			pushQueued = false;
 			executePush();
@@ -156,7 +156,27 @@ export function flushPendingSync(): void {
 }
 
 export async function loadFromGist(): Promise<void> {
-	await loadFromGistFn(() => currentData, setData, setSyncStatus);
+	// Wait for any in-flight sync operation (push or load) to complete.
+	// This prevents concurrent operations that race on pendingDeletions,
+	// which can cause deleted items to reappear after merge.
+	while (activeSync) {
+		try {
+			await activeSync;
+		} catch {
+			// Ignore — we'll proceed with our load regardless
+		}
+	}
+
+	activeSync = loadFromGistFn(() => currentData, setData, setSyncStatus);
+	try {
+		await activeSync;
+	} finally {
+		activeSync = null;
+		if (pushQueued) {
+			pushQueued = false;
+			void executePush();
+		}
+	}
 }
 
 export async function forceRefresh(): Promise<void> {

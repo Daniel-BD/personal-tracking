@@ -24,7 +24,7 @@ Instead of React Context, the store uses a module-level singleton with `useSyncE
 
 ### Known Quirks
 
-- **Gist sync**: Fire-and-forget with merge logic. LocalStorage is always the source of truth. The store tracks `pendingDeletions` (by entity type) in `sync.ts` to prevent deleted items from being restored during merge.
+- **Gist sync**: Fire-and-forget with merge logic. LocalStorage is always the source of truth. The store tracks `pendingDeletions` (by entity type) in `sync.ts` to prevent deleted items from being restored during merge. All gist operations (`pushToGist` and `loadFromGistFn`) are serialized via a shared `activeSync` lock in `store.ts` to prevent concurrent operations from racing on `pendingDeletions`. Pushes queue behind loads; loads wait for in-flight pushes via a `while (activeSync)` loop.
 - **Dashboard initialization**: On first load, `initializeDefaultDashboardCards()` (in `migration.ts`) auto-creates dashboard cards for categories named "Fruit", "Vegetables", or "Sugary drinks" if they exist. Runs once (guarded by `dashboardInitialized` flag).
 
 ### Tests

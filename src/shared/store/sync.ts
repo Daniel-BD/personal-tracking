@@ -201,7 +201,8 @@ export async function loadFromGistFn(
 		const mergedData = mergeTrackerData(localData, remoteData);
 		setData(mergedData);
 		await updateGist(config.gistId, config.token, mergedData);
-		clearPendingDeletions();
+		// Don't clear pendingDeletions here — only pushToGist should clear them.
+		// A queued push may still need them if its fetchGist returns stale data.
 		setSyncStatus('idle');
 	} catch (error) {
 		console.error('Failed to load from Gist:', error);

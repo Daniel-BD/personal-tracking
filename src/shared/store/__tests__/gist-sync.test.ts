@@ -23,6 +23,7 @@ import {
 	addCategory,
 	deleteItem,
 	deleteEntry,
+	removeDashboardCard,
 	backupToGist,
 	restoreFromBackupGist,
 } from '../store';
@@ -590,6 +591,212 @@ describe('gist sync', () => {
 			const ids = snapshot.foodItems.map((i) => i.id);
 			expect(ids).toContain('keep-me');
 			expect(ids).not.toContain('delete-me');
+		});
+	});
+
+	// ── Concurrent load + push serialization ────────────────
+
+	describe('concurrent load and push serialization', () => {
+		it('delete during in-flight loadFromGist does not restore deleted item', async () => {
+			// This test reproduces the race condition:
+			// 1. loadFromGist starts (slow fetch)
+			// 2. User deletes an item → triggers push
+			// 3. Without serialization, push could clear pendingDeletions
+			//    before load finishes, causing load to restore the deleted item
+
+			(isConfigured as Mock).mockReturnValue(false);
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodItems: [
+							{ id: 'keep-me', name: 'Keeper', categories: [] },
+							{ id: 'delete-me', name: 'Doomed', categories: [] },
+						],
+						entries: [
+							{
+								id: 'e-keep',
+								type: 'food' as const,
+								itemId: 'keep-me',
+								date: '2025-01-15',
+								time: null,
+								notes: null,
+								categoryOverrides: null,
+							},
+							{
+								id: 'e-delete',
+								type: 'food' as const,
+								itemId: 'delete-me',
+								date: '2025-01-15',
+								time: null,
+								notes: null,
+								categoryOverrides: null,
+							},
+						],
+					}),
+				),
+			);
+			vi.clearAllMocks();
+			vi.clearAllTimers();
+			(isConfigured as Mock).mockReturnValue(true);
+			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
+
+			// Remote has the same data (synced state before the delete)
+			const remoteData = makeValidData({
+				foodItems: [
+					{ id: 'keep-me', name: 'Keeper', categories: [] },
+					{ id: 'delete-me', name: 'Doomed', categories: [] },
+				],
+				entries: [
+					{
+						id: 'e-keep',
+						type: 'food' as const,
+						itemId: 'keep-me',
+						date: '2025-01-15',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
+					{
+						id: 'e-delete',
+						type: 'food' as const,
+						itemId: 'delete-me',
+						date: '2025-01-15',
+						time: null,
+						notes: null,
+						categoryOverrides: null,
+					},
+				],
+			});
+
+			// loadFromGist's fetch resolves slowly (controlled by us)
+			let resolveLoadFetch!: (value: TrackerData) => void;
+			const slowLoadFetch = new Promise<TrackerData>((resolve) => {
+				resolveLoadFetch = resolve;
+			});
+			(fetchGist as Mock).mockReturnValueOnce(slowLoadFetch);
+
+			// Start loadFromGist (simulates app init — does not await)
+			const loadPromise = loadFromGist();
+
+			// User deletes while load is in-flight
+			deleteItem('food', 'delete-me');
+
+			// Advance past debounce — push should be queued (not concurrent)
+			// because loadFromGist holds activeSync
+			(fetchGist as Mock).mockResolvedValueOnce(remoteData);
+			(updateGist as Mock).mockResolvedValue(undefined);
+			await vi.advanceTimersByTimeAsync(500);
+
+			// Now resolve the slow load fetch
+			resolveLoadFetch(remoteData);
+			await loadPromise;
+
+			// Drain any queued push
+			await vi.advanceTimersByTimeAsync(500);
+
+			// The deleted item must NOT have been restored
+			const snapshot = dataStore.getSnapshot();
+			const itemIds = snapshot.foodItems.map((i) => i.id);
+			expect(itemIds).toContain('keep-me');
+			expect(itemIds).not.toContain('delete-me');
+
+			const entryIds = snapshot.entries.map((e) => e.id);
+			expect(entryIds).toContain('e-keep');
+			expect(entryIds).not.toContain('e-delete');
+		});
+
+		it('delete dashboard card during in-flight loadFromGist does not restore card', async () => {
+			(isConfigured as Mock).mockReturnValue(false);
+			importData(
+				JSON.stringify(
+					makeValidData({
+						foodCategories: [
+							{ id: 'cat1', name: 'Fruit', sentiment: 'positive' },
+							{ id: 'cat2', name: 'Veggies', sentiment: 'positive' },
+						],
+						dashboardCards: [
+							{ categoryId: 'cat1', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
+							{ categoryId: 'cat2', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
+						],
+					}),
+				),
+			);
+			vi.clearAllMocks();
+			vi.clearAllTimers();
+			(isConfigured as Mock).mockReturnValue(true);
+			(getConfig as Mock).mockReturnValue({ token: 'test-token', gistId: 'test-gist-id', backupGistId: null });
+
+			const remoteData = makeValidData({
+				foodCategories: [
+					{ id: 'cat1', name: 'Fruit', sentiment: 'positive' },
+					{ id: 'cat2', name: 'Veggies', sentiment: 'positive' },
+				],
+				dashboardCards: [
+					{ categoryId: 'cat1', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
+					{ categoryId: 'cat2', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const },
+				],
+			});
+
+			// Slow load fetch
+			let resolveLoadFetch!: (value: TrackerData) => void;
+			(fetchGist as Mock).mockReturnValueOnce(
+				new Promise<TrackerData>((resolve) => {
+					resolveLoadFetch = resolve;
+				}),
+			);
+
+			const loadPromise = loadFromGist();
+
+			// User removes dashboard card while load is in-flight
+			removeDashboardCard('cat2');
+
+			(fetchGist as Mock).mockResolvedValueOnce(remoteData);
+			(updateGist as Mock).mockResolvedValue(undefined);
+			await vi.advanceTimersByTimeAsync(500);
+
+			resolveLoadFetch(remoteData);
+			await loadPromise;
+
+			await vi.advanceTimersByTimeAsync(500);
+
+			const snapshot = dataStore.getSnapshot();
+			const cardIds = (snapshot.dashboardCards || []).map((c) => c.categoryId);
+			expect(cardIds).toContain('cat1');
+			expect(cardIds).not.toContain('cat2');
+		});
+
+		it('push queued during load runs after load completes', async () => {
+			(isConfigured as Mock).mockReturnValue(true);
+
+			let resolveLoadFetch!: (value: TrackerData) => void;
+			(fetchGist as Mock).mockReturnValueOnce(
+				new Promise<TrackerData>((resolve) => {
+					resolveLoadFetch = resolve;
+				}),
+			);
+			(updateGist as Mock).mockResolvedValue(undefined);
+
+			const loadPromise = loadFromGist();
+
+			// Add item while load is in-flight — triggers push
+			addItem('food', 'New Item', []);
+			await vi.advanceTimersByTimeAsync(500);
+
+			// Push should NOT have called fetchGist again yet (it's queued behind load)
+			expect(fetchGist).toHaveBeenCalledTimes(1); // Only the load's fetch
+
+			// Resolve load
+			(fetchGist as Mock).mockResolvedValueOnce(makeValidData());
+			resolveLoadFetch(makeValidData());
+			await loadPromise;
+
+			// Drain queued push
+			await vi.advanceTimersByTimeAsync(500);
+
+			// Now the push should have run (its own fetchGist call)
+			expect(fetchGist).toHaveBeenCalledTimes(2);
+			const snapshot = dataStore.getSnapshot();
+			expect(snapshot.foodItems.some((i) => i.name === 'New Item')).toBe(true);
 		});
 	});
 
