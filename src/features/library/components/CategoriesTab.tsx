@@ -29,7 +29,7 @@ export default function CategoriesTab({
 	onCloseAddSheet,
 }: Props) {
 	const { t } = useTranslation('library');
-	const { editing, fields, deleting, setDeleting, setField, resetForm, startEdit } = useLibraryForm<
+	const { editing, fields, deleting, setDeleting, setField, resetForm, startEdit, startDelete } = useLibraryForm<
 		Category,
 		typeof CATEGORY_FORM_DEFAULTS,
 		{ id: string; name: string; itemCount: number }
@@ -71,7 +71,7 @@ export default function CategoriesTab({
 	function handleDelete(categoryId: string) {
 		const itemCount = getItemCountForCategory(categoryId);
 		const category = categories.find((c) => c.id === categoryId);
-		setDeleting({ id: categoryId, name: category?.name ?? '', itemCount });
+		startDelete({ id: categoryId, name: category?.name ?? '', itemCount });
 	}
 
 	function confirmDeleteCategory() {
@@ -246,7 +246,10 @@ export default function CategoriesTab({
 							<SentimentPicker value={fields.sentiment} onChange={(val) => setField('sentiment', val)} />
 						</div>
 						<div className="pt-2">
-							<button onClick={() => handleDelete(editing.id)} className="btn btn-danger w-full">
+							<button
+								onClick={() => handleDelete(editing.id)}
+								className="btn btn-danger w-full flex items-center justify-center"
+							>
 								<Trash2 className="w-4 h-4 mr-2" strokeWidth={2} />
 								{t('categories.deleteButton')}
 							</button>

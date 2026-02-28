@@ -46,6 +46,11 @@ export function useLibraryForm<
 		setDeleting(null);
 	}
 
+	function startDelete(deletingInfo: TDeleting) {
+		setEditing(null);
+		setDeleting(deletingInfo);
+	}
+
 	return {
 		editing,
 		fields,
@@ -54,5 +59,6 @@ export function useLibraryForm<
 		setField,
 		resetForm,
 		startEdit,
+		startDelete,
 	};
 }

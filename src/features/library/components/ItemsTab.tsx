@@ -22,7 +22,7 @@ const ITEM_FORM_DEFAULTS = { name: '', categories: [] as string[] };
 
 export default function ItemsTab({ items, categories, activeTab, searchQuery, showAddSheet, onCloseAddSheet }: Props) {
 	const { t } = useTranslation('library');
-	const { editing, fields, deleting, setDeleting, setField, resetForm, startEdit } = useLibraryForm<
+	const { editing, fields, deleting, setDeleting, setField, resetForm, startEdit, startDelete } = useLibraryForm<
 		Item,
 		typeof ITEM_FORM_DEFAULTS
 	>({ showAddSheet, defaults: ITEM_FORM_DEFAULTS });
@@ -58,7 +58,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 
 	function handleDelete(id: string) {
 		const item = items.find((i) => i.id === id) || (editing?.id === id ? editing : null);
-		setDeleting({ id, name: item?.name ?? '' });
+		startDelete({ id, name: item?.name ?? '' });
 	}
 
 	function confirmDeleteItem() {
@@ -239,7 +239,10 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 							/>
 						</div>
 						<div className="pt-2">
-							<button onClick={() => handleDelete(editing.id)} className="btn btn-danger w-full">
+							<button
+								onClick={() => handleDelete(editing.id)}
+								className="btn btn-danger w-full flex items-center justify-center"
+							>
 								<Trash2 className="w-4 h-4 mr-2" strokeWidth={2} />
 								{t('items.deleteButton')}
 							</button>
