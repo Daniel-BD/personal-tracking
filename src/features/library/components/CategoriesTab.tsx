@@ -111,20 +111,20 @@ export default function CategoriesTab({
 									<button
 										type="button"
 										onClick={() => handleStartEdit(category)}
-										style={{ background: 'var(--color-activity)', width: ACTION_WIDTH }}
+										style={{ background: 'var(--swipe-edit)', width: ACTION_WIDTH }}
 										className="h-full flex items-center justify-center"
 										aria-label="Edit category"
 									>
-										<Pencil className="w-5 h-5 text-white" strokeWidth={2} />
+										<Pencil className="w-5 h-5" style={{ color: 'var(--swipe-edit-text)' }} strokeWidth={2} />
 									</button>
 									<button
 										type="button"
 										onClick={() => handleDelete(category.id)}
-										style={{ background: 'var(--color-danger)', width: ACTION_WIDTH }}
+										style={{ background: 'var(--swipe-delete)', width: ACTION_WIDTH }}
 										className="h-full flex items-center justify-center"
 										aria-label="Delete category"
 									>
-										<Trash2 className="w-5 h-5 text-white" strokeWidth={2} />
+										<Trash2 className="w-5 h-5" style={{ color: 'var(--swipe-delete-text)' }} strokeWidth={2} />
 									</button>
 								</div>
 

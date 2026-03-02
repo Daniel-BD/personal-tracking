@@ -144,7 +144,8 @@ export default function EntryList({ entries, showType = false }: Props) {
 												aria-label={isFavorite(entry.itemId) ? 'Remove from favorites' : 'Add to favorites'}
 											>
 												<Star
-													className="w-5 h-5 text-white"
+													className="w-5 h-5"
+													style={{ color: 'var(--swipe-favorite-text)' }}
 													strokeWidth={2}
 													fill={isFavorite(entry.itemId) ? 'currentColor' : 'none'}
 												/>
@@ -156,7 +157,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 												style={{ background: 'var(--swipe-edit)', width: ACTION_WIDTH }}
 												aria-label="Edit entry"
 											>
-												<Pencil className="w-5 h-5 text-white" strokeWidth={2} />
+												<Pencil className="w-5 h-5" style={{ color: 'var(--swipe-edit-text)' }} strokeWidth={2} />
 											</button>
 											<button
 												type="button"
@@ -165,7 +166,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 												style={{ background: 'var(--swipe-delete)', width: ACTION_WIDTH }}
 												aria-label="Delete entry"
 											>
-												<Trash2 className="w-5 h-5 text-white" strokeWidth={2} />
+												<Trash2 className="w-5 h-5" style={{ color: 'var(--swipe-delete-text)' }} strokeWidth={2} />
 											</button>
 										</div>
 

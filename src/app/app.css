@@ -67,10 +67,13 @@
 	/* Favorite star (yellow) */
 	--color-favorite: #facc15; /* yellow-400 */
 
-	/* Swipe action buttons */
-	--swipe-edit: #2563eb; /* blue-600 */
-	--swipe-delete: #dc2626; /* red-600 */
-	--swipe-favorite: #d97706; /* amber-600 */
+	/* Swipe action buttons — subtle tinted backgrounds */
+	--swipe-edit: #dbeafe; /* blue-100 */
+	--swipe-edit-text: #2563eb; /* blue-600 */
+	--swipe-delete: #fee2e2; /* red-100 */
+	--swipe-delete-text: #dc2626; /* red-600 */
+	--swipe-favorite: #fef3c7; /* amber-100 */
+	--swipe-favorite-text: #d97706; /* amber-600 */
 
 	/* Chart colors (for data visualization) */
 	--chart-color-1: #3b82f6; /* blue-500 */
@@ -154,10 +157,13 @@
 	/* Favorite star (yellow) */
 	--color-favorite: #fbbf24; /* yellow-400 brighter for dark mode */
 
-	/* Swipe action buttons — subdued for dark mode */
-	--swipe-edit: #1e40af; /* blue-800 */
-	--swipe-delete: #991b1b; /* red-800 */
-	--swipe-favorite: #92400e; /* amber-800 */
+	/* Swipe action buttons — deep muted for dark mode */
+	--swipe-edit: #1a2540; /* deep navy */
+	--swipe-edit-text: #60a5fa; /* blue-400 */
+	--swipe-delete: #2d1b1e; /* deep maroon */
+	--swipe-delete-text: #f87171; /* red-400 */
+	--swipe-favorite: #2d2412; /* deep amber */
+	--swipe-favorite-text: #fbbf24; /* amber-400 */
 
 	/* Chart colors (same in dark mode for consistency) */
 	--chart-color-1: #3b82f6; /* blue-500 */
