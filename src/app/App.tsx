@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { getStoredTheme, applyTheme } from '@/shared/lib/theme';
 import { initializeStore } from '@/shared/store/store';
 import { HomePage } from '@/features/home';
-import { LogPage } from '@/features/log';
+import { LogPage, ItemDetailPage } from '@/features/log';
 import { LibraryPage } from '@/features/library';
 import NavIcon from '@/shared/ui/NavIcon';
 import ToastContainer from '@/shared/ui/Toast';
@@ -68,6 +68,14 @@ export default function App() {
 								}
 							/>
 						))}
+						<Route
+							path="/log/item/:itemId"
+							element={
+								<ErrorBoundary label="Item Detail">
+									<ItemDetailPage />
+								</ErrorBoundary>
+							}
+						/>
 						<Route
 							path="/stats/category/:categoryId"
 							element={
