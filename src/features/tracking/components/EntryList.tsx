@@ -43,7 +43,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 		handleRowTap,
 		resetSwipe,
 		isTouching,
-	} = useSwipeGesture();
+	} = useSwipeGesture(3);
 
 	function getItemName(type: EntryType, itemId: string): string {
 		const item = getItemById(type, itemId);

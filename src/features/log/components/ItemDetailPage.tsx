@@ -3,11 +3,14 @@ import { Construction, ArrowLeft } from 'lucide-react';
 import { getItemById } from '@/shared/store/store';
 import type { EntryType } from '@/shared/lib/types';
 
+const VALID_TYPES: ReadonlySet<string> = new Set<EntryType>(['activity', 'food']);
+
 export default function ItemDetailPage() {
 	const { itemId } = useParams<{ itemId: string }>();
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
-	const type = (searchParams.get('type') ?? 'activity') as EntryType;
+	const rawType = searchParams.get('type');
+	const type: EntryType = rawType && VALID_TYPES.has(rawType) ? (rawType as EntryType) : 'activity';
 	const item = itemId ? getItemById(type, itemId) : undefined;
 
 	return (

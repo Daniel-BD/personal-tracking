@@ -3,12 +3,11 @@ import type { TouchEvent as ReactTouchEvent } from 'react';
 
 const SWIPE_THRESHOLD = 70;
 const ACTION_WIDTH = 70;
-const NUM_ACTIONS = 3;
-const SWIPE_REVEAL = -(ACTION_WIDTH * NUM_ACTIONS);
 
 export { ACTION_WIDTH };
 
-export function useSwipeGesture() {
+export function useSwipeGesture(actionCount: number = 2) {
+	const SWIPE_REVEAL = -(ACTION_WIDTH * actionCount);
 	const [swipedEntryId, setSwipedEntryId] = useState<string | null>(null);
 	const [swipeOffset, setSwipeOffset] = useState(0);
 	const touchStartRef = useRef<{ x: number; y: number; id: string } | null>(null);
@@ -29,28 +28,31 @@ export function useSwipeGesture() {
 		[swipedEntryId],
 	);
 
-	const handleTouchMove = useCallback((e: ReactTouchEvent) => {
-		if (!touchStartRef.current) return;
-		const touch = e.touches[0];
-		const deltaX = touch.clientX - touchStartRef.current.x;
-		const deltaY = touch.clientY - touchStartRef.current.y;
+	const handleTouchMove = useCallback(
+		(e: ReactTouchEvent) => {
+			if (!touchStartRef.current) return;
+			const touch = e.touches[0];
+			const deltaX = touch.clientX - touchStartRef.current.x;
+			const deltaY = touch.clientY - touchStartRef.current.y;
 
-		// If vertical scroll is dominant, cancel swipe
-		if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaX) < 10) {
-			return;
-		}
+			// If vertical scroll is dominant, cancel swipe
+			if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaX) < 10) {
+				return;
+			}
 
-		// Mark that a swipe occurred (to prevent click from opening edit)
-		if (Math.abs(deltaX) > 5) {
-			didSwipeRef.current = true;
-		}
+			// Mark that a swipe occurred (to prevent click from opening edit)
+			if (Math.abs(deltaX) > 5) {
+				didSwipeRef.current = true;
+			}
 
-		// Only allow left swipe (negative deltaX)
-		if (deltaX < 0) {
-			setSwipeOffset(Math.max(deltaX, SWIPE_REVEAL));
-			setSwipedEntryId(touchStartRef.current.id);
-		}
-	}, []);
+			// Only allow left swipe (negative deltaX)
+			if (deltaX < 0) {
+				setSwipeOffset(Math.max(deltaX, SWIPE_REVEAL));
+				setSwipedEntryId(touchStartRef.current.id);
+			}
+		},
+		[SWIPE_REVEAL],
+	);
 
 	const handleTouchEnd = useCallback(() => {
 		if (!touchStartRef.current) return;
@@ -65,7 +67,7 @@ export function useSwipeGesture() {
 		}
 
 		touchStartRef.current = null;
-	}, [swipeOffset]);
+	}, [swipeOffset, SWIPE_REVEAL]);
 
 	const resetSwipe = useCallback(() => {
 		setSwipedEntryId(null);
