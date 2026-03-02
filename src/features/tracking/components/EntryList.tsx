@@ -1,9 +1,9 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Pencil, Trash2, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Entry, EntryType } from '@/shared/lib/types';
 import { getItemById, deleteEntry, updateEntry, toggleFavorite, isFavorite } from '@/shared/store/store';
-import StarIcon from '@/shared/ui/StarIcon';
 import { useTrackerData } from '@/shared/store/hooks';
 import { getEntriesGroupedByDate } from '../utils/entry-grouping';
 import { getEntryCategoryIds } from '../utils/category-utils';
@@ -23,6 +23,7 @@ interface Props {
 
 export default function EntryList({ entries, showType = false }: Props) {
 	const { t } = useTranslation('log');
+	const navigate = useNavigate();
 	const data = useTrackerData();
 	const groupedEntries = useMemo(() => getEntriesGroupedByDate(entries), [entries]);
 
@@ -134,9 +135,25 @@ export default function EntryList({ entries, showType = false }: Props) {
 										<div className="absolute inset-0 flex items-center justify-end">
 											<button
 												type="button"
+												onClick={() => {
+													toggleFavorite(entry.itemId);
+													resetSwipe();
+												}}
+												className="h-full flex items-center justify-center"
+												style={{ background: 'var(--swipe-favorite)', width: ACTION_WIDTH }}
+												aria-label={isFavorite(entry.itemId) ? 'Remove from favorites' : 'Add to favorites'}
+											>
+												<Star
+													className="w-5 h-5 text-white"
+													strokeWidth={2}
+													fill={isFavorite(entry.itemId) ? 'currentColor' : 'none'}
+												/>
+											</button>
+											<button
+												type="button"
 												onClick={() => startEdit(entry)}
-												className={`h-full w-[${ACTION_WIDTH}px] flex items-center justify-center`}
-												style={{ background: 'var(--color-activity)', width: ACTION_WIDTH }}
+												className="h-full flex items-center justify-center"
+												style={{ background: 'var(--swipe-edit)', width: ACTION_WIDTH }}
 												aria-label="Edit entry"
 											>
 												<Pencil className="w-5 h-5 text-white" strokeWidth={2} />
@@ -144,8 +161,8 @@ export default function EntryList({ entries, showType = false }: Props) {
 											<button
 												type="button"
 												onClick={() => handleDelete(entry.id)}
-												className={`h-full w-[${ACTION_WIDTH}px] flex items-center justify-center`}
-												style={{ background: 'var(--color-danger)', width: ACTION_WIDTH }}
+												className="h-full flex items-center justify-center"
+												style={{ background: 'var(--swipe-delete)', width: ACTION_WIDTH }}
 												aria-label="Delete entry"
 											>
 												<Trash2 className="w-5 h-5 text-white" strokeWidth={2} />
@@ -164,7 +181,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 											onTouchStart={(e) => handleTouchStart(e, entry.id)}
 											onTouchMove={handleTouchMove}
 											onTouchEnd={handleTouchEnd}
-											onClick={() => handleRowTap(() => startEdit(entry))}
+											onClick={() => handleRowTap(() => navigate(`/log/item/${entry.itemId}?type=${entry.type}`))}
 										>
 											<div className="flex items-center justify-between gap-3">
 												<div className="flex-1 min-w-0">
@@ -186,22 +203,11 @@ export default function EntryList({ entries, showType = false }: Props) {
 													<CategoryLine categoryIds={categoryIds} categories={typeCategories} />
 													{entry.notes && <p className="text-xs text-subtle mt-0.5 truncate italic">{entry.notes}</p>}
 												</div>
-												<div className="flex items-center gap-2 flex-shrink-0">
-													{entry.time && (
-														<span className="text-xs text-subtle tabular-nums">{formatTime(entry.time)}</span>
-													)}
-													<button
-														type="button"
-														onClick={(e) => {
-															e.stopPropagation();
-															toggleFavorite(entry.itemId);
-														}}
-														className="p-0.5"
-														aria-label={isFavorite(entry.itemId) ? 'Remove from favorites' : 'Add to favorites'}
-													>
-														<StarIcon filled={isFavorite(entry.itemId)} className="w-4 h-4" />
-													</button>
-												</div>
+												{entry.time && (
+													<span className="text-xs text-subtle tabular-nums flex-shrink-0">
+														{formatTime(entry.time)}
+													</span>
+												)}
 											</div>
 										</div>
 									</div>

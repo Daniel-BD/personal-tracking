@@ -3,7 +3,8 @@ import type { TouchEvent as ReactTouchEvent } from 'react';
 
 const SWIPE_THRESHOLD = 70;
 const ACTION_WIDTH = 70;
-const SWIPE_REVEAL = -(ACTION_WIDTH * 2);
+const NUM_ACTIONS = 3;
+const SWIPE_REVEAL = -(ACTION_WIDTH * NUM_ACTIONS);
 
 export { ACTION_WIDTH };
 
