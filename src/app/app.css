@@ -70,10 +70,13 @@
 	/* Swipe action buttons — subtle tinted backgrounds */
 	--swipe-edit: #dbeafe; /* blue-100 */
 	--swipe-edit-text: #2563eb; /* blue-600 */
-	--swipe-delete: #fee2e2; /* red-100 */
-	--swipe-delete-text: #dc2626; /* red-600 */
 	--swipe-favorite: #fef3c7; /* amber-100 */
 	--swipe-favorite-text: #d97706; /* amber-600 */
+
+	/* Unified delete color — used by swipe actions, btn-danger, and confirm dialogs */
+	--color-delete: #fee2e2; /* red-100 */
+	--color-delete-hover: #fecaca; /* red-200 */
+	--color-delete-text: #dc2626; /* red-600 */
 
 	/* Chart colors (for data visualization) */
 	--chart-color-1: #3b82f6; /* blue-500 */
@@ -160,10 +163,13 @@
 	/* Swipe action buttons — deep muted for dark mode */
 	--swipe-edit: #1a2540; /* deep navy */
 	--swipe-edit-text: #60a5fa; /* blue-400 */
-	--swipe-delete: #2d1b1e; /* deep maroon */
-	--swipe-delete-text: #f87171; /* red-400 */
 	--swipe-favorite: #2d2412; /* deep amber */
 	--swipe-favorite-text: #fbbf24; /* amber-400 */
+
+	/* Unified delete color */
+	--color-delete: #2d1b1e; /* deep maroon */
+	--color-delete-hover: #3d2528; /* slightly lighter maroon */
+	--color-delete-text: #f87171; /* red-400 */
 
 	/* Chart colors (same in dark mode for consistency) */
 	--chart-color-1: #3b82f6; /* blue-500 */
@@ -372,11 +378,11 @@ input[type='datetime-local'] {
 
 .btn-danger {
 	@apply px-4 py-2 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
-	background-color: var(--color-danger);
-	color: white;
+	background-color: var(--color-delete);
+	color: var(--color-delete-text);
 }
 .btn-danger:hover:not(:disabled) {
-	background-color: var(--color-danger-hover);
+	background-color: var(--color-delete-hover);
 }
 
 .btn-sm {

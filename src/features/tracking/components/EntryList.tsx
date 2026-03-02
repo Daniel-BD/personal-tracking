@@ -163,10 +163,10 @@ export default function EntryList({ entries, showType = false }: Props) {
 												type="button"
 												onClick={() => handleDelete(entry.id)}
 												className="h-full flex items-center justify-center"
-												style={{ background: 'var(--swipe-delete)', width: ACTION_WIDTH }}
+												style={{ background: 'var(--color-delete)', width: ACTION_WIDTH }}
 												aria-label="Delete entry"
 											>
-												<Trash2 className="w-5 h-5" style={{ color: 'var(--swipe-delete-text)' }} strokeWidth={2} />
+												<Trash2 className="w-5 h-5" style={{ color: 'var(--color-delete-text)' }} strokeWidth={2} />
 											</button>
 										</div>
 

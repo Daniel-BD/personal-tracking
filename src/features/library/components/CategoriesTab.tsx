@@ -120,11 +120,11 @@ export default function CategoriesTab({
 									<button
 										type="button"
 										onClick={() => handleDelete(category.id)}
-										style={{ background: 'var(--swipe-delete)', width: ACTION_WIDTH }}
+										style={{ background: 'var(--color-delete)', width: ACTION_WIDTH }}
 										className="h-full flex items-center justify-center"
 										aria-label="Delete category"
 									>
-										<Trash2 className="w-5 h-5" style={{ color: 'var(--swipe-delete-text)' }} strokeWidth={2} />
+										<Trash2 className="w-5 h-5" style={{ color: 'var(--color-delete-text)' }} strokeWidth={2} />
 									</button>
 								</div>
 

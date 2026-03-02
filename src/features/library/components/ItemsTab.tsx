@@ -105,11 +105,11 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 									<button
 										type="button"
 										onClick={() => handleDelete(item.id)}
-										style={{ background: 'var(--swipe-delete)', width: ACTION_WIDTH }}
+										style={{ background: 'var(--color-delete)', width: ACTION_WIDTH }}
 										className="h-full flex items-center justify-center"
 										aria-label="Delete item"
 									>
-										<Trash2 className="w-5 h-5" style={{ color: 'var(--swipe-delete-text)' }} strokeWidth={2} />
+										<Trash2 className="w-5 h-5" style={{ color: 'var(--color-delete-text)' }} strokeWidth={2} />
 									</button>
 								</div>
 
