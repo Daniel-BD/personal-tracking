@@ -44,6 +44,8 @@ Test files in `store/__tests__/`:
 - **`date-utils.ts`** — Shared date/time formatting utilities (`formatTime`, `formatDate`, `formatDateWithYear`, `formatDateLocal`, `formatMonthYear`, `formatWeekLabel`).
 - **`github.ts`** — GitHub Gist API integration for backup sync.
 - **`theme.ts`** — Theme preference management (light/dark/system). Dark mode applied via `.dark` class on `<html>`.
+- **`schemas.ts`** — Zod validation schemas for data import/sync. Types in `types.ts` are derived via `z.infer`.
+- **`animation.ts`** — `useAnimatedValue` hook (RAF-based value interpolation, easeOutCubic) and shared easing functions with documented cubic-bezier equivalents. Performance rule: only animate `transform` and `opacity` in DOM keyframes. Always respect `prefers-reduced-motion` (use Motion's `useReducedMotion` hook).
 
 ### Tests
 
@@ -84,6 +86,11 @@ Reserve `children` for the body/content area where each usage genuinely needs di
 - **`NavIcon.tsx`** — Navigation icon component (Lucide icons for bottom nav).
 - **`StarIcon.tsx`** — Reusable star icon (Lucide Star, filled/unfilled) for favorites.
 - **`Toast.tsx`** — Toast notification system. `showToast()` is a module-level function (no provider). Toasts auto-dismiss after 3.5s, optionally include an action button.
+- **`ConfirmDialog.tsx`** — Wraps `BottomSheet` for destructive action confirmations. Accepts `open`, `onClose`, `onConfirm`, `title`, `message` (optional), and `confirmLabel` (defaults to `'Delete'`). Confirm button is always danger-styled. Use this instead of native `confirm()`.
+- **`SentimentPills.tsx`** — Compact positive/limit count pills (green `N+`, red `N−`). Takes `{ positive, limit }` number props. Used by `DaySentimentSummary` and `DailyBalanceScore`.
+- **`SyncToast.tsx`** — Sync status floating pill. Subscribes to `useSyncStatus()`: "Syncing…" (spinner) → "Synced" (checkmark, 1.5s) → "Sync failed" (2.5s). Only visible when Gist sync is configured.
+- **`ErrorBoundary.tsx`** — Class component (React requirement). Accepts optional `label` prop. Shows fallback with "Reload page" and "Try again" buttons.
+- **`ReloadPrompt.tsx`** — PWA update prompt (vite-plugin-pwa).
 
 ### Known Quirks
 
