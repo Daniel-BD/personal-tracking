@@ -41,7 +41,7 @@ Test files in `store/__tests__/`:
 ## Lib (`lib/`)
 
 - **`types.ts`** — Data interfaces (`Entry`, `ActivityItem`, `FoodItem`, `Category`, `TrackerData`, `DashboardCard`, `CategorySentiment`) and utility functions (`generateId()`, `getTodayDate()`, `getCurrentTime()`, collection accessor helpers like `getItems()`, `getCategories()`).
-- **`date-utils.ts`** — Shared date/time formatting utilities (`formatTime`, `formatDate`, `formatDateWithYear`, `formatDateLocal`, `formatMonthYear`, `formatWeekLabel`).
+- **`date-utils.ts`** — Shared date/time formatting utilities (`formatTime`, `formatDate`, `formatDateWithYear`, `formatDateLocal`, `formatMonthYear`, `formatWeekLabel`, `getISOWeekNumber`). `formatWeekLabel` returns week numbers (e.g. "W9") instead of dates. `getISOWeekNumber` computes the ISO week number (1–53) from a Date.
 - **`github.ts`** — GitHub Gist API integration for backup sync.
 - **`theme.ts`** — Theme preference management (light/dark/system). Dark mode applied via `.dark` class on `<html>`.
 - **`schemas.ts`** — Zod validation schemas for data import/sync. Types in `types.ts` are derived via `z.infer`.

@@ -6,6 +6,7 @@ import {
 	formatDateWithYear,
 	formatMonthYear,
 	formatWeekLabel,
+	getISOWeekNumber,
 	getDateNDaysAgo,
 } from '@/shared/lib/date-utils';
 
@@ -98,18 +99,30 @@ describe('formatMonthYear', () => {
 	});
 });
 
-describe('formatWeekLabel', () => {
-	it('works with a YYYY-MM-DD string', () => {
-		const result = formatWeekLabel('2025-01-15');
-		expect(result).toContain('Jan');
-		expect(result).toContain('15');
+describe('getISOWeekNumber', () => {
+	it('returns week 3 for Jan 15, 2025', () => {
+		expect(getISOWeekNumber(new Date(2025, 0, 15))).toBe(3);
 	});
 
-	it('works with a Date object', () => {
+	it('returns week 1 for Jan 1, 2025 (Wednesday)', () => {
+		expect(getISOWeekNumber(new Date(2025, 0, 1))).toBe(1);
+	});
+
+	it('returns week 52 or 53 for Dec 31', () => {
+		const week = getISOWeekNumber(new Date(2025, 11, 31));
+		expect(week).toBeGreaterThanOrEqual(1);
+	});
+});
+
+describe('formatWeekLabel', () => {
+	it('returns week number format for a YYYY-MM-DD string', () => {
+		// 2025-01-15 is ISO week 3
+		expect(formatWeekLabel('2025-01-15')).toBe('W3');
+	});
+
+	it('returns week number format for a Date object', () => {
 		const date = new Date(2025, 0, 15);
-		const result = formatWeekLabel(date);
-		expect(result).toContain('Jan');
-		expect(result).toContain('15');
+		expect(formatWeekLabel(date)).toBe('W3');
 	});
 
 	it('returns consistent results for string and Date of the same day', () => {

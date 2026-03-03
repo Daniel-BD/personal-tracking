@@ -1,22 +1,22 @@
 import type { Entry, TrackerData } from '@/shared/lib/types';
 import { getCategories } from '@/shared/lib/types';
 import { getCategoryNameById, getEntryCategoryIds, filterEntriesByType } from '@/features/tracking';
+import { getISOWeekNumber } from '@/shared/lib/date-utils';
 
-// Re-export formatWeekLabel for consumers
-export { formatWeekLabel } from '@/shared/lib/date-utils';
+// Re-export formatWeekLabel and getISOWeekNumber for consumers
+export { formatWeekLabel, getISOWeekNumber } from '@/shared/lib/date-utils';
 
 export type PeriodType = 'weekly' | 'monthly';
 
 /**
- * Get the ISO week number and year for a date
+ * Get the ISO week number and year for a date.
+ * Delegates week-number calculation to the shared getISOWeekNumber utility.
  */
 function getISOWeek(date: Date): { year: number; week: number } {
 	const d = new Date(date);
 	d.setHours(0, 0, 0, 0);
 	d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-	const yearStart = new Date(d.getFullYear(), 0, 1);
-	const weekNumber = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-	return { year: d.getFullYear(), week: weekNumber };
+	return { year: d.getFullYear(), week: getISOWeekNumber(date) };
 }
 
 /**
