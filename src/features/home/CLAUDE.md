@@ -13,9 +13,5 @@ Home page with quick-log and daily balance score.
 
 ## Components
 
-- **`HomePage.tsx`** — Composes `QuickLogForm` (via render prop) and `DailyBalanceScore`. Handles URL-based quick logging and Gist sync refresh button.
+- **`HomePage.tsx`** — Composes `QuickLogForm` (via render prop) and `DailyBalanceScore`. Handles Gist sync refresh button.
 - **`DailyBalanceScore.tsx`** — Today's food sentiment balance percentage with animated progress bar and `SentimentPills`. Returns `null` if no food entries today.
-
-## URL-Based Quick Logging
-
-The Home page reads `?add=itemName` from the URL to instantly log an entry for a matching item name. Feedback is shown via toast.
