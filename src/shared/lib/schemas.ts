@@ -51,7 +51,7 @@ export const TombstoneEntityTypeSchema = z.enum([
 export const TombstoneSchema = z.object({
 	id: z.string(),
 	entityType: TombstoneEntityTypeSchema,
-	deletedAt: z.string(),
+	deletedAt: z.string().datetime(),
 });
 
 export const TrackerDataSchema = z.object({

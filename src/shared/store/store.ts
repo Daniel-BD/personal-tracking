@@ -310,10 +310,6 @@ export function deleteItem(type: EntryType, id: string): void {
 		const entriesToDelete = data.entries.filter((e) => e.type === type && e.itemId === id);
 		const wasFavorite = (data.favoriteItems || []).includes(id);
 
-		// Sync pendingDeletions with fresh data
-		entriesToDelete.forEach((e) => pendingDeletions.entries.add(e.id));
-		if (wasFavorite) pendingDeletions.favoriteItems.add(id);
-
 		const updated: TrackerData = {
 			...data,
 			[key]: data[key].filter((item) => item.id !== id),

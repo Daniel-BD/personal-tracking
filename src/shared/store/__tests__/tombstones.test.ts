@@ -160,6 +160,17 @@ describe('tombstone sync', () => {
 			// Should have the newer deletedAt
 			expect(result.tombstones![0].deletedAt).not.toBe('2020-01-01T00:00:00.000Z');
 		});
+
+		it('preserves existing deletedAt when it is later than now (clock skew)', () => {
+			const futureDate = new Date(Date.now() + 60_000).toISOString();
+			const data = makeValidData({
+				tombstones: [makeTombstone({ id: 'skew', entityType: 'entry', deletedAt: futureDate })],
+			});
+			const result = addTombstone(data, 'skew', 'entry');
+
+			expect(result.tombstones).toHaveLength(1);
+			expect(result.tombstones![0].deletedAt).toBe(futureDate);
+		});
 	});
 
 	describe('addTombstones (batch)', () => {
@@ -189,6 +200,21 @@ describe('tombstone sync', () => {
 			const data = makeValidData();
 			const result = addTombstones(data, []);
 			expect(result).toBe(data);
+		});
+
+		it('preserves existing deletedAt when it is later than now (clock skew)', () => {
+			const futureDate = new Date(Date.now() + 60_000).toISOString();
+			const data = makeValidData({
+				tombstones: [makeTombstone({ id: 'a', entityType: 'entry', deletedAt: futureDate })],
+			});
+			const result = addTombstones(data, [
+				{ id: 'a', entityType: 'entry' },
+				{ id: 'b', entityType: 'foodItem' },
+			]);
+
+			expect(result.tombstones).toHaveLength(2);
+			const tombstoneA = result.tombstones!.find((t) => t.id === 'a');
+			expect(tombstoneA!.deletedAt).toBe(futureDate);
 		});
 	});
 

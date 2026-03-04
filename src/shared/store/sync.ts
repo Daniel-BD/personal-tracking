@@ -135,16 +135,19 @@ function excludeFor(pendingKey: keyof PendingDeletions, tombstones: Tombstone[])
 	return new Set([...fromPending, ...fromTombstones]);
 }
 
-/** Add a tombstone to TrackerData (deduplicates by id + entityType). */
+/** Add a tombstone to TrackerData (deduplicates by id + entityType, keeps later timestamp). */
 export function addTombstone(data: TrackerData, id: string, entityType: TombstoneEntityType): TrackerData {
+	const now = new Date().toISOString();
+	const prev = (data.tombstones || []).find((t) => t.id === id && t.entityType === entityType);
+	const deletedAt = prev && prev.deletedAt > now ? prev.deletedAt : now;
 	const existing = (data.tombstones || []).filter((t) => !(t.id === id && t.entityType === entityType));
 	return {
 		...data,
-		tombstones: [...existing, { id, entityType, deletedAt: new Date().toISOString() }],
+		tombstones: [...existing, { id, entityType, deletedAt }],
 	};
 }
 
-/** Add multiple tombstones to TrackerData in a single pass. */
+/** Add multiple tombstones to TrackerData in a single pass (keeps later timestamps). */
 export function addTombstones(
 	data: TrackerData,
 	entries: { id: string; entityType: TombstoneEntityType }[],
@@ -152,10 +155,22 @@ export function addTombstones(
 	if (entries.length === 0) return data;
 	const now = new Date().toISOString();
 	const newKeys = new Set(entries.map((e) => `${e.entityType}:${e.id}`));
+	// Build a map of existing tombstones that are being replaced, to preserve later timestamps
+	const prevMap = new Map<string, string>();
+	for (const t of data.tombstones || []) {
+		const key = `${t.entityType}:${t.id}`;
+		if (newKeys.has(key)) prevMap.set(key, t.deletedAt);
+	}
 	const existing = (data.tombstones || []).filter((t) => !newKeys.has(`${t.entityType}:${t.id}`));
 	return {
 		...data,
-		tombstones: [...existing, ...entries.map((e) => ({ ...e, deletedAt: now }))],
+		tombstones: [
+			...existing,
+			...entries.map((e) => {
+				const prevDeletedAt = prevMap.get(`${e.entityType}:${e.id}`);
+				return { ...e, deletedAt: prevDeletedAt && prevDeletedAt > now ? prevDeletedAt : now };
+			}),
+		],
 	};
 }
 
