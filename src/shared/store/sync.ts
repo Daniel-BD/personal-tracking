@@ -1,4 +1,4 @@
-import type { TrackerData, DashboardCard } from '@/shared/lib/types';
+import type { TrackerData, DashboardCard, Tombstone, TombstoneEntityType } from '@/shared/lib/types';
 import { getConfig, fetchGist, updateGist, isConfigured } from '@/shared/lib/github';
 import { migrateData } from './migration';
 import { showToast } from '@/shared/ui/Toast';
@@ -87,6 +87,70 @@ export function clearPendingDeletions(): void {
 	}
 }
 
+// ── Tombstone helpers ────────────────────────────────────────
+
+/** Mapping from PendingDeletions keys to TombstoneEntityType values. */
+const PENDING_KEY_TO_ENTITY_TYPE: Record<keyof PendingDeletions, TombstoneEntityType> = {
+	entries: 'entry',
+	activityItems: 'activityItem',
+	foodItems: 'foodItem',
+	activityCategories: 'activityCategory',
+	foodCategories: 'foodCategory',
+	dashboardCards: 'dashboardCard',
+	favoriteItems: 'favoriteItem',
+};
+
+const TOMBSTONE_RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+/** Extract IDs from tombstones for a given entity type. */
+function tombstoneExcludeIds(tombstones: Tombstone[], entityType: TombstoneEntityType): Set<string> {
+	return new Set(tombstones.filter((t) => t.entityType === entityType).map((t) => t.id));
+}
+
+/** Remove tombstones older than the retention period. */
+function pruneTombstones(tombstones: Tombstone[]): Tombstone[] {
+	const cutoff = Date.now() - TOMBSTONE_RETENTION_MS;
+	return tombstones.filter((t) => new Date(t.deletedAt).getTime() > cutoff);
+}
+
+/** Merge and deduplicate tombstones from local and remote, then prune old ones. */
+function mergeTombstones(local: Tombstone[], remote: Tombstone[]): Tombstone[] {
+	const seen = new Set<string>();
+	const result: Tombstone[] = [];
+	for (const t of [...local, ...remote]) {
+		const key = `${t.entityType}:${t.id}`;
+		if (!seen.has(key)) {
+			seen.add(key);
+			result.push(t);
+		}
+	}
+	return pruneTombstones(result);
+}
+
+/** Build an exclude set as the union of pendingDeletions + tombstone IDs for a given key. */
+function excludeFor(pendingKey: keyof PendingDeletions, tombstones: Tombstone[]): Set<string> {
+	const entityType = PENDING_KEY_TO_ENTITY_TYPE[pendingKey];
+	const fromTombstones = tombstoneExcludeIds(tombstones, entityType);
+	const fromPending = pendingDeletions[pendingKey];
+	return new Set([...fromPending, ...fromTombstones]);
+}
+
+/** Add a tombstone to TrackerData. */
+export function addTombstone(data: TrackerData, id: string, entityType: TombstoneEntityType): TrackerData {
+	return {
+		...data,
+		tombstones: [...(data.tombstones || []), { id, entityType, deletedAt: new Date().toISOString() }],
+	};
+}
+
+/** Remove a tombstone from TrackerData (e.g., when re-favoriting). */
+export function removeTombstone(data: TrackerData, id: string, entityType: TombstoneEntityType): TrackerData {
+	return {
+		...data,
+		tombstones: (data.tombstones || []).filter((t) => !(t.id === id && t.entityType === entityType)),
+	};
+}
+
 /**
  * Selectively clear pending deletions for IDs confirmed absent from remote.
  *
@@ -135,62 +199,82 @@ export function clearConfirmedDeletions(remote: TrackerData): void {
 }
 
 /**
- * Actively remove any items whose IDs are in pendingDeletions.
+ * Actively remove any items whose IDs are in pendingDeletions or tombstones.
  * Applied at load time (loadFromLocalStorage) as defense-in-depth:
  * even if a previous setData() call somehow wrote deleted items back
  * to localStorage, this ensures they're filtered out on the next load.
  */
 export function filterPendingDeletions(data: TrackerData): TrackerData {
-	if (PENDING_DELETION_KEYS.every((key) => pendingDeletions[key].size === 0)) {
+	const tombstones = data.tombstones || [];
+	const hasPending = PENDING_DELETION_KEYS.some((key) => pendingDeletions[key].size > 0);
+	if (!hasPending && tombstones.length === 0) {
 		return data;
 	}
+
+	const entryExclude = excludeFor('entries', tombstones);
+	const activityItemExclude = excludeFor('activityItems', tombstones);
+	const foodItemExclude = excludeFor('foodItems', tombstones);
+	const activityCategoryExclude = excludeFor('activityCategories', tombstones);
+	const foodCategoryExclude = excludeFor('foodCategories', tombstones);
+	const dashboardCardExclude = excludeFor('dashboardCards', tombstones);
+	const favoriteItemExclude = excludeFor('favoriteItems', tombstones);
+
 	return {
 		...data,
-		entries: data.entries.filter((e) => !pendingDeletions.entries.has(e.id)),
-		activityItems: data.activityItems.filter((i) => !pendingDeletions.activityItems.has(i.id)),
-		foodItems: data.foodItems.filter((i) => !pendingDeletions.foodItems.has(i.id)),
-		activityCategories: data.activityCategories.filter((c) => !pendingDeletions.activityCategories.has(c.id)),
-		foodCategories: data.foodCategories.filter((c) => !pendingDeletions.foodCategories.has(c.id)),
-		dashboardCards: (data.dashboardCards || []).filter((c) => !pendingDeletions.dashboardCards.has(c.categoryId)),
-		favoriteItems: (data.favoriteItems || []).filter((id) => !pendingDeletions.favoriteItems.has(id)),
+		entries: data.entries.filter((e) => !entryExclude.has(e.id)),
+		activityItems: data.activityItems.filter((i) => !activityItemExclude.has(i.id)),
+		foodItems: data.foodItems.filter((i) => !foodItemExclude.has(i.id)),
+		activityCategories: data.activityCategories.filter((c) => !activityCategoryExclude.has(c.id)),
+		foodCategories: data.foodCategories.filter((c) => !foodCategoryExclude.has(c.id)),
+		dashboardCards: (data.dashboardCards || []).filter((c) => !dashboardCardExclude.has(c.categoryId)),
+		favoriteItems: (data.favoriteItems || []).filter((id) => !favoriteItemExclude.has(id)),
 	};
 }
 
 /**
  * Merges two TrackerData objects to prevent data loss from stale tabs.
  * Strategy: Union of all items by ID, with local taking precedence for conflicts.
- * Respects pending deletions - items deleted locally won't be restored from remote.
+ * Respects both pending deletions (local-only) and tombstones (synced) —
+ * items deleted on any device won't be restored from the other.
  */
 export function mergeTrackerData(local: TrackerData, remote: TrackerData): TrackerData {
+	// Merge tombstones first — they inform all other merges
+	const mergedTombstones = mergeTombstones(local.tombstones || [], remote.tombstones || []);
+
 	const localCards = local.dashboardCards || [];
 	const remoteCards = remote.dashboardCards || [];
+	const cardExclude = excludeFor('dashboardCards', mergedTombstones);
 
-	// Merge dashboard cards by categoryId, respecting pending deletions
+	// Merge dashboard cards by categoryId, respecting deletions
 	const cardMap = new Map<string, DashboardCard>();
 
-	// Add remote cards first if not deleted locally
+	// Add remote cards first if not deleted
 	remoteCards.forEach((c) => {
-		if (!pendingDeletions.dashboardCards.has(c.categoryId)) {
+		if (!cardExclude.has(c.categoryId)) {
 			cardMap.set(c.categoryId, c);
 		}
 	});
 
-	// Local cards take precedence, but also filter pending deletions
+	// Local cards take precedence, but also filter deletions
 	localCards.forEach((c) => {
-		if (!pendingDeletions.dashboardCards.has(c.categoryId)) {
+		if (!cardExclude.has(c.categoryId)) {
 			cardMap.set(c.categoryId, c);
 		}
 	});
 
-	const mergedActivityItems = mergeById(local.activityItems, remote.activityItems, pendingDeletions.activityItems);
-	const mergedFoodItems = mergeById(local.foodItems, remote.foodItems, pendingDeletions.foodItems);
+	const activityItemExclude = excludeFor('activityItems', mergedTombstones);
+	const foodItemExclude = excludeFor('foodItems', mergedTombstones);
+	const favoriteExclude = excludeFor('favoriteItems', mergedTombstones);
+
+	const mergedActivityItems = mergeById(local.activityItems, remote.activityItems, activityItemExclude);
+	const mergedFoodItems = mergeById(local.foodItems, remote.foodItems, foodItemExclude);
 
 	// Merge favorites: union of both sets, filtered to only existing merged items.
-	// Respects pending deletions — items unfavorited locally won't be restored from remote.
+	// Respects deletions — items unfavorited on any device won't be restored.
 	const mergedItemIds = new Set([...mergedActivityItems.map((i) => i.id), ...mergedFoodItems.map((i) => i.id)]);
-	const favSet = new Set((local.favoriteItems || []).filter((id) => !pendingDeletions.favoriteItems.has(id)));
+	const favSet = new Set((local.favoriteItems || []).filter((id) => !favoriteExclude.has(id)));
 	for (const id of remote.favoriteItems || []) {
-		if (!pendingDeletions.favoriteItems.has(id)) {
+		if (!favoriteExclude.has(id)) {
 			favSet.add(id);
 		}
 	}
@@ -202,13 +286,18 @@ export function mergeTrackerData(local: TrackerData, remote: TrackerData): Track
 		activityCategories: mergeById(
 			local.activityCategories,
 			remote.activityCategories,
-			pendingDeletions.activityCategories,
+			excludeFor('activityCategories', mergedTombstones),
 		),
-		foodCategories: mergeById(local.foodCategories, remote.foodCategories, pendingDeletions.foodCategories),
-		entries: mergeById(local.entries, remote.entries, pendingDeletions.entries),
+		foodCategories: mergeById(
+			local.foodCategories,
+			remote.foodCategories,
+			excludeFor('foodCategories', mergedTombstones),
+		),
+		entries: mergeById(local.entries, remote.entries, excludeFor('entries', mergedTombstones)),
 		dashboardCards: Array.from(cardMap.values()),
 		dashboardInitialized: local.dashboardInitialized || remote.dashboardInitialized,
 		favoriteItems: mergedFavorites,
+		tombstones: mergedTombstones,
 	};
 }
 
