@@ -14,11 +14,16 @@ export function migrateData(data: TrackerData): TrackerData {
 			return c;
 		});
 
-	const result = {
+	let result: TrackerData = {
 		...data,
 		activityCategories: migrateCategories(data.activityCategories),
 		foodCategories: migrateCategories(data.foodCategories),
 	};
+
+	if (!data.tombstones) {
+		result = { ...result, tombstones: [] };
+		migrated = true;
+	}
 
 	return migrated ? result : data;
 }

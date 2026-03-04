@@ -27,6 +27,8 @@ import {
 	loadFromGistFn,
 	backupToGistFn,
 	restoreFromBackupGistFn,
+	addTombstone,
+	removeTombstone,
 } from './sync';
 import { triggerExportDownload, validateAndParseImport } from './import-export';
 
@@ -230,21 +232,28 @@ export function deleteCategory(type: EntryType, categoryId: string): void {
 
 	const catKey = getCategoriesKey(type);
 	const itemsKey = getItemsKey(type);
-	updateData((data) => ({
-		...data,
-		[catKey]: data[catKey].filter((c) => c.id !== categoryId),
-		[itemsKey]: data[itemsKey].map((item) => ({
-			...item,
-			categories: item.categories.filter((id) => id !== categoryId),
-		})),
-		entries: data.entries.map((entry) => {
-			if (entry.type !== type || !entry.categoryOverrides) return entry;
-			return {
-				...entry,
-				categoryOverrides: entry.categoryOverrides.filter((id) => id !== categoryId),
-			};
-		}),
-	}));
+	const entityType = type === 'activity' ? 'activityCategory' : 'foodCategory';
+	updateData((data) =>
+		addTombstone(
+			{
+				...data,
+				[catKey]: data[catKey].filter((c) => c.id !== categoryId),
+				[itemsKey]: data[itemsKey].map((item) => ({
+					...item,
+					categories: item.categories.filter((id) => id !== categoryId),
+				})),
+				entries: data.entries.map((entry) => {
+					if (entry.type !== type || !entry.categoryOverrides) return entry;
+					return {
+						...entry,
+						categoryOverrides: entry.categoryOverrides.filter((id) => id !== categoryId),
+					};
+				}),
+			},
+			categoryId,
+			entityType,
+		),
+	);
 
 	triggerPush();
 }
@@ -281,21 +290,36 @@ export function updateItem(type: EntryType, id: string, name: string, categoryId
 }
 
 export function deleteItem(type: EntryType, id: string): void {
+	const entityType = type === 'activity' ? 'activityItem' : 'foodItem';
 	pendingDeletions[getItemsKey(type)].add(id);
 
-	currentData.entries
-		.filter((e) => e.type === type && e.itemId === id)
-		.forEach((e) => pendingDeletions.entries.add(e.id));
+	const entriesToDelete = currentData.entries.filter((e) => e.type === type && e.itemId === id);
+	entriesToDelete.forEach((e) => pendingDeletions.entries.add(e.id));
+
+	const wasFavorite = (currentData.favoriteItems || []).includes(id);
+	if (wasFavorite) {
+		pendingDeletions.favoriteItems.add(id);
+	}
 
 	persistPendingDeletions();
 
 	const key = getItemsKey(type);
-	updateData((data) => ({
-		...data,
-		[key]: data[key].filter((item) => item.id !== id),
-		entries: data.entries.filter((e) => !(e.type === type && e.itemId === id)),
-		favoriteItems: (data.favoriteItems || []).filter((fid) => fid !== id),
-	}));
+	updateData((data) => {
+		let updated: TrackerData = {
+			...data,
+			[key]: data[key].filter((item) => item.id !== id),
+			entries: data.entries.filter((e) => !(e.type === type && e.itemId === id)),
+			favoriteItems: (data.favoriteItems || []).filter((fid) => fid !== id),
+		};
+		updated = addTombstone(updated, id, entityType);
+		for (const e of entriesToDelete) {
+			updated = addTombstone(updated, e.id, 'entry');
+		}
+		if (wasFavorite) {
+			updated = addTombstone(updated, id, 'favoriteItem');
+		}
+		return updated;
+	});
 
 	triggerPush();
 }
@@ -323,10 +347,16 @@ export function removeDashboardCard(categoryId: string): void {
 	pendingDeletions.dashboardCards.add(categoryId);
 	persistPendingDeletions();
 
-	updateData((data) => ({
-		...data,
-		dashboardCards: (data.dashboardCards || []).filter((c) => c.categoryId !== categoryId),
-	}));
+	updateData((data) =>
+		addTombstone(
+			{
+				...data,
+				dashboardCards: (data.dashboardCards || []).filter((c) => c.categoryId !== categoryId),
+			},
+			categoryId,
+			'dashboardCard',
+		),
+	);
 
 	triggerPush();
 }
@@ -348,10 +378,15 @@ export function toggleFavorite(itemId: string): void {
 
 	updateData((data) => {
 		const favs = data.favoriteItems || [];
-		return {
+		const updated = {
 			...data,
 			favoriteItems: isFav ? favs.filter((id) => id !== itemId) : [...favs, itemId],
 		};
+		if (isFav) {
+			return addTombstone(updated, itemId, 'favoriteItem');
+		}
+		// Re-favoriting: remove any existing tombstone so the favorite syncs correctly
+		return removeTombstone(updated, itemId, 'favoriteItem');
 	});
 
 	triggerPush();
@@ -405,10 +440,16 @@ export function deleteEntry(id: string): void {
 	pendingDeletions.entries.add(id);
 	persistPendingDeletions();
 
-	updateData((data) => ({
-		...data,
-		entries: data.entries.filter((entry) => entry.id !== id),
-	}));
+	updateData((data) =>
+		addTombstone(
+			{
+				...data,
+				entries: data.entries.filter((entry) => entry.id !== id),
+			},
+			id,
+			'entry',
+		),
+	);
 
 	triggerPush();
 }

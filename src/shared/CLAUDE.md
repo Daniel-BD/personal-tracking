@@ -22,25 +22,30 @@ Instead of React Context, the store uses a module-level singleton with `useSyncE
 
 `TrackerData.favoriteItems` stores an array of item IDs. `toggleFavorite()` and `isFavorite()` in `store.ts`. Favorites are cleaned up when items are deleted.
 
+### Tombstones (Cross-Device Deletion Sync)
+
+Deletions are tracked via **tombstones** — `{ id, entityType, deletedAt }` records stored in `TrackerData.tombstones` and synced to the Gist. This ensures deletions propagate across devices: when Device A deletes an item, the tombstone travels to Device B via the Gist, preventing the union merge from resurrecting the item. Tombstones are pruned after 30 days during merge. The `addTombstone()` and `removeTombstone()` helpers in `sync.ts` manage tombstone CRUD. `removeTombstone()` is used when re-favoriting an item (to undo the unfavorite tombstone). All delete operations in `store.ts` create tombstones alongside `pendingDeletions`.
+
 ### Known Quirks
 
-- **Gist sync**: Fire-and-forget with merge logic. LocalStorage is always the source of truth. The store tracks `pendingDeletions` (by entity type) in `sync.ts` to prevent deleted items from being restored during merge. All gist operations (`pushToGist` and `loadFromGistFn`) are serialized via a shared `activeSync` lock in `store.ts` to prevent concurrent operations from racing on `pendingDeletions`. Pushes queue behind loads; loads wait for in-flight pushes via a `while (activeSync)` loop. Defense-in-depth: `mergeById` and `mergeTrackerData` filter pending deletions from **both** local and remote data, and `filterPendingDeletions()` is applied at `loadFromLocalStorage` time to catch any edge cases where deleted items were written back to localStorage before the push completed.
+- **Gist sync**: Fire-and-forget with merge logic. LocalStorage is always the source of truth. The store tracks `pendingDeletions` (by entity type, local-only) in `sync.ts` as a buffer for unsynced deletions, plus **tombstones** (synced in the Gist) for cross-device deletion propagation. The merge function (`mergeTrackerData`) uses the union of both `pendingDeletions` and tombstones to exclude deleted items. All gist operations (`pushToGist` and `loadFromGistFn`) are serialized via a shared `activeSync` lock in `store.ts` to prevent concurrent operations from racing on `pendingDeletions`. Pushes queue behind loads; loads wait for in-flight pushes via a `while (activeSync)` loop. Defense-in-depth: `mergeById` and `mergeTrackerData` filter deletions from **both** local and remote data, and `filterPendingDeletions()` is applied at `loadFromLocalStorage` time to catch any edge cases where deleted items were written back to localStorage before the push completed.
 - **Dashboard initialization**: On first load, `initializeDefaultDashboardCards()` (in `migration.ts`) auto-creates dashboard cards for categories named "Fruit", "Vegetables", or "Sugary drinks" if they exist. Runs once (guarded by `dashboardInitialized` flag).
 
 ### Tests
 
 Test files in `store/__tests__/`:
 
-- `fixtures.ts` — Shared test helpers (`makeEntry`, `makeItem`, `makeCategory`, `makeValidData`, `flushPromises`)
+- `fixtures.ts` — Shared test helpers (`makeEntry`, `makeItem`, `makeCategory`, `makeTombstone`, `makeValidData`, `flushPromises`)
 - `store-crud.test.ts` — CRUD operations (categories, items, entries, dashboard cards)
 - `migration.test.ts` — Data migration + dashboard initialization
 - `import-export.test.ts` — Import validation + export
 - `gist-sync.test.ts` — Gist sync
 - `favorites.test.ts` — Favorites
+- `tombstones.test.ts` — Cross-device deletion sync via tombstones
 
 ## Lib (`lib/`)
 
-- **`types.ts`** — Data interfaces (`Entry`, `ActivityItem`, `FoodItem`, `Category`, `TrackerData`, `DashboardCard`, `CategorySentiment`) and utility functions (`generateId()`, `getTodayDate()`, `getCurrentTime()`, collection accessor helpers like `getItems()`, `getCategories()`).
+- **`types.ts`** — Data interfaces (`Entry`, `ActivityItem`, `FoodItem`, `Category`, `TrackerData`, `DashboardCard`, `CategorySentiment`, `Tombstone`, `TombstoneEntityType`) and utility functions (`generateId()`, `getTodayDate()`, `getCurrentTime()`, collection accessor helpers like `getItems()`, `getCategories()`).
 - **`date-utils.ts`** — Shared date/time formatting utilities (`formatTime`, `formatDate`, `formatDateWithYear`, `formatDateLocal`, `formatMonthYear`, `formatWeekLabel`, `getISOWeekNumber`). `formatWeekLabel` returns week numbers (e.g. "W9") instead of dates. `getISOWeekNumber` computes the ISO week number (1–53) from a Date.
 - **`github.ts`** — GitHub Gist API integration for backup sync.
 - **`theme.ts`** — Theme preference management (light/dark/system). Dark mode applied via `.dark` class on `<html>`.

@@ -9,6 +9,8 @@ import type {
 	TrackerDataSchema,
 	GistFileSchema,
 	GistResponseSchema,
+	TombstoneEntityTypeSchema,
+	TombstoneSchema,
 } from './schemas';
 import { formatDateLocal } from './date-utils';
 
@@ -25,6 +27,8 @@ export type DashboardCard = z.infer<typeof DashboardCardSchema>;
 export type TrackerData = z.infer<typeof TrackerDataSchema>;
 export type GistFile = z.infer<typeof GistFileSchema>;
 export type GistResponse = z.infer<typeof GistResponseSchema>;
+export type TombstoneEntityType = z.infer<typeof TombstoneEntityTypeSchema>;
+export type Tombstone = z.infer<typeof TombstoneSchema>;
 
 export type SyncStatus = 'idle' | 'syncing' | 'error';
 
@@ -40,6 +44,7 @@ export function createEmptyData(): TrackerData {
 		dashboardCards: [],
 		dashboardInitialized: false,
 		favoriteItems: [],
+		tombstones: [],
 	};
 }
 
