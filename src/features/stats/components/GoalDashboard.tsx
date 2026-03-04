@@ -5,6 +5,7 @@ import { useTrackerData } from '@/shared/store/hooks';
 import { getLastNWeeks, getDaysElapsedInCurrentWeek } from '../utils/stats-engine';
 import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking';
 import { formatDateLocal } from '@/shared/lib/date-utils';
+import { formatWeekLabel } from '../utils/stats-engine';
 import GoalCard from './GoalCard';
 import { removeDashboardCard } from '@/shared/store/store';
 import AddCategoryModal from './AddCategoryModal';
@@ -49,6 +50,7 @@ export default function GoalDashboard() {
 					return {
 						week: week.key,
 						count: weekEntries.length,
+						label: formatWeekLabel(week.start),
 					};
 				});
 

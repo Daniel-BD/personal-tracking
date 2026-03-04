@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { LineChart, Line, ResponsiveContainer, ReferenceLine, Dot } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Dot } from 'recharts';
 import type { CategorySentiment } from '@/shared/lib/types';
 import { calcActualDeltaPercent, formatChangeText } from '../utils/stats-engine';
 
@@ -14,7 +14,7 @@ const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
 interface GoalCardProps {
 	categoryName: string;
 	sentiment: CategorySentiment;
-	sparklineData: { week: string; count: number }[];
+	sparklineData: { week: string; count: number; label: string }[];
 	currentCount: number;
 	baselineAvg: number;
 	deltaPercent: number;
@@ -62,6 +62,11 @@ export default function GoalCard({
 	const actualChangeText = formatChangeText(calcActualDeltaPercent(currentCount, baselineAvg));
 
 	const avgFormatted = Number.isInteger(baselineAvg) ? baselineAvg.toString() : baselineAvg.toFixed(1);
+
+	const maxCount = useMemo(
+		() => Math.max(...sparklineData.map((d) => d.count), baselineAvg, 1),
+		[sparklineData, baselineAvg],
+	);
 
 	return (
 		<div
@@ -123,25 +128,52 @@ export default function GoalCard({
 				)}
 			</div>
 
-			{/* 4. Sparkline */}
-			<div className="h-12 w-full -mx-2 mt-1">
+			{/* 4. Trend chart */}
+			<div className="h-24 w-full -mx-2 mt-1">
 				<ResponsiveContainer width="100%" height="100%">
-					<LineChart data={sparklineData}>
-						<ReferenceLine y={baselineAvg} stroke="var(--border-default)" strokeDasharray="3 3" strokeWidth={1} />
+					<LineChart data={sparklineData} margin={{ top: 16, right: 12, left: 4, bottom: 4 }}>
+						<XAxis
+							dataKey="label"
+							tickLine={false}
+							axisLine={false}
+							tick={{ fontSize: 10, fill: 'var(--text-tertiary)' }}
+						/>
+						<YAxis hide domain={[0, Math.ceil(maxCount * 1.2)]} />
+						<ReferenceLine y={baselineAvg} stroke="var(--border-default)" strokeDasharray="4 4" strokeWidth={1} />
 						<Line
 							type="monotone"
 							dataKey="count"
 							stroke={color}
-							strokeWidth={2}
-							dot={(props: { cx?: number; cy?: number; index?: number }) => {
-								const { cx, cy, index } = props;
-								if (cx == null || cy == null || index == null) return <></>;
+							strokeWidth={2.5}
+							dot={(props: { cx?: number; cy?: number; index?: number; payload?: { count: number } }) => {
+								const { cx, cy, index, payload } = props;
+								if (cx == null || cy == null || index == null) return <g />;
 								const isLast = index === sparklineData.length - 1;
-								if (isLast) {
-									return <Dot cx={cx} cy={cy} r={4} fill={color} stroke="var(--bg-card)" strokeWidth={2} />;
-								}
-								return <Dot cx={cx} cy={cy} r={2} fill={color} stroke="none" opacity={0.35} />;
+								const r = isLast ? 5 : 3;
+								return (
+									<g>
+										<Dot
+											cx={cx}
+											cy={cy}
+											r={r}
+											fill={isLast ? color : 'var(--bg-card)'}
+											stroke={color}
+											strokeWidth={2}
+										/>
+										<text
+											x={cx}
+											y={cy - 10}
+											textAnchor="middle"
+											fontSize={10}
+											fontWeight={600}
+											fill="var(--text-secondary)"
+										>
+											{payload?.count}
+										</text>
+									</g>
+								);
 							}}
+							activeDot={false}
 							isAnimationActive={false}
 						/>
 					</LineChart>
