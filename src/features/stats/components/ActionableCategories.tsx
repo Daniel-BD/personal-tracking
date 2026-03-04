@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TrackerData } from '@/shared/lib/types';
 import type { ActionableCategoryRow } from '../utils/stats-engine';
-import { getLastNWeeks, getTopLimitCategories, getLaggingPositiveCategories } from '../utils/stats-engine';
+import { getLastNWeeks, getTopLimitCategories } from '../utils/stats-engine';
 import { addDashboardCard } from '@/shared/store/store';
 import { showToast } from '@/shared/ui/Toast';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
@@ -20,15 +20,13 @@ export default function ActionableCategories({ data }: ActionableCategoriesProps
 
 	const limitRows = useMemo(() => getTopLimitCategories(data.entries, data, weeks), [data, weeks]);
 
-	const positiveRows = useMemo(() => getLaggingPositiveCategories(data.entries, data, weeks), [data, weeks]);
-
 	const followedIds = useMemo(() => {
 		return new Set((data.dashboardCards || []).map((c) => c.categoryId));
 	}, [data.dashboardCards]);
 
 	const cardCount = data.dashboardCards?.length ?? 0;
 
-	if (limitRows.length === 0 && positiveRows.length === 0) return null;
+	if (limitRows.length === 0) return null;
 
 	function handleFollow(categoryId: string, categoryName: string) {
 		if (followedIds.has(categoryId)) return;
@@ -45,30 +43,16 @@ export default function ActionableCategories({ data }: ActionableCategoriesProps
 			<h2 className="text-xl font-bold text-heading">{t('focusAreas.title')}</h2>
 
 			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-				{limitRows.length > 0 && (
-					<Panel
-						title={t('focusAreas.limitPanel.title')}
-						subtitle={t('focusAreas.limitPanel.subtitle')}
-						rows={limitRows}
-						accent="limit"
-						followedIds={followedIds}
-						onFollow={handleFollow}
-						followingLabel={t('focusAreas.following')}
-						followLabel={t('focusAreas.follow')}
-					/>
-				)}
-				{positiveRows.length > 0 && (
-					<Panel
-						title={t('focusAreas.positivePanel.title')}
-						subtitle={t('focusAreas.positivePanel.subtitle')}
-						rows={positiveRows}
-						accent="positive"
-						followedIds={followedIds}
-						onFollow={handleFollow}
-						followingLabel={t('focusAreas.following')}
-						followLabel={t('focusAreas.follow')}
-					/>
-				)}
+				<Panel
+					title={t('focusAreas.limitPanel.title')}
+					subtitle={t('focusAreas.limitPanel.subtitle')}
+					rows={limitRows}
+					accent="limit"
+					followedIds={followedIds}
+					onFollow={handleFollow}
+					followingLabel={t('focusAreas.following')}
+					followLabel={t('focusAreas.follow')}
+				/>
 			</div>
 		</div>
 	);

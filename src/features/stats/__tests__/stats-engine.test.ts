@@ -9,7 +9,6 @@ import {
 	buildCategoryColorMap,
 	groupCategoriesForWeek,
 	getTopLimitCategories,
-	getLaggingPositiveCategories,
 	getWeekNumber,
 	getDailyBreakdown,
 	calcActualDeltaPercent,
@@ -477,95 +476,6 @@ describe('getTopLimitCategories', () => {
 		);
 		const result = getTopLimitCategories(entries, data, weeks, 1);
 		expect(result).toHaveLength(1);
-	});
-});
-
-describe('getLaggingPositiveCategories', () => {
-	it('returns positive categories below average share', () => {
-		const cat1 = makeCategory({ id: 'p1', name: 'Fruits', sentiment: 'positive' });
-		const cat2 = makeCategory({ id: 'p2', name: 'Veggies', sentiment: 'positive' });
-		const cat3 = makeCategory({ id: 'p3', name: 'Nuts', sentiment: 'positive' });
-		const item1 = makeItem({ id: 'i1' });
-		const item2 = makeItem({ id: 'i2' });
-		const item3 = makeItem({ id: 'i3' });
-		const data = makeValidData({
-			foodItems: [item1, item2, item3],
-			foodCategories: [cat1, cat2, cat3],
-		});
-
-		const weeks = [
-			makeWeek('2025-W02', '2025-01-06', '2025-01-12'),
-			makeWeek('2025-W03', '2025-01-13', '2025-01-19'),
-			makeWeek('2025-W04', '2025-01-20', '2025-01-26'),
-			makeWeek('2025-W05', '2025-01-27', '2025-02-02'),
-		];
-
-		const entries = [
-			// Fruits: 5 entries (dominant)
-			...Array.from({ length: 5 }, (_, i) =>
-				makeEntry({ type: 'food', itemId: 'i1', date: `2025-01-${14 + i}`, categoryOverrides: ['p1'] }),
-			),
-			// Veggies: 1 entry (lagging)
-			makeEntry({ type: 'food', itemId: 'i2', date: '2025-01-20', categoryOverrides: ['p2'] }),
-			// Nuts: 0 entries (most lagging)
-		];
-
-		const result = getLaggingPositiveCategories(entries, data, weeks);
-		// Nuts (0 entries) should be most lagging, then Veggies (1 entry)
-		expect(result.length).toBeGreaterThanOrEqual(2);
-		expect(result[0].categoryName).toBe('Nuts');
-		expect(result[1].categoryName).toBe('Veggies');
-	});
-
-	it('returns empty array when no positive categories exist', () => {
-		const limCat = makeCategory({ id: 'lim', name: 'Candy', sentiment: 'limit' });
-		const data = makeValidData({ foodCategories: [limCat] });
-		const weeks = [makeWeek('2025-W03', '2025-01-13', '2025-01-19')];
-		const entries = [makeEntry({ type: 'food', date: '2025-01-15', categoryOverrides: ['lim'] })];
-		expect(getLaggingPositiveCategories(entries, data, weeks)).toEqual([]);
-	});
-
-	it('returns empty array when all positive categories are equally distributed', () => {
-		const cat1 = makeCategory({ id: 'p1', name: 'A', sentiment: 'positive' });
-		const cat2 = makeCategory({ id: 'p2', name: 'B', sentiment: 'positive' });
-		const item1 = makeItem({ id: 'i1' });
-		const item2 = makeItem({ id: 'i2' });
-		const data = makeValidData({
-			foodItems: [item1, item2],
-			foodCategories: [cat1, cat2],
-		});
-		const weeks = [
-			makeWeek('2025-W02', '2025-01-06', '2025-01-12'),
-			makeWeek('2025-W03', '2025-01-13', '2025-01-19'),
-			makeWeek('2025-W04', '2025-01-20', '2025-01-26'),
-			makeWeek('2025-W05', '2025-01-27', '2025-02-02'),
-		];
-		const entries = [
-			makeEntry({ type: 'food', itemId: 'i1', date: '2025-01-14', categoryOverrides: ['p1'] }),
-			makeEntry({ type: 'food', itemId: 'i2', date: '2025-01-15', categoryOverrides: ['p2'] }),
-		];
-		const result = getLaggingPositiveCategories(entries, data, weeks);
-		expect(result).toEqual([]);
-	});
-
-	it('respects limit parameter', () => {
-		const cats = Array.from({ length: 5 }, (_, i) =>
-			makeCategory({ id: `p${i}`, name: `Pos ${i}`, sentiment: 'positive' }),
-		);
-		const items = [makeItem({ id: 'i0' })];
-		const data = makeValidData({ foodItems: items, foodCategories: cats });
-		const weeks = [
-			makeWeek('2025-W02', '2025-01-06', '2025-01-12'),
-			makeWeek('2025-W03', '2025-01-13', '2025-01-19'),
-			makeWeek('2025-W04', '2025-01-20', '2025-01-26'),
-			makeWeek('2025-W05', '2025-01-27', '2025-02-02'),
-		];
-		// Only one category has entries — the rest all lag
-		const entries = Array.from({ length: 10 }, () =>
-			makeEntry({ type: 'food', itemId: 'i0', date: '2025-01-15', categoryOverrides: ['p0'] }),
-		);
-		const result = getLaggingPositiveCategories(entries, data, weeks, 2);
-		expect(result).toHaveLength(2);
 	});
 });
 
