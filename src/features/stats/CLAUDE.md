@@ -14,7 +14,8 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 - **`GoalDashboard.tsx`** — Goal cards grid. Each card tied to a `categoryId` from `TrackerData.dashboardCards`.
 - **`GoalCard.tsx`** — Individual sparkline card showing this week's count vs. 4-week rolling baseline average. Uses Recharts `<Line>`.
 - **`AddCategoryModal.tsx`** — Modal for adding new dashboard goal cards.
-- **`BalanceOverview.tsx`** — Overall balance score visualization.
+- **`BalanceOverview.tsx`** — Overall balance score visualization (score card, trend chart, weekly breakdown).
+- **`BalanceScoreTrendChart.tsx`** — 8-week balance score line chart (Recharts `<Line>`). Shows score % above each dot and small positive/limit counts below. Modeled after `CategoryTrendChart`.
 - **`ActionableCategories.tsx`** — Top limit categories to reduce + lagging positive categories to increase.
 - **`CategoryComposition.tsx`** — Stacked/bar chart showing category distribution.
 - **`FrequencyRanking.tsx`** — Ranked list of most-logged items or categories ordered by count, with SegmentedControl filters for time period (all time/7 days/30 days), type (all/activities/food), and view mode (items/categories).
