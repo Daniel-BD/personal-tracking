@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTrackerData } from '@/shared/store/hooks';
-import { getLastNWeeks, getDaysElapsedInCurrentWeek } from '../utils/stats-engine';
+import { getLastNWeeks, getDaysElapsedInCurrentWeek, formatWeekLabel } from '../utils/stats-engine';
 import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking';
 import { formatDateLocal } from '@/shared/lib/date-utils';
 import GoalCard from './GoalCard';
@@ -49,6 +49,7 @@ export default function GoalDashboard() {
 					return {
 						week: week.key,
 						count: weekEntries.length,
+						label: formatWeekLabel(week.start),
 					};
 				});
 
