@@ -11,6 +11,25 @@ import {
 } from '../utils/stats-engine';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
 
+function CompositionTooltip({ active, payload, label }: TooltipContentProps<number, string>) {
+	if (!active || !payload?.length) return null;
+	const sorted = [...payload]
+		.filter((p) => (p.value as number) > 0)
+		.sort((a, b) => (b.value as number) - (a.value as number));
+	return (
+		<div className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-card)] px-3 py-2 text-xs">
+			<p className="mb-1 font-semibold text-heading">{label}</p>
+			{sorted.map((entry) => (
+				<div key={entry.dataKey} className="flex items-center gap-1.5 mb-0.5">
+					<span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+					<span className="text-body">{entry.name}</span>
+					<span className="ml-auto pl-3 font-semibold text-heading">{Math.round(entry.value as number)}%</span>
+				</div>
+			))}
+		</div>
+	);
+}
+
 interface CategoryCompositionProps {
 	weeklyData: WeeklyData[];
 }
@@ -66,48 +85,6 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 		return map;
 	}, [weeklyData]);
 
-	const customTooltip = useMemo(() => {
-		return function CompositionTooltip({ active, payload, label }: TooltipContentProps<number, string>) {
-			if (!active || !payload?.length) return null;
-			const sorted = [...payload]
-				.filter((p) => (p.value as number) > 0)
-				.sort((a, b) => (b.value as number) - (a.value as number));
-			return (
-				<div
-					style={{
-						background: 'var(--bg-card)',
-						border: '1px solid var(--border-default)',
-						borderRadius: '8px',
-						padding: '8px 12px',
-						fontSize: 12,
-					}}
-				>
-					<p style={{ marginBottom: 4, fontWeight: 600 }}>{label}</p>
-					{sorted.map((entry) => (
-						<div key={entry.dataKey} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-							<span
-								style={{
-									display: 'inline-block',
-									width: 10,
-									height: 10,
-									borderRadius: '50%',
-									backgroundColor: entry.color,
-									flexShrink: 0,
-								}}
-							/>
-							<span style={{ color: 'var(--color-text-body)' }}>{entry.name}</span>
-							<span
-								style={{ marginLeft: 'auto', paddingLeft: 12, fontWeight: 600, color: 'var(--color-text-heading)' }}
-							>
-								{Math.round(entry.value as number)}%
-							</span>
-						</div>
-					))}
-				</div>
-			);
-		};
-	}, []);
-
 	const isMobile = useIsMobile();
 
 	const handleBarClick = (data: { weekKey?: string }) => {
@@ -134,7 +111,7 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 					>
 						<XAxis type="number" domain={[0, 100]} hide />
 						<YAxis dataKey="week" type="category" width={isMobile ? 50 : 75} tick={{ fontSize: 12 }} />
-						<Tooltip content={customTooltip} cursor={{ fill: 'var(--bg-inset)' }} />
+						<Tooltip content={CompositionTooltip} cursor={{ fill: 'var(--bg-inset)' }} />
 
 						{allCategoryIds.map((catId) => (
 							<Bar
