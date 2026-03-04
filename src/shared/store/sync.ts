@@ -113,18 +113,18 @@ function pruneTombstones(tombstones: Tombstone[]): Tombstone[] {
 	return tombstones.filter((t) => new Date(t.deletedAt).getTime() > cutoff);
 }
 
-/** Merge and deduplicate tombstones from local and remote, then prune old ones. */
+/** Merge and deduplicate tombstones from local and remote, then prune old ones.
+ *  When duplicates exist, keeps the newer deletedAt to maximize retention window. */
 function mergeTombstones(local: Tombstone[], remote: Tombstone[]): Tombstone[] {
-	const seen = new Set<string>();
-	const result: Tombstone[] = [];
+	const map = new Map<string, Tombstone>();
 	for (const t of [...local, ...remote]) {
 		const key = `${t.entityType}:${t.id}`;
-		if (!seen.has(key)) {
-			seen.add(key);
-			result.push(t);
+		const existing = map.get(key);
+		if (!existing || t.deletedAt > existing.deletedAt) {
+			map.set(key, t);
 		}
 	}
-	return pruneTombstones(result);
+	return pruneTombstones(Array.from(map.values()));
 }
 
 /** Build an exclude set as the union of pendingDeletions + tombstone IDs for a given key. */
@@ -135,11 +135,27 @@ function excludeFor(pendingKey: keyof PendingDeletions, tombstones: Tombstone[])
 	return new Set([...fromPending, ...fromTombstones]);
 }
 
-/** Add a tombstone to TrackerData. */
+/** Add a tombstone to TrackerData (deduplicates by id + entityType). */
 export function addTombstone(data: TrackerData, id: string, entityType: TombstoneEntityType): TrackerData {
+	const existing = (data.tombstones || []).filter((t) => !(t.id === id && t.entityType === entityType));
 	return {
 		...data,
-		tombstones: [...(data.tombstones || []), { id, entityType, deletedAt: new Date().toISOString() }],
+		tombstones: [...existing, { id, entityType, deletedAt: new Date().toISOString() }],
+	};
+}
+
+/** Add multiple tombstones to TrackerData in a single pass. */
+export function addTombstones(
+	data: TrackerData,
+	entries: { id: string; entityType: TombstoneEntityType }[],
+): TrackerData {
+	if (entries.length === 0) return data;
+	const now = new Date().toISOString();
+	const newKeys = new Set(entries.map((e) => `${e.entityType}:${e.id}`));
+	const existing = (data.tombstones || []).filter((t) => !newKeys.has(`${t.entityType}:${t.id}`));
+	return {
+		...data,
+		tombstones: [...existing, ...entries.map((e) => ({ ...e, deletedAt: now }))],
 	};
 }
 

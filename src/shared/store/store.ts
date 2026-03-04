@@ -7,6 +7,7 @@ import type {
 	Category,
 	CategorySentiment,
 	DashboardCard,
+	TombstoneEntityType,
 } from '@/shared/lib/types';
 import {
 	createEmptyData,
@@ -28,6 +29,7 @@ import {
 	backupToGistFn,
 	restoreFromBackupGistFn,
 	addTombstone,
+	addTombstones,
 	removeTombstone,
 } from './sync';
 import { triggerExportDownload, validateAndParseImport } from './import-export';
@@ -293,32 +295,40 @@ export function deleteItem(type: EntryType, id: string): void {
 	const entityType = type === 'activity' ? 'activityItem' : 'foodItem';
 	pendingDeletions[getItemsKey(type)].add(id);
 
-	const entriesToDelete = currentData.entries.filter((e) => e.type === type && e.itemId === id);
-	entriesToDelete.forEach((e) => pendingDeletions.entries.add(e.id));
-
-	const wasFavorite = (currentData.favoriteItems || []).includes(id);
-	if (wasFavorite) {
+	// Snapshot for pendingDeletions (best-effort, these are a safety net).
+	// The authoritative filtering happens inside updateData using fresh `data`.
+	currentData.entries
+		.filter((e) => e.type === type && e.itemId === id)
+		.forEach((e) => pendingDeletions.entries.add(e.id));
+	if ((currentData.favoriteItems || []).includes(id)) {
 		pendingDeletions.favoriteItems.add(id);
 	}
-
 	persistPendingDeletions();
 
 	const key = getItemsKey(type);
 	updateData((data) => {
-		let updated: TrackerData = {
+		const entriesToDelete = data.entries.filter((e) => e.type === type && e.itemId === id);
+		const wasFavorite = (data.favoriteItems || []).includes(id);
+
+		// Sync pendingDeletions with fresh data
+		entriesToDelete.forEach((e) => pendingDeletions.entries.add(e.id));
+		if (wasFavorite) pendingDeletions.favoriteItems.add(id);
+
+		const updated: TrackerData = {
 			...data,
 			[key]: data[key].filter((item) => item.id !== id),
 			entries: data.entries.filter((e) => !(e.type === type && e.itemId === id)),
 			favoriteItems: (data.favoriteItems || []).filter((fid) => fid !== id),
 		};
-		updated = addTombstone(updated, id, entityType);
-		for (const e of entriesToDelete) {
-			updated = addTombstone(updated, e.id, 'entry');
-		}
+
+		const tombstoneEntries: { id: string; entityType: TombstoneEntityType }[] = [
+			{ id, entityType },
+			...entriesToDelete.map((e) => ({ id: e.id, entityType: 'entry' as const })),
+		];
 		if (wasFavorite) {
-			updated = addTombstone(updated, id, 'favoriteItem');
+			tombstoneEntries.push({ id, entityType: 'favoriteItem' });
 		}
-		return updated;
+		return addTombstones(updated, tombstoneEntries);
 	});
 
 	triggerPush();

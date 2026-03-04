@@ -21,6 +21,7 @@ vi.mock('@/shared/store/sync', () => ({
 	backupToGistFn: vi.fn(),
 	restoreFromBackupGistFn: vi.fn(),
 	addTombstone: vi.fn((data: unknown) => data),
+	addTombstones: vi.fn((data: unknown) => data),
 	removeTombstone: vi.fn((data: unknown) => data),
 }));
 

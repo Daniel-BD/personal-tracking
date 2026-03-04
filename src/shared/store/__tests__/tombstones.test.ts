@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { mergeTrackerData, clearPendingDeletions, filterPendingDeletions, addTombstone } from '../sync';
+import { mergeTrackerData, clearPendingDeletions, filterPendingDeletions, addTombstone, addTombstones } from '../sync';
 import { makeValidData, makeEntry, makeItem, makeCategory, makeTombstone, resetIdCounter } from './fixtures';
 
 describe('tombstone sync', () => {
@@ -91,20 +91,20 @@ describe('tombstone sync', () => {
 			expect(merged.tombstones).toHaveLength(2);
 		});
 
-		it('deduplicates tombstones with same id and entityType', () => {
-			const deletedAt = new Date().toISOString();
-			const t1 = makeTombstone({ id: 'same', entityType: 'entry', deletedAt });
-			const laterDate = new Date(Date.now() + 1000).toISOString();
-			const t2 = makeTombstone({ id: 'same', entityType: 'entry', deletedAt: laterDate });
+		it('deduplicates tombstones keeping the newer deletedAt', () => {
+			const olderDate = new Date().toISOString();
+			const t1 = makeTombstone({ id: 'same', entityType: 'entry', deletedAt: olderDate });
+			const newerDate = new Date(Date.now() + 1000).toISOString();
+			const t2 = makeTombstone({ id: 'same', entityType: 'entry', deletedAt: newerDate });
 
 			const local = makeValidData({ tombstones: [t1] });
 			const remote = makeValidData({ tombstones: [t2] });
 
 			const merged = mergeTrackerData(local, remote);
 
-			// Should keep only one (local takes priority since it's iterated first)
+			// Should keep the newer deletedAt to maximize retention window
 			expect(merged.tombstones).toHaveLength(1);
-			expect(merged.tombstones![0].deletedAt).toBe(deletedAt);
+			expect(merged.tombstones![0].deletedAt).toBe(newerDate);
 		});
 
 		it('prunes tombstones older than 30 days', () => {
@@ -148,6 +148,47 @@ describe('tombstone sync', () => {
 			expect(result.tombstones![0].id).toBe('item-1');
 			expect(result.tombstones![0].entityType).toBe('foodItem');
 			expect(result.tombstones![0].deletedAt).toBeDefined();
+		});
+
+		it('deduplicates when adding a tombstone for an existing id+entityType', () => {
+			const data = makeValidData({
+				tombstones: [makeTombstone({ id: 'dup', entityType: 'entry', deletedAt: '2020-01-01T00:00:00.000Z' })],
+			});
+			const result = addTombstone(data, 'dup', 'entry');
+
+			expect(result.tombstones).toHaveLength(1);
+			// Should have the newer deletedAt
+			expect(result.tombstones![0].deletedAt).not.toBe('2020-01-01T00:00:00.000Z');
+		});
+	});
+
+	describe('addTombstones (batch)', () => {
+		it('adds multiple tombstones in a single pass', () => {
+			const data = makeValidData();
+			const result = addTombstones(data, [
+				{ id: 'a', entityType: 'entry' },
+				{ id: 'b', entityType: 'foodItem' },
+			]);
+
+			expect(result.tombstones).toHaveLength(2);
+		});
+
+		it('deduplicates against existing tombstones', () => {
+			const data = makeValidData({
+				tombstones: [makeTombstone({ id: 'a', entityType: 'entry' })],
+			});
+			const result = addTombstones(data, [
+				{ id: 'a', entityType: 'entry' },
+				{ id: 'b', entityType: 'foodItem' },
+			]);
+
+			expect(result.tombstones).toHaveLength(2);
+		});
+
+		it('returns data unchanged for empty entries', () => {
+			const data = makeValidData();
+			const result = addTombstones(data, []);
+			expect(result).toBe(data);
 		});
 	});
 
