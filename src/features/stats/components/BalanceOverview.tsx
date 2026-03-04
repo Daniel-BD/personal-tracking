@@ -84,6 +84,9 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 			<div className="card p-4 sm:p-6 space-y-3">
 				<h3 className="text-lg font-semibold">{t('balanceOverview.trendTitle')}</h3>
 				<BalanceScoreTrendChart weeklyData={weeklyData} />
+				{weeklyData.some((w) => w.hasLowData) && (
+					<p className="text-xs text-body">{t('balanceOverview.lowDataWarning')}</p>
+				)}
 			</div>
 
 			{/* Weekly breakdown chart */}

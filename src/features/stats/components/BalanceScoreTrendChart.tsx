@@ -23,6 +23,7 @@ export default function BalanceScoreTrendChart({ weeklyData }: BalanceScoreTrend
 	);
 
 	const avgScore = useMemo(() => {
+		if (chartData.length === 0) return 0;
 		const scores = chartData.map((d) => d.score);
 		return scores.reduce((sum, s) => sum + s, 0) / scores.length;
 	}, [chartData]);
@@ -30,7 +31,7 @@ export default function BalanceScoreTrendChart({ weeklyData }: BalanceScoreTrend
 	return (
 		<div className="h-52 w-full -mx-2">
 			<ResponsiveContainer width="100%" height="100%">
-				<LineChart data={chartData} margin={{ top: 24, right: 16, left: 8, bottom: 4 }}>
+				<LineChart data={chartData} margin={{ top: 24, right: 16, left: 8, bottom: 24 }}>
 					<XAxis
 						dataKey="label"
 						tickLine={false}
