@@ -19,6 +19,8 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 - **`ActionableCategories.tsx`** — Top limit categories to reduce + lagging positive categories to increase.
 - **`CategoryComposition.tsx`** — Stacked/bar chart showing category distribution.
 - **`FrequencyRanking.tsx`** — Ranked list of most-logged items or categories ordered by count, with SegmentedControl filters for time period (all time/7 days/30 days), type (all/activities/food), and view mode (items/categories).
+- **`MonthCalendarView.tsx`** — Month calendar grid on category detail page. Shows days with logged entries highlighted using sentiment color. Prev/next month navigation.
+- **`YearlyActivityGrid.tsx`** — GitHub-style yearly heatmap on category detail page. SVG grid of day squares colored by entry count with sentiment color. Prev/next year navigation.
 
 ## Known Quirks
 

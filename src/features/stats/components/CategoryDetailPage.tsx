@@ -15,6 +15,8 @@ import {
 } from '../utils/stats-engine';
 import CategoryTrendChart from './CategoryTrendChart';
 import WeekHistoryGrid from './WeekHistoryGrid';
+import MonthCalendarView from './MonthCalendarView';
+import YearlyActivityGrid from './YearlyActivityGrid';
 
 const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
 	positive: 'var(--color-success)',
@@ -174,6 +176,12 @@ export default function CategoryDetailPage() {
 				sentiment={sentiment}
 				onSelectWeek={setSelectedWeekIndex}
 			/>
+
+			{/* Month calendar view */}
+			<MonthCalendarView entries={data.entries} categoryId={categoryId!} data={data} sentiment={sentiment} />
+
+			{/* Yearly activity grid */}
+			<YearlyActivityGrid entries={data.entries} categoryId={categoryId!} data={data} sentiment={sentiment} />
 		</div>
 	);
 }

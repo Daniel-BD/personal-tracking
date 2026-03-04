@@ -89,6 +89,8 @@
 		"weekLabel": "Wk {{week}}",
 		"weekBreakdownTitle": "Week {{week}} Breakdown",
 		"weekBreakdownTotal_one": "Total: {{count}}",
-		"weekBreakdownTotal_other": "Total: {{count}}"
+		"weekBreakdownTotal_other": "Total: {{count}}",
+		"monthView": "Month View",
+		"yearView": "Year View"
 	}
 }
