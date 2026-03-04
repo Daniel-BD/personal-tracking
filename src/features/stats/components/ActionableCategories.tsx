@@ -42,7 +42,7 @@ export default function ActionableCategories({ data }: ActionableCategoriesProps
 		<div className="space-y-4">
 			<h2 className="text-xl font-bold text-heading">{t('focusAreas.title')}</h2>
 
-			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+			<div>
 				<Panel
 					title={t('focusAreas.limitPanel.title')}
 					subtitle={t('focusAreas.limitPanel.subtitle')}
@@ -62,16 +62,16 @@ interface PanelProps {
 	title: string;
 	subtitle: string;
 	rows: ActionableCategoryRow[];
-	accent: 'limit' | 'positive';
+	accent: 'limit';
 	followedIds: Set<string>;
 	onFollow: (categoryId: string, categoryName: string) => void;
 	followingLabel: string;
 	followLabel: string;
 }
 
-function Panel({ title, subtitle, rows, accent, followedIds, onFollow, followingLabel, followLabel }: PanelProps) {
+function Panel({ title, subtitle, rows, followedIds, onFollow, followingLabel, followLabel }: PanelProps) {
 	const isMobile = useIsMobile();
-	const barColor = accent === 'limit' ? 'var(--color-danger)' : 'var(--color-food)';
+	const barColor = 'var(--color-danger)';
 	const maxValue = Math.max(...rows.map((r) => r.value), 1);
 
 	return (
