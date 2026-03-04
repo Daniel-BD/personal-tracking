@@ -47,12 +47,32 @@ export function getDateNDaysAgo(n: number): string {
 }
 
 /**
- * Format a week start date for display. Accepts either a YYYY-MM-DD string or a Date object.
+ * Get the ISO week number (1–53) and ISO week-numbering year for a date.
+ * The year may differ from the calendar year at year boundaries
+ * (e.g. Dec 31, 2025 → week 1 of 2026).
+ */
+export function getISOWeekAndYear(date: Date): { year: number; week: number } {
+	const d = new Date(date);
+	d.setHours(0, 0, 0, 0);
+	d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+	const year = d.getFullYear();
+	const yearStart = new Date(year, 0, 1);
+	const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+	return { year, week };
+}
+
+/**
+ * Get the ISO week number for a given date (1–53).
+ */
+export function getISOWeekNumber(date: Date): number {
+	return getISOWeekAndYear(date).week;
+}
+
+/**
+ * Format a week start date for display as "W{number}".
+ * Accepts either a YYYY-MM-DD string or a Date object.
  */
 export function formatWeekLabel(dateOrString: string | Date): string {
 	const date = typeof dateOrString === 'string' ? new Date(dateOrString + 'T00:00:00') : dateOrString;
-	return date.toLocaleDateString('en-US', {
-		month: 'short',
-		day: 'numeric',
-	});
+	return `W${getISOWeekNumber(date)}`;
 }

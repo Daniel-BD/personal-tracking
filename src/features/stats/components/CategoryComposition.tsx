@@ -6,6 +6,7 @@ import {
 	buildCategoryColorMap,
 	groupCategoriesForWeek,
 	formatWeekLabel,
+	getWeekNumber,
 } from '../utils/stats-engine';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
 
@@ -150,7 +151,7 @@ function CategoryDetailModal({ week, colorMap, onClose }: CategoryDetailModalPro
 			>
 				<div className="flex justify-between items-center pb-4 border-b border-[var(--border-default)]">
 					<div>
-						<h3 className="font-semibold text-heading">Week of {formatWeekLabel(week.start)}</h3>
+						<h3 className="font-semibold text-heading">Week {getWeekNumber(week.weekKey)}</h3>
 						<p className="text-sm text-body">{week.totalCount} events</p>
 					</div>
 					<button onClick={onClose} className="text-label hover:text-heading text-xl">
