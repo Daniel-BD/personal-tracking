@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 
 import type { WeeklyData } from '../utils/stats-engine';
 import { calculateBalanceScore, getScoreChange, formatWeekLabel } from '../utils/stats-engine';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
+import BalanceScoreTrendChart from './BalanceScoreTrendChart';
 
 interface BalanceOverviewProps {
 	weeklyData: WeeklyData[];
@@ -77,6 +78,15 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 					/>
 				</div>
 				<p className="text-xs text-body">{t('balanceOverview.scoreMeterDescription')}</p>
+			</div>
+
+			{/* Balance score trend */}
+			<div className="card p-4 sm:p-6 space-y-3">
+				<h3 className="text-lg font-semibold">{t('balanceOverview.trendTitle')}</h3>
+				<BalanceScoreTrendChart weeklyData={weeklyData} />
+				{weeklyData.some((w) => w.hasLowData) && (
+					<p className="text-xs text-body">{t('balanceOverview.lowDataWarning')}</p>
+				)}
 			</div>
 
 			{/* Weekly breakdown chart */}
