@@ -45,11 +45,7 @@
 			"title": "Top Limit Categories",
 			"subtitle": "These dominate your limit choices"
 		},
-		"positivePanel": {
-			"title": "Lagging Positive Categories",
-			"subtitle": "These show up less often than your other positives"
-		},
-		"following": "✓ Following",
+"following": "✓ Following",
 		"follow": "+ Follow",
 		"dashboardFull": "Dashboard is full. Remove a category to add another.",
 		"addedToDashboard": "{{name}} added to your dashboard"
