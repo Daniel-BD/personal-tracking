@@ -7,6 +7,7 @@ import {
 	formatMonthYear,
 	formatWeekLabel,
 	getISOWeekNumber,
+	getISOWeekAndYear,
 	getDateNDaysAgo,
 } from '@/shared/lib/date-utils';
 
@@ -99,6 +100,16 @@ describe('formatMonthYear', () => {
 	});
 });
 
+describe('getISOWeekAndYear', () => {
+	it('returns week 3 of 2025 for Jan 15, 2025', () => {
+		expect(getISOWeekAndYear(new Date(2025, 0, 15))).toEqual({ year: 2025, week: 3 });
+	});
+
+	it('returns week 1 of 2026 for Dec 31, 2025 (year boundary)', () => {
+		expect(getISOWeekAndYear(new Date(2025, 11, 31))).toEqual({ year: 2026, week: 1 });
+	});
+});
+
 describe('getISOWeekNumber', () => {
 	it('returns week 3 for Jan 15, 2025', () => {
 		expect(getISOWeekNumber(new Date(2025, 0, 15))).toBe(3);
@@ -108,9 +119,8 @@ describe('getISOWeekNumber', () => {
 		expect(getISOWeekNumber(new Date(2025, 0, 1))).toBe(1);
 	});
 
-	it('returns week 52 or 53 for Dec 31', () => {
-		const week = getISOWeekNumber(new Date(2025, 11, 31));
-		expect(week).toBeGreaterThanOrEqual(1);
+	it('returns ISO week 1 for Dec 31, 2025 (belongs to week 1 of 2026)', () => {
+		expect(getISOWeekNumber(new Date(2025, 11, 31))).toBe(1);
 	});
 });
 

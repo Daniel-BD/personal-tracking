@@ -47,14 +47,25 @@ export function getDateNDaysAgo(n: number): string {
 }
 
 /**
- * Get the ISO week number for a given date (1–53).
+ * Get the ISO week number (1–53) and ISO week-numbering year for a date.
+ * The year may differ from the calendar year at year boundaries
+ * (e.g. Dec 31, 2025 → week 1 of 2026).
  */
-export function getISOWeekNumber(date: Date): number {
+export function getISOWeekAndYear(date: Date): { year: number; week: number } {
 	const d = new Date(date);
 	d.setHours(0, 0, 0, 0);
 	d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-	const yearStart = new Date(d.getFullYear(), 0, 1);
-	return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+	const year = d.getFullYear();
+	const yearStart = new Date(year, 0, 1);
+	const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+	return { year, week };
+}
+
+/**
+ * Get the ISO week number for a given date (1–53).
+ */
+export function getISOWeekNumber(date: Date): number {
+	return getISOWeekAndYear(date).week;
 }
 
 /**

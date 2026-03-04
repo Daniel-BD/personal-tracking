@@ -1,23 +1,10 @@
 import type { Entry, TrackerData } from '@/shared/lib/types';
 import { getCategories } from '@/shared/lib/types';
 import { getCategoryNameById, getEntryCategoryIds, filterEntriesByType } from '@/features/tracking';
-import { getISOWeekNumber } from '@/shared/lib/date-utils';
+import { getISOWeekAndYear } from '@/shared/lib/date-utils';
 
-// Re-export formatWeekLabel and getISOWeekNumber for consumers
-export { formatWeekLabel, getISOWeekNumber } from '@/shared/lib/date-utils';
-
-export type PeriodType = 'weekly' | 'monthly';
-
-/**
- * Get the ISO week number and year for a date.
- * Delegates week-number calculation to the shared getISOWeekNumber utility.
- */
-function getISOWeek(date: Date): { year: number; week: number } {
-	const d = new Date(date);
-	d.setHours(0, 0, 0, 0);
-	d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-	return { year: d.getFullYear(), week: getISOWeekNumber(date) };
-}
+// Re-export for consumers
+export { formatWeekLabel, getISOWeekNumber, getISOWeekAndYear } from '@/shared/lib/date-utils';
 
 /**
  * Get the Monday of a given ISO week
@@ -38,7 +25,7 @@ export function getWeekStartDate(year: number, week: number): Date {
  * Format week key as "YYYY-W##"
  */
 function getWeekKey(date: Date): string {
-	const { year, week } = getISOWeek(date);
+	const { year, week } = getISOWeekAndYear(date);
 	return `${year}-W${String(week).padStart(2, '0')}`;
 }
 
@@ -53,7 +40,7 @@ export function getLastNWeeks(count: number = 8): Array<{ key: string; start: Da
 		const date = new Date(today);
 		date.setDate(date.getDate() - i * 7);
 		const key = getWeekKey(date);
-		const start = getWeekStartDate(date.getFullYear(), getISOWeek(date).week);
+		const start = getWeekStartDate(date.getFullYear(), getISOWeekAndYear(date).week);
 		const end = new Date(start);
 		end.setDate(end.getDate() + 6);
 
