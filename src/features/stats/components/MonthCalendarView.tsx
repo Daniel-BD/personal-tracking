@@ -54,7 +54,7 @@ export default function MonthCalendarView({ entries, categoryId, data, sentiment
 			counts.set(entry.date, (counts.get(entry.date) || 0) + 1);
 		}
 		return counts;
-	}, [entries, categoryId, data, year, month]);
+	}, [entries, categoryId, data, month, year, isItem]);
 
 	// Build calendar grid cells
 	const calendarCells = useMemo(() => {
