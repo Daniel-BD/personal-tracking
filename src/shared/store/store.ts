@@ -360,6 +360,149 @@ export function deleteItem(type: EntryType, id: string): void {
 }
 
 // ============================================================
+// Merge operations
+// ============================================================
+
+export function mergeItem(type: EntryType, sourceId: string, targetId: string, noteToAppend?: string): number {
+	if (sourceId === targetId) return 0;
+
+	const key = getItemsKey(type);
+	const entityType = type === 'activity' ? 'activityItem' : 'foodItem';
+	const note = noteToAppend?.trim() || null;
+
+	pendingDeletions[key].add(sourceId);
+	// Snapshot for pendingDeletions (best-effort, these are a safety net).
+	// The authoritative check happens inside updateData using fresh `data`.
+	if ((currentData.favoriteItems || []).includes(sourceId)) {
+		pendingDeletions.favoriteItems.add(sourceId);
+	}
+	persistPendingDeletions();
+
+	let affectedCount = 0;
+
+	updateData((data) => {
+		const sourceIsFavorite = (data.favoriteItems || []).includes(sourceId);
+
+		const updatedEntries = data.entries.map((entry) => {
+			if (entry.type !== type || entry.itemId !== sourceId) return entry;
+			affectedCount++;
+			const updatedEntry = { ...entry, itemId: targetId };
+			if (note) {
+				updatedEntry.notes = entry.notes ? entry.notes + '\n' + note : note;
+			}
+			return updatedEntry;
+		});
+
+		const updatedFavorites = data.favoriteItems || [];
+		let newFavorites = updatedFavorites.filter((id) => id !== sourceId);
+		if (sourceIsFavorite && !newFavorites.includes(targetId)) {
+			newFavorites = [...newFavorites, targetId];
+		}
+
+		let updated: TrackerData = {
+			...data,
+			[key]: data[key].filter((item) => item.id !== sourceId),
+			entries: updatedEntries,
+			favoriteItems: newFavorites,
+		};
+
+		const tombstoneEntries: { id: string; entityType: TombstoneEntityType }[] = [{ id: sourceId, entityType }];
+		if (sourceIsFavorite) {
+			tombstoneEntries.push({ id: sourceId, entityType: 'favoriteItem' });
+		}
+		updated = addTombstones(updated, tombstoneEntries);
+		return updated;
+	});
+
+	triggerPush();
+	return affectedCount;
+}
+
+export function mergeCategory(
+	type: EntryType,
+	sourceId: string,
+	targetId: string,
+): { itemCount: number; entryCount: number } {
+	if (sourceId === targetId) return { itemCount: 0, entryCount: 0 };
+
+	const catKey = getCategoriesKey(type);
+	const itemsKey = getItemsKey(type);
+	const entityType = type === 'activity' ? 'activityCategory' : 'foodCategory';
+
+	pendingDeletions[catKey].add(sourceId);
+	// Snapshot for pendingDeletions (best-effort, these are a safety net).
+	// The authoritative check happens inside updateData using fresh `data`.
+	const snapshotCards = currentData.dashboardCards || [];
+	if (snapshotCards.find((c) => c.categoryId === sourceId)) {
+		pendingDeletions.dashboardCards.add(sourceId);
+	}
+	persistPendingDeletions();
+
+	let itemCount = 0;
+	let entryCount = 0;
+
+	updateData((data) => {
+		// Replace sourceId with targetId in item category arrays
+		const updatedItems = data[itemsKey].map((item) => {
+			if (!item.categories.includes(sourceId)) return item;
+			itemCount++;
+			const hasTarget = item.categories.includes(targetId);
+			return {
+				...item,
+				categories: hasTarget
+					? item.categories.filter((id) => id !== sourceId)
+					: item.categories.map((id) => (id === sourceId ? targetId : id)),
+			};
+		});
+
+		// Replace sourceId with targetId in entry categoryOverrides
+		const updatedEntries = data.entries.map((entry) => {
+			if (entry.type !== type || !entry.categoryOverrides || !entry.categoryOverrides.includes(sourceId)) return entry;
+			entryCount++;
+			const hasTarget = entry.categoryOverrides.includes(targetId);
+			return {
+				...entry,
+				categoryOverrides: hasTarget
+					? entry.categoryOverrides.filter((id) => id !== sourceId)
+					: entry.categoryOverrides.map((id) => (id === sourceId ? targetId : id)),
+			};
+		});
+
+		// Handle dashboard cards: transfer or remove (re-derive from fresh data)
+		const currentCards = data.dashboardCards || [];
+		let updatedCards = currentCards;
+		const extraTombstones: { id: string; entityType: TombstoneEntityType }[] = [];
+
+		const srcCard = currentCards.find((c) => c.categoryId === sourceId);
+		const tgtCard = currentCards.find((c) => c.categoryId === targetId);
+		if (srcCard) {
+			if (tgtCard) {
+				// Both source and target have cards — delete source card
+				updatedCards = currentCards.filter((c) => c.categoryId !== sourceId);
+				extraTombstones.push({ id: sourceId, entityType: 'dashboardCard' });
+			} else {
+				// Transfer source card to target; tombstone the source so remote copies are cleaned up during sync
+				updatedCards = currentCards.map((c) => (c.categoryId === sourceId ? { ...c, categoryId: targetId } : c));
+				extraTombstones.push({ id: sourceId, entityType: 'dashboardCard' });
+			}
+		}
+
+		let updated: TrackerData = {
+			...data,
+			[catKey]: data[catKey].filter((c) => c.id !== sourceId),
+			[itemsKey]: updatedItems,
+			entries: updatedEntries,
+			dashboardCards: updatedCards,
+		};
+
+		updated = addTombstones(updated, [{ id: sourceId, entityType }, ...extraTombstones]);
+		return updated;
+	});
+	triggerPush();
+	return { itemCount, entryCount };
+}
+
+// ============================================================
 // Dashboard Card CRUD
 // ============================================================
 

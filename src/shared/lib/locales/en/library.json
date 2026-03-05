@@ -13,6 +13,7 @@
 		"category": "Add category"
 	},
 	"clearSearchAriaLabel": "Clear search",
+	"mergeNoResults": "No matches for \"{{query}}\"",
 	"searchPlaceholder": {
 		"items": "Search items...",
 		"categories": "Search categories..."
@@ -48,6 +49,20 @@
 		"favoriteAriaLabel": {
 			"add": "Add to favorites",
 			"remove": "Remove from favorites"
+		},
+		"mergeButton": "Merge into...",
+		"merge": {
+			"selectTitle": "Select Target Item",
+			"searchPlaceholder": "Search items...",
+			"confirmTitle": "Merge Item",
+			"confirmMessage": "All entries from \"{{source}}\" will be reassigned to \"{{target}}\".",
+			"affectedEntries_one": "{{count}} entry will be updated.",
+			"affectedEntries_other": "{{count}} entries will be updated.",
+			"noteLabel": "Note to append to affected entries (optional)",
+			"notePlaceholder": "e.g., Originally logged as {{source}}",
+			"confirmButton": "Merge",
+			"cancelButton": "Cancel",
+			"successToast": "Merged \"{{source}}\" into \"{{target}}\""
 		}
 	},
 	"categories": {
@@ -73,6 +88,20 @@
 			"nameLabel": "Name",
 			"namePlaceholder": "Enter category name...",
 			"sentimentLabel": "Sentiment"
+		},
+		"mergeButton": "Merge into...",
+		"merge": {
+			"selectTitle": "Select Target Category",
+			"searchPlaceholder": "Search categories...",
+			"confirmTitle": "Merge Category",
+			"confirmMessage": "All references to \"{{source}}\" will be changed to \"{{target}}\".",
+			"affectedItems_one": "{{count}} item will be updated.",
+			"affectedItems_other": "{{count}} items will be updated.",
+			"affectedEntries_one": "{{count}} entry override will be updated.",
+			"affectedEntries_other": "{{count}} entry overrides will be updated.",
+			"confirmButton": "Merge",
+			"cancelButton": "Cancel",
+			"successToast": "Merged \"{{source}}\" into \"{{target}}\""
 		}
 	}
 }

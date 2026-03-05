@@ -1,13 +1,19 @@
-import { Pencil, Trash2, FolderOpen } from 'lucide-react';
+import { Pencil, Trash2, FolderOpen, Merge } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Item, Category, CategorySentiment, EntryType } from '@/shared/lib/types';
-import { addCategory, updateCategory, deleteCategory } from '@/shared/store/store';
+import { addCategory, updateCategory, deleteCategory, mergeCategory } from '@/shared/store/store';
+import { useEntries, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
 import { useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
 import { cn } from '@/shared/lib/cn';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
+import { showToast } from '@/shared/ui/Toast';
 import SentimentPicker from './SentimentPicker';
 import { useLibraryForm } from '../hooks/useLibraryForm';
+import { useMergeFlow } from '../hooks/useMergeFlow';
+import { countAffectedForCategoryMerge } from '../utils/merge-utils';
+import MergeTargetSheet from './MergeTargetSheet';
+import MergeConfirmSheet from './MergeConfirmSheet';
 
 interface Props {
 	categories: Category[];
@@ -34,6 +40,21 @@ export default function CategoriesTab({
 		typeof CATEGORY_FORM_DEFAULTS,
 		{ id: string; name: string; itemCount: number }
 	>({ showAddSheet, defaults: CATEGORY_FORM_DEFAULTS });
+
+	const entries = useEntries();
+	const activityCategories = useActivityCategories();
+	const foodCategories = useFoodCategories();
+	const allCategories = activeTab === 'activity' ? activityCategories : foodCategories;
+	const {
+		mergeSource,
+		mergeTarget,
+		isSelectingTarget,
+		isConfirming,
+		startMerge,
+		selectTarget,
+		cancelMerge,
+		completeMerge,
+	} = useMergeFlow();
 
 	const {
 		swipedEntryId,
@@ -80,6 +101,25 @@ export default function CategoriesTab({
 		resetSwipe();
 		resetForm();
 	}
+
+	function handleStartMerge() {
+		if (!editing) return;
+		const source = { id: editing.id, name: editing.name };
+		resetForm();
+		startMerge(source);
+	}
+
+	function handleConfirmMerge() {
+		if (!mergeSource || !mergeTarget) return;
+		mergeCategory(activeTab, mergeSource.id, mergeTarget.id);
+		showToast(t('categories.merge.successToast', { source: mergeSource.name, target: mergeTarget.name }));
+		completeMerge();
+	}
+
+	const mergePreview =
+		mergeSource && isConfirming
+			? countAffectedForCategoryMerge(allItems, entries, activeTab, mergeSource.id)
+			: { itemCount: 0, entryCount: 0 };
 
 	const typeLabel =
 		activeTab === 'activity' ? t('common:type.activities').toLowerCase() : t('common:type.food').toLowerCase();
@@ -245,7 +285,11 @@ export default function CategoriesTab({
 							<label className="form-label">{t('categories.form.sentimentLabel')}</label>
 							<SentimentPicker value={fields.sentiment} onChange={(val) => setField('sentiment', val)} />
 						</div>
-						<div className="pt-2">
+						<div className="pt-2 space-y-2">
+							<button onClick={handleStartMerge} className="btn btn-secondary w-full flex items-center justify-center">
+								<Merge className="w-4 h-4 mr-2" strokeWidth={2} />
+								{t('categories.mergeButton')}
+							</button>
 							<button
 								onClick={() => handleDelete(editing.id)}
 								className="btn btn-danger w-full flex items-center justify-center"
@@ -257,6 +301,29 @@ export default function CategoriesTab({
 					</div>
 				)}
 			</BottomSheet>
+
+			{/* Merge Target Selection Sheet */}
+			<MergeTargetSheet
+				open={isSelectingTarget}
+				onClose={cancelMerge}
+				onSelect={selectTarget}
+				title={t('categories.merge.selectTitle')}
+				candidates={allCategories.filter((c) => c.id !== mergeSource?.id).map((c) => ({ id: c.id, name: c.name }))}
+				searchPlaceholder={t('categories.merge.searchPlaceholder')}
+			/>
+
+			{/* Merge Confirmation Sheet */}
+			<MergeConfirmSheet
+				open={isConfirming}
+				onClose={cancelMerge}
+				onConfirm={handleConfirmMerge}
+				sourceName={mergeSource?.name ?? ''}
+				targetName={mergeTarget?.name ?? ''}
+				affectedEntryCount={mergePreview.entryCount}
+				affectedItemCount={mergePreview.itemCount}
+				showNoteInput={false}
+				entityType="category"
+			/>
 		</>
 	);
 }
