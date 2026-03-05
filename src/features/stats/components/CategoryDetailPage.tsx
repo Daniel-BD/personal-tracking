@@ -32,16 +32,12 @@ export default function CategoryDetailPage() {
 
 	// Find the entity across categories and items
 	const { entity, isItem, defaultCategories } = useMemo(() => {
-		const category =
-			data.foodCategories.find((c) => c.id === categoryId) || data.activityCategories.find((c) => c.id === categoryId);
-		const item = data.foodItems.find((i) => i.id === categoryId) || data.activityItems.find((i) => i.id === categoryId);
+		const category = data.foodCategories.find((c) => c.id === categoryId);
+		const item = data.foodItems.find((i) => i.id === categoryId);
 
 		let defaultCategories: typeof data.foodCategories = [];
 		if (item) {
-			defaultCategories = [
-				...data.foodCategories.filter((c) => item.categories.includes(c.id)),
-				...data.activityCategories.filter((c) => item.categories.includes(c.id)),
-			];
+			defaultCategories = data.foodCategories.filter((c) => item.categories.includes(c.id));
 		}
 
 		return {
@@ -203,10 +199,22 @@ export default function CategoryDetailPage() {
 			/>
 
 			{/* Month calendar view */}
-			<MonthCalendarView entries={data.entries} categoryId={categoryId!} data={data} sentiment={sentiment} />
+			<MonthCalendarView
+				entries={data.entries}
+				categoryId={categoryId!}
+				data={data}
+				sentiment={sentiment}
+				isItem={isItem}
+			/>
 
 			{/* Yearly activity grid */}
-			<YearlyActivityGrid entries={data.entries} categoryId={categoryId!} data={data} sentiment={sentiment} />
+			<YearlyActivityGrid
+				entries={data.entries}
+				categoryId={categoryId!}
+				data={data}
+				sentiment={sentiment}
+				isItem={isItem}
+			/>
 		</div>
 	);
 }

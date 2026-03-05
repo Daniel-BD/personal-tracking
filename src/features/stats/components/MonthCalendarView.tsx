@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { Entry, TrackerData } from '@/shared/lib/types';
 import type { CategorySentiment } from '@/shared/lib/types';
 import { formatDateLocal } from '@/shared/lib/date-utils';
-import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking';
+import { filterEntriesByCategory, filterEntriesByItem, filterEntriesByDateRange } from '@/features/tracking';
 import { cn } from '@/shared/lib/cn';
 
 const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
@@ -20,12 +20,13 @@ interface MonthCalendarViewProps {
 	categoryId: string;
 	data: TrackerData;
 	sentiment: CategorySentiment;
+	isItem?: boolean;
 }
 
-export default function MonthCalendarView({ entries, categoryId, data, sentiment }: MonthCalendarViewProps) {
+export default function MonthCalendarView({ entries, categoryId, data, sentiment, isItem }: MonthCalendarViewProps) {
 	const { t } = useTranslation('stats');
 	const [monthOffset, setMonthOffset] = useState(0);
-	const color = SENTIMENT_COLORS[sentiment];
+	const color = isItem ? 'var(--color-activity)' : SENTIMENT_COLORS[sentiment];
 
 	const { year, month, monthLabel } = useMemo(() => {
 		const now = new Date();
@@ -43,7 +44,10 @@ export default function MonthCalendarView({ entries, categoryId, data, sentiment
 		const lastDay = new Date(year, month + 1, 0);
 		const range = { start: formatDateLocal(firstDay), end: formatDateLocal(lastDay) };
 
-		const filtered = filterEntriesByCategory(filterEntriesByDateRange(entries, range), categoryId, data);
+		const dateEntries = filterEntriesByDateRange(entries, range);
+		const filtered = isItem
+			? filterEntriesByItem(dateEntries, categoryId)
+			: filterEntriesByCategory(dateEntries, categoryId, data);
 
 		const counts = new Map<string, number>();
 		for (const entry of filtered) {

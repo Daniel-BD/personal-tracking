@@ -31,12 +31,10 @@ export default function GoalDashboard() {
 
 				// Find category or item and determine color/type/sentiment
 				const foodCat = data.foodCategories.find((c) => c.id === entityId);
-				const activityCat = data.activityCategories.find((c) => c.id === entityId);
 				const foodItem = data.foodItems.find((c) => c.id === entityId);
-				const activityItem = data.activityItems.find((c) => c.id === entityId);
 
-				const category = foodCat || activityCat;
-				const item = foodItem || activityItem;
+				const category = foodCat;
+				const item = foodItem;
 
 				const entity = category || item;
 

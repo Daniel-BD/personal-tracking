@@ -1,13 +1,7 @@
 import { useState, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import {
-	useDashboardCards,
-	useFoodCategories,
-	useActivityCategories,
-	useFoodItems,
-	useActivityItems,
-} from '@/shared/store/hooks';
+import { useDashboardCards, useFoodCategories, useFoodItems } from '@/shared/store/hooks';
 import { addDashboardCard } from '@/shared/store/store';
 
 interface AddCategoryModalProps {
@@ -18,9 +12,7 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 	const { t } = useTranslation('stats');
 	const dashboardCards = useDashboardCards();
 	const foodCategories = useFoodCategories();
-	const activityCategories = useActivityCategories();
 	const foodItems = useFoodItems();
-	const activityItems = useActivityItems();
 	const [search, setSearch] = useState('');
 
 	const addedEntityIds = useMemo(() => {
@@ -30,13 +22,11 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 	const entities = useMemo(() => {
 		const all = [
 			...foodCategories.map((c) => ({ ...c, type: 'food', entityType: 'category' })),
-			...activityCategories.map((c) => ({ ...c, type: 'activity', entityType: 'category' })),
 			...foodItems.map((c) => ({ ...c, type: 'food', entityType: 'item' })),
-			...activityItems.map((c) => ({ ...c, type: 'activity', entityType: 'item' })),
 		];
 
 		return all.sort((a, b) => a.name.localeCompare(b.name));
-	}, [foodCategories, activityCategories, foodItems, activityItems]);
+	}, [foodCategories, foodItems]);
 
 	const filteredEntities = useMemo(() => {
 		const term = search.toLowerCase().trim();
