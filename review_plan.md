@@ -1,96 +1,173 @@
-# Codebase Review Plan
+# Codebase Review — Findings
 
 Systematic review of the entire codebase for bugs, DRY violations, hardcoded values, unnecessary comments, file size issues, unused imports, and other code quality problems.
 
-## Review Checklist (applied to every file)
+---
 
-- **Bugs**: Logic errors, off-by-one, null/undefined handling, race conditions
-- **DRY violations**: Duplicated logic across files/features that should be shared
-- **Hardcoded values**: Magic numbers/strings that should be constants
-- **Unnecessary comments**: Obvious comments, stale comments, commented-out code
-- **File size**: Components over ~250 lines that should be split
-- **Unused imports/variables**: Dead code (TypeScript strict mode catches some, but not all)
-- **Import boundary violations**: shared/ui importing from store, cross-feature imports bypassing barrels
-- **Type safety**: `any` types, missing null checks, unsafe casts
-- **Consistency**: Naming conventions, patterns that differ from the rest of the codebase
-- **Performance**: Missing memoization where needed, unnecessary re-renders, expensive operations in render
+## Priority 1: Bugs
 
-## Review Order (14 steps)
+### date-utils.ts:28 — Timezone bug in `formatDateWithYear()`
+```typescript
+const [year, month, day] = dateString.split('-').map(Number);
+const date = new Date(year, month - 1, day);
+```
+Creates a Date in **local timezone** but the dateString is ISO format. This causes dates to shift by the user's timezone offset (e.g., "2025-01-15" in UTC-5 becomes Jan 14). Compare with `formatDate()` line 18 which correctly uses `new Date(dateString + 'T00:00:00')`.
 
-### Step 1: `src/shared/lib/` — Core utilities
-Files: `types.ts` (96L), `schemas.ts` (101L), `date-utils.ts` (78L), `cn.ts` (6L), `i18n.ts` (37L), `theme.ts` (39L), `animation.ts` (98L), `github.ts` (140L)
+**Fix:** Change to `const date = new Date(dateString + 'T00:00:00');`
 
-Focus: Type correctness, utility completeness, DRY between `types.ts` helpers and store helpers, hardcoded strings in `i18n.ts`/`theme.ts`.
+### types.ts:61 — Unsafe time string extraction
+```typescript
+return now.toTimeString().slice(0, 5); // HH:MM format
+```
+`toTimeString()` format varies by browser/locale. More reliable: parse `getHours()` and `getMinutes()` directly, matching the pattern in `formatDateLocal()`.
 
-### Step 2: `src/shared/store/store.ts` — Main store (561L, over limit)
-Focus: File size (561L vs 400L limit per CLAUDE.md), CRUD correctness, race conditions in sync coordination, duplicated patterns across add/update/delete operations.
+### GoalDashboard.tsx:60 & CategoryDetailPage.tsx:64 — Hardcoded baseline slice
+```typescript
+const baselineWeeks = sparklineData.slice(3, 7);
+```
+Assumes exactly 8 weeks of data. If `weeks` length differs, this silently calculates an incorrect baseline. No guard against insufficient data.
 
-### Step 3: `src/shared/store/sync.ts` — Gist sync (439L)
-Focus: Merge logic correctness, error handling, tombstone pruning, race conditions with `activeSync` lock, hardcoded timeouts/intervals.
+### StarIcon.tsx:9 — `getComputedStyle()` called on every render
+Performs a reflow on every render. The CSS variable `--color-favorite` should be read once and cached, or passed as a prop.
 
-### Step 4: `src/shared/store/` — Remaining store files
-Files: `hooks.ts` (80L), `migration.ts` (56L), `import-export.ts` (38L)
+---
 
-Focus: Hook selector stability, migration completeness, import validation edge cases.
+## Priority 2: File Size Violations
 
-### Step 5: `src/shared/ui/` — Reusable UI components
-Files: `BottomSheet.tsx` (100L), `SegmentedControl.tsx` (90L), `MultiSelectFilter.tsx` (123L), `NativePickerInput.tsx` (52L), `ConfirmDialog.tsx` (33L), `Toast.tsx` (61L), `SyncToast.tsx` (62L), `ErrorBoundary.tsx` (75L), `SentimentPills.tsx` (24L), `NavIcon.tsx` (15L), `StarIcon.tsx` (12L), `ReloadPrompt.tsx` (26L)
+| File | Lines | Limit | Action |
+|------|-------|-------|--------|
+| `store.ts` | 561 | 400 | Extract Entry CRUD (~53 lines) into `entry-crud.ts` |
+| `stats-engine.ts` | 411 | 400 | Extract `getChartColors`, `buildCategoryColorMap`, `getTopLimitCategories` into separate files |
+| `EntryList.tsx` | 287 | 250 | Extract edit-related logic into `useEntryEdit()` hook |
+| `CategoriesTab.tsx` | 262 | 250 | Extract shared CRUD row component with ItemsTab |
+| `ItemsTab.tsx` | 255 | 250 | Extract shared CRUD row component with CategoriesTab |
 
-Focus: Import boundary violations (no store/features imports), accessibility (aria attributes, keyboard handling), hardcoded z-index/colors, consistency across components.
+---
 
-### Step 6: `src/app/` — Root layout & entry point
-Files: `App.tsx`, `main.tsx`, `app.css`
+## Priority 3: DRY Violations
 
-Focus: Route configuration, nav bar, global CSS variables, hardcoded values.
+### SENTIMENT_COLORS duplicated in 6 files
+The same `SENTIMENT_COLORS` object (`{ positive, neutral, limit }`) is defined in:
+- `GoalCard.tsx`
+- `CategoryDetailPage.tsx`
+- `BalanceScoreTrendChart.tsx`
+- `WeekHistoryGrid.tsx`
+- `CategoryTrendChart.tsx`
+- `BalanceOverview.tsx`
 
-### Step 7: `src/features/tracking/` — Core tracking feature
-Files: `EntryList.tsx` (287L, over limit), `CategoryPicker.tsx` (154L), `CategoryLine.tsx` (43L), `DaySentimentSummary.tsx` (14L), `useSwipeGesture.ts` (106L), `entry-filters.ts` (38L), `entry-grouping.ts` (207L), `category-utils.ts` (54L)
+**Fix:** Extract to a shared constant in `stats-engine.ts` or a dedicated `chart-constants.ts`.
 
-Focus: `EntryList.tsx` size (287L vs 250L limit), swipe gesture edge cases, filter/grouping logic correctness, DRY between entry-grouping and stats-engine.
+### Balance score calculation duplicated
+- `daily-balance.ts:11-30`: `(counts.positive / total) * 100`
+- `stats-engine.ts:169-173`: `(positive / (positive + limit)) * 100`
 
-### Step 8: `src/features/quick-log/` — Quick logging
-Files: `QuickLogForm.tsx` (218L), `QuickLogButton.tsx` (102L), `QuickLogSearchInput.tsx` (100L), `QuickLogItemsList.tsx` (85L), `useQuickLogForm.ts` (133L), `useQuickLogSearch.ts` (88L)
+**Fix:** Extract to a shared utility function.
 
-Focus: Search algorithm correctness, form state management, render prop pattern consistency, edge cases in quick-log flow.
+### ItemsTab & CategoriesTab — nearly identical CRUD components
+Both share identical patterns for: swipe gesture setup, row rendering with swipe actions, empty state structure, BottomSheet add/edit forms, and `useLibraryForm` hook usage.
 
-### Step 9: `src/features/stats/utils/stats-engine.ts` — Stats calculations (411L)
-Focus: Calculation correctness, hardcoded week/period constants, DRY with entry-grouping utilities, edge cases (empty data, single entry).
+**Fix:** Extract a parameterized `<LibraryCRUDList>` component.
 
-### Step 10: `src/features/stats/components/` — Stats UI (13 components)
-Files: `StatsPage.tsx` (90L), `GoalDashboard.tsx` (133L), `GoalCard.tsx` (184L), `BalanceOverview.tsx` (142L), `BalanceScoreTrendChart.tsx` (86L), `CategoryComposition.tsx` (217L), `FrequencyRanking.tsx` (179L), `ActionableCategories.tsx` (126L), `AddCategoryModal.tsx` (104L), `CategoryDetailPage.tsx` (187L), `CategoryTrendChart.tsx` (136L), `WeekHistoryGrid.tsx` (82L), `WeekBreakdownTooltip.tsx` (53L), `MonthCalendarView.tsx` (154L), `YearlyActivityGrid.tsx` (184L)
+### sync.ts:198-230 — `clearConfirmedDeletions()` has 7 near-identical loops
+Each loop iterates a pending deletion set and removes confirmed IDs.
 
-Focus: Recharts usage consistency, hardcoded colors/dimensions, DRY across chart components, data transformation duplication.
+**Fix:** Extract into a helper function called 7 times with different parameters.
 
-### Step 11: `src/features/library/` — CRUD management
-Files: `LibraryPage.tsx` (138L), `ItemsTab.tsx` (255L, borderline), `CategoriesTab.tsx` (262L, over limit), `SentimentPicker.tsx` (41L), `useLibraryForm.ts` (64L)
+### entry-grouping.ts:65-144 — Duplicate week-start logic
+`getWeekStart()` and `getWeekRange()` both calculate Monday of a week independently.
 
-Focus: File sizes (`CategoriesTab` 262L, `ItemsTab` 255L), DRY between ItemsTab and CategoriesTab (likely similar CRUD patterns), form validation.
+**Fix:** Extract common `calculateWeekMonday()` helper.
 
-### Step 12: `src/features/log/` — Entry list & filters
-Files: `LogPage.tsx` (182L), `ItemDetailPage.tsx` (37L), `useLogFilters.ts` (140L)
+### Recharts inline type workarounds duplicated
+`GoalCard.tsx:148` and `CategoryTrendChart.tsx:81` both repeat the same verbose Recharts dot prop type.
 
-Focus: Filter logic vs tracking/entry-filters DRY, performance with large entry lists, edge cases.
+**Fix:** Extract shared Recharts type definitions.
 
-### Step 13: `src/features/home/` — Home page
-Files: `HomePage.tsx` (79L), `DailyBalanceScore.tsx` (45L), `daily-balance.ts` (30L)
+---
 
-Focus: DRY with stats balance calculations, component composition.
+## Priority 4: Hardcoded Values to Extract
 
-### Step 14: `src/features/settings/` — Settings
-Files: `SettingsPage.tsx` (107L), `BackupSection.tsx` (184L), `GistConfigSection.tsx` (157L), `ExportImportSection.tsx` (75L), `ThemeSection.tsx` (32L), `types.ts` (5L)
+| File | Line | Value | Suggested Constant |
+|------|------|-------|--------------------|
+| `schemas.ts` | 37-38 | `'rolling_4_week_avg'`, `'last_week'` | `DASHBOARD_BASELINE`, `DASHBOARD_COMPARISON` (also hardcoded in migration.ts:45-46 and store.ts:369-370) |
+| `stats-engine.ts` | 162 | `weekEntries.length < 5` | `LOW_DATA_THRESHOLD = 5` |
+| `GoalCard.tsx` | 41 | `Math.abs(deltaPercent) < 0.1` | `STABLE_CHANGE_THRESHOLD = 0.1` |
+| `ActionableCategories.tsx` | 11 | `MAX_DASHBOARD_CARDS = 6` | Document why 6 |
+| `import-export.ts` | 16 | `'tracker-backup-'` | `BACKUP_FILENAME_PREFIX` |
+| `GoalDashboard.tsx` | 99 | `maxHeight: 'calc(3 * 180px + 2 * 1rem)'` | Use CSS Grid auto-fit or data-driven height |
 
-Focus: Error handling in Gist config, backup flow correctness, hardcoded URLs/tokens.
+---
 
-## Cross-cutting reviews (done alongside per-file review)
+## Priority 5: Accessibility Issues
 
-- **DRY across features**: Compare entry-grouping (tracking) vs stats-engine (stats) vs daily-balance (home) for duplicated date/week logic
-- **DRY in CRUD UI**: Compare ItemsTab vs CategoriesTab (library) for extractable shared patterns
-- **Barrel export completeness**: Verify index.ts files export everything that's imported cross-feature
-- **Test coverage gaps**: Note features/files with no tests (library, settings have zero tests)
+- **SegmentedControl.tsx** — Missing keyboard navigation (arrow keys). Should support `aria-pressed` or implement keyboard handling for WCAG 2.1 AA.
+- **App.tsx:107** — Active NavLink should have `aria-current="page"` for assistive technology.
+- **BottomSheet.tsx:64** — Missing `aria-label` fallback when no `title` prop is provided.
+- **Toast.tsx** — Individual toasts should have `role="status"` and `aria-live="polite"`.
+- **Toast.tsx:42** — Button missing explicit `type="button"`.
+- **ReloadPrompt.tsx:18** — Button missing explicit `type="button"`.
+- **ItemsTab.tsx:101,110** — Hardcoded aria-labels "Edit item" / "Delete item" not localized.
+- **CategoriesTab.tsx:116,125** — Same: hardcoded aria-labels not localized.
 
-## How to conduct each step
+---
 
-1. Read all files in the section
-2. Note issues with file path, line number, and severity (bug/improvement/style)
-3. Compile findings into this file under each step heading
-4. After all steps, prioritize fixes
+## Priority 6: Stale `useMemo` Dependencies
+
+Several `useMemo` calls have empty dependency arrays `[]` but should track data changes:
+
+- **StatsPage.tsx:19** — `getLastNWeeks(8)` won't recalculate after week rollover.
+- **ActionableCategories.tsx:19** — Same issue.
+- **GoalDashboard.tsx:19** — Depends on `data.entries` but not time.
+- **CategoryComposition.tsx:45-46** — `topCategoryIds` has empty deps but should depend on `weeklyData`.
+
+---
+
+## Priority 7: Type Safety & Validation
+
+- **github.ts:128** — `as unknown as { description: string }` cast. Fix: add `description` field to `GistResponseSchema`.
+- **import-export.ts:34** — Unsafe cast `result.data as TrackerData`. Fix: validate with `TrackerDataSchema.safeParse()` after migration.
+- **SentimentPicker.tsx:10-14** — `getActiveStyle()` doesn't exhaustively check all `CategorySentiment` values. Use exhaustive switch.
+
+---
+
+## Priority 8: Improvements (Lower Priority)
+
+### Performance
+- **LogPage.tsx:13-14** — Imports `useActivityItems()` and `useFoodItems()` but only checks `.length > 0`. Create a `useHasAnyItems()` selector.
+- **stats-engine.ts:148-150** — Multiple filter-reduce chains for sentiment calculations. Consolidate into single pass.
+- **FrequencyRanking.tsx:22** — `rankItems` and `rankCategories` are nearly identical. Refactor into single generic function.
+
+### Error Handling
+- **BackupSection.tsx & GistConfigSection.tsx** — Generic `.catch()` blocks suppress errors. Log error details.
+- **ExportImportSection.tsx:32-44** — `FileReader.onload` doesn't validate `e.target?.result` is a string before parsing.
+
+### Style
+- **EntryList.tsx:118,124** — Remove obvious JSX comments.
+- **EntryList.tsx:196** — Hardcoded emoji strings. Use `getTypeIcon()` consistently.
+- **hooks.ts:5-7** — Empty array constants should use `Object.freeze()` to prevent accidental mutation.
+- **types.ts:65-79** — Type display utilities (`getTypeColor`, `getTypeLabel`, etc.) could be data-driven with a config map.
+- **app.css:351-385** — `.btn-primary`, `.btn-success`, `.btn-secondary`, `.btn-danger` duplicate the base `.btn` styles.
+
+### Testing Gaps
+- `src/features/library/` — No tests for ItemsTab, CategoriesTab, or LibraryPage.
+- `src/features/settings/` — No tests at all.
+
+---
+
+## Summary
+
+| Category | Count |
+|----------|-------|
+| Bugs | 4 |
+| File size violations | 5 |
+| DRY violations | 6 |
+| Hardcoded values | 6+ |
+| Accessibility | 8 |
+| Stale useMemo deps | 4 |
+| Type safety | 3 |
+| Performance | 3 |
+| Error handling | 2 |
+| Style/cleanup | 5+ |
+| Testing gaps | 2 areas |
+
+**Most impactful fixes:** The timezone bug in `formatDateWithYear()`, the `SENTIMENT_COLORS` DRY violation (6 files), and the file size violations (5 files over limit).
