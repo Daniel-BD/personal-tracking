@@ -2,7 +2,7 @@ import { Pencil, Trash2, PackageOpen, Merge } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Item, Category, EntryType } from '@/shared/lib/types';
 import { addItem, updateItem, deleteItem, mergeItem, toggleFavorite, isFavorite } from '@/shared/store/store';
-import { useEntries } from '@/shared/store/hooks';
+import { useEntries, useActivityItems, useFoodItems } from '@/shared/store/hooks';
 import { CategoryPicker, CategoryLine, useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
 import { cn } from '@/shared/lib/cn';
 import StarIcon from '@/shared/ui/StarIcon';
@@ -34,6 +34,9 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 	>({ showAddSheet, defaults: ITEM_FORM_DEFAULTS });
 
 	const entries = useEntries();
+	const activityItems = useActivityItems();
+	const foodItems = useFoodItems();
+	const allItems = activeTab === 'activity' ? activityItems : foodItems;
 	const {
 		mergeSource,
 		mergeTarget,
@@ -293,7 +296,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 				onClose={cancelMerge}
 				onSelect={selectTarget}
 				title={t('items.merge.selectTitle')}
-				candidates={items.filter((i) => i.id !== mergeSource?.id).map((i) => ({ id: i.id, name: i.name }))}
+				candidates={allItems.filter((i) => i.id !== mergeSource?.id).map((i) => ({ id: i.id, name: i.name }))}
 				searchPlaceholder={t('items.merge.searchPlaceholder')}
 			/>
 

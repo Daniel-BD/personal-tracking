@@ -364,6 +364,8 @@ export function deleteItem(type: EntryType, id: string): void {
 // ============================================================
 
 export function mergeItem(type: EntryType, sourceId: string, targetId: string, noteToAppend?: string): number {
+	if (sourceId === targetId) return 0;
+
 	const key = getItemsKey(type);
 	const entityType = type === 'activity' ? 'activityItem' : 'foodItem';
 	const note = noteToAppend?.trim() || null;
@@ -419,11 +421,22 @@ export function mergeCategory(
 	sourceId: string,
 	targetId: string,
 ): { itemCount: number; entryCount: number } {
+	if (sourceId === targetId) return { itemCount: 0, entryCount: 0 };
+
 	const catKey = getCategoriesKey(type);
 	const itemsKey = getItemsKey(type);
 	const entityType = type === 'activity' ? 'activityCategory' : 'foodCategory';
 
+	// Determine if source has a dashboard card that needs deletion (both source and target have cards)
+	const cards = currentData.dashboardCards || [];
+	const sourceCard = cards.find((c) => c.categoryId === sourceId);
+	const targetCard = cards.find((c) => c.categoryId === targetId);
+	const shouldDeleteSourceCard = sourceCard && targetCard;
+
 	pendingDeletions[catKey].add(sourceId);
+	if (shouldDeleteSourceCard) {
+		pendingDeletions.dashboardCards.add(sourceId);
+	}
 	persistPendingDeletions();
 
 	let itemCount = 0;
@@ -457,21 +470,18 @@ export function mergeCategory(
 		});
 
 		// Handle dashboard cards: transfer or remove
-		const cards = data.dashboardCards || [];
-		const sourceCard = cards.find((c) => c.categoryId === sourceId);
-		const targetCard = cards.find((c) => c.categoryId === targetId);
-		let updatedCards = cards;
+		const currentCards = data.dashboardCards || [];
+		let updatedCards = currentCards;
 		const extraTombstones: { id: string; entityType: TombstoneEntityType }[] = [];
 
-		if (sourceCard) {
-			if (targetCard) {
-				// Both have cards — just remove the source card
-				updatedCards = cards.filter((c) => c.categoryId !== sourceId);
-				pendingDeletions.dashboardCards.add(sourceId);
+		const srcCard = currentCards.find((c) => c.categoryId === sourceId);
+		if (srcCard) {
+			if (shouldDeleteSourceCard) {
+				updatedCards = currentCards.filter((c) => c.categoryId !== sourceId);
 				extraTombstones.push({ id: sourceId, entityType: 'dashboardCard' });
 			} else {
 				// Transfer source card to target
-				updatedCards = cards.map((c) => (c.categoryId === sourceId ? { ...c, categoryId: targetId } : c));
+				updatedCards = currentCards.map((c) => (c.categoryId === sourceId ? { ...c, categoryId: targetId } : c));
 			}
 		}
 
@@ -486,8 +496,6 @@ export function mergeCategory(
 		updated = addTombstones(updated, [{ id: sourceId, entityType }, ...extraTombstones]);
 		return updated;
 	});
-
-	persistPendingDeletions();
 	triggerPush();
 	return { itemCount, entryCount };
 }

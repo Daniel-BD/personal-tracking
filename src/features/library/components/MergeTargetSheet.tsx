@@ -45,7 +45,7 @@ export default function MergeTargetSheet({ open, onClose, onSelect, title, candi
 				/>
 
 				{filtered.length === 0 ? (
-					<p className="text-center text-label py-6">{t('items.emptySearch', { type: '', query: searchQuery })}</p>
+					<p className="text-center text-label py-6">{t('mergeNoResults', { query: searchQuery })}</p>
 				) : (
 					<div className="card overflow-hidden">
 						{filtered.map((candidate, idx) => (

@@ -13,6 +13,7 @@
 		"category": "Add category"
 	},
 	"clearSearchAriaLabel": "Clear search",
+	"mergeNoResults": "No matches for \"{{query}}\"",
 	"searchPlaceholder": {
 		"items": "Search items...",
 		"categories": "Search categories..."

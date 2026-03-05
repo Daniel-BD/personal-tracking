@@ -2,7 +2,7 @@ import { Pencil, Trash2, FolderOpen, Merge } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Item, Category, CategorySentiment, EntryType } from '@/shared/lib/types';
 import { addCategory, updateCategory, deleteCategory, mergeCategory } from '@/shared/store/store';
-import { useEntries } from '@/shared/store/hooks';
+import { useEntries, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
 import { useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
 import { cn } from '@/shared/lib/cn';
 import BottomSheet from '@/shared/ui/BottomSheet';
@@ -42,6 +42,9 @@ export default function CategoriesTab({
 	>({ showAddSheet, defaults: CATEGORY_FORM_DEFAULTS });
 
 	const entries = useEntries();
+	const activityCategories = useActivityCategories();
+	const foodCategories = useFoodCategories();
+	const allCategories = activeTab === 'activity' ? activityCategories : foodCategories;
 	const {
 		mergeSource,
 		mergeTarget,
@@ -305,7 +308,7 @@ export default function CategoriesTab({
 				onClose={cancelMerge}
 				onSelect={selectTarget}
 				title={t('categories.merge.selectTitle')}
-				candidates={categories.filter((c) => c.id !== mergeSource?.id).map((c) => ({ id: c.id, name: c.name }))}
+				candidates={allCategories.filter((c) => c.id !== mergeSource?.id).map((c) => ({ id: c.id, name: c.name }))}
 				searchPlaceholder={t('categories.merge.searchPlaceholder')}
 			/>
 
