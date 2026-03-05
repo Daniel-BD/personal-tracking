@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Pencil, Trash2, Star } from 'lucide-react';
+import TypeIcon from '@/shared/ui/TypeIcon';
 import { useTranslation } from 'react-i18next';
 import type { Entry, EntryType } from '@/shared/lib/types';
 import { getItemById, deleteEntry, updateEntry, toggleFavorite, isFavorite } from '@/shared/store/store';
@@ -189,12 +190,12 @@ export default function EntryList({ entries, showType = false }: Props) {
 													<div className="flex items-center gap-2">
 														{showType && (
 															<span
-																className="text-sm flex-shrink-0"
+																className="flex-shrink-0"
 																style={{
 																	color: `var(${entry.type === 'activity' ? '--color-activity' : '--color-food'})`,
 																}}
 															>
-																{entry.type === 'activity' ? '\u{1F3C3}' : '\u{1F37D}\u{FE0F}'}
+																<TypeIcon type={entry.type} className="w-4 h-4" />
 															</span>
 														)}
 														<span className="font-medium text-heading truncate">
