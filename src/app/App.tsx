@@ -1,6 +1,7 @@
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { lazy, Suspense, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'motion/react';
 import { getStoredTheme, applyTheme } from '@/shared/lib/theme';
 import { initializeStore } from '@/shared/store/store';
 import { HomePage } from '@/features/home';
@@ -89,33 +90,34 @@ export default function App() {
 			</main>
 
 			<nav
-				className="fixed bottom-0 left-0 right-0 z-20 backdrop-blur-lg border-t"
+				className="fixed bottom-0 left-0 right-0 z-20 backdrop-blur-lg"
 				style={{
 					background: 'color-mix(in srgb, var(--bg-card) 80%, transparent)',
-					borderColor: 'var(--border-default)',
 					paddingBottom: 'env(safe-area-inset-bottom, 0px)',
 				}}
 			>
-				<div className="max-w-4xl mx-auto flex justify-around">
+				<div className="max-w-4xl mx-auto flex justify-around relative">
 					{routeConfig.map(({ path, labelKey, icon }) => {
 						const isActive = path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 						return (
 							<NavLink
 								key={path}
 								to={path}
-								className="flex flex-col items-center py-2 px-3 text-xs transition-colors relative"
+								className="flex flex-col items-center pt-2 pb-2 px-3 text-xs transition-colors relative flex-1"
 								style={{ color: isActive ? 'var(--color-activity)' : 'var(--text-muted)' }}
 							>
+								{isActive && (
+									<motion.span
+										layoutId="nav-indicator"
+										className="absolute top-0 left-0 right-0 h-0.5 rounded-full"
+										style={{ background: 'var(--color-activity)' }}
+										transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+									/>
+								)}
 								<span className="mb-1">
 									<NavIcon icon={icon} />
 								</span>
 								<span>{t(labelKey)}</span>
-								{isActive && (
-									<span
-										className="absolute bottom-1 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full"
-										style={{ background: 'var(--color-activity)' }}
-									/>
-								)}
 							</NavLink>
 						);
 					})}
