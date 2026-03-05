@@ -38,6 +38,22 @@ export const DashboardCardSchema = z.object({
 	comparison: z.literal('last_week'),
 });
 
+export const TombstoneEntityTypeSchema = z.enum([
+	'entry',
+	'activityItem',
+	'foodItem',
+	'activityCategory',
+	'foodCategory',
+	'dashboardCard',
+	'favoriteItem',
+]);
+
+export const TombstoneSchema = z.object({
+	id: z.string(),
+	entityType: TombstoneEntityTypeSchema,
+	deletedAt: z.string().datetime(),
+});
+
 export const TrackerDataSchema = z.object({
 	activityItems: z.array(ItemSchema),
 	foodItems: z.array(ItemSchema),
@@ -47,6 +63,7 @@ export const TrackerDataSchema = z.object({
 	dashboardCards: z.array(DashboardCardSchema).optional(),
 	dashboardInitialized: z.boolean().optional(),
 	favoriteItems: z.array(z.string()).optional(),
+	tombstones: z.array(TombstoneSchema).optional(),
 });
 
 // ── GitHub API response schemas ────────────────────────────
@@ -80,4 +97,5 @@ export const TrackerDataImportSchema = z.object({
 	dashboardCards: z.array(DashboardCardSchema).optional(),
 	dashboardInitialized: z.boolean().optional(),
 	favoriteItems: z.array(z.string()).optional(),
+	tombstones: z.array(TombstoneSchema).optional(),
 });

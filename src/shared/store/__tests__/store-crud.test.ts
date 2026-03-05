@@ -20,6 +20,9 @@ vi.mock('@/shared/store/sync', () => ({
 	loadFromGistFn: vi.fn(),
 	backupToGistFn: vi.fn(),
 	restoreFromBackupGistFn: vi.fn(),
+	addTombstone: vi.fn((data: unknown) => data),
+	addTombstones: vi.fn((data: unknown) => data),
+	removeTombstone: vi.fn((data: unknown) => data),
 }));
 
 import {

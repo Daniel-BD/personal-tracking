@@ -1,4 +1,12 @@
-import type { TrackerData, Entry, Item, Category, CategorySentiment } from '@/shared/lib/types';
+import type {
+	TrackerData,
+	Entry,
+	Item,
+	Category,
+	CategorySentiment,
+	Tombstone,
+	TombstoneEntityType,
+} from '@/shared/lib/types';
 
 let idCounter = 0;
 
@@ -42,6 +50,15 @@ export function makeCategory(overrides: Partial<Category> = {}): Category {
 	};
 }
 
+export function makeTombstone(overrides: Partial<Tombstone> = {}): Tombstone {
+	return {
+		id: nextId(),
+		entityType: 'entry' as TombstoneEntityType,
+		deletedAt: new Date().toISOString(),
+		...overrides,
+	};
+}
+
 export function makeValidData(overrides: Partial<TrackerData> = {}): TrackerData {
 	return {
 		activityItems: [],
@@ -52,6 +69,7 @@ export function makeValidData(overrides: Partial<TrackerData> = {}): TrackerData
 		dashboardCards: [],
 		dashboardInitialized: true,
 		favoriteItems: [],
+		tombstones: [],
 		...overrides,
 	};
 }
