@@ -8,5 +8,5 @@ interface Props {
 
 export default function TypeIcon({ type, className = 'w-4 h-4' }: Props) {
 	const Icon = type === 'activity' ? Dumbbell : Utensils;
-	return <Icon className={className} />;
+	return <Icon className={className} aria-hidden="true" />;
 }
