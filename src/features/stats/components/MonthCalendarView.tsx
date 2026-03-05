@@ -17,13 +17,13 @@ const DAY_LABELS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
 interface MonthCalendarViewProps {
 	entries: Entry[];
-	categoryId: string;
+	entityId: string;
 	data: TrackerData;
 	sentiment: CategorySentiment;
 	isItem?: boolean;
 }
 
-export default function MonthCalendarView({ entries, categoryId, data, sentiment, isItem }: MonthCalendarViewProps) {
+export default function MonthCalendarView({ entries, entityId, data, sentiment, isItem }: MonthCalendarViewProps) {
 	const { t } = useTranslation('stats');
 	const [monthOffset, setMonthOffset] = useState(0);
 	const color = isItem ? 'var(--color-activity)' : SENTIMENT_COLORS[sentiment];
@@ -46,15 +46,15 @@ export default function MonthCalendarView({ entries, categoryId, data, sentiment
 
 		const dateEntries = filterEntriesByDateRange(entries, range);
 		const filtered = isItem
-			? filterEntriesByItem(dateEntries, categoryId)
-			: filterEntriesByCategory(dateEntries, categoryId, data);
+			? filterEntriesByItem(dateEntries, entityId)
+			: filterEntriesByCategory(dateEntries, entityId, data);
 
 		const counts = new Map<string, number>();
 		for (const entry of filtered) {
 			counts.set(entry.date, (counts.get(entry.date) || 0) + 1);
 		}
 		return counts;
-	}, [entries, categoryId, data, month, year, isItem]);
+	}, [entries, entityId, data, month, year, isItem]);
 
 	// Build calendar grid cells
 	const calendarCells = useMemo(() => {

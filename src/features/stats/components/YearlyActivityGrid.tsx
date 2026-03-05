@@ -17,7 +17,7 @@ const DAY_LABELS = ['', 'M', '', 'W', '', 'F', ''];
 
 interface YearlyActivityGridProps {
 	entries: Entry[];
-	categoryId: string;
+	entityId: string;
 	data: TrackerData;
 	sentiment: CategorySentiment;
 	isItem?: boolean;
@@ -28,7 +28,7 @@ const CELL_SIZE = 11;
 const CELL_GAP = 2;
 const CELL_STEP = CELL_SIZE + CELL_GAP;
 
-export default function YearlyActivityGrid({ entries, categoryId, data, sentiment, isItem }: YearlyActivityGridProps) {
+export default function YearlyActivityGrid({ entries, entityId, data, sentiment, isItem }: YearlyActivityGridProps) {
 	const { t } = useTranslation('stats');
 	const [yearOffset, setYearOffset] = useState(0);
 	const color = isItem ? 'var(--color-activity)' : SENTIMENT_COLORS[sentiment];
@@ -42,15 +42,15 @@ export default function YearlyActivityGrid({ entries, categoryId, data, sentimen
 		};
 		const dateEntries = filterEntriesByDateRange(entries, range);
 		const filtered = isItem
-			? filterEntriesByItem(dateEntries, categoryId)
-			: filterEntriesByCategory(dateEntries, categoryId, data);
+			? filterEntriesByItem(dateEntries, entityId)
+			: filterEntriesByCategory(dateEntries, entityId, data);
 
 		const counts = new Map<string, number>();
 		for (const entry of filtered) {
 			counts.set(entry.date, (counts.get(entry.date) || 0) + 1);
 		}
 		return counts;
-	}, [entries, categoryId, data, targetYear, isItem]);
+	}, [entries, entityId, data, targetYear, isItem]);
 
 	// Build weekly columns: each column is 7 days (Mon=0 to Sun=6)
 	const { weeks, monthPositions } = useMemo(() => {

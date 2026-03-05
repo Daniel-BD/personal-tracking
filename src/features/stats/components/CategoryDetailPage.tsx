@@ -201,7 +201,7 @@ export default function CategoryDetailPage() {
 			{/* Month calendar view */}
 			<MonthCalendarView
 				entries={data.entries}
-				categoryId={categoryId!}
+				entityId={categoryId!}
 				data={data}
 				sentiment={sentiment}
 				isItem={isItem}
@@ -210,7 +210,7 @@ export default function CategoryDetailPage() {
 			{/* Yearly activity grid */}
 			<YearlyActivityGrid
 				entries={data.entries}
-				categoryId={categoryId!}
+				entityId={categoryId!}
 				data={data}
 				sentiment={sentiment}
 				isItem={isItem}

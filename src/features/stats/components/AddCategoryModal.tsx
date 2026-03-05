@@ -37,11 +37,11 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 		if (addedEntityIds.has(entityId)) return;
 
 		if (isItem) {
-			// For items, we just use the entityId as both for backwards compatibility,
-			// or we can pass it to the new itemId field. Let's pass it to both just in case,
-			// or pass a dummy categoryId. We pass entityId to both so they don't break old charts
-			// that blindly read categoryId, though we will fix those.
-			addDashboardCard(entityId, entityId);
+			// For items, store a real categoryId (e.g. the item's primary/default category)
+			// and pass the item's ID only via itemId for backwards compatibility.
+			const item = foodItems.find((i) => i.id === entityId);
+			const primaryCategoryId = item?.categories?.[0];
+			addDashboardCard(primaryCategoryId ?? entityId, entityId);
 		} else {
 			addDashboardCard(entityId);
 		}
