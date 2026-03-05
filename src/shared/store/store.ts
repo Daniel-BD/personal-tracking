@@ -433,7 +433,7 @@ export function mergeCategory(
 	// Snapshot for pendingDeletions (best-effort, these are a safety net).
 	// The authoritative check happens inside updateData using fresh `data`.
 	const snapshotCards = currentData.dashboardCards || [];
-	if (snapshotCards.find((c) => c.categoryId === sourceId) && snapshotCards.find((c) => c.categoryId === targetId)) {
+	if (snapshotCards.find((c) => c.categoryId === sourceId)) {
 		pendingDeletions.dashboardCards.add(sourceId);
 	}
 	persistPendingDeletions();
@@ -481,8 +481,9 @@ export function mergeCategory(
 				updatedCards = currentCards.filter((c) => c.categoryId !== sourceId);
 				extraTombstones.push({ id: sourceId, entityType: 'dashboardCard' });
 			} else {
-				// Transfer source card to target
+				// Transfer source card to target; tombstone the source so remote copies are cleaned up during sync
 				updatedCards = currentCards.map((c) => (c.categoryId === sourceId ? { ...c, categoryId: targetId } : c));
+				extraTombstones.push({ id: sourceId, entityType: 'dashboardCard' });
 			}
 		}
 
