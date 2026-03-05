@@ -73,6 +73,9 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 		completeMerge();
 	}
 
+	const mergeAffectedEntryCount =
+		mergeSource && isConfirming ? countAffectedEntriesForItemMerge(entries, activeTab, mergeSource.id) : 0;
+
 	function handleAdd() {
 		if (!fields.name.trim()) return;
 		addItem(activeTab, fields.name.trim(), fields.categories);
@@ -307,7 +310,7 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 				onConfirm={handleConfirmMerge}
 				sourceName={mergeSource?.name ?? ''}
 				targetName={mergeTarget?.name ?? ''}
-				affectedEntryCount={mergeSource ? countAffectedEntriesForItemMerge(entries, activeTab, mergeSource.id) : 0}
+				affectedEntryCount={mergeAffectedEntryCount}
 				showNoteInput
 				entityType="item"
 			/>
