@@ -32,7 +32,8 @@ export default function CategoryDetailPage() {
 
 	// Find the entity across categories and items
 	const { entity, isItem, defaultCategories } = useMemo(() => {
-		const category = data.foodCategories.find((c) => c.id === categoryId) || data.activityCategories.find((c) => c.id === categoryId);
+		const category =
+			data.foodCategories.find((c) => c.id === categoryId) || data.activityCategories.find((c) => c.id === categoryId);
 		const item = data.foodItems.find((i) => i.id === categoryId) || data.activityItems.find((i) => i.id === categoryId);
 
 		let defaultCategories: typeof data.foodCategories = [];
@@ -89,7 +90,7 @@ export default function CategoryDetailPage() {
 	// Actual (non-prorated) comparison: current count vs full-week baseline
 	const actualDeltaPercent = calcActualDeltaPercent(currentCount, baselineAvg);
 
-	const sentiment = (entity && 'sentiment' in entity) ? entity.sentiment : 'neutral';
+	const sentiment = entity && 'sentiment' in entity ? entity.sentiment : 'neutral';
 	const color = isItem ? 'var(--color-activity)' : SENTIMENT_COLORS[sentiment];
 
 	// Week history data (week number, count, % change from previous)
@@ -140,7 +141,7 @@ export default function CategoryDetailPage() {
 					</div>
 					{isItem && defaultCategories.length > 0 && (
 						<div className="flex flex-wrap gap-1 mt-1 pl-4">
-							{defaultCategories.map(cat => (
+							{defaultCategories.map((cat) => (
 								<span key={cat.id} className="text-[10px] px-2 py-0.5 rounded-full bg-inset text-label font-medium">
 									{cat.name}
 								</span>

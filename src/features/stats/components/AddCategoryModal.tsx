@@ -1,7 +1,13 @@
 import { useState, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useDashboardCards, useFoodCategories, useActivityCategories, useFoodItems, useActivityItems } from '@/shared/store/hooks';
+import {
+	useDashboardCards,
+	useFoodCategories,
+	useActivityCategories,
+	useFoodItems,
+	useActivityItems,
+} from '@/shared/store/hooks';
 import { addDashboardCard } from '@/shared/store/store';
 
 interface AddCategoryModalProps {
@@ -93,7 +99,12 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 									<div
 										className="w-2 h-2 rounded-full"
 										style={{
-											backgroundColor: entity.entityType === 'item' ? 'var(--color-activity)' : (entity.type === 'food' ? 'var(--color-food)' : 'var(--color-activity)'),
+											backgroundColor:
+												entity.entityType === 'item'
+													? 'var(--color-activity)'
+													: entity.type === 'food'
+														? 'var(--color-food)'
+														: 'var(--color-activity)',
 										}}
 									/>
 									<span className="font-medium">{entity.name}</span>
