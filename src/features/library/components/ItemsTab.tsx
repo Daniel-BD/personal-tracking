@@ -1,13 +1,19 @@
-import { Pencil, Trash2, PackageOpen } from 'lucide-react';
+import { Pencil, Trash2, PackageOpen, Merge } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Item, Category, EntryType } from '@/shared/lib/types';
-import { addItem, updateItem, deleteItem, toggleFavorite, isFavorite } from '@/shared/store/store';
+import { addItem, updateItem, deleteItem, mergeItem, toggleFavorite, isFavorite } from '@/shared/store/store';
+import { useEntries } from '@/shared/store/hooks';
 import { CategoryPicker, CategoryLine, useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
 import { cn } from '@/shared/lib/cn';
 import StarIcon from '@/shared/ui/StarIcon';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
+import { showToast } from '@/shared/ui/Toast';
 import { useLibraryForm } from '../hooks/useLibraryForm';
+import { useMergeFlow } from '../hooks/useMergeFlow';
+import { countAffectedEntriesForItemMerge } from '../utils/merge-utils';
+import MergeTargetSheet from './MergeTargetSheet';
+import MergeConfirmSheet from './MergeConfirmSheet';
 
 interface Props {
 	items: Item[];
@@ -27,6 +33,18 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 		typeof ITEM_FORM_DEFAULTS
 	>({ showAddSheet, defaults: ITEM_FORM_DEFAULTS });
 
+	const entries = useEntries();
+	const {
+		mergeSource,
+		mergeTarget,
+		isSelectingTarget,
+		isConfirming,
+		startMerge,
+		selectTarget,
+		cancelMerge,
+		completeMerge,
+	} = useMergeFlow();
+
 	const {
 		swipedEntryId,
 		swipeOffset,
@@ -37,6 +55,20 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 		resetSwipe,
 		isTouching,
 	} = useSwipeGesture();
+
+	function handleStartMerge() {
+		if (!editing) return;
+		const source = { id: editing.id, name: editing.name };
+		resetForm();
+		startMerge(source);
+	}
+
+	function handleConfirmMerge(noteToAppend?: string) {
+		if (!mergeSource || !mergeTarget) return;
+		mergeItem(activeTab, mergeSource.id, mergeTarget.id, noteToAppend);
+		showToast(t('items.merge.successToast', { source: mergeSource.name, target: mergeTarget.name }));
+		completeMerge();
+	}
 
 	function handleAdd() {
 		if (!fields.name.trim()) return;
@@ -238,7 +270,11 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 								type={activeTab}
 							/>
 						</div>
-						<div className="pt-2">
+						<div className="pt-2 space-y-2">
+							<button onClick={handleStartMerge} className="btn btn-secondary w-full flex items-center justify-center">
+								<Merge className="w-4 h-4 mr-2" strokeWidth={2} />
+								{t('items.mergeButton')}
+							</button>
 							<button
 								onClick={() => handleDelete(editing.id)}
 								className="btn btn-danger w-full flex items-center justify-center"
@@ -250,6 +286,28 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 					</div>
 				)}
 			</BottomSheet>
+
+			{/* Merge Target Selection Sheet */}
+			<MergeTargetSheet
+				open={isSelectingTarget}
+				onClose={cancelMerge}
+				onSelect={selectTarget}
+				title={t('items.merge.selectTitle')}
+				candidates={items.filter((i) => i.id !== mergeSource?.id).map((i) => ({ id: i.id, name: i.name }))}
+				searchPlaceholder={t('items.merge.searchPlaceholder')}
+			/>
+
+			{/* Merge Confirmation Sheet */}
+			<MergeConfirmSheet
+				open={isConfirming}
+				onClose={cancelMerge}
+				onConfirm={handleConfirmMerge}
+				sourceName={mergeSource?.name ?? ''}
+				targetName={mergeTarget?.name ?? ''}
+				affectedEntryCount={mergeSource ? countAffectedEntriesForItemMerge(entries, activeTab, mergeSource.id) : 0}
+				showNoteInput
+				entityType="item"
+			/>
 		</>
 	);
 }

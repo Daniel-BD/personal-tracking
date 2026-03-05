@@ -4,7 +4,7 @@ Cross-feature, reusable code. Must NOT import from `features/`. Data flows one w
 
 ## Store (`store/`)
 
-- **`store.ts`** — Singleton external store with `useSyncExternalStore`-compatible API (`dataStore`, `syncStatusStore`). All CRUD operations (items, categories, entries, dashboard cards) and thin export/import wrappers. Every data mutation goes through this file. Store initialization is guarded by a module-level flag and invoked from `App.tsx`. Kept under 400 lines.
+- **`store.ts`** — Singleton external store with `useSyncExternalStore`-compatible API (`dataStore`, `syncStatusStore`). All CRUD operations (items, categories, entries, dashboard cards) plus merge operations (`mergeItem()`, `mergeCategory()`) and thin export/import wrappers. Every data mutation goes through this file. Store initialization is guarded by a module-level flag and invoked from `App.tsx`.
 - **`sync.ts`** — Gist sync/merge logic. Contains `pushToGist`, `loadFromGistFn`, `mergeTrackerData`, `pendingDeletions` tracking, and backup operations. Called by store.ts through wrapper functions.
 - **`migration.ts`** — Data migration (`migrateData()` for sentiment field) and dashboard initialization (`initializeDefaultDashboardCards()`).
 - **`import-export.ts`** — Import validation (`validateAndParseImport()`) and export download (`triggerExportDownload()`). Field-level validation of entries, items, and categories. Called by store.ts wrappers.
