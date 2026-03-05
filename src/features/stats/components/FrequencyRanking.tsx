@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { TrackerData, EntryType, Entry } from '@/shared/lib/types';
+import type { TrackerData, EntryType, Entry, CategorySentiment } from '@/shared/lib/types';
 import { getTodayDate } from '@/shared/lib/types';
 import { filterEntriesByType, filterEntriesByDateRange, getEntryCategoryIds } from '@/features/tracking';
 import { getDateNDaysAgo } from '@/shared/lib/date-utils';
 import { cn } from '@/shared/lib/cn';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
+import TypeIcon from '@/shared/ui/TypeIcon';
 
 type TimePeriod = 'all' | '7d' | '30d';
 type TypeFilter = 'all' | 'activity' | 'food';
@@ -16,6 +17,7 @@ interface RankedRow {
 	name: string;
 	count: number;
 	type: EntryType;
+	sentiment?: CategorySentiment;
 }
 
 function rankItems(entries: Entry[], data: TrackerData): RankedRow[] {
@@ -57,6 +59,7 @@ function rankCategories(entries: Entry[], data: TrackerData): RankedRow[] {
 					name: cat?.name ?? 'Unknown',
 					count: 1,
 					type: entry.type,
+					sentiment: cat?.sentiment,
 				});
 			}
 		}
@@ -157,15 +160,21 @@ export default function FrequencyRanking({ entries, data }: Props) {
 							<span className="text-xs text-muted w-5 text-right shrink-0">{i + 1}</span>
 							<div className="flex-1 min-w-0">
 								<div className="flex items-center justify-between gap-2 mb-0.5">
-									<span className="text-sm text-heading truncate">{row.name}</span>
+									<div className="flex items-center gap-1.5 min-w-0">
+										{typeFilter === 'all' && (
+											<TypeIcon type={row.type} className="w-3.5 h-3.5 shrink-0 text-[var(--text-muted)]" />
+										)}
+										<span className="text-sm text-heading truncate">{row.name}</span>
+									</div>
 									<span className="text-xs text-label shrink-0">{row.count}</span>
 								</div>
 								<div className="h-1 rounded-full bg-[var(--bg-inset)] overflow-hidden">
 									<div
-										className={cn(
-											'h-full rounded-full transition-all',
-											row.type === 'activity' ? 'bg-[var(--color-activity)]' : 'bg-[var(--color-food)]',
-										)}
+										className={cn('h-full rounded-full transition-all', {
+											'bg-[var(--color-success)]': row.sentiment === 'positive',
+											'bg-[var(--color-danger)]': row.sentiment === 'limit',
+											'bg-[var(--color-activity)]': row.sentiment !== 'positive' && row.sentiment !== 'limit',
+										})}
 										style={{ width: `${(row.count / maxCount) * 100}%` }}
 									/>
 								</div>
