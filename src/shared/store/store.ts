@@ -283,10 +283,39 @@ export function addItem(type: EntryType, name: string, categoryIds: string[]): I
 
 export function updateItem(type: EntryType, id: string, name: string, categoryIds: string[]): void {
 	const key = getItemsKey(type);
-	updateData((data) => ({
-		...data,
-		[key]: data[key].map((item) => (item.id === id ? { ...item, name, categories: categoryIds } : item)),
-	}));
+	const oldItem = currentData[key].find((item) => item.id === id);
+	const oldCategories = oldItem?.categories ?? [];
+
+	const oldSet = new Set(oldCategories);
+	const newSet = new Set(categoryIds);
+	const added = categoryIds.filter((c) => !oldSet.has(c));
+	const removed = oldCategories.filter((c) => !newSet.has(c));
+
+	updateData((data) => {
+		const updatedItems = data[key].map((item) => (item.id === id ? { ...item, name, categories: categoryIds } : item));
+
+		// Propagate category changes to entries with overrides
+		let updatedEntries = data.entries;
+		if (added.length > 0 || removed.length > 0) {
+			const removedSet = new Set(removed);
+			updatedEntries = data.entries.map((entry) => {
+				if (entry.type !== type || entry.itemId !== id || !entry.categoryOverrides) return entry;
+
+				// Remove item-default categories that were dropped; keep user-added ones
+				// (user-added categories are never in removedSet since it's a subset of oldCategories)
+				const filtered = entry.categoryOverrides.filter((c) => !removedSet.has(c));
+				const existing = new Set(filtered);
+				const newOverrides = filtered.concat(added.filter((c) => !existing.has(c)));
+
+				// Normalize: if overrides match new item categories, clear to null
+				const matchesDefaults = newOverrides.length === categoryIds.length && newOverrides.every((c) => newSet.has(c));
+
+				return { ...entry, categoryOverrides: matchesDefaults ? null : newOverrides };
+			});
+		}
+
+		return { ...data, [key]: updatedItems, entries: updatedEntries };
+	});
 
 	triggerPush();
 }

@@ -139,6 +139,91 @@ describe('store CRUD', () => {
 			expect(updated.categories).toEqual([cat1.id, cat2.id]);
 		});
 
+		it('updateItem adds new category to entries with overrides', () => {
+			const catA = addCategory('food', 'A');
+			const catB = addCategory('food', 'B');
+			const catC = addCategory('food', 'C');
+			const item = addItem('food', 'Apple', [catA.id, catB.id]);
+			// Entry with override that added catC
+			addEntry('food', item.id, '2025-01-15', null, null, [catA.id, catB.id, catC.id]);
+
+			updateItem('food', item.id, 'Apple', [catA.id, catB.id, catC.id]);
+			const entry = dataStore.getSnapshot().entries[0];
+			// Override now matches defaults, so it should be normalized to null
+			expect(entry.categoryOverrides).toBeNull();
+		});
+
+		it('updateItem removes category from entries with overrides', () => {
+			const catA = addCategory('food', 'A');
+			const catB = addCategory('food', 'B');
+			const catC = addCategory('food', 'C');
+			const item = addItem('food', 'Apple', [catA.id, catB.id]);
+			// Entry override: user added catC (explicitly different from defaults)
+			addEntry('food', item.id, '2025-01-15', null, null, [catA.id, catB.id, catC.id]);
+
+			// Remove catB from item
+			updateItem('food', item.id, 'Apple', [catA.id]);
+			const entry = dataStore.getSnapshot().entries[0];
+			// catB removed (was default), catC kept (user-added)
+			expect(entry.categoryOverrides).toEqual([catA.id, catC.id]);
+		});
+
+		it('updateItem preserves user-added categories when removing item categories', () => {
+			const catA = addCategory('food', 'A');
+			const catB = addCategory('food', 'B');
+			const catC = addCategory('food', 'C');
+			const item = addItem('food', 'Apple', [catA.id, catB.id]);
+			// Entry override: removed catB, added catC
+			addEntry('food', item.id, '2025-01-15', null, null, [catA.id, catC.id]);
+
+			// Remove catA from item defaults
+			updateItem('food', item.id, 'Apple', [catB.id]);
+			const entry = dataStore.getSnapshot().entries[0];
+			// catA: removed from item → removed from override (was a default, not user-added)
+			// catB: unchanged in item, user removed it → stays removed
+			// catC: user-added → preserved
+			expect(entry.categoryOverrides).toEqual([catC.id]);
+		});
+
+		it('updateItem preserves user-removed categories when adding item categories', () => {
+			const catA = addCategory('food', 'A');
+			const catB = addCategory('food', 'B');
+			const catC = addCategory('food', 'C');
+			const item = addItem('food', 'Apple', [catA.id, catB.id]);
+			// Entry override: user removed catB
+			addEntry('food', item.id, '2025-01-15', null, null, [catA.id]);
+
+			// Add catC to item, keep catA and catB
+			updateItem('food', item.id, 'Apple', [catA.id, catB.id, catC.id]);
+			const entry = dataStore.getSnapshot().entries[0];
+			// catC is new → added. catB was in old defaults, user removed it → stays removed
+			expect(entry.categoryOverrides).toEqual([catA.id, catC.id]);
+		});
+
+		it('updateItem does not affect entries without overrides', () => {
+			const catA = addCategory('food', 'A');
+			const catB = addCategory('food', 'B');
+			const item = addItem('food', 'Apple', [catA.id]);
+			addEntry('food', item.id, '2025-01-15');
+
+			updateItem('food', item.id, 'Apple', [catA.id, catB.id]);
+			const entry = dataStore.getSnapshot().entries[0];
+			expect(entry.categoryOverrides).toBeNull();
+		});
+
+		it('updateItem does not affect entries for other items', () => {
+			const catA = addCategory('food', 'A');
+			const catB = addCategory('food', 'B');
+			const item1 = addItem('food', 'Apple', [catA.id]);
+			const item2 = addItem('food', 'Banana', [catA.id]);
+			addEntry('food', item2.id, '2025-01-15', null, null, [catA.id]);
+
+			updateItem('food', item1.id, 'Apple', [catA.id, catB.id]);
+			const entry = dataStore.getSnapshot().entries[0];
+			// Entry belongs to item2, should not be affected
+			expect(entry.categoryOverrides).toEqual([catA.id]);
+		});
+
 		it('deleteItem removes item, its entries, and favorite status', () => {
 			const item = addItem('food', 'Apple', []);
 			addEntry('food', item.id, '2025-01-15');
