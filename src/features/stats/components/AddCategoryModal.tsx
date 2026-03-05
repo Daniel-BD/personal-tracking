@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useDashboardCards, useFoodCategories, useActivityCategories } from '@/shared/store/hooks';
+import { useDashboardCards, useFoodCategories, useActivityCategories, useFoodItems, useActivityItems } from '@/shared/store/hooks';
 import { addDashboardCard } from '@/shared/store/store';
 
 interface AddCategoryModalProps {
@@ -13,29 +13,43 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 	const dashboardCards = useDashboardCards();
 	const foodCategories = useFoodCategories();
 	const activityCategories = useActivityCategories();
+	const foodItems = useFoodItems();
+	const activityItems = useActivityItems();
 	const [search, setSearch] = useState('');
 
-	const addedCategoryIds = useMemo(() => {
-		return new Set(dashboardCards.map((c) => c.categoryId));
+	const addedEntityIds = useMemo(() => {
+		return new Set(dashboardCards.map((c) => c.itemId || c.categoryId));
 	}, [dashboardCards]);
 
-	const categories = useMemo(() => {
+	const entities = useMemo(() => {
 		const all = [
-			...foodCategories.map((c) => ({ ...c, type: 'food' })),
-			...activityCategories.map((c) => ({ ...c, type: 'activity' })),
+			...foodCategories.map((c) => ({ ...c, type: 'food', entityType: 'category' })),
+			...activityCategories.map((c) => ({ ...c, type: 'activity', entityType: 'category' })),
+			...foodItems.map((c) => ({ ...c, type: 'food', entityType: 'item' })),
+			...activityItems.map((c) => ({ ...c, type: 'activity', entityType: 'item' })),
 		];
 
 		return all.sort((a, b) => a.name.localeCompare(b.name));
-	}, [foodCategories, activityCategories]);
+	}, [foodCategories, activityCategories, foodItems, activityItems]);
 
-	const filteredCategories = useMemo(() => {
+	const filteredEntities = useMemo(() => {
 		const term = search.toLowerCase().trim();
-		return categories.filter((c) => c.name.toLowerCase().includes(term));
-	}, [categories, search]);
+		return entities.filter((c) => c.name.toLowerCase().includes(term));
+	}, [entities, search]);
 
-	const handleSelect = (categoryId: string) => {
-		if (addedCategoryIds.has(categoryId)) return;
-		addDashboardCard(categoryId);
+	const handleSelect = (entityId: string, isItem: boolean) => {
+		if (addedEntityIds.has(entityId)) return;
+
+		if (isItem) {
+			// For items, we just use the entityId as both for backwards compatibility,
+			// or we can pass it to the new itemId field. Let's pass it to both just in case,
+			// or pass a dummy categoryId. We pass entityId to both so they don't break old charts
+			// that blindly read categoryId, though we will fix those.
+			addDashboardCard(entityId, entityId);
+		} else {
+			addDashboardCard(entityId);
+		}
+
 		onClose();
 	};
 
@@ -64,12 +78,12 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 				</div>
 
 				<div className="flex-1 overflow-y-auto p-2 space-y-1">
-					{filteredCategories.map((category) => {
-						const isAdded = addedCategoryIds.has(category.id);
+					{filteredEntities.map((entity) => {
+						const isAdded = addedEntityIds.has(entity.id);
 						return (
 							<button
-								key={category.id}
-								onClick={() => handleSelect(category.id)}
+								key={entity.id}
+								onClick={() => handleSelect(entity.id, entity.entityType === 'item')}
 								disabled={isAdded}
 								className={`w-full text-left px-3 py-2 rounded-md flex items-center justify-between transition-colors ${
 									isAdded ? 'opacity-50 cursor-not-allowed bg-inset' : 'hover:bg-inset'
@@ -79,12 +93,12 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 									<div
 										className="w-2 h-2 rounded-full"
 										style={{
-											backgroundColor: category.type === 'food' ? 'var(--color-food)' : 'var(--color-activity)',
+											backgroundColor: entity.entityType === 'item' ? 'var(--color-activity)' : (entity.type === 'food' ? 'var(--color-food)' : 'var(--color-activity)'),
 										}}
 									/>
-									<span className="font-medium">{category.name}</span>
+									<span className="font-medium">{entity.name}</span>
 									<span className="text-xs text-label px-1.5 py-0.5 rounded-full bg-inset capitalize">
-										{category.type}
+										{entity.entityType === 'item' ? 'item' : entity.type}
 									</span>
 								</div>
 								{isAdded && <span className="text-xs font-medium text-label">{t('addCategoryModal.added')}</span>}
@@ -92,7 +106,7 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 						);
 					})}
 
-					{filteredCategories.length === 0 && (
+					{filteredEntities.length === 0 && (
 						<div className="py-8 text-center text-label">{t('addCategoryModal.noResults', { search })}</div>
 					)}
 				</div>

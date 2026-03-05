@@ -34,6 +34,7 @@ export const EntrySchema = z.object({
 
 export const DashboardCardSchema = z.object({
 	categoryId: z.string(),
+	itemId: z.string().optional(),
 	baseline: z.literal('rolling_4_week_avg'),
 	comparison: z.literal('last_week'),
 });

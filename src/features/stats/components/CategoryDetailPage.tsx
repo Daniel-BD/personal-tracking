@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTrackerData } from '@/shared/store/hooks';
 import { formatDateLocal } from '@/shared/lib/date-utils';
-import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking';
+import { filterEntriesByCategory, filterEntriesByItem, filterEntriesByDateRange } from '@/features/tracking';
 import {
 	getLastNWeeks,
 	getDaysElapsedInCurrentWeek,
@@ -30,19 +30,36 @@ export default function CategoryDetailPage() {
 	const currentWeek = weeks[weeks.length - 1];
 	const daysElapsed = currentWeek ? getDaysElapsedInCurrentWeek(currentWeek.start) : 7;
 
-	// Find the category across food and activity
-	const category = useMemo(() => {
-		return (
-			data.foodCategories.find((c) => c.id === categoryId) || data.activityCategories.find((c) => c.id === categoryId)
-		);
-	}, [data.foodCategories, data.activityCategories, categoryId]);
+	// Find the entity across categories and items
+	const { entity, isItem, defaultCategories } = useMemo(() => {
+		const category = data.foodCategories.find((c) => c.id === categoryId) || data.activityCategories.find((c) => c.id === categoryId);
+		const item = data.foodItems.find((i) => i.id === categoryId) || data.activityItems.find((i) => i.id === categoryId);
 
-	// Calculate weekly data for this category
+		let defaultCategories: typeof data.foodCategories = [];
+		if (item) {
+			defaultCategories = [
+				...data.foodCategories.filter((c) => item.categories.includes(c.id)),
+				...data.activityCategories.filter((c) => item.categories.includes(c.id)),
+			];
+		}
+
+		return {
+			entity: category || item,
+			isItem: !!item,
+			defaultCategories,
+		};
+	}, [data, categoryId]);
+
+	// Calculate weekly data for this entity
 	const weeklyStats = useMemo(() => {
-		if (!categoryId) return [];
+		if (!categoryId || !entity) return [];
 		return weeks.map((week) => {
 			const range = { start: formatDateLocal(week.start), end: formatDateLocal(week.end) };
-			const weekEntries = filterEntriesByCategory(filterEntriesByDateRange(data.entries, range), categoryId, data);
+			const dateEntries = filterEntriesByDateRange(data.entries, range);
+			const weekEntries = isItem
+				? filterEntriesByItem(dateEntries, categoryId)
+				: filterEntriesByCategory(dateEntries, categoryId, data);
+
 			return {
 				weekKey: week.key,
 				label: week.key,
@@ -52,7 +69,7 @@ export default function CategoryDetailPage() {
 				entries: weekEntries,
 			};
 		});
-	}, [weeks, categoryId, data]);
+	}, [weeks, categoryId, data, isItem, entity]);
 
 	// Baseline: average of the 4 weeks preceding the current (last) week
 	const baselineAvg = useMemo(() => {
@@ -72,8 +89,8 @@ export default function CategoryDetailPage() {
 	// Actual (non-prorated) comparison: current count vs full-week baseline
 	const actualDeltaPercent = calcActualDeltaPercent(currentCount, baselineAvg);
 
-	const sentiment = category?.sentiment ?? 'neutral';
-	const color = SENTIMENT_COLORS[sentiment];
+	const sentiment = (entity && 'sentiment' in entity) ? entity.sentiment : 'neutral';
+	const color = isItem ? 'var(--color-activity)' : SENTIMENT_COLORS[sentiment];
 
 	// Week history data (week number, count, % change from previous)
 	const weekHistoryData = useMemo(() => {
@@ -89,7 +106,7 @@ export default function CategoryDetailPage() {
 		});
 	}, [weeklyStats]);
 
-	if (!category) {
+	if (!entity) {
 		return (
 			<div className="flex flex-col items-center justify-center py-24 gap-4">
 				<p className="text-label">{t('categoryDetail.notFound')}</p>
@@ -115,10 +132,21 @@ export default function CategoryDetailPage() {
 	return (
 		<div className="space-y-6 pb-4">
 			{/* Header */}
-			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-2">
-					<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
-					<h1 className="text-xl font-bold text-heading">{category.name}</h1>
+			<div className="flex items-start justify-between">
+				<div className="flex flex-col gap-1.5">
+					<div className="flex items-center gap-2">
+						<div className="w-2.5 h-2.5 rounded-full mt-1" style={{ backgroundColor: color }} />
+						<h1 className="text-xl font-bold text-heading">{entity.name}</h1>
+					</div>
+					{isItem && defaultCategories.length > 0 && (
+						<div className="flex flex-wrap gap-1 mt-1 pl-4">
+							{defaultCategories.map(cat => (
+								<span key={cat.id} className="text-[10px] px-2 py-0.5 rounded-full bg-inset text-label font-medium">
+									{cat.name}
+								</span>
+							))}
+						</div>
+					)}
 				</div>
 				<button
 					onClick={() => navigate('/stats')}

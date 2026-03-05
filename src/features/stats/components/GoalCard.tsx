@@ -28,9 +28,10 @@ export default function GoalCard({
 	daysElapsed,
 	onRemove,
 	onCardClick,
-}: GoalCardProps) {
+	isItem,
+}: GoalCardProps & { isItem?: boolean }) {
 	const { t } = useTranslation('stats');
-	const color = SENTIMENT_COLORS[sentiment];
+	const color = isItem ? 'var(--color-activity)' : SENTIMENT_COLORS[sentiment];
 
 	const isStable = Math.abs(deltaPercent) < 0.1;
 	const absPercent = Math.round(Math.abs(deltaPercent) * 100);

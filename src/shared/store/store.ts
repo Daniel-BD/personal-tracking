@@ -506,9 +506,10 @@ export function mergeCategory(
 // Dashboard Card CRUD
 // ============================================================
 
-export function addDashboardCard(categoryId: string): void {
+export function addDashboardCard(categoryId: string, itemId?: string): void {
 	const card: DashboardCard = {
 		categoryId,
+		...(itemId ? { itemId } : {}),
 		baseline: 'rolling_4_week_avg',
 		comparison: 'last_week',
 	};

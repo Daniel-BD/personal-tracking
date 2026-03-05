@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTrackerData } from '@/shared/store/hooks';
 import { getLastNWeeks, getDaysElapsedInCurrentWeek, formatWeekLabel } from '../utils/stats-engine';
-import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking';
+import { filterEntriesByCategory, filterEntriesByItem, filterEntriesByDateRange } from '@/features/tracking';
 import { formatDateLocal } from '@/shared/lib/date-utils';
 import GoalCard from './GoalCard';
 import { removeDashboardCard } from '@/shared/store/store';
@@ -27,17 +27,24 @@ export default function GoalDashboard() {
 
 		return data.dashboardCards
 			.map((card) => {
-				const categoryId = card.categoryId;
+				const entityId = card.itemId || card.categoryId;
 
-				// Find category and determine color/type/sentiment
-				const foodCat = data.foodCategories.find((c) => c.id === categoryId);
-				const activityCat = data.activityCategories.find((c) => c.id === categoryId);
+				// Find category or item and determine color/type/sentiment
+				const foodCat = data.foodCategories.find((c) => c.id === entityId);
+				const activityCat = data.activityCategories.find((c) => c.id === entityId);
+				const foodItem = data.foodItems.find((c) => c.id === entityId);
+				const activityItem = data.activityItems.find((c) => c.id === entityId);
+
 				const category = foodCat || activityCat;
+				const item = foodItem || activityItem;
 
-				if (!category) return null;
+				const entity = category || item;
 
-				const categoryName = category.name;
-				const sentiment = category.sentiment;
+				if (!entity) return null;
+
+				const categoryName = entity.name;
+				const sentiment = category ? category.sentiment : 'neutral';
+				const isItem = !!item;
 
 				// Calculate weekly counts
 				const sparklineData = weeks.map((week) => {
@@ -45,7 +52,11 @@ export default function GoalDashboard() {
 						start: formatDateLocal(week.start),
 						end: formatDateLocal(week.end),
 					};
-					const weekEntries = filterEntriesByCategory(filterEntriesByDateRange(data.entries, range), categoryId, data);
+					const dateEntries = filterEntriesByDateRange(data.entries, range);
+					const weekEntries = isItem
+						? filterEntriesByItem(dateEntries, entityId)
+						: filterEntriesByCategory(dateEntries, entityId, data);
+
 					return {
 						week: week.key,
 						count: weekEntries.length,
@@ -68,9 +79,10 @@ export default function GoalDashboard() {
 				const deltaPercent = proratedBaseline === 0 ? (currentCount > 0 ? 1 : 0) : delta / proratedBaseline;
 
 				return {
-					categoryId,
+					categoryId: entityId, // Kept for compatibility with `key` and `onRemove` callbacks
 					categoryName,
 					sentiment,
+					isItem,
 					sparklineData,
 					currentCount,
 					baselineAvg,
@@ -100,6 +112,7 @@ export default function GoalDashboard() {
 						key={card.categoryId}
 						categoryName={card.categoryName}
 						sentiment={card.sentiment}
+						isItem={card.isItem}
 						sparklineData={card.sparklineData}
 						currentCount={card.currentCount}
 						baselineAvg={card.baselineAvg}
