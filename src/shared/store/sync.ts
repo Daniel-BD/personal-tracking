@@ -196,35 +196,19 @@ export function removeTombstone(data: TrackerData, id: string, entityType: Tombs
  * - Fresh remote (item gone) → ID cleared from pendingDeletions, no unnecessary overhead.
  */
 export function clearConfirmedDeletions(remote: TrackerData): void {
-	const remoteEntryIds = new Set(remote.entries.map((e) => e.id));
-	const remoteActivityItemIds = new Set(remote.activityItems.map((i) => i.id));
-	const remoteFoodItemIds = new Set(remote.foodItems.map((i) => i.id));
-	const remoteActivityCatIds = new Set(remote.activityCategories.map((c) => c.id));
-	const remoteFoodCatIds = new Set(remote.foodCategories.map((c) => c.id));
-	const remoteDashboardCardIds = new Set((remote.dashboardCards || []).map((c) => c.categoryId));
-	const remoteFavoriteIds = new Set(remote.favoriteItems || []);
+	function clearConfirmedFor(key: keyof PendingDeletions, remoteIds: Set<string>): void {
+		for (const id of Array.from(pendingDeletions[key])) {
+			if (!remoteIds.has(id)) pendingDeletions[key].delete(id);
+		}
+	}
 
-	for (const id of Array.from(pendingDeletions.entries)) {
-		if (!remoteEntryIds.has(id)) pendingDeletions.entries.delete(id);
-	}
-	for (const id of Array.from(pendingDeletions.activityItems)) {
-		if (!remoteActivityItemIds.has(id)) pendingDeletions.activityItems.delete(id);
-	}
-	for (const id of Array.from(pendingDeletions.foodItems)) {
-		if (!remoteFoodItemIds.has(id)) pendingDeletions.foodItems.delete(id);
-	}
-	for (const id of Array.from(pendingDeletions.activityCategories)) {
-		if (!remoteActivityCatIds.has(id)) pendingDeletions.activityCategories.delete(id);
-	}
-	for (const id of Array.from(pendingDeletions.foodCategories)) {
-		if (!remoteFoodCatIds.has(id)) pendingDeletions.foodCategories.delete(id);
-	}
-	for (const id of Array.from(pendingDeletions.dashboardCards)) {
-		if (!remoteDashboardCardIds.has(id)) pendingDeletions.dashboardCards.delete(id);
-	}
-	for (const id of Array.from(pendingDeletions.favoriteItems)) {
-		if (!remoteFavoriteIds.has(id)) pendingDeletions.favoriteItems.delete(id);
-	}
+	clearConfirmedFor('entries', new Set(remote.entries.map((e) => e.id)));
+	clearConfirmedFor('activityItems', new Set(remote.activityItems.map((i) => i.id)));
+	clearConfirmedFor('foodItems', new Set(remote.foodItems.map((i) => i.id)));
+	clearConfirmedFor('activityCategories', new Set(remote.activityCategories.map((c) => c.id)));
+	clearConfirmedFor('foodCategories', new Set(remote.foodCategories.map((c) => c.id)));
+	clearConfirmedFor('dashboardCards', new Set((remote.dashboardCards || []).map((c) => c.categoryId)));
+	clearConfirmedFor('favoriteItems', new Set(remote.favoriteItems || []));
 
 	persistPendingDeletions();
 }

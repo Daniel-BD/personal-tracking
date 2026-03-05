@@ -25,8 +25,7 @@ export function formatDate(dateString: string): string {
 
 export function formatDateWithYear(dateString: string): string {
 	if (!dateString) return '';
-	const [year, month, day] = dateString.split('-').map(Number);
-	const date = new Date(year, month - 1, day);
+	const date = new Date(dateString + 'T00:00:00');
 	return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 

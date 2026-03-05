@@ -3,13 +3,7 @@ import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Dot } from 'recharts';
 import type { CategorySentiment } from '@/shared/lib/types';
-import { calcActualDeltaPercent, formatChangeText } from '../utils/stats-engine';
-
-const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
-	positive: 'var(--color-success)',
-	limit: 'var(--color-danger)',
-	neutral: 'var(--color-neutral)',
-};
+import { calcActualDeltaPercent, formatChangeText, SENTIMENT_COLORS } from '../utils/stats-engine';
 
 interface GoalCardProps {
 	categoryName: string;

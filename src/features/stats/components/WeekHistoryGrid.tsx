@@ -1,12 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { CategorySentiment } from '@/shared/lib/types';
 import { cn } from '@/shared/lib/cn';
-
-const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
-	positive: 'var(--color-success)',
-	limit: 'var(--color-danger)',
-	neutral: 'var(--color-neutral)',
-};
+import { SENTIMENT_COLORS } from '../utils/stats-engine';
 
 interface WeekData {
 	weekNumber: number;

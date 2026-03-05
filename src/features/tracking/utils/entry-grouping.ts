@@ -60,14 +60,18 @@ export function getEntriesGroupedByDate(entries: Entry[]): Map<string, Entry[]> 
 }
 
 /**
- * Get the Monday of a given week
+ * Get the Monday of a given week as a Date object.
  */
-function getWeekStart(date: Date): string {
+function getWeekMonday(date: Date): Date {
 	const d = new Date(date);
 	const day = d.getDay();
 	const diff = d.getDate() - day + (day === 0 ? -6 : 1);
 	d.setDate(diff);
-	return formatDateLocal(d);
+	return d;
+}
+
+function getWeekStart(date: Date): string {
+	return formatDateLocal(getWeekMonday(date));
 }
 
 /**
@@ -136,10 +140,7 @@ export function getPreviousMonthRange(date: Date = new Date()): DateRange {
 }
 
 export function getWeekRange(date: Date = new Date()): DateRange {
-	const day = date.getDay();
-	const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-	const start = new Date(date);
-	start.setDate(diff);
+	const start = getWeekMonday(date);
 	const end = new Date(start);
 	end.setDate(start.getDate() + 6);
 

@@ -1,10 +1,17 @@
-import type { Entry, TrackerData } from '@/shared/lib/types';
+import type { Entry, TrackerData, CategorySentiment } from '@/shared/lib/types';
 import { getCategories } from '@/shared/lib/types';
 import { getCategoryNameById, getEntryCategoryIds, filterEntriesByType } from '@/features/tracking';
 import { getISOWeekAndYear } from '@/shared/lib/date-utils';
 
 // Re-export for consumers
 export { formatWeekLabel, getISOWeekNumber, getISOWeekAndYear } from '@/shared/lib/date-utils';
+
+/** Shared sentiment → CSS color mapping used across all stats chart components. */
+export const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
+	positive: 'var(--color-success)',
+	limit: 'var(--color-danger)',
+	neutral: 'var(--color-neutral)',
+};
 
 /**
  * Get the Monday of a given ISO week

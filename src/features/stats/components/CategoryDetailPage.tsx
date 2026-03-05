@@ -4,7 +4,6 @@ import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTrackerData } from '@/shared/store/hooks';
 import { formatDateLocal } from '@/shared/lib/date-utils';
-import type { CategorySentiment } from '@/shared/lib/types';
 import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking';
 import {
 	getLastNWeeks,
@@ -12,17 +11,12 @@ import {
 	getWeekNumber,
 	calcActualDeltaPercent,
 	formatChangeText,
+	SENTIMENT_COLORS,
 } from '../utils/stats-engine';
 import CategoryTrendChart from './CategoryTrendChart';
 import WeekHistoryGrid from './WeekHistoryGrid';
 import MonthCalendarView from './MonthCalendarView';
 import YearlyActivityGrid from './YearlyActivityGrid';
-
-const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
-	positive: 'var(--color-success)',
-	limit: 'var(--color-danger)',
-	neutral: 'var(--color-neutral)',
-};
 
 export default function CategoryDetailPage() {
 	const { categoryId } = useParams<{ categoryId: string }>();
@@ -31,6 +25,7 @@ export default function CategoryDetailPage() {
 	const data = useTrackerData();
 	const [selectedWeekIndex, setSelectedWeekIndex] = useState<number | null>(null);
 
+	// eslint-disable-next-line react-hooks/exhaustive-deps -- recalculate weeks when entries change
 	const weeks = useMemo(() => getLastNWeeks(8), [data.entries]);
 	const currentWeek = weeks[weeks.length - 1];
 	const daysElapsed = currentWeek ? getDaysElapsedInCurrentWeek(currentWeek.start) : 7;
@@ -59,11 +54,12 @@ export default function CategoryDetailPage() {
 		});
 	}, [weeks, categoryId, data]);
 
-	// Baseline: average of weeks at indices 3–6 (the 4 weeks before the current week)
+	// Baseline: average of the 4 weeks preceding the current (last) week
 	const baselineAvg = useMemo(() => {
-		const baselineWeeks = weeklyStats.slice(3, 7);
+		const baselineWeeks = weeklyStats.slice(-5, -1);
+		if (baselineWeeks.length === 0) return 0;
 		const sum = baselineWeeks.reduce((s, w) => s + w.count, 0);
-		return sum / 4;
+		return sum / baselineWeeks.length;
 	}, [weeklyStats]);
 
 	// Current week stats

@@ -58,7 +58,9 @@ export function getTodayDate(): string {
 
 export function getCurrentTime(): string {
 	const now = new Date();
-	return now.toTimeString().slice(0, 5); // HH:MM format
+	const hours = String(now.getHours()).padStart(2, '0');
+	const minutes = String(now.getMinutes()).padStart(2, '0');
+	return `${hours}:${minutes}`;
 }
 
 // Entry type display utilities
