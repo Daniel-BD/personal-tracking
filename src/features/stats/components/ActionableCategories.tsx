@@ -16,7 +16,8 @@ interface ActionableCategoriesProps {
 
 export default function ActionableCategories({ data }: ActionableCategoriesProps) {
 	const { t } = useTranslation('stats');
-	const weeks = useMemo(() => getLastNWeeks(8), []);
+	// eslint-disable-next-line react-hooks/exhaustive-deps -- recalculate weeks when entries change
+	const weeks = useMemo(() => getLastNWeeks(8), [data.entries]);
 
 	const limitRows = useMemo(() => getTopLimitCategories(data.entries, data, weeks), [data, weeks]);
 

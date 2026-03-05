@@ -15,7 +15,7 @@ export default function GoalDashboard() {
 	const data = useTrackerData();
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
-	// Recalculate week boundaries when entries change (new entries may span a new week)
+	// eslint-disable-next-line react-hooks/exhaustive-deps -- recalculate weeks when entries change
 	const weeks = useMemo(() => getLastNWeeks(8), [data.entries]);
 
 	// How many days have elapsed in the current (partial) week
@@ -56,10 +56,10 @@ export default function GoalDashboard() {
 				// Current week (last element)
 				const currentCount = sparklineData[sparklineData.length - 1].count;
 
-				// Baseline: average of the 4 weeks preceding the last week
-				const baselineWeeks = sparklineData.slice(3, 7);
+				// Baseline: average of the 4 weeks preceding the current (last) week
+				const baselineWeeks = sparklineData.slice(-5, -1);
 				const baselineSum = baselineWeeks.reduce((sum, w) => sum + w.count, 0);
-				const baselineAvg = baselineSum / 4;
+				const baselineAvg = baselineWeeks.length > 0 ? baselineSum / baselineWeeks.length : 0;
 
 				// Pro-rate: scale baseline down to match elapsed days so partial weeks
 				// are compared fairly (e.g. day 1 compares against 1/7 of the avg)

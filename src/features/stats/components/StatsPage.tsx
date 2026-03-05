@@ -16,7 +16,8 @@ export default function StatsPage() {
 	const data = useTrackerData();
 	const [period, setPeriod] = useState<PeriodType>('weekly');
 
-	const weeks = useMemo(() => getLastNWeeks(8), []);
+	// eslint-disable-next-line react-hooks/exhaustive-deps -- recalculate weeks when entries change (new entries may span a new week)
+	const weeks = useMemo(() => getLastNWeeks(8), [data.entries]);
 
 	const weeklyData = useMemo(() => {
 		return processFoodEntriesByWeek(data.entries, data, weeks);

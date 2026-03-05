@@ -2,14 +2,8 @@ import { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Dot } from 'recharts';
 import type { CategorySentiment } from '@/shared/lib/types';
 import type { Entry } from '@/shared/lib/types';
-import { formatWeekLabel, getWeekNumber, getDailyBreakdown } from '../utils/stats-engine';
+import { formatWeekLabel, getWeekNumber, getDailyBreakdown, SENTIMENT_COLORS } from '../utils/stats-engine';
 import WeekBreakdownTooltip from './WeekBreakdownTooltip';
-
-const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
-	positive: 'var(--color-success)',
-	limit: 'var(--color-danger)',
-	neutral: 'var(--color-neutral)',
-};
 
 interface ChartWeek {
 	label: string;
