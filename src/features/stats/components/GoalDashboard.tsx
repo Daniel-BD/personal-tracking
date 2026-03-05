@@ -94,10 +94,7 @@ export default function GoalDashboard() {
 				</button>
 			</div>
 
-			<div
-				className="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto pr-1"
-				style={{ maxHeight: 'calc(3 * 180px + 2 * 1rem)' }}
-			>
+			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 				{dashboardData.map((card) => (
 					<GoalCard
 						key={card.categoryId}
