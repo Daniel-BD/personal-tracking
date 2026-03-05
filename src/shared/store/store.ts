@@ -290,16 +290,14 @@ export function updateItem(type: EntryType, id: string, name: string, categoryId
 			updatedEntries = data.entries.map((entry) => {
 				if (entry.type !== type || entry.itemId !== id || !entry.categoryOverrides) return entry;
 
-				const userExplicitlyAdded = new Set(entry.categoryOverrides.filter((c) => !oldSet.has(c)));
-				const filtered = entry.categoryOverrides.filter((c) => !removedSet.has(c) || userExplicitlyAdded.has(c));
+				// Remove item-default categories that were dropped; keep user-added ones
+				// (user-added categories are never in removedSet since it's a subset of oldCategories)
+				const filtered = entry.categoryOverrides.filter((c) => !removedSet.has(c));
 				const existing = new Set(filtered);
 				const newOverrides = filtered.concat(added.filter((c) => !existing.has(c)));
 
 				// Normalize: if overrides match new item categories, clear to null
-				const matchesDefaults =
-					newOverrides.length === categoryIds.length &&
-					newOverrides.every((c) => newSet.has(c)) &&
-					categoryIds.every((c) => newOverrides.includes(c));
+				const matchesDefaults = newOverrides.length === categoryIds.length && newOverrides.every((c) => newSet.has(c));
 
 				return { ...entry, categoryOverrides: matchesDefaults ? null : newOverrides };
 			});

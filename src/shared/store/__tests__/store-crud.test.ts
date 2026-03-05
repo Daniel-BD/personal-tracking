@@ -176,11 +176,9 @@ describe('store CRUD', () => {
 			// Remove catA from item defaults
 			updateItem('food', item.id, 'Apple', [catB.id]);
 			const entry = dataStore.getSnapshot().entries[0];
-			// catA removed (was default, not user-added), catC kept (user-added), catB added (new to item)
-			// But wait: catB was in old defaults AND is in new defaults, so it's not "added"
-			// Actually catB was in old, removed from override by user, still in new — not re-added
-			// catA was in old defaults, not user-added, now removed from item → removed
-			// Result: [catC]
+			// catA: removed from item → removed from override (was a default, not user-added)
+			// catB: unchanged in item, user removed it → stays removed
+			// catC: user-added → preserved
 			expect(entry.categoryOverrides).toEqual([catC.id]);
 		});
 
