@@ -212,7 +212,7 @@ describe('mergeCategory', () => {
 	it('transfers dashboard card from source to target when target has no card', () => {
 		const source = addCategory('food', 'Source Cat');
 		const target = addCategory('food', 'Target Cat');
-		addDashboardCard(source.id);
+		addDashboardCard({ categoryId: source.id });
 
 		mergeCategory('food', source.id, target.id);
 
@@ -224,8 +224,8 @@ describe('mergeCategory', () => {
 	it('removes source dashboard card when target already has one', () => {
 		const source = addCategory('food', 'Source Cat');
 		const target = addCategory('food', 'Target Cat');
-		addDashboardCard(source.id);
-		addDashboardCard(target.id);
+		addDashboardCard({ categoryId: source.id });
+		addDashboardCard({ categoryId: target.id });
 
 		mergeCategory('food', source.id, target.id);
 

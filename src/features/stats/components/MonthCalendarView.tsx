@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { Entry, TrackerData } from '@/shared/lib/types';
 import type { CategorySentiment } from '@/shared/lib/types';
 import { formatDateLocal } from '@/shared/lib/date-utils';
-import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking';
+import { filterEntriesByCategory, filterEntriesByItem, filterEntriesByDateRange } from '@/features/tracking';
 import { cn } from '@/shared/lib/cn';
 
 const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
@@ -17,15 +17,25 @@ const DAY_LABELS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
 interface MonthCalendarViewProps {
 	entries: Entry[];
-	categoryId: string;
+	categoryId?: string;
+	itemId?: string;
 	data: TrackerData;
 	sentiment: CategorySentiment;
+	/** Override accent color. If set, takes precedence over sentiment color. */
+	accentColor?: string;
 }
 
-export default function MonthCalendarView({ entries, categoryId, data, sentiment }: MonthCalendarViewProps) {
+export default function MonthCalendarView({
+	entries,
+	categoryId,
+	itemId,
+	data,
+	sentiment,
+	accentColor,
+}: MonthCalendarViewProps) {
 	const { t } = useTranslation('stats');
 	const [monthOffset, setMonthOffset] = useState(0);
-	const color = SENTIMENT_COLORS[sentiment];
+	const color = accentColor ?? SENTIMENT_COLORS[sentiment];
 
 	const { year, month, monthLabel } = useMemo(() => {
 		const now = new Date();
@@ -39,18 +49,22 @@ export default function MonthCalendarView({ entries, categoryId, data, sentiment
 
 	// Build a map of date string -> count for the displayed month
 	const dayCounts = useMemo(() => {
+		if (!categoryId && !itemId) return new Map<string, number>();
 		const firstDay = new Date(year, month, 1);
 		const lastDay = new Date(year, month + 1, 0);
 		const range = { start: formatDateLocal(firstDay), end: formatDateLocal(lastDay) };
 
-		const filtered = filterEntriesByCategory(filterEntriesByDateRange(entries, range), categoryId, data);
+		const dateFiltered = filterEntriesByDateRange(entries, range);
+		const filtered = itemId
+			? filterEntriesByItem(dateFiltered, itemId)
+			: filterEntriesByCategory(dateFiltered, categoryId!, data);
 
 		const counts = new Map<string, number>();
 		for (const entry of filtered) {
 			counts.set(entry.date, (counts.get(entry.date) || 0) + 1);
 		}
 		return counts;
-	}, [entries, categoryId, data, year, month]);
+	}, [entries, categoryId, itemId, data, year, month]);
 
 	// Build calendar grid cells
 	const calendarCells = useMemo(() => {

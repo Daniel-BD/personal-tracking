@@ -16,6 +16,7 @@ import {
 	getCategories,
 	getItemsKey,
 	getCategoriesKey,
+	getCardId,
 } from '@/shared/lib/types';
 import { isConfigured } from '@/shared/lib/github';
 import { migrateData, initializeDefaultDashboardCards } from './migration';
@@ -506,9 +507,13 @@ export function mergeCategory(
 // Dashboard Card CRUD
 // ============================================================
 
-export function addDashboardCard(categoryId: string): void {
+export function addDashboardCard(opts: { categoryId?: string; itemId?: string }): void {
+	if (!opts.categoryId && !opts.itemId) throw new Error('Either categoryId or itemId is required');
+	if (opts.categoryId && opts.itemId) throw new Error('Only one of categoryId or itemId should be set');
+
 	const card: DashboardCard = {
-		categoryId,
+		...(opts.categoryId ? { categoryId: opts.categoryId } : {}),
+		...(opts.itemId ? { itemId: opts.itemId } : {}),
 		baseline: 'rolling_4_week_avg',
 		comparison: 'last_week',
 	};
@@ -521,17 +526,17 @@ export function addDashboardCard(categoryId: string): void {
 	triggerPush();
 }
 
-export function removeDashboardCard(categoryId: string): void {
-	pendingDeletions.dashboardCards.add(categoryId);
+export function removeDashboardCard(cardId: string): void {
+	pendingDeletions.dashboardCards.add(cardId);
 	persistPendingDeletions();
 
 	updateData((data) =>
 		addTombstone(
 			{
 				...data,
-				dashboardCards: (data.dashboardCards || []).filter((c) => c.categoryId !== categoryId),
+				dashboardCards: (data.dashboardCards || []).filter((c) => getCardId(c) !== cardId),
 			},
-			categoryId,
+			cardId,
 			'dashboardCard',
 		),
 	);

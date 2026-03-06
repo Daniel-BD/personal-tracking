@@ -11,16 +11,17 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 ## Components
 
 - **`StatsPage.tsx`** — Layout shell orchestrating all stats sections.
-- **`GoalDashboard.tsx`** — Goal cards grid. Each card tied to a `categoryId` from `TrackerData.dashboardCards`.
-- **`GoalCard.tsx`** — Individual sparkline card showing this week's count vs. 4-week rolling baseline average. Uses Recharts `<Line>`.
-- **`AddCategoryModal.tsx`** — Modal for adding new dashboard goal cards.
+- **`GoalDashboard.tsx`** — Goal cards grid. Each card tied to a `categoryId` or `itemId` from `TrackerData.dashboardCards`. Category cards use sentiment-derived colors; item cards use a neutral blue accent (`--color-activity`).
+- **`GoalCard.tsx`** — Individual sparkline card showing this week's count vs. 4-week rolling baseline average. Uses Recharts `<Line>`. Accepts optional `accentColor` prop to override sentiment-derived color (used for item cards).
+- **`AddCategoryModal.tsx`** — Modal for adding new dashboard goal cards. Has a `SegmentedControl` toggle between "Categories" and "Items" tabs. Items tab shows food items with blue accent dots.
+- **`ItemDetailPage.tsx`** — Detail page for item-based dashboard cards (`/stats/item/:itemId`). Shows weekly stats, trend chart, week history, calendar, and yearly grid — all with blue accent color. Displays the item's default categories as colored sentiment pills at the top.
 - **`BalanceOverview.tsx`** — Overall balance score visualization (score card, trend chart, weekly breakdown).
 - **`BalanceScoreTrendChart.tsx`** — 8-week balance score line chart (Recharts `<Line>`). Shows score % above each dot and small positive/limit counts below. Modeled after `CategoryTrendChart`.
 - **`ActionableCategories.tsx`** — Top limit categories to reduce + lagging positive categories to increase.
 - **`CategoryComposition.tsx`** — Stacked/bar chart showing category distribution.
 - **`FrequencyRanking.tsx`** — Ranked list of most-logged items or categories ordered by count, with SegmentedControl filters for time period (all time/7 days/30 days), type (all/activities/food), and view mode (items/categories).
-- **`MonthCalendarView.tsx`** — Month calendar grid on category detail page. Shows days with logged entries highlighted using sentiment color. Prev/next month navigation.
-- **`YearlyActivityGrid.tsx`** — GitHub-style yearly heatmap on category detail page. SVG grid of day squares colored by entry count with sentiment color. Prev/next year navigation.
+- **`MonthCalendarView.tsx`** — Month calendar grid on category/item detail page. Shows days with logged entries highlighted using sentiment or accent color. Accepts optional `itemId` and `accentColor` props. Prev/next month navigation.
+- **`YearlyActivityGrid.tsx`** — GitHub-style yearly heatmap on category/item detail page. SVG grid of day squares colored by entry count with sentiment or accent color. Accepts optional `itemId` and `accentColor` props. Prev/next year navigation.
 
 ## Known Quirks
 

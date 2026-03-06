@@ -7,3 +7,4 @@ export { default as ActionableCategories } from './components/ActionableCategori
 export { default as CategoryComposition } from './components/CategoryComposition';
 export { default as FrequencyRanking } from './components/FrequencyRanking';
 export { default as CategoryDetailPage } from './components/CategoryDetailPage';
+export { default as ItemDetailPage } from './components/ItemDetailPage';

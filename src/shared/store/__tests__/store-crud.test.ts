@@ -285,8 +285,8 @@ describe('store CRUD', () => {
 	});
 
 	describe('dashboard cards', () => {
-		it('addDashboardCard and removeDashboardCard', () => {
-			addDashboardCard('cat-1');
+		it('addDashboardCard and removeDashboardCard with categoryId', () => {
+			addDashboardCard({ categoryId: 'cat-1' });
 			const data1 = dataStore.getSnapshot();
 			expect(data1.dashboardCards).toHaveLength(1);
 			expect(data1.dashboardCards![0].categoryId).toBe('cat-1');
@@ -294,6 +294,28 @@ describe('store CRUD', () => {
 			removeDashboardCard('cat-1');
 			const data2 = dataStore.getSnapshot();
 			expect(data2.dashboardCards).toHaveLength(0);
+		});
+
+		it('addDashboardCard and removeDashboardCard with itemId', () => {
+			addDashboardCard({ itemId: 'item-1' });
+			const data1 = dataStore.getSnapshot();
+			expect(data1.dashboardCards).toHaveLength(1);
+			expect(data1.dashboardCards![0].itemId).toBe('item-1');
+			expect(data1.dashboardCards![0].categoryId).toBeUndefined();
+
+			removeDashboardCard('item-1');
+			const data2 = dataStore.getSnapshot();
+			expect(data2.dashboardCards).toHaveLength(0);
+		});
+
+		it('addDashboardCard throws when neither categoryId nor itemId provided', () => {
+			expect(() => addDashboardCard({})).toThrow('Either categoryId or itemId is required');
+		});
+
+		it('addDashboardCard throws when both categoryId and itemId provided', () => {
+			expect(() => addDashboardCard({ categoryId: 'cat-1', itemId: 'item-1' })).toThrow(
+				'Only one of categoryId or itemId should be set',
+			);
 		});
 	});
 

@@ -1,4 +1,5 @@
 import type { TrackerData, DashboardCard, Tombstone, TombstoneEntityType } from '@/shared/lib/types';
+import { getCardId } from '@/shared/lib/types';
 import { getConfig, fetchGist, updateGist, isConfigured } from '@/shared/lib/github';
 import { migrateData } from './migration';
 import { showToast } from '@/shared/ui/Toast';
@@ -207,7 +208,7 @@ export function clearConfirmedDeletions(remote: TrackerData): void {
 	clearConfirmedFor('foodItems', new Set(remote.foodItems.map((i) => i.id)));
 	clearConfirmedFor('activityCategories', new Set(remote.activityCategories.map((c) => c.id)));
 	clearConfirmedFor('foodCategories', new Set(remote.foodCategories.map((c) => c.id)));
-	clearConfirmedFor('dashboardCards', new Set((remote.dashboardCards || []).map((c) => c.categoryId)));
+	clearConfirmedFor('dashboardCards', new Set((remote.dashboardCards || []).map((c) => getCardId(c))));
 	clearConfirmedFor('favoriteItems', new Set(remote.favoriteItems || []));
 
 	persistPendingDeletions();
@@ -241,7 +242,7 @@ export function filterPendingDeletions(data: TrackerData): TrackerData {
 		foodItems: data.foodItems.filter((i) => !foodItemExclude.has(i.id)),
 		activityCategories: data.activityCategories.filter((c) => !activityCategoryExclude.has(c.id)),
 		foodCategories: data.foodCategories.filter((c) => !foodCategoryExclude.has(c.id)),
-		dashboardCards: (data.dashboardCards || []).filter((c) => !dashboardCardExclude.has(c.categoryId)),
+		dashboardCards: (data.dashboardCards || []).filter((c) => !dashboardCardExclude.has(getCardId(c))),
 		favoriteItems: (data.favoriteItems || []).filter((id) => !favoriteItemExclude.has(id)),
 	};
 }
@@ -260,20 +261,22 @@ export function mergeTrackerData(local: TrackerData, remote: TrackerData): Track
 	const remoteCards = remote.dashboardCards || [];
 	const cardExclude = excludeFor('dashboardCards', mergedTombstones);
 
-	// Merge dashboard cards by categoryId, respecting deletions
+	// Merge dashboard cards by card ID (categoryId or itemId), respecting deletions
 	const cardMap = new Map<string, DashboardCard>();
 
 	// Add remote cards first if not deleted
 	remoteCards.forEach((c) => {
-		if (!cardExclude.has(c.categoryId)) {
-			cardMap.set(c.categoryId, c);
+		const id = getCardId(c);
+		if (!cardExclude.has(id)) {
+			cardMap.set(id, c);
 		}
 	});
 
 	// Local cards take precedence, but also filter deletions
 	localCards.forEach((c) => {
-		if (!cardExclude.has(c.categoryId)) {
-			cardMap.set(c.categoryId, c);
+		const id = getCardId(c);
+		if (!cardExclude.has(id)) {
+			cardMap.set(id, c);
 		}
 	});
 

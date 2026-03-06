@@ -12,7 +12,9 @@ import {
 	getCategories,
 	getItemsKey,
 	getCategoriesKey,
+	getCardId,
 	type TrackerData,
+	type DashboardCard,
 } from '@/shared/lib/types';
 
 describe('createEmptyData', () => {
@@ -172,5 +174,20 @@ describe('getCategoriesKey', () => {
 
 	it('returns foodCategories for food', () => {
 		expect(getCategoriesKey('food')).toBe('foodCategories');
+	});
+});
+
+describe('getCardId', () => {
+	it('returns categoryId when set', () => {
+		expect(getCardId({ categoryId: 'cat-1', baseline: 'rolling_4_week_avg', comparison: 'last_week' })).toBe('cat-1');
+	});
+
+	it('returns itemId when set', () => {
+		expect(getCardId({ itemId: 'item-1', baseline: 'rolling_4_week_avg', comparison: 'last_week' })).toBe('item-1');
+	});
+
+	it('throws when neither categoryId nor itemId is set', () => {
+		const card = { baseline: 'rolling_4_week_avg', comparison: 'last_week' } as DashboardCard;
+		expect(() => getCardId(card)).toThrow('DashboardCard must have either categoryId or itemId');
 	});
 });

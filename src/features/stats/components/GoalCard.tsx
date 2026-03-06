@@ -8,6 +8,8 @@ import { calcActualDeltaPercent, formatChangeText, SENTIMENT_COLORS } from '../u
 interface GoalCardProps {
 	categoryName: string;
 	sentiment: CategorySentiment;
+	/** Override accent color (e.g. blue for item cards). If set, takes precedence over sentiment color. */
+	accentColor?: string;
 	sparklineData: { week: string; count: number; label: string }[];
 	currentCount: number;
 	baselineAvg: number;
@@ -21,6 +23,7 @@ interface GoalCardProps {
 export default function GoalCard({
 	categoryName,
 	sentiment,
+	accentColor,
 	sparklineData,
 	currentCount,
 	baselineAvg,
@@ -30,7 +33,7 @@ export default function GoalCard({
 	onCardClick,
 }: GoalCardProps) {
 	const { t } = useTranslation('stats');
-	const color = SENTIMENT_COLORS[sentiment];
+	const color = accentColor ?? SENTIMENT_COLORS[sentiment];
 
 	const isStable = Math.abs(deltaPercent) < 0.1;
 	const absPercent = Math.round(Math.abs(deltaPercent) * 100);
