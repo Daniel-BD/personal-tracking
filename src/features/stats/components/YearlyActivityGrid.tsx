@@ -13,7 +13,7 @@ const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
 };
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const DAY_LABELS = ['', 'M', '', 'W', '', 'F', ''];
+const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 interface YearlyActivityGridProps {
 	entries: Entry[];
@@ -140,57 +140,59 @@ export default function YearlyActivityGrid({
 
 			{/* Grid */}
 			<div className="card p-3 overflow-x-auto">
-				{/* Month labels */}
-				<div className="flex text-[9px] text-label mb-1" style={{ paddingLeft: labelWidth }}>
-					{monthPositions.map((mp, i) => {
-						const nextPos = monthPositions[i + 1]?.weekIndex ?? weeks.length;
-						const span = nextPos - mp.weekIndex;
-						return (
-							<span key={mp.label} style={{ width: span * CELL_STEP, flexShrink: 0 }} className="text-left">
-								{mp.label}
-							</span>
-						);
-					})}
-				</div>
-
-				{/* Day labels + grid */}
-				<div className="flex">
-					{/* Day-of-week labels */}
-					<div
-						className="flex flex-col justify-between text-[9px] text-label shrink-0"
-						style={{ width: labelWidth, height: gridHeight }}
-					>
-						{DAY_LABELS.map((label, i) => (
-							<span key={i} style={{ height: CELL_SIZE, lineHeight: `${CELL_SIZE}px` }}>
-								{label}
-							</span>
-						))}
+				<div style={{ minWidth: gridWidth + labelWidth }}>
+					{/* Month labels */}
+					<div className="flex text-[9px] text-label mb-1" style={{ paddingLeft: labelWidth }}>
+						{monthPositions.map((mp, i) => {
+							const nextPos = monthPositions[i + 1]?.weekIndex ?? weeks.length;
+							const span = nextPos - mp.weekIndex;
+							return (
+								<span key={mp.label} style={{ width: span * CELL_STEP, flexShrink: 0 }} className="text-left">
+									{mp.label}
+								</span>
+							);
+						})}
 					</div>
 
-					{/* SVG grid */}
-					<svg width={gridWidth} height={gridHeight} className="block">
-						{weeks.map((week, wi) =>
-							week.map((day, di) => {
-								if (!day) return null;
-								const x = wi * CELL_STEP;
-								const y = di * CELL_STEP;
-								const hasEntries = day.count > 0 && day.inYear;
+					{/* Day labels + grid */}
+					<div className="flex">
+						{/* Day-of-week labels */}
+						<div
+							className="flex flex-col justify-between text-[9px] text-label shrink-0"
+							style={{ width: labelWidth, height: gridHeight }}
+						>
+							{DAY_LABELS.map((label, i) => (
+								<span key={i} style={{ height: CELL_SIZE, lineHeight: `${CELL_SIZE}px` }}>
+									{label}
+								</span>
+							))}
+						</div>
 
-								return (
-									<rect
-										key={day.dateStr}
-										x={x}
-										y={y}
-										width={CELL_SIZE}
-										height={CELL_SIZE}
-										rx={2}
-										fill={!day.inYear ? 'transparent' : hasEntries ? color : 'var(--bg-inset)'}
-										opacity={hasEntries ? Math.min(0.4 + day.count * 0.2, 1) : 1}
-									/>
-								);
-							}),
-						)}
-					</svg>
+						{/* SVG grid */}
+						<svg width={gridWidth} height={gridHeight} className="block">
+							{weeks.map((week, wi) =>
+								week.map((day, di) => {
+									if (!day) return null;
+									const x = wi * CELL_STEP;
+									const y = di * CELL_STEP;
+									const hasEntries = day.count > 0 && day.inYear;
+
+									return (
+										<rect
+											key={day.dateStr}
+											x={x}
+											y={y}
+											width={CELL_SIZE}
+											height={CELL_SIZE}
+											rx={2}
+											fill={!day.inYear ? 'transparent' : hasEntries ? color : 'var(--bg-inset)'}
+											opacity={hasEntries ? Math.min(0.4 + day.count * 0.2, 1) : 1}
+										/>
+									);
+								}),
+							)}
+						</svg>
+					</div>
 				</div>
 			</div>
 		</div>
