@@ -128,8 +128,8 @@ export default function MonthCalendarView({
 
 						const hasEntries = cell.count > 0;
 						const isToday = cell.dateStr === todayStr;
-						const bgPct = hasEntries ? Math.min(18 + cell.count * 12, 55) : 0;
-						const borderPct = hasEntries ? Math.min(35 + cell.count * 10, 65) : 0;
+						const bgPct = hasEntries ? Math.min(12 + cell.count * 8, 40) : 0;
+						const borderPct = hasEntries ? Math.min(25 + cell.count * 10, 55) : 0;
 
 						return (
 							<div
@@ -144,7 +144,7 @@ export default function MonthCalendarView({
 										? {
 												backgroundColor: `color-mix(in srgb, ${color} ${bgPct}%, var(--bg-card))`,
 												border: `1px solid color-mix(in srgb, ${color} ${borderPct}%, transparent)`,
-												color: color,
+												color: 'var(--text-heading)',
 											}
 										: undefined
 								}

@@ -109,7 +109,7 @@
 		"weekBreakdownTotal_other": "Total: {{count}}",
 		"monthView": "Month View",
 		"yearView": "Year View",
-		"logged_one": "{{count}} logged",
-		"logged_other": "{{count}} logged"
+		"logged_one": "{{count}}",
+		"logged_other": "{{count}}"
 	}
 }
