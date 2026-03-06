@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef, useCallback, type MouseEvent } from 'react';
 import type { Category, EntryType } from '@/shared/lib/types';
 import { addCategory } from '@/shared/store/store';
 
@@ -15,6 +15,7 @@ interface Props {
 export default function CategoryPicker({ selected, categories, onChange, type }: Props) {
 	const [searchText, setSearchText] = useState('');
 	const inputRowRef = useRef<HTMLDivElement>(null);
+	const inputRef = useRef<HTMLInputElement>(null);
 
 	const scrollInputIntoView = useCallback(() => {
 		// Delay lets the mobile keyboard open and viewport resize before scrolling
@@ -61,17 +62,28 @@ export default function CategoryPicker({ selected, categories, onChange, type }:
 	function handleKeyDown(event: React.KeyboardEvent) {
 		if (event.key === 'Enter') {
 			event.preventDefault();
-			handleAddCategory();
+			if (!searchText.trim()) {
+				inputRef.current?.blur();
+			} else {
+				handleAddCategory();
+			}
 		}
+	}
+
+	/** Prevent chip buttons from stealing focus (and dismissing the keyboard) from the search input */
+	function preventFocusSteal(e: MouseEvent) {
+		e.preventDefault();
 	}
 
 	const availableCategories = useMemo(() => categories.filter((c) => !selected.includes(c.id)), [categories, selected]);
 
 	const filteredCategories = useMemo(
 		() =>
-			searchText.trim()
-				? availableCategories.filter((c) => c.name.toLowerCase().includes(searchText.toLowerCase()))
-				: availableCategories,
+			[
+				...(searchText.trim()
+					? availableCategories.filter((c) => c.name.toLowerCase().includes(searchText.toLowerCase()))
+					: availableCategories),
+			].sort((a, b) => a.name.localeCompare(b.name)),
 		[availableCategories, searchText],
 	);
 
@@ -98,6 +110,7 @@ export default function CategoryPicker({ selected, categories, onChange, type }:
 							<button
 								type="button"
 								onClick={() => removeCategory(category.id)}
+								onMouseDown={preventFocusSteal}
 								className="hover:text-[var(--color-activity)]"
 							>
 								&times;
@@ -110,6 +123,7 @@ export default function CategoryPicker({ selected, categories, onChange, type }:
 			{type && (
 				<div ref={inputRowRef} className="flex gap-2">
 					<input
+						ref={inputRef}
 						type="text"
 						value={searchText}
 						onChange={(e) => setSearchText(e.target.value)}
@@ -136,6 +150,7 @@ export default function CategoryPicker({ selected, categories, onChange, type }:
 							key={category.id}
 							type="button"
 							onClick={() => toggleCategory(category.id)}
+							onMouseDown={preventFocusSteal}
 							className="px-2 py-1 bg-[var(--bg-inset)] text-label rounded text-xs hover:bg-[var(--bg-card-hover)]"
 						>
 							+ {category.name}
