@@ -135,10 +135,7 @@ export default function ItemDetailPage() {
 					<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ITEM_ACCENT_COLOR }} />
 					<h1 className="text-xl font-bold text-heading">{item.name}</h1>
 				</div>
-				<button
-					onClick={() => navigate('/stats')}
-					className="p-2 -mr-2 text-label hover:text-heading transition-colors"
-				>
+				<button onClick={() => navigate(-1)} className="p-2 -mr-2 text-label hover:text-heading transition-colors">
 					<X className="w-5 h-5" />
 				</button>
 			</div>

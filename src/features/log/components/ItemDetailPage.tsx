@@ -1,4 +1,4 @@
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, Navigate } from 'react-router-dom';
 import { Construction, ArrowLeft } from 'lucide-react';
 import { getItemById } from '@/shared/store/store';
 import type { EntryType } from '@/shared/lib/types';
@@ -12,6 +12,11 @@ export default function ItemDetailPage() {
 	const rawType = searchParams.get('type');
 	const type: EntryType = rawType && VALID_TYPES.has(rawType) ? (rawType as EntryType) : 'activity';
 	const item = itemId ? getItemById(type, itemId) : undefined;
+
+	// Food items have a full stats page — redirect there
+	if (type === 'food' && itemId) {
+		return <Navigate to={`/stats/item/${itemId}`} replace />;
+	}
 
 	return (
 		<div className="space-y-6">
