@@ -1,11 +1,10 @@
 import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import type { Entry, TrackerData } from '@/shared/lib/types';
 import type { CategorySentiment } from '@/shared/lib/types';
 import { formatDateLocal } from '@/shared/lib/date-utils';
 import { filterEntriesByCategory, filterEntriesByItem, filterEntriesByDateRange } from '@/features/tracking';
 import { cn } from '@/shared/lib/cn';
+import PeriodNavigator from './PeriodNavigator';
 
 const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
 	positive: 'var(--color-success)',
@@ -33,7 +32,6 @@ export default function MonthCalendarView({
 	sentiment,
 	accentColor,
 }: MonthCalendarViewProps) {
-	const { t } = useTranslation('stats');
 	const [monthOffset, setMonthOffset] = useState(0);
 	const color = accentColor ?? SENTIMENT_COLORS[sentiment];
 
@@ -92,28 +90,23 @@ export default function MonthCalendarView({
 
 	const todayStr = formatDateLocal(new Date());
 
+	const totalCount = useMemo(() => {
+		let sum = 0;
+		for (const count of dayCounts.values()) sum += count;
+		return sum;
+	}, [dayCounts]);
+
 	return (
 		<div className="space-y-3">
-			{/* Header with navigation */}
-			<div className="flex items-center justify-between">
-				<h3 className="text-sm font-semibold text-heading">{t('categoryDetail.monthView')}</h3>
-				<div className="flex items-center gap-1">
-					<button
-						onClick={() => setMonthOffset((o) => o - 1)}
-						className="p-1.5 text-label hover:text-heading transition-colors rounded-md hover:bg-[var(--bg-inset)]"
-					>
-						<ChevronLeft className="w-4 h-4" />
-					</button>
-					<span className="text-xs font-medium text-heading min-w-[120px] text-center">{monthLabel}</span>
-					<button
-						onClick={() => setMonthOffset((o) => o + 1)}
-						disabled={monthOffset >= 0}
-						className="p-1.5 text-label hover:text-heading transition-colors rounded-md hover:bg-[var(--bg-inset)] disabled:opacity-30 disabled:cursor-not-allowed"
-					>
-						<ChevronRight className="w-4 h-4" />
-					</button>
-				</div>
-			</div>
+			<PeriodNavigator
+				color={color}
+				totalCount={totalCount}
+				periodLabel={monthLabel}
+				labelMinWidth="120px"
+				onPrev={() => setMonthOffset((o) => o - 1)}
+				onNext={() => setMonthOffset((o) => o + 1)}
+				nextDisabled={monthOffset >= 0}
+			/>
 
 			{/* Calendar grid */}
 			<div className="card p-3">
@@ -135,6 +128,8 @@ export default function MonthCalendarView({
 
 						const hasEntries = cell.count > 0;
 						const isToday = cell.dateStr === todayStr;
+						const bgPct = hasEntries ? Math.min(18 + cell.count * 12, 55) : 0;
+						const borderPct = hasEntries ? Math.min(35 + cell.count * 10, 65) : 0;
 
 						return (
 							<div
@@ -147,8 +142,8 @@ export default function MonthCalendarView({
 								style={
 									hasEntries
 										? {
-												backgroundColor: `color-mix(in srgb, ${color} 18%, var(--bg-card))`,
-												border: `1px solid color-mix(in srgb, ${color} 35%, transparent)`,
+												backgroundColor: `color-mix(in srgb, ${color} ${bgPct}%, var(--bg-card))`,
+												border: `1px solid color-mix(in srgb, ${color} ${borderPct}%, transparent)`,
 												color: color,
 											}
 										: undefined

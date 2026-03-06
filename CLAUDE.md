@@ -4,6 +4,7 @@
 - **Always verify changes build successfully** before considering a task complete. Run `npm run build` after making changes and fix any errors before finishing.
 - **Always update the relevant CLAUDE.md file(s)** when making changes to the codebase (new components, changed patterns, modified architecture, renamed files, etc.) so they continue to accurately reflect the actual code. Update the root file for app-wide changes, or the subdirectory file for localized changes.
 - **Add or update tests** when creating or modifying features. Keep tests focused and minimal — a few good tests that cover core logic and edge cases are better than many fragile tests that are expensive to maintain. Test files live alongside the code they test in `__tests__/` directories.
+- **Always extract shared components** — if a piece of UI or logic is used in more than one place, extract it into a reusable component. When copying a component to use in a new location, extract the shared parts first rather than duplicating code.
 - You may need to run `npm install` first if `node_modules` is missing.
 
 ## Checking PR Review Comments
