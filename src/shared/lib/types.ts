@@ -34,7 +34,9 @@ export type SyncStatus = 'idle' | 'syncing' | 'error';
 
 /** Get the unique identifier for a dashboard card (either categoryId or itemId). */
 export function getCardId(card: DashboardCard): string {
-	return card.categoryId ?? card.itemId ?? '';
+	const id = card.categoryId ?? card.itemId;
+	if (!id) throw new Error('DashboardCard must have either categoryId or itemId');
+	return id;
 }
 
 // ── Factory & utility functions ────────────────────────────

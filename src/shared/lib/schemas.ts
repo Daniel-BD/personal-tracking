@@ -32,12 +32,16 @@ export const EntrySchema = z.object({
 	categoryOverrides: z.array(z.string()).nullable().optional(),
 });
 
-export const DashboardCardSchema = z.object({
-	categoryId: z.string().optional(),
-	itemId: z.string().optional(),
-	baseline: z.literal('rolling_4_week_avg'),
-	comparison: z.literal('last_week'),
-});
+export const DashboardCardSchema = z
+	.object({
+		categoryId: z.string().optional(),
+		itemId: z.string().optional(),
+		baseline: z.literal('rolling_4_week_avg'),
+		comparison: z.literal('last_week'),
+	})
+	.refine((card) => (card.categoryId != null) !== (card.itemId != null), {
+		message: 'Exactly one of categoryId or itemId must be set',
+	});
 
 export const TombstoneEntityTypeSchema = z.enum([
 	'entry',

@@ -13,6 +13,18 @@ import AddCategoryModal from './AddCategoryModal';
 /** Neutral blue accent color for item-based dashboard cards. */
 const ITEM_ACCENT_COLOR = 'var(--color-activity)';
 
+/** Compute baseline average, current count, and delta % from sparkline data. */
+function calcCardStats(sparklineData: { count: number }[], daysElapsed: number) {
+	const currentCount = sparklineData[sparklineData.length - 1].count;
+	const baselineWeeks = sparklineData.slice(-5, -1);
+	const baselineSum = baselineWeeks.reduce((sum, w) => sum + w.count, 0);
+	const baselineAvg = baselineWeeks.length > 0 ? baselineSum / baselineWeeks.length : 0;
+	const proratedBaseline = baselineAvg * (daysElapsed / 7);
+	const delta = currentCount - proratedBaseline;
+	const deltaPercent = proratedBaseline === 0 ? (currentCount > 0 ? 1 : 0) : delta / proratedBaseline;
+	return { currentCount, baselineAvg, deltaPercent };
+}
+
 export default function GoalDashboard() {
 	const { t } = useTranslation('stats');
 	const navigate = useNavigate();
@@ -35,7 +47,6 @@ export default function GoalDashboard() {
 				const isItemCard = !!card.itemId;
 
 				if (isItemCard) {
-					// Item-based card
 					const item = data.foodItems.find((i) => i.id === card.itemId);
 					if (!item) return null;
 
@@ -45,34 +56,23 @@ export default function GoalDashboard() {
 						return { week: week.key, count: weekEntries.length, label: formatWeekLabel(week.start) };
 					});
 
-					const currentCount = sparklineData[sparklineData.length - 1].count;
-					const baselineWeeks = sparklineData.slice(-5, -1);
-					const baselineSum = baselineWeeks.reduce((sum, w) => sum + w.count, 0);
-					const baselineAvg = baselineWeeks.length > 0 ? baselineSum / baselineWeeks.length : 0;
-					const proratedBaseline = baselineAvg * (daysElapsed / 7);
-					const delta = currentCount - proratedBaseline;
-					const deltaPercent = proratedBaseline === 0 ? (currentCount > 0 ? 1 : 0) : delta / proratedBaseline;
-
+					const stats = calcCardStats(sparklineData, daysElapsed);
 					return {
 						cardId,
 						name: item.name,
 						sentiment: 'neutral' as const,
 						accentColor: ITEM_ACCENT_COLOR,
 						sparklineData,
-						currentCount,
-						baselineAvg,
-						deltaPercent,
+						...stats,
 						daysElapsed,
 						navigateTo: `/stats/item/${card.itemId}`,
 					};
 				}
 
-				// Category-based card
 				const categoryId = card.categoryId!;
-				const foodCat = data.foodCategories.find((c) => c.id === categoryId);
-				const activityCat = data.activityCategories.find((c) => c.id === categoryId);
-				const category = foodCat || activityCat;
-
+				const category =
+					data.foodCategories.find((c) => c.id === categoryId) ||
+					data.activityCategories.find((c) => c.id === categoryId);
 				if (!category) return null;
 
 				const sparklineData = weeks.map((week) => {
@@ -81,22 +81,14 @@ export default function GoalDashboard() {
 					return { week: week.key, count: weekEntries.length, label: formatWeekLabel(week.start) };
 				});
 
-				const currentCount = sparklineData[sparklineData.length - 1].count;
-				const baselineWeeks = sparklineData.slice(-5, -1);
-				const baselineSum = baselineWeeks.reduce((sum, w) => sum + w.count, 0);
-				const baselineAvg = baselineWeeks.length > 0 ? baselineSum / baselineWeeks.length : 0;
-				const proratedBaseline = baselineAvg * (daysElapsed / 7);
-				const delta = currentCount - proratedBaseline;
-				const deltaPercent = proratedBaseline === 0 ? (currentCount > 0 ? 1 : 0) : delta / proratedBaseline;
-
+				const stats = calcCardStats(sparklineData, daysElapsed);
 				return {
 					cardId,
 					name: category.name,
 					sentiment: category.sentiment,
+					accentColor: undefined as string | undefined,
 					sparklineData,
-					currentCount,
-					baselineAvg,
-					deltaPercent,
+					...stats,
 					daysElapsed,
 					navigateTo: `/stats/category/${categoryId}`,
 				};

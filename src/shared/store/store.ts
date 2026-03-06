@@ -508,6 +508,9 @@ export function mergeCategory(
 // ============================================================
 
 export function addDashboardCard(opts: { categoryId?: string; itemId?: string }): void {
+	if (!opts.categoryId && !opts.itemId) throw new Error('Either categoryId or itemId is required');
+	if (opts.categoryId && opts.itemId) throw new Error('Only one of categoryId or itemId should be set');
+
 	const card: DashboardCard = {
 		...(opts.categoryId ? { categoryId: opts.categoryId } : {}),
 		...(opts.itemId ? { itemId: opts.itemId } : {}),

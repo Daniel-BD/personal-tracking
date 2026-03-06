@@ -49,6 +49,7 @@ export default function MonthCalendarView({
 
 	// Build a map of date string -> count for the displayed month
 	const dayCounts = useMemo(() => {
+		if (!categoryId && !itemId) return new Map<string, number>();
 		const firstDay = new Date(year, month, 1);
 		const lastDay = new Date(year, month + 1, 0);
 		const range = { start: formatDateLocal(firstDay), end: formatDateLocal(lastDay) };

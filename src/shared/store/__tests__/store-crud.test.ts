@@ -307,6 +307,16 @@ describe('store CRUD', () => {
 			const data2 = dataStore.getSnapshot();
 			expect(data2.dashboardCards).toHaveLength(0);
 		});
+
+		it('addDashboardCard throws when neither categoryId nor itemId provided', () => {
+			expect(() => addDashboardCard({})).toThrow('Either categoryId or itemId is required');
+		});
+
+		it('addDashboardCard throws when both categoryId and itemId provided', () => {
+			expect(() => addDashboardCard({ categoryId: 'cat-1', itemId: 'item-1' })).toThrow(
+				'Only one of categoryId or itemId should be set',
+			);
+		});
 	});
 
 	describe('accessors', () => {

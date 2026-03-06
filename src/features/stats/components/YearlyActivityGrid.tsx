@@ -45,6 +45,7 @@ export default function YearlyActivityGrid({
 
 	// Build date -> count map for the year
 	const dayCounts = useMemo(() => {
+		if (!categoryId && !itemId) return new Map<string, number>();
 		const range = {
 			start: `${targetYear}-01-01`,
 			end: `${targetYear}-12-31`,
