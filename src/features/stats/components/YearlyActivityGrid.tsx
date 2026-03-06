@@ -111,6 +111,12 @@ export default function YearlyActivityGrid({
 		return { weeks: weeksArr, monthPositions: positions };
 	}, [targetYear, dayCounts]);
 
+	const totalCount = useMemo(() => {
+		let sum = 0;
+		for (const count of dayCounts.values()) sum += count;
+		return sum;
+	}, [dayCounts]);
+
 	const gridWidth = weeks.length * CELL_STEP;
 	const gridHeight = 7 * CELL_STEP;
 	const labelWidth = 20;
@@ -119,19 +125,21 @@ export default function YearlyActivityGrid({
 		<div className="space-y-3">
 			{/* Header with navigation */}
 			<div className="flex items-center justify-between">
-				<h3 className="text-sm font-semibold text-heading">{t('categoryDetail.yearView')}</h3>
-				<div className="flex items-center gap-1">
+				<h3 className="text-sm font-semibold" style={{ color }}>
+					{t('categoryDetail.logged', { count: totalCount })}
+				</h3>
+				<div className="flex items-center gap-0.5 rounded-full bg-[var(--bg-inset)] border border-[var(--border-default)] px-1">
 					<button
 						onClick={() => setYearOffset((o) => o - 1)}
-						className="p-1.5 text-label hover:text-heading transition-colors rounded-md hover:bg-[var(--bg-inset)]"
+						className="p-1.5 text-label hover:text-heading transition-colors"
 					>
 						<ChevronLeft className="w-4 h-4" />
 					</button>
-					<span className="text-xs font-medium text-heading min-w-[40px] text-center">{targetYear}</span>
+					<span className="text-sm font-semibold text-heading min-w-[40px] text-center">{targetYear}</span>
 					<button
 						onClick={() => setYearOffset((o) => o + 1)}
 						disabled={yearOffset >= 0}
-						className="p-1.5 text-label hover:text-heading transition-colors rounded-md hover:bg-[var(--bg-inset)] disabled:opacity-30 disabled:cursor-not-allowed"
+						className="p-1.5 text-label hover:text-heading transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
 					>
 						<ChevronRight className="w-4 h-4" />
 					</button>
