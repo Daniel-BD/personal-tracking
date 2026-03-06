@@ -285,13 +285,25 @@ describe('store CRUD', () => {
 	});
 
 	describe('dashboard cards', () => {
-		it('addDashboardCard and removeDashboardCard', () => {
-			addDashboardCard('cat-1');
+		it('addDashboardCard and removeDashboardCard with categoryId', () => {
+			addDashboardCard({ categoryId: 'cat-1' });
 			const data1 = dataStore.getSnapshot();
 			expect(data1.dashboardCards).toHaveLength(1);
 			expect(data1.dashboardCards![0].categoryId).toBe('cat-1');
 
 			removeDashboardCard('cat-1');
+			const data2 = dataStore.getSnapshot();
+			expect(data2.dashboardCards).toHaveLength(0);
+		});
+
+		it('addDashboardCard and removeDashboardCard with itemId', () => {
+			addDashboardCard({ itemId: 'item-1' });
+			const data1 = dataStore.getSnapshot();
+			expect(data1.dashboardCards).toHaveLength(1);
+			expect(data1.dashboardCards![0].itemId).toBe('item-1');
+			expect(data1.dashboardCards![0].categoryId).toBeUndefined();
+
+			removeDashboardCard('item-1');
 			const data2 = dataStore.getSnapshot();
 			expect(data2.dashboardCards).toHaveLength(0);
 		});

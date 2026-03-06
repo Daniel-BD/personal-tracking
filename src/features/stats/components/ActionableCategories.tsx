@@ -22,7 +22,7 @@ export default function ActionableCategories({ data }: ActionableCategoriesProps
 	const limitRows = useMemo(() => getTopLimitCategories(data.entries, data, weeks), [data, weeks]);
 
 	const followedIds = useMemo(() => {
-		return new Set((data.dashboardCards || []).map((c) => c.categoryId));
+		return new Set((data.dashboardCards || []).map((c) => c.categoryId).filter((id): id is string => !!id));
 	}, [data.dashboardCards]);
 
 	const cardCount = data.dashboardCards?.length ?? 0;
@@ -35,7 +35,7 @@ export default function ActionableCategories({ data }: ActionableCategoriesProps
 			showToast(t('focusAreas.dashboardFull'));
 			return;
 		}
-		addDashboardCard(categoryId);
+		addDashboardCard({ categoryId });
 		showToast(t('focusAreas.addedToDashboard', { name: categoryName }));
 	}
 

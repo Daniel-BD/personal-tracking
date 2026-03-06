@@ -32,6 +32,11 @@ export type Tombstone = z.infer<typeof TombstoneSchema>;
 
 export type SyncStatus = 'idle' | 'syncing' | 'error';
 
+/** Get the unique identifier for a dashboard card (either categoryId or itemId). */
+export function getCardId(card: DashboardCard): string {
+	return card.categoryId ?? card.itemId ?? '';
+}
+
 // ── Factory & utility functions ────────────────────────────
 
 export function createEmptyData(): TrackerData {

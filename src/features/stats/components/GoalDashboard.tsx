@@ -3,11 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTrackerData } from '@/shared/store/hooks';
 import { getLastNWeeks, getDaysElapsedInCurrentWeek, formatWeekLabel } from '../utils/stats-engine';
-import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking';
+import { filterEntriesByCategory, filterEntriesByItem, filterEntriesByDateRange } from '@/features/tracking';
 import { formatDateLocal } from '@/shared/lib/date-utils';
+import { getCardId } from '@/shared/lib/types';
 import GoalCard from './GoalCard';
 import { removeDashboardCard } from '@/shared/store/store';
 import AddCategoryModal from './AddCategoryModal';
+
+/** Neutral blue accent color for item-based dashboard cards. */
+const ITEM_ACCENT_COLOR = 'var(--color-activity)';
 
 export default function GoalDashboard() {
 	const { t } = useTranslation('stats');
@@ -27,55 +31,74 @@ export default function GoalDashboard() {
 
 		return data.dashboardCards
 			.map((card) => {
-				const categoryId = card.categoryId;
+				const cardId = getCardId(card);
+				const isItemCard = !!card.itemId;
 
-				// Find category and determine color/type/sentiment
+				if (isItemCard) {
+					// Item-based card
+					const item = data.foodItems.find((i) => i.id === card.itemId);
+					if (!item) return null;
+
+					const sparklineData = weeks.map((week) => {
+						const range = { start: formatDateLocal(week.start), end: formatDateLocal(week.end) };
+						const weekEntries = filterEntriesByItem(filterEntriesByDateRange(data.entries, range), card.itemId!);
+						return { week: week.key, count: weekEntries.length, label: formatWeekLabel(week.start) };
+					});
+
+					const currentCount = sparklineData[sparklineData.length - 1].count;
+					const baselineWeeks = sparklineData.slice(-5, -1);
+					const baselineSum = baselineWeeks.reduce((sum, w) => sum + w.count, 0);
+					const baselineAvg = baselineWeeks.length > 0 ? baselineSum / baselineWeeks.length : 0;
+					const proratedBaseline = baselineAvg * (daysElapsed / 7);
+					const delta = currentCount - proratedBaseline;
+					const deltaPercent = proratedBaseline === 0 ? (currentCount > 0 ? 1 : 0) : delta / proratedBaseline;
+
+					return {
+						cardId,
+						name: item.name,
+						sentiment: 'neutral' as const,
+						accentColor: ITEM_ACCENT_COLOR,
+						sparklineData,
+						currentCount,
+						baselineAvg,
+						deltaPercent,
+						daysElapsed,
+						navigateTo: `/stats/item/${card.itemId}`,
+					};
+				}
+
+				// Category-based card
+				const categoryId = card.categoryId!;
 				const foodCat = data.foodCategories.find((c) => c.id === categoryId);
 				const activityCat = data.activityCategories.find((c) => c.id === categoryId);
 				const category = foodCat || activityCat;
 
 				if (!category) return null;
 
-				const categoryName = category.name;
-				const sentiment = category.sentiment;
-
-				// Calculate weekly counts
 				const sparklineData = weeks.map((week) => {
-					const range = {
-						start: formatDateLocal(week.start),
-						end: formatDateLocal(week.end),
-					};
+					const range = { start: formatDateLocal(week.start), end: formatDateLocal(week.end) };
 					const weekEntries = filterEntriesByCategory(filterEntriesByDateRange(data.entries, range), categoryId, data);
-					return {
-						week: week.key,
-						count: weekEntries.length,
-						label: formatWeekLabel(week.start),
-					};
+					return { week: week.key, count: weekEntries.length, label: formatWeekLabel(week.start) };
 				});
 
-				// Current week (last element)
 				const currentCount = sparklineData[sparklineData.length - 1].count;
-
-				// Baseline: average of the 4 weeks preceding the current (last) week
 				const baselineWeeks = sparklineData.slice(-5, -1);
 				const baselineSum = baselineWeeks.reduce((sum, w) => sum + w.count, 0);
 				const baselineAvg = baselineWeeks.length > 0 ? baselineSum / baselineWeeks.length : 0;
-
-				// Pro-rate: scale baseline down to match elapsed days so partial weeks
-				// are compared fairly (e.g. day 1 compares against 1/7 of the avg)
 				const proratedBaseline = baselineAvg * (daysElapsed / 7);
 				const delta = currentCount - proratedBaseline;
 				const deltaPercent = proratedBaseline === 0 ? (currentCount > 0 ? 1 : 0) : delta / proratedBaseline;
 
 				return {
-					categoryId,
-					categoryName,
-					sentiment,
+					cardId,
+					name: category.name,
+					sentiment: category.sentiment,
 					sparklineData,
 					currentCount,
 					baselineAvg,
 					deltaPercent,
 					daysElapsed,
+					navigateTo: `/stats/category/${categoryId}`,
 				};
 			})
 			.filter((item): item is NonNullable<typeof item> => item !== null);
@@ -97,16 +120,17 @@ export default function GoalDashboard() {
 			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 				{dashboardData.map((card) => (
 					<GoalCard
-						key={card.categoryId}
-						categoryName={card.categoryName}
+						key={card.cardId}
+						categoryName={card.name}
 						sentiment={card.sentiment}
+						accentColor={card.accentColor}
 						sparklineData={card.sparklineData}
 						currentCount={card.currentCount}
 						baselineAvg={card.baselineAvg}
 						deltaPercent={card.deltaPercent}
 						daysElapsed={card.daysElapsed}
-						onRemove={() => removeDashboardCard(card.categoryId)}
-						onCardClick={() => navigate(`/stats/category/${card.categoryId}`)}
+						onRemove={() => removeDashboardCard(card.cardId)}
+						onCardClick={() => navigate(card.navigateTo)}
 					/>
 				))}
 

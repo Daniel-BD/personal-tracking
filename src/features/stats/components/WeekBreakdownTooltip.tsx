@@ -12,11 +12,19 @@ interface WeekBreakdownTooltipProps {
 	total: number;
 	dailyData: Array<{ day: string; count: number }>;
 	sentiment: CategorySentiment;
+	/** Override accent color. If set, takes precedence over sentiment color. */
+	accentColor?: string;
 }
 
-export default function WeekBreakdownTooltip({ weekNumber, total, dailyData, sentiment }: WeekBreakdownTooltipProps) {
+export default function WeekBreakdownTooltip({
+	weekNumber,
+	total,
+	dailyData,
+	sentiment,
+	accentColor,
+}: WeekBreakdownTooltipProps) {
 	const { t } = useTranslation('stats');
-	const color = SENTIMENT_COLORS[sentiment];
+	const color = accentColor ?? SENTIMENT_COLORS[sentiment];
 	const maxCount = Math.max(...dailyData.map((d) => d.count), 1);
 
 	return (

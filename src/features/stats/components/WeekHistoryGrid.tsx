@@ -13,12 +13,20 @@ interface WeekHistoryGridProps {
 	weeks: WeekData[];
 	selectedWeekIndex: number | null;
 	sentiment: CategorySentiment;
+	/** Override accent color. If set, takes precedence over sentiment color. */
+	accentColor?: string;
 	onSelectWeek: (index: number | null) => void;
 }
 
-export default function WeekHistoryGrid({ weeks, selectedWeekIndex, sentiment, onSelectWeek }: WeekHistoryGridProps) {
+export default function WeekHistoryGrid({
+	weeks,
+	selectedWeekIndex,
+	sentiment,
+	accentColor,
+	onSelectWeek,
+}: WeekHistoryGridProps) {
 	const { t } = useTranslation('stats');
-	const color = SENTIMENT_COLORS[sentiment];
+	const color = accentColor ?? SENTIMENT_COLORS[sentiment];
 
 	return (
 		<div className="space-y-3">

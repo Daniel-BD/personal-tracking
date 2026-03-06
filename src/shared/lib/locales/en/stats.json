@@ -52,9 +52,13 @@
 	},
 	"addCategoryModal": {
 		"title": "Add to Dashboard",
+		"tabCategories": "Categories",
+		"tabItems": "Items",
 		"searchPlaceholder": "Search categories...",
+		"searchItemsPlaceholder": "Search food items...",
 		"added": "Added",
-		"noResults": "No categories found matching \"{{search}}\""
+		"noResults": "No categories found matching \"{{search}}\"",
+		"noItemResults": "No items found matching \"{{search}}\""
 	},
 	"frequencyRanking": {
 		"title": "Most logged",
@@ -73,6 +77,19 @@
 			"categories": "Categories"
 		},
 		"empty": "No {{viewMode}} logged in this period"
+	},
+	"itemDetail": {
+		"thisWeek_one": "This week: {{count}} event",
+		"thisWeek_other": "This week: {{count}} events",
+		"partialWeek": "day {{day}}/7",
+		"baselineAvg": "4-week avg: {{avg}} events",
+		"projected": "projected",
+		"currentlyLabel": "Currently {{change}} vs avg",
+		"event_one": "event",
+		"event_other": "events",
+		"notFound": "Item not found",
+		"goBack": "Go back to Stats",
+		"defaultCategories": "Default categories"
 	},
 	"categoryDetail": {
 		"thisWeek_one": "This week: {{count}} event",

@@ -18,6 +18,8 @@ interface CategoryTrendChartProps {
 	weeks: ChartWeek[];
 	baselineAvg: number;
 	sentiment: CategorySentiment;
+	/** Override accent color. If set, takes precedence over sentiment color. */
+	accentColor?: string;
 	selectedWeekIndex: number | null;
 	onSelectWeek: (index: number | null) => void;
 }
@@ -26,10 +28,11 @@ export default function CategoryTrendChart({
 	weeks,
 	baselineAvg,
 	sentiment,
+	accentColor,
 	selectedWeekIndex,
 	onSelectWeek,
 }: CategoryTrendChartProps) {
-	const color = SENTIMENT_COLORS[sentiment];
+	const color = accentColor ?? SENTIMENT_COLORS[sentiment];
 
 	const chartData = useMemo(
 		() =>
@@ -123,6 +126,7 @@ export default function CategoryTrendChart({
 					total={tooltipData.total}
 					dailyData={tooltipData.dailyData}
 					sentiment={sentiment}
+					accentColor={accentColor}
 				/>
 			)}
 		</div>

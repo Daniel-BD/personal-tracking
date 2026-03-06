@@ -17,6 +17,7 @@ import ErrorBoundary from '@/shared/ui/ErrorBoundary';
 // fetched when the user first navigates to that tab.
 const StatsPage = lazy(() => import('@/features/stats').then((m) => ({ default: m.StatsPage })));
 const CategoryDetailPage = lazy(() => import('@/features/stats').then((m) => ({ default: m.CategoryDetailPage })));
+const StatsItemDetailPage = lazy(() => import('@/features/stats').then((m) => ({ default: m.ItemDetailPage })));
 const SettingsPage = lazy(() => import('@/features/settings').then((m) => ({ default: m.SettingsPage })));
 
 const routeConfig = [
@@ -82,6 +83,14 @@ export default function App() {
 							element={
 								<ErrorBoundary label="Category Detail">
 									<CategoryDetailPage />
+								</ErrorBoundary>
+							}
+						/>
+						<Route
+							path="/stats/item/:itemId"
+							element={
+								<ErrorBoundary label="Item Detail">
+									<StatsItemDetailPage />
 								</ErrorBoundary>
 							}
 						/>
