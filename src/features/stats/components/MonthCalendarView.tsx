@@ -1,11 +1,10 @@
 import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import type { Entry, TrackerData } from '@/shared/lib/types';
 import type { CategorySentiment } from '@/shared/lib/types';
 import { formatDateLocal } from '@/shared/lib/date-utils';
 import { filterEntriesByCategory, filterEntriesByItem, filterEntriesByDateRange } from '@/features/tracking';
 import { cn } from '@/shared/lib/cn';
+import PeriodNavigator from './PeriodNavigator';
 
 const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
 	positive: 'var(--color-success)',
@@ -33,7 +32,6 @@ export default function MonthCalendarView({
 	sentiment,
 	accentColor,
 }: MonthCalendarViewProps) {
-	const { t } = useTranslation('stats');
 	const [monthOffset, setMonthOffset] = useState(0);
 	const color = accentColor ?? SENTIMENT_COLORS[sentiment];
 
@@ -100,28 +98,15 @@ export default function MonthCalendarView({
 
 	return (
 		<div className="space-y-3">
-			{/* Header with navigation */}
-			<div className="flex items-center justify-between">
-				<h3 className="text-sm font-semibold" style={{ color }}>
-					{t('categoryDetail.logged', { count: totalCount })}
-				</h3>
-				<div className="flex items-center gap-0.5 rounded-full bg-[var(--bg-inset)] border border-[var(--border-default)] px-1">
-					<button
-						onClick={() => setMonthOffset((o) => o - 1)}
-						className="p-1.5 text-label hover:text-heading transition-colors"
-					>
-						<ChevronLeft className="w-4 h-4" />
-					</button>
-					<span className="text-sm font-semibold text-heading min-w-[120px] text-center">{monthLabel}</span>
-					<button
-						onClick={() => setMonthOffset((o) => o + 1)}
-						disabled={monthOffset >= 0}
-						className="p-1.5 text-label hover:text-heading transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-					>
-						<ChevronRight className="w-4 h-4" />
-					</button>
-				</div>
-			</div>
+			<PeriodNavigator
+				color={color}
+				totalCount={totalCount}
+				periodLabel={monthLabel}
+				labelMinWidth="120px"
+				onPrev={() => setMonthOffset((o) => o - 1)}
+				onNext={() => setMonthOffset((o) => o + 1)}
+				nextDisabled={monthOffset >= 0}
+			/>
 
 			{/* Calendar grid */}
 			<div className="card p-3">
