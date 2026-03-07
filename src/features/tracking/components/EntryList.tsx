@@ -125,14 +125,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 											<div className="flex-1 min-w-0">
 												<div className="flex items-center gap-2">
 													{showType && (
-														<span
-															className="flex-shrink-0"
-															style={{
-																color: `var(${entry.type === 'activity' ? '--color-activity' : '--color-food'})`,
-															}}
-														>
-															<TypeIcon type={entry.type} className="w-4 h-4" />
-														</span>
+														<TypeIcon type={entry.type} className="w-4 h-4 shrink-0 text-[var(--text-muted)]" />
 													)}
 													<span className="font-medium text-heading truncate">
 														{getItemName(entry.type, entry.itemId)}
