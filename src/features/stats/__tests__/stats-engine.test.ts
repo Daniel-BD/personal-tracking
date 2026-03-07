@@ -13,6 +13,8 @@ import {
 	getDailyBreakdown,
 	calcActualDeltaPercent,
 	formatChangeText,
+	getItemAccentColor,
+	SENTIMENT_COLORS,
 	type WeeklyData,
 } from '../utils/stats-engine';
 import { makeEntry, makeItem, makeCategory, makeValidData, resetIdCounter } from '@/shared/store/__tests__/fixtures';
@@ -570,5 +572,44 @@ describe('formatChangeText', () => {
 
 	it('rounds to nearest integer percentage', () => {
 		expect(formatChangeText(0.126)).toBe('+13%');
+	});
+});
+
+describe('getItemAccentColor', () => {
+	it('returns positive color when positive > limit', () => {
+		const catPos = makeCategory({ sentiment: 'positive' });
+		const catPos2 = makeCategory({ sentiment: 'positive' });
+		const catLim = makeCategory({ sentiment: 'limit' });
+		const categories = [catPos, catPos2, catLim];
+		expect(getItemAccentColor([catPos.id, catPos2.id, catLim.id], categories)).toBe(SENTIMENT_COLORS.positive);
+	});
+
+	it('returns limit color when limit > positive', () => {
+		const catLim = makeCategory({ sentiment: 'limit' });
+		const catLim2 = makeCategory({ sentiment: 'limit' });
+		const catPos = makeCategory({ sentiment: 'positive' });
+		const categories = [catLim, catLim2, catPos];
+		expect(getItemAccentColor([catLim.id, catLim2.id, catPos.id], categories)).toBe(SENTIMENT_COLORS.limit);
+	});
+
+	it('returns neutral blue when positive equals limit', () => {
+		const catPos = makeCategory({ sentiment: 'positive' });
+		const catLim = makeCategory({ sentiment: 'limit' });
+		const categories = [catPos, catLim];
+		expect(getItemAccentColor([catPos.id, catLim.id], categories)).toBe('var(--color-activity)');
+	});
+
+	it('returns neutral blue when all categories are neutral', () => {
+		const cat = makeCategory({ sentiment: 'neutral' });
+		expect(getItemAccentColor([cat.id], [cat])).toBe('var(--color-activity)');
+	});
+
+	it('returns neutral blue for empty category list', () => {
+		expect(getItemAccentColor([], [])).toBe('var(--color-activity)');
+	});
+
+	it('ignores unknown category IDs', () => {
+		const catPos = makeCategory({ sentiment: 'positive' });
+		expect(getItemAccentColor(['unknown-id', catPos.id], [catPos])).toBe(SENTIMENT_COLORS.positive);
 	});
 });
