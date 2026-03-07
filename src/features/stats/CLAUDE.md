@@ -6,7 +6,7 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 
 ## Utils
 
-- **`stats-engine.ts`** — Weekly food analytics, balance scores (based on category sentiment), actionable category rankings (top limit categories to reduce, lagging positive categories to increase).
+- **`stats-engine.ts`** — Weekly food analytics, balance scores (based on category sentiment), actionable category rankings (top limit categories to reduce, lagging positive categories to increase). `SENTIMENT_COLORS` maps neutral sentiment to the shared blue activity color (`var(--color-activity)`).
 
 ## Components
 

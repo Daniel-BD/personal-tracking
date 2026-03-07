@@ -9,7 +9,7 @@ import PeriodNavigator from './PeriodNavigator';
 const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
 	positive: 'var(--color-success)',
 	limit: 'var(--color-danger)',
-	neutral: 'var(--color-neutral)',
+	neutral: 'var(--color-activity)',
 };
 
 const DAY_LABELS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];

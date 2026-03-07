@@ -21,7 +21,7 @@ describe('ranking-utils', () => {
 
 		expect(accentLookup.get('item-positive')).toBe('var(--color-success)');
 		expect(accentLookup.get('item-limit')).toBe('var(--color-danger)');
-		expect(accentLookup.get('item-neutral')).toBe('var(--color-neutral)');
+		expect(accentLookup.get('item-neutral')).toBe('var(--color-activity)');
 	});
 
 	it('includes accent colors in ranked items when provided', () => {

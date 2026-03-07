@@ -121,7 +121,7 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 						<Bar
 							dataKey="neutral"
 							stackId="sentiment"
-							fill="var(--color-neutral)"
+							fill="var(--color-activity)"
 							name={t('balanceOverview.chartNeutral')}
 						>
 							{data.map((entry, index) => (
