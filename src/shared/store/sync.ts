@@ -137,6 +137,10 @@ export function clearDashboardCardRestored(cardId: string): void {
 	persistPendingRestorations();
 }
 
+function shouldTreatDashboardCardAsRestored(cardId: string): boolean {
+	return pendingRestorations.dashboardCards.has(cardId) && !pendingDeletions.dashboardCards.has(cardId);
+}
+
 // ── Tombstone helpers ────────────────────────────────────────
 
 /** Mapping from PendingDeletions keys to TombstoneEntityType values. */
@@ -301,7 +305,11 @@ export function filterPendingDeletions(data: TrackerData): TrackerData {
 		foodCategories: data.foodCategories.filter((c) => !foodCategoryExclude.has(c.id)),
 		dashboardCards: (data.dashboardCards || []).filter((c) => {
 			const id = getCardId(c);
-			if (pendingRestorations.dashboardCards.has(id)) return true;
+			if (pendingDeletions.dashboardCards.has(id)) return false;
+			if (shouldTreatDashboardCardAsRestored(id)) {
+				const hasDashboardCardTombstone = tombstones.some((t) => t.entityType === 'dashboardCard' && t.id === id);
+				if (hasDashboardCardTombstone) return true;
+			}
 			return !dashboardCardExclude.has(id);
 		}),
 		favoriteItems: (data.favoriteItems || []).filter((id) => !favoriteItemExclude.has(id)),
@@ -317,9 +325,12 @@ export function filterPendingDeletions(data: TrackerData): TrackerData {
 export function mergeTrackerData(local: TrackerData, remote: TrackerData): TrackerData {
 	// Merge tombstones first — they inform all other merges
 	const mergedTombstones = mergeTombstones(local.tombstones || [], remote.tombstones || []);
-	const effectiveTombstones = mergedTombstones.filter(
-		(t) => !(t.entityType === 'dashboardCard' && pendingRestorations.dashboardCards.has(t.id)),
-	);
+	const localCardIds = new Set((local.dashboardCards || []).map((c) => getCardId(c)));
+	const effectiveTombstones = mergedTombstones.filter((t) => {
+		if (t.entityType !== 'dashboardCard') return true;
+		if (!shouldTreatDashboardCardAsRestored(t.id)) return true;
+		return !localCardIds.has(t.id);
+	});
 
 	const localCards = local.dashboardCards || [];
 	const remoteCards = remote.dashboardCards || [];

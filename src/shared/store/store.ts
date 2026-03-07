@@ -438,6 +438,7 @@ export function mergeCategory(
 	const snapshotCards = currentData.dashboardCards || [];
 	if (snapshotCards.find((c) => c.categoryId === sourceId)) {
 		pendingDeletions.dashboardCards.add(sourceId);
+		clearDashboardCardRestored(sourceId);
 	}
 	persistPendingDeletions();
 

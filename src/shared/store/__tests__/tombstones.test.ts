@@ -6,6 +6,7 @@ import {
 	addTombstone,
 	addTombstones,
 	markDashboardCardRestored,
+	pendingDeletions,
 } from '../sync';
 import { makeValidData, makeEntry, makeItem, makeCategory, makeTombstone, resetIdCounter } from './fixtures';
 
@@ -86,6 +87,22 @@ describe('tombstone sync', () => {
 			expect(merged.dashboardCards).toHaveLength(1);
 			expect(merged.dashboardCards![0].categoryId).toBe('card-x');
 			expect(merged.tombstones?.some((t) => t.entityType === 'dashboardCard' && t.id === 'card-x')).toBe(false);
+		});
+
+		it('keeps dashboard-card tombstones when the card is pending deletion', () => {
+			const card = { categoryId: 'card-x', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const };
+			const tombstone = makeTombstone({ id: 'card-x', entityType: 'dashboardCard' });
+
+			const local = makeValidData({ dashboardCards: [card] });
+			const remote = makeValidData({ tombstones: [tombstone] });
+
+			markDashboardCardRestored('card-x');
+			pendingDeletions.dashboardCards.add('card-x');
+
+			const merged = mergeTrackerData(local, remote);
+
+			expect(merged.dashboardCards).toHaveLength(0);
+			expect(merged.tombstones?.some((t) => t.entityType === 'dashboardCard' && t.id === 'card-x')).toBe(true);
 		});
 		it('prevents deleted favorite resurrection across devices', () => {
 			const item = makeItem({ id: 'fav-item' });
@@ -252,6 +269,19 @@ describe('tombstone sync', () => {
 
 			expect(filtered.dashboardCards).toHaveLength(1);
 			expect(filtered.dashboardCards![0].categoryId).toBe('card-x');
+		});
+
+		it('still filters cards pending local deletion even if restoration marker exists', () => {
+			const card = { categoryId: 'card-x', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const };
+			const tombstone = makeTombstone({ id: 'card-x', entityType: 'dashboardCard' });
+			const data = makeValidData({ dashboardCards: [card], tombstones: [tombstone] });
+
+			markDashboardCardRestored('card-x');
+			pendingDeletions.dashboardCards.add('card-x');
+
+			const filtered = filterPendingDeletions(data);
+
+			expect(filtered.dashboardCards).toHaveLength(0);
 		});
 		it('filters items based on tombstones in the data', () => {
 			const entry = makeEntry({ id: 'e1' });
