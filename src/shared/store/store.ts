@@ -511,6 +511,16 @@ export function addDashboardCard(opts: { categoryId?: string; itemId?: string })
 	if (!opts.categoryId && !opts.itemId) throw new Error('Either categoryId or itemId is required');
 	if (opts.categoryId && opts.itemId) throw new Error('Only one of categoryId or itemId should be set');
 
+	const cardId = (opts.categoryId ?? opts.itemId)!;
+
+	// Idempotent: skip if this card already exists
+	if ((currentData.dashboardCards || []).some((c) => getCardId(c) === cardId)) return;
+
+	// Clear any previous deletion markers so re-added cards aren't filtered out
+	// (mirrors the toggleFavorite pattern for re-favoriting)
+	pendingDeletions.dashboardCards.delete(cardId);
+	persistPendingDeletions();
+
 	const card: DashboardCard = {
 		...(opts.categoryId ? { categoryId: opts.categoryId } : {}),
 		...(opts.itemId ? { itemId: opts.itemId } : {}),
@@ -518,10 +528,16 @@ export function addDashboardCard(opts: { categoryId?: string; itemId?: string })
 		comparison: 'last_week',
 	};
 
-	updateData((data) => ({
-		...data,
-		dashboardCards: [...(data.dashboardCards || []), card],
-	}));
+	updateData((data) =>
+		removeTombstone(
+			{
+				...data,
+				dashboardCards: [...(data.dashboardCards || []), card],
+			},
+			cardId,
+			'dashboardCard',
+		),
+	);
 
 	triggerPush();
 }
