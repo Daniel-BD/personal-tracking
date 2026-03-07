@@ -23,6 +23,7 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 - **`PeriodNavigator.tsx`** — Shared header component used by `MonthCalendarView` and `YearlyActivityGrid`. Shows total logged count in accent color and a styled pill-shaped prev/next navigation button.
 - **`MonthCalendarView.tsx`** — Month calendar grid on category/item detail page. Shows days with logged entries highlighted using sentiment or accent color with intensity-based saturation (more entries = more saturated). Accepts optional `itemId` and `accentColor` props. Prev/next month navigation via `PeriodNavigator`.
 - **`YearlyActivityGrid.tsx`** — GitHub-style yearly heatmap on category/item detail page. SVG grid of day squares colored by entry count with sentiment or accent color. Accepts optional `itemId` and `accentColor` props. Prev/next year navigation via `PeriodNavigator`.
+- **`CategoryMostLogged.tsx`** — Ranked list of most-logged items within a specific category on the category detail page. SegmentedControl filter for time period (all time/7 days/30 days). Each row shows rank, item name, percentage of total, absolute count, and a sentiment-colored progress bar.
 
 ## Known Quirks
 
