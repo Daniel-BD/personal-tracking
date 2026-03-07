@@ -2,16 +2,13 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTrackerData } from '@/shared/store/hooks';
-import { getLastNWeeks, getDaysElapsedInCurrentWeek, formatWeekLabel } from '../utils/stats-engine';
+import { getLastNWeeks, getDaysElapsedInCurrentWeek, formatWeekLabel, getItemAccentColor } from '../utils/stats-engine';
 import { filterEntriesByCategory, filterEntriesByItem, filterEntriesByDateRange } from '@/features/tracking';
 import { formatDateLocal } from '@/shared/lib/date-utils';
 import { getCardId } from '@/shared/lib/types';
 import GoalCard from './GoalCard';
 import { removeDashboardCard } from '@/shared/store/store';
 import AddCategoryModal from './AddCategoryModal';
-
-/** Neutral blue accent color for item-based dashboard cards. */
-const ITEM_ACCENT_COLOR = 'var(--color-activity)';
 
 /** Compute baseline average, current count, and delta % from sparkline data. */
 function calcCardStats(sparklineData: { count: number }[], daysElapsed: number) {
@@ -61,7 +58,7 @@ export default function GoalDashboard() {
 						cardId,
 						name: item.name,
 						sentiment: 'neutral' as const,
-						accentColor: ITEM_ACCENT_COLOR,
+						accentColor: getItemAccentColor(item.categories, data.foodCategories),
 						sparklineData,
 						...stats,
 						daysElapsed,

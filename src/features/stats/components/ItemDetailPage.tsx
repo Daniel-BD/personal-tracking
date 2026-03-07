@@ -12,15 +12,13 @@ import {
 	calcActualDeltaPercent,
 	formatChangeText,
 	SENTIMENT_COLORS,
+	getItemAccentColor,
 } from '../utils/stats-engine';
 import type { CategorySentiment } from '@/shared/lib/types';
 import CategoryTrendChart from './CategoryTrendChart';
 import WeekHistoryGrid from './WeekHistoryGrid';
 import MonthCalendarView from './MonthCalendarView';
 import YearlyActivityGrid from './YearlyActivityGrid';
-
-/** Neutral blue accent color for item-based pages. */
-const ITEM_ACCENT_COLOR = 'var(--color-activity)';
 
 const SENTIMENT_PILL_COLORS: Record<CategorySentiment, { bg: string; text: string }> = {
 	positive: { bg: 'color-mix(in srgb, var(--color-success) 15%, var(--bg-card))', text: 'var(--color-success)' },
@@ -55,6 +53,11 @@ export default function ItemDetailPage() {
 			})
 			.filter((c): c is NonNullable<typeof c> => c !== null);
 	}, [item, data.foodCategories]);
+
+	const accentColor = useMemo(
+		() => getItemAccentColor(item?.categories ?? [], data.foodCategories),
+		[item, data.foodCategories],
+	);
 
 	// Calculate weekly data for this item
 	const weeklyStats = useMemo(() => {
@@ -132,7 +135,7 @@ export default function ItemDetailPage() {
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
-					<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ITEM_ACCENT_COLOR }} />
+					<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: accentColor }} />
 					<h1 className="text-xl font-bold text-heading">{item.name}</h1>
 				</div>
 				<button onClick={() => navigate(-1)} className="p-2 -mr-2 text-label hover:text-heading transition-colors">
@@ -179,7 +182,7 @@ export default function ItemDetailPage() {
 				<div className="text-xs text-label">{t('itemDetail.baselineAvg', { avg: avgFormatted })}</div>
 				{!isStable && (
 					<div className="flex items-baseline gap-1.5 pt-1">
-						<span className="text-lg font-bold" style={{ color: ITEM_ACCENT_COLOR }}>
+						<span className="text-lg font-bold" style={{ color: accentColor }}>
 							{changeText}
 						</span>
 						{deltaEventsText && <span className="text-xs text-label">{deltaEventsText}</span>}
@@ -198,7 +201,7 @@ export default function ItemDetailPage() {
 				weeks={weeklyStats}
 				baselineAvg={baselineAvg}
 				sentiment="neutral"
-				accentColor={ITEM_ACCENT_COLOR}
+				accentColor={accentColor}
 				selectedWeekIndex={selectedWeekIndex}
 				onSelectWeek={setSelectedWeekIndex}
 			/>
@@ -208,7 +211,7 @@ export default function ItemDetailPage() {
 				weeks={weekHistoryData}
 				selectedWeekIndex={selectedWeekIndex}
 				sentiment="neutral"
-				accentColor={ITEM_ACCENT_COLOR}
+				accentColor={accentColor}
 				onSelectWeek={setSelectedWeekIndex}
 			/>
 
@@ -218,7 +221,7 @@ export default function ItemDetailPage() {
 				itemId={itemId!}
 				data={data}
 				sentiment="neutral"
-				accentColor={ITEM_ACCENT_COLOR}
+				accentColor={accentColor}
 			/>
 
 			{/* Yearly activity grid */}
@@ -227,7 +230,7 @@ export default function ItemDetailPage() {
 				itemId={itemId!}
 				data={data}
 				sentiment="neutral"
-				accentColor={ITEM_ACCENT_COLOR}
+				accentColor={accentColor}
 			/>
 		</div>
 	);
