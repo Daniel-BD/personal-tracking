@@ -225,7 +225,10 @@ export default function EntryList({ entries, showType = false }: Props) {
 						</div>
 
 						<div className="pt-2">
-							<button onClick={() => handleDelete(editingEntry.id)} className="btn btn-danger w-full">
+							<button
+								onClick={() => handleDelete(editingEntry.id)}
+								className="btn btn-danger w-full flex items-center justify-center"
+							>
 								<Trash2 className="w-4 h-4 mr-2" strokeWidth={2} />
 								{t('editEntry.deleteButton')}
 							</button>
