@@ -28,3 +28,8 @@ Library page for item & category CRUD management. Compact card list with inline 
 - **Merge flow**: Edit sheet → "Merge into..." button → close edit sheet → MergeTargetSheet (search/select) → MergeConfirmSheet (summary + optional note) → execute merge via `mergeItem()`/`mergeCategory()` from store → toast notification.
 
 - List rows that navigate to stats detail pages are keyboard-accessible (`role="button"`, `tabIndex=0`, Enter/Space support) while keeping inline edit/delete/favorite icon buttons.
+
+
+## Row Actions
+
+- Item/category row actions use circular, color-coded icon buttons: add (blue), edit (warning), delete (danger).

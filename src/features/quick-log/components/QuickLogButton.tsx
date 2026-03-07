@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import { Zap } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useAnimate, useReducedMotion } from 'motion/react';
 import { cn } from '@/shared/lib/cn';
 
@@ -11,7 +11,7 @@ interface Props {
 const PROGRESS_CIRCLE_CIRCUMFERENCE = 70; // Approx 2 * PI * 11 (radius)
 
 /**
- * Animated quick-log (Zap) button.
+ * Animated quick-log (Plus) button.
  *
  * When pressed:
  * 1. Animates icon color to yellow by fading in a layered icon.
@@ -64,8 +64,8 @@ export default function QuickLogButton({ onClick, ariaLabel }: Props) {
 			type="button"
 			onClick={handleClick}
 			className={cn(
-				'ql-btn relative flex-shrink-0 p-1.5 rounded-md text-[var(--text-muted)]',
-				'hover:text-[var(--color-activity)] hover:bg-[var(--bg-inset)]',
+				'ql-btn relative flex-shrink-0 p-1.5 rounded-full text-[var(--color-activity)]',
+				'bg-[var(--color-activity-bg)] hover:bg-[var(--color-activity-bg-strong)]',
 			)}
 			aria-label={ariaLabel}
 		>
@@ -89,10 +89,10 @@ export default function QuickLogButton({ onClick, ariaLabel }: Props) {
 				/>
 			</svg>
 
-			{/* Lightning icon with layered yellow highlight */}
+			{/* Plus icon with layered yellow highlight */}
 			<div className="ql-icon">
-				<Zap className="w-4 h-4" strokeWidth={2} />
-				<Zap
+				<Plus className="w-4 h-4" strokeWidth={2} />
+				<Plus
 					className="ql-icon-yellow absolute inset-0 w-4 h-4 text-[var(--color-favorite)] opacity-0"
 					strokeWidth={2}
 				/>

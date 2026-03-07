@@ -32,3 +32,8 @@ Business logic is extracted into hooks; the components are presentational, wirin
 - `__tests__/quick-log-search.test.ts` — Search, merge, favorites logic
 - `__tests__/quick-log-form.test.ts` — Instant quick-log entry creation
 - `__tests__/quick-log-button.test.tsx` — QuickLogButton rendering, click handling, double-click prevention, effect layers (mocks `motion/react`)
+
+
+## UI Notes
+
+- `QuickLogButton` uses a **Plus** icon (not lightning) with a circular activity-tinted background for fast add/log affordance.
