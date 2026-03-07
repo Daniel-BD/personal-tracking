@@ -2,7 +2,7 @@
 
 Stats page with goal dashboard, balance score, actionable categories, category composition charts, and frequency ranking. Exports its public API via `index.ts` barrel.
 
-**Important**: The Stats page currently only analyzes food entries (eating patterns). Activity analytics may be added later.
+**Important**: The Stats page analytics (balance score, composition, actionable categories) currently only analyze food entries. However, the goal dashboard and detail pages support both food and activity items/categories.
 
 ## Utils
 
@@ -11,10 +11,10 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 ## Components
 
 - **`StatsPage.tsx`** — Layout shell orchestrating all stats sections.
-- **`GoalDashboard.tsx`** — Goal cards grid. Each card tied to a `categoryId` or `itemId` from `TrackerData.dashboardCards`. Category cards use sentiment-derived colors; item cards use a neutral blue accent (`--color-activity`).
+- **`GoalDashboard.tsx`** — Goal cards grid. Each card tied to a `categoryId` or `itemId` from `TrackerData.dashboardCards`. Category cards use sentiment-derived colors; item cards use sentiment-based accent color derived from their categories via `getItemAccentColor()`. Supports both food and activity items/categories.
 - **`GoalCard.tsx`** — Individual sparkline card showing this week's count vs. 4-week rolling baseline average. Uses Recharts `<Line>`. Accepts optional `accentColor` prop to override sentiment-derived color (used for item cards).
-- **`AddCategoryModal.tsx`** — Modal for adding new dashboard goal cards. Has a `SegmentedControl` toggle between "Categories" and "Items" tabs. Items tab shows food items with blue accent dots.
-- **`ItemDetailPage.tsx`** — Detail page for item-based dashboard cards (`/stats/item/:itemId`). Shows weekly stats, trend chart, week history, calendar, and yearly grid — all with blue accent color. Displays the item's default categories as colored sentiment pills at the top.
+- **`AddCategoryModal.tsx`** — Modal for adding new dashboard goal cards. Has a `SegmentedControl` toggle between "Categories" and "Items" tabs. Both tabs show food and activity entries. Category dots use sentiment colors; item dots use `getItemAccentColor()`. Both show a type pill (food/activity).
+- **`ItemDetailPage.tsx`** — Detail page for item-based dashboard cards (`/stats/item/:itemId`). Supports both food and activity items — looks up the item in both collections and uses the corresponding categories. Shows weekly stats, trend chart, week history, calendar, and yearly grid with sentiment-based accent color. Displays the item's default categories as colored sentiment pills at the top.
 - **`BalanceOverview.tsx`** — Overall balance score visualization (score card, trend chart, weekly breakdown).
 - **`BalanceScoreTrendChart.tsx`** — 8-week balance score line chart (Recharts `<Line>`). Shows score % above each dot and small positive/limit counts below. Modeled after `CategoryTrendChart`.
 - **`ActionableCategories.tsx`** — Top limit categories to reduce + lagging positive categories to increase.

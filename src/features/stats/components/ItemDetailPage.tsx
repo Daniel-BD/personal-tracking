@@ -38,26 +38,27 @@ export default function ItemDetailPage() {
 	const currentWeek = weeks[weeks.length - 1];
 	const daysElapsed = currentWeek ? getDaysElapsedInCurrentWeek(currentWeek.start) : 7;
 
-	// Find the food item
-	const item = useMemo(() => {
-		return data.foodItems.find((i) => i.id === itemId);
-	}, [data.foodItems, itemId]);
+	// Find the item in either food or activity items
+	const { item, categories: itemCategories } = useMemo(() => {
+		const foodItem = data.foodItems.find((i) => i.id === itemId);
+		if (foodItem) return { item: foodItem, categories: data.foodCategories };
+		const activityItem = data.activityItems.find((i) => i.id === itemId);
+		if (activityItem) return { item: activityItem, categories: data.activityCategories };
+		return { item: undefined, categories: data.foodCategories };
+	}, [data.foodItems, data.activityItems, data.foodCategories, data.activityCategories, itemId]);
 
 	// Resolve default categories for this item
 	const defaultCategories = useMemo(() => {
 		if (!item) return [];
 		return item.categories
 			.map((catId) => {
-				const cat = data.foodCategories.find((c) => c.id === catId);
+				const cat = itemCategories.find((c) => c.id === catId);
 				return cat ?? null;
 			})
 			.filter((c): c is NonNullable<typeof c> => c !== null);
-	}, [item, data.foodCategories]);
+	}, [item, itemCategories]);
 
-	const accentColor = useMemo(
-		() => getItemAccentColor(item?.categories ?? [], data.foodCategories),
-		[item, data.foodCategories],
-	);
+	const accentColor = useMemo(() => getItemAccentColor(item?.categories ?? [], itemCategories), [item, itemCategories]);
 
 	// Calculate weekly data for this item
 	const weeklyStats = useMemo(() => {

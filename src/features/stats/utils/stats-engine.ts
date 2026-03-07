@@ -24,8 +24,8 @@ export const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
  * the positive color if positive > limit, and the neutral blue activity color otherwise
  * (equal counts, or no positive/limit categories at all).
  */
-export function getItemAccentColor(categoryIds: string[], foodCategories: Category[]): string {
-	const { positive, limit } = getCategorySentimentCounts(categoryIds, foodCategories);
+export function getItemAccentColor(categoryIds: string[], categories: Category[]): string {
+	const { positive, limit } = getCategorySentimentCounts(categoryIds, categories);
 	if (limit > positive) return SENTIMENT_COLORS.limit;
 	if (positive > limit) return SENTIMENT_COLORS.positive;
 	return 'var(--color-activity)';

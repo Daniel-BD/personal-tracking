@@ -44,8 +44,11 @@ export default function GoalDashboard() {
 				const isItemCard = !!card.itemId;
 
 				if (isItemCard) {
-					const item = data.foodItems.find((i) => i.id === card.itemId);
+					const foodItem = data.foodItems.find((i) => i.id === card.itemId);
+					const activityItem = !foodItem ? data.activityItems.find((i) => i.id === card.itemId) : undefined;
+					const item = foodItem ?? activityItem;
 					if (!item) return null;
+					const categories = foodItem ? data.foodCategories : data.activityCategories;
 
 					const sparklineData = weeks.map((week) => {
 						const range = { start: formatDateLocal(week.start), end: formatDateLocal(week.end) };
@@ -58,7 +61,7 @@ export default function GoalDashboard() {
 						cardId,
 						name: item.name,
 						sentiment: 'neutral' as const,
-						accentColor: getItemAccentColor(item.categories, data.foodCategories),
+						accentColor: getItemAccentColor(item.categories, categories),
 						sparklineData,
 						...stats,
 						daysElapsed,
