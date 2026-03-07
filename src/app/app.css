@@ -67,13 +67,7 @@
 	/* Favorite star (yellow) */
 	--color-favorite: #facc15; /* yellow-400 */
 
-	/* Swipe action buttons — subtle tinted backgrounds */
-	--swipe-edit: #dbeafe; /* blue-100 */
-	--swipe-edit-text: #2563eb; /* blue-600 */
-	--swipe-favorite: #fef3c7; /* amber-100 */
-	--swipe-favorite-text: #d97706; /* amber-600 */
-
-	/* Unified delete color — used by swipe actions, btn-danger, and confirm dialogs */
+	/* Unified delete color — used by btn-danger and confirm dialogs */
 	--color-delete: #fee2e2; /* red-100 */
 	--color-delete-hover: #fecaca; /* red-200 */
 	--color-delete-text: #dc2626; /* red-600 */
@@ -159,12 +153,6 @@
 
 	/* Favorite star (yellow) */
 	--color-favorite: #fbbf24; /* yellow-400 brighter for dark mode */
-
-	/* Swipe action buttons — deep muted for dark mode */
-	--swipe-edit: #1a2540; /* deep navy */
-	--swipe-edit-text: #60a5fa; /* blue-400 */
-	--swipe-favorite: #2d2412; /* deep amber */
-	--swipe-favorite-text: #fbbf24; /* amber-400 */
 
 	/* Unified delete color */
 	--color-delete: #2d1b1e; /* deep maroon */
