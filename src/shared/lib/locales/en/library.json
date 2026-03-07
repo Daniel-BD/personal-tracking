@@ -15,8 +15,9 @@
 	"clearSearchAriaLabel": "Clear search",
 	"mergeNoResults": "No matches for \"{{query}}\"",
 	"searchPlaceholder": {
-		"items": "Search items...",
-		"categories": "Search categories..."
+		"simple": "Search\u2026",
+		"items": "Search\u2026",
+		"categories": "Search\u2026"
 	},
 	"countLabel": {
 		"item_one": "{{count}} item",
@@ -63,7 +64,10 @@
 			"confirmButton": "Merge",
 			"cancelButton": "Cancel",
 			"successToast": "Merged \"{{source}}\" into \"{{target}}\""
-		}
+		},
+		"emptySearchAll": "No items match \"{{query}}\"",
+		"emptyAll": "No items yet",
+		"noCategories": "No categories"
 	},
 	"categories": {
 		"empty": "No categories for {{type}} yet",
@@ -102,6 +106,7 @@
 			"confirmButton": "Merge",
 			"cancelButton": "Cancel",
 			"successToast": "Merged \"{{source}}\" into \"{{target}}\""
-		}
+		},
+		"emptyAll": "No categories yet"
 	}
 }

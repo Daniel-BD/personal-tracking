@@ -1,9 +1,13 @@
+import { useState, type KeyboardEvent } from 'react';
 import { Pencil, Trash2, FolderOpen, Merge } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import type { Item, Category, CategorySentiment, EntryType } from '@/shared/lib/types';
 import { addCategory, updateCategory, deleteCategory, mergeCategory } from '@/shared/store/store';
 import { useEntries, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
 import { cn } from '@/shared/lib/cn';
+import { SENTIMENT_COLORS } from '@/features/stats';
+import { SentimentDot, EntryTypePill } from '@/shared/ui/EntityMetaBadges';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import { showToast } from '@/shared/ui/Toast';
@@ -13,37 +17,34 @@ import { useMergeFlow } from '../hooks/useMergeFlow';
 import { countAffectedForCategoryMerge } from '../utils/merge-utils';
 import MergeTargetSheet from './MergeTargetSheet';
 import MergeConfirmSheet from './MergeConfirmSheet';
+import TypeSegmentedPicker from './TypeSegmentedPicker';
+
+export type TypedCategory = Category & { type: EntryType };
+export type TypedItem = Item & { type: EntryType };
 
 interface Props {
-	categories: Category[];
-	allItems: Item[];
-	activeTab: EntryType;
+	categories: TypedCategory[];
+	allItems: TypedItem[];
 	searchQuery: string;
 	showAddSheet: boolean;
 	onCloseAddSheet: () => void;
 }
 
-const CATEGORY_FORM_DEFAULTS = { name: '', sentiment: 'neutral' as CategorySentiment };
+const CATEGORY_FORM_DEFAULTS = { name: '', sentiment: 'neutral' as CategorySentiment, type: 'activity' as EntryType };
 
-export default function CategoriesTab({
-	categories,
-	allItems,
-	activeTab,
-	searchQuery,
-	showAddSheet,
-	onCloseAddSheet,
-}: Props) {
+export default function CategoriesTab({ categories, allItems, searchQuery, showAddSheet, onCloseAddSheet }: Props) {
 	const { t } = useTranslation('library');
+	const navigate = useNavigate();
 	const { editing, fields, deleting, setDeleting, setField, resetForm, startEdit, startDelete } = useLibraryForm<
-		Category,
+		TypedCategory,
 		typeof CATEGORY_FORM_DEFAULTS,
-		{ id: string; name: string; itemCount: number }
+		{ id: string; name: string; itemCount: number; type: EntryType }
 	>({ showAddSheet, defaults: CATEGORY_FORM_DEFAULTS });
 
+	const [mergeType, setMergeType] = useState<EntryType | null>(null);
 	const entries = useEntries();
 	const activityCategories = useActivityCategories();
 	const foodCategories = useFoodCategories();
-	const allCategories = activeTab === 'activity' ? activityCategories : foodCategories;
 	const {
 		mergeSource,
 		mergeTarget,
@@ -55,102 +56,110 @@ export default function CategoriesTab({
 		completeMerge,
 	} = useMergeFlow();
 
-	function getItemCountForCategory(categoryId: string): number {
-		return allItems.filter((item) => item.categories.includes(categoryId)).length;
+	const effectiveMergeType = mergeType ?? fields.type;
+	const activeCategoriesForMerge = effectiveMergeType === 'activity' ? activityCategories : foodCategories;
+
+	function getItemCountForCategory(categoryId: string, type: EntryType): number {
+		return allItems.filter((item) => item.type === type && item.categories.includes(categoryId)).length;
 	}
 
 	function handleAdd() {
 		if (!fields.name.trim()) return;
-		addCategory(activeTab, fields.name.trim(), fields.sentiment);
+		addCategory(fields.type, fields.name.trim(), fields.sentiment);
 		resetForm();
 		onCloseAddSheet();
 	}
 
-	function handleStartEdit(category: Category) {
-		startEdit(category, { name: category.name, sentiment: category.sentiment });
+	function handleStartEdit(category: TypedCategory) {
+		startEdit(category, { name: category.name, sentiment: category.sentiment, type: category.type });
 	}
 
 	function handleSaveEdit() {
 		if (!editing || !fields.name.trim()) return;
-		updateCategory(activeTab, editing.id, fields.name.trim(), fields.sentiment);
+		updateCategory(fields.type, editing.id, fields.name.trim(), fields.sentiment);
 		resetForm();
 	}
 
-	function handleDelete(categoryId: string) {
-		const itemCount = getItemCountForCategory(categoryId);
-		const category = categories.find((c) => c.id === categoryId);
-		startDelete({ id: categoryId, name: category?.name ?? '', itemCount });
+	function handleDelete(category: TypedCategory) {
+		const itemCount = getItemCountForCategory(category.id, category.type);
+		startDelete({ id: category.id, name: category.name, itemCount, type: category.type });
 	}
 
 	function confirmDeleteCategory() {
 		if (!deleting) return;
-		deleteCategory(activeTab, deleting.id);
+		deleteCategory(deleting.type, deleting.id);
 		resetForm();
 	}
 
 	function handleStartMerge() {
 		if (!editing) return;
+		setMergeType(editing.type);
 		const source = { id: editing.id, name: editing.name };
 		resetForm();
 		startMerge(source);
 	}
 
-	function handleConfirmMerge() {
-		if (!mergeSource || !mergeTarget) return;
-		mergeCategory(activeTab, mergeSource.id, mergeTarget.id);
-		showToast(t('categories.merge.successToast', { source: mergeSource.name, target: mergeTarget.name }));
+	function handleCancelMerge() {
+		setMergeType(null);
+		cancelMerge();
+	}
+
+	function handleCompleteMerge() {
+		setMergeType(null);
 		completeMerge();
 	}
 
+	function handleConfirmMerge() {
+		if (!mergeSource || !mergeTarget) return;
+		mergeCategory(effectiveMergeType, mergeSource.id, mergeTarget.id);
+		showToast(t('categories.merge.successToast', { source: mergeSource.name, target: mergeTarget.name }));
+		handleCompleteMerge();
+	}
+
+	const scopedItems = allItems.filter((item) => item.type === effectiveMergeType);
 	const mergePreview =
 		mergeSource && isConfirming
-			? countAffectedForCategoryMerge(allItems, entries, activeTab, mergeSource.id)
+			? countAffectedForCategoryMerge(scopedItems, entries, effectiveMergeType, mergeSource.id)
 			: { itemCount: 0, entryCount: 0 };
 
-	const typeLabel =
-		activeTab === 'activity' ? t('common:type.activities').toLowerCase() : t('common:type.food').toLowerCase();
+	function handleRowKeyDown(event: KeyboardEvent<HTMLDivElement>, categoryId: string) {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			navigate(`/stats/category/${categoryId}`);
+		}
+	}
 
 	return (
 		<>
-			{/* Category list */}
 			{categories.length === 0 ? (
 				<div className="text-center py-12">
 					<FolderOpen className="w-10 h-10 text-subtle mx-auto mb-3" strokeWidth={1.5} />
 					<p className="text-label mb-1">
-						{searchQuery.trim()
-							? t('categories.emptySearch', { query: searchQuery })
-							: t('categories.empty', { type: typeLabel })}
+						{searchQuery.trim() ? t('categories.emptySearch', { query: searchQuery }) : t('categories.emptyAll')}
 					</p>
 					{!searchQuery.trim() && <p className="text-xs text-subtle">{t('categories.emptyHint')}</p>}
 				</div>
 			) : (
 				<div className="card overflow-hidden">
 					{categories.map((category, idx) => {
-						const itemCount = getItemCountForCategory(category.id);
+						const itemCount = getItemCountForCategory(category.id, category.type);
 						const isLastInGroup = idx === categories.length - 1;
 
 						return (
 							<div
 								key={category.id}
 								className={cn('px-4 py-3', !isLastInGroup && 'border-b border-[var(--border-subtle)]')}
-								onClick={() => handleStartEdit(category)}
+								onClick={() => navigate(`/stats/category/${category.id}`)}
+								onKeyDown={(event) => handleRowKeyDown(event, category.id)}
+								role="button"
+								tabIndex={0}
 							>
 								<div className="flex items-center justify-between gap-3">
 									<div className="flex-1 min-w-0">
 										<div className="flex items-center gap-2">
+											<SentimentDot color={SENTIMENT_COLORS[category.sentiment]} />
 											<span className="font-medium text-heading truncate">{category.name}</span>
-											{category.sentiment && category.sentiment !== 'neutral' && (
-												<span
-													className={cn(
-														'text-xs font-medium px-1.5 py-0.5 rounded-full flex-shrink-0',
-														category.sentiment === 'positive'
-															? 'bg-[var(--color-success-bg)] text-[var(--color-success-text)]'
-															: 'bg-[var(--color-danger-bg)] text-[var(--color-danger-text)]',
-													)}
-												>
-													{category.sentiment}
-												</span>
-											)}
+											<EntryTypePill type={category.type} />
 										</div>
 										<p className="text-xs text-subtle mt-0.5">{t('categories.itemCount', { count: itemCount })}</p>
 									</div>
@@ -170,7 +179,7 @@ export default function CategoriesTab({
 											type="button"
 											onClick={(e) => {
 												e.stopPropagation();
-												handleDelete(category.id);
+												handleDelete(category);
 											}}
 											className="p-1.5 text-subtle"
 											aria-label="Delete category"
@@ -185,7 +194,6 @@ export default function CategoriesTab({
 				</div>
 			)}
 
-			{/* Delete Category Confirm Dialog */}
 			<ConfirmDialog
 				open={deleting !== null}
 				onClose={() => setDeleting(null)}
@@ -202,7 +210,6 @@ export default function CategoriesTab({
 				confirmLabel={t('categories.deleteDialog.confirmLabel')}
 			/>
 
-			{/* Add Category Bottom Sheet */}
 			<BottomSheet
 				open={showAddSheet}
 				onClose={onCloseAddSheet}
@@ -212,6 +219,7 @@ export default function CategoriesTab({
 				actionDisabled={!fields.name.trim()}
 			>
 				<div className="space-y-4">
+					<TypeSegmentedPicker value={fields.type} onChange={(type) => setField('type', type)} />
 					<div>
 						<label htmlFor="addCategoryName" className="form-label">
 							{t('categories.form.nameLabel')}
@@ -233,7 +241,6 @@ export default function CategoriesTab({
 				</div>
 			</BottomSheet>
 
-			{/* Edit Category Bottom Sheet */}
 			<BottomSheet
 				open={editing !== null}
 				onClose={resetForm}
@@ -266,7 +273,7 @@ export default function CategoriesTab({
 								{t('categories.mergeButton')}
 							</button>
 							<button
-								onClick={() => handleDelete(editing.id)}
+								onClick={() => handleDelete(editing)}
 								className="btn btn-danger w-full flex items-center justify-center"
 							>
 								<Trash2 className="w-4 h-4 mr-2" strokeWidth={2} />
@@ -277,20 +284,20 @@ export default function CategoriesTab({
 				)}
 			</BottomSheet>
 
-			{/* Merge Target Selection Sheet */}
 			<MergeTargetSheet
 				open={isSelectingTarget}
-				onClose={cancelMerge}
+				onClose={handleCancelMerge}
 				onSelect={selectTarget}
 				title={t('categories.merge.selectTitle')}
-				candidates={allCategories.filter((c) => c.id !== mergeSource?.id).map((c) => ({ id: c.id, name: c.name }))}
+				candidates={activeCategoriesForMerge
+					.filter((c) => c.id !== mergeSource?.id)
+					.map((c) => ({ id: c.id, name: c.name }))}
 				searchPlaceholder={t('categories.merge.searchPlaceholder')}
 			/>
 
-			{/* Merge Confirmation Sheet */}
 			<MergeConfirmSheet
 				open={isConfirming}
-				onClose={cancelMerge}
+				onClose={handleCancelMerge}
 				onConfirm={handleConfirmMerge}
 				sourceName={mergeSource?.name ?? ''}
 				targetName={mergeTarget?.name ?? ''}

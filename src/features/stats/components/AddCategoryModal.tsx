@@ -13,6 +13,7 @@ import { getCardId } from '@/shared/lib/types';
 import type { EntryType } from '@/shared/lib/types';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import { SENTIMENT_COLORS, getItemAccentColor } from '../utils/stats-engine';
+import { SentimentDot, EntryTypePill, CategorySentimentPills } from '@/shared/ui/EntityMetaBadges';
 
 interface AddCategoryModalProps {
 	onClose: () => void;
@@ -36,8 +37,8 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 
 	const categories = useMemo(() => {
 		const all = [
-			...foodCategories.map((c) => ({ ...c, type: 'food' })),
-			...activityCategories.map((c) => ({ ...c, type: 'activity' })),
+			...foodCategories.map((c) => ({ ...c, type: 'food' as EntryType })),
+			...activityCategories.map((c) => ({ ...c, type: 'activity' as EntryType })),
 		];
 
 		return all.sort((a, b) => a.name.localeCompare(b.name));
@@ -78,8 +79,14 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 		{ value: 'items' as Tab, label: t('addCategoryModal.tabItems') },
 	];
 
-	const searchPlaceholder =
-		tab === 'categories' ? t('addCategoryModal.searchPlaceholder') : t('addCategoryModal.searchItemsPlaceholder');
+	const searchPlaceholder = t('addCategoryModal.searchPlaceholder');
+
+	const resolveItemCategories = (item: { categories: string[]; type: EntryType }) => {
+		const typeCategories = item.type === 'food' ? foodCategories : activityCategories;
+		return item.categories
+			.map((id) => typeCategories.find((category) => category.id === id))
+			.filter((category): category is (typeof typeCategories)[number] => category !== undefined);
+	};
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -119,17 +126,12 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 										isAdded ? 'opacity-50 cursor-not-allowed bg-inset' : 'hover:bg-inset'
 									}`}
 								>
-									<div className="flex items-center gap-2">
-										<div
-											className="w-2 h-2 rounded-full"
-											style={{
-												backgroundColor: SENTIMENT_COLORS[category.sentiment],
-											}}
-										/>
-										<span className="font-medium">{category.name}</span>
-										<span className="text-xs text-label px-1.5 py-0.5 rounded-full bg-inset capitalize">
-											{category.type}
-										</span>
+									<div className="min-w-0">
+										<div className="flex items-center gap-2">
+											<SentimentDot color={SENTIMENT_COLORS[category.sentiment]} />
+											<span className="font-medium truncate">{category.name}</span>
+											<EntryTypePill type={category.type} />
+										</div>
 									</div>
 									{isAdded && <span className="text-xs font-medium text-label">{t('addCategoryModal.added')}</span>}
 								</button>
@@ -148,20 +150,18 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 										isAdded ? 'opacity-50 cursor-not-allowed bg-inset' : 'hover:bg-inset'
 									}`}
 								>
-									<div className="flex items-center gap-2">
-										<div
-											className="w-2 h-2 rounded-full"
-											style={{
-												backgroundColor: getItemAccentColor(
+									<div className="min-w-0">
+										<div className="flex items-center gap-2">
+											<SentimentDot
+												color={getItemAccentColor(
 													item.categories,
 													item.type === 'food' ? foodCategories : activityCategories,
-												),
-											}}
-										/>
-										<span className="font-medium">{item.name}</span>
-										<span className="text-xs text-label px-1.5 py-0.5 rounded-full bg-inset capitalize">
-											{item.type}
-										</span>
+												)}
+											/>
+											<span className="font-medium truncate">{item.name}</span>
+											<EntryTypePill type={item.type} />
+										</div>
+										<CategorySentimentPills categories={resolveItemCategories(item)} />
 									</div>
 									{isAdded && <span className="text-xs font-medium text-label">{t('addCategoryModal.added')}</span>}
 								</button>
