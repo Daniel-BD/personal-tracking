@@ -1,6 +1,11 @@
-import type { Entry, TrackerData, CategorySentiment } from '@/shared/lib/types';
+import type { Entry, TrackerData, CategorySentiment, Category } from '@/shared/lib/types';
 import { getCategories } from '@/shared/lib/types';
-import { getCategoryNameById, getEntryCategoryIds, filterEntriesByType } from '@/features/tracking';
+import {
+	getCategoryNameById,
+	getEntryCategoryIds,
+	filterEntriesByType,
+	getCategorySentimentCounts,
+} from '@/features/tracking';
 import { getISOWeekAndYear } from '@/shared/lib/date-utils';
 
 // Re-export for consumers
@@ -12,6 +17,14 @@ export const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
 	limit: 'var(--color-danger)',
 	neutral: 'var(--color-neutral)',
 };
+
+/** Returns the accent color for an item dashboard card based on its categories' dominant sentiment. */
+export function getItemAccentColor(categoryIds: string[], foodCategories: Category[]): string {
+	const { positive, limit } = getCategorySentimentCounts(categoryIds, foodCategories);
+	if (limit > positive) return SENTIMENT_COLORS.limit;
+	if (positive > limit) return SENTIMENT_COLORS.positive;
+	return 'var(--color-activity)';
+}
 
 /**
  * Get the Monday of a given ISO week
