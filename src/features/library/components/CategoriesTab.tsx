@@ -11,6 +11,7 @@ import { SentimentDot, EntryTypePill } from '@/shared/ui/EntityMetaBadges';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import { showToast } from '@/shared/ui/Toast';
+import IconActionButton from '@/shared/ui/IconActionButton';
 import SentimentPicker from './SentimentPicker';
 import { useLibraryForm } from '../hooks/useLibraryForm';
 import { useMergeFlow } from '../hooks/useMergeFlow';
@@ -164,28 +165,24 @@ export default function CategoriesTab({ categories, allItems, searchQuery, showA
 										<p className="text-xs text-subtle mt-0.5">{t('categories.itemCount', { count: itemCount })}</p>
 									</div>
 									<div className="flex items-center gap-1 flex-shrink-0">
-										<button
-											type="button"
+										<IconActionButton
+											icon={Pencil}
+											tone="edit"
 											onClick={(e) => {
 												e.stopPropagation();
 												handleStartEdit(category);
 											}}
-											className="p-1.5 text-subtle"
-											aria-label="Edit category"
-										>
-											<Pencil className="w-4 h-4" strokeWidth={2} />
-										</button>
-										<button
-											type="button"
+											ariaLabel="Edit category"
+										/>
+										<IconActionButton
+											icon={Trash2}
+											tone="delete"
 											onClick={(e) => {
 												e.stopPropagation();
 												handleDelete(category);
 											}}
-											className="p-1.5 text-subtle"
-											aria-label="Delete category"
-										>
-											<Trash2 className="w-4 h-4" strokeWidth={2} />
-										</button>
+											ariaLabel="Delete category"
+										/>
 									</div>
 								</div>
 							</div>

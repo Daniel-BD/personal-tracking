@@ -13,6 +13,7 @@ import StarIcon from '@/shared/ui/StarIcon';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import { showToast } from '@/shared/ui/Toast';
+import IconActionButton from '@/shared/ui/IconActionButton';
 import { useLibraryForm } from '../hooks/useLibraryForm';
 import { useMergeFlow } from '../hooks/useMergeFlow';
 import { countAffectedEntriesForItemMerge } from '../utils/merge-utils';
@@ -173,28 +174,24 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 										>
 											<StarIcon filled={isFavorite(item.id)} className="w-4 h-4" />
 										</button>
-										<button
-											type="button"
+										<IconActionButton
+											icon={Pencil}
+											tone="edit"
 											onClick={(e) => {
 												e.stopPropagation();
 												handleStartEdit(item);
 											}}
-											className="p-1.5 text-subtle"
-											aria-label="Edit item"
-										>
-											<Pencil className="w-4 h-4" strokeWidth={2} />
-										</button>
-										<button
-											type="button"
+											ariaLabel="Edit item"
+										/>
+										<IconActionButton
+											icon={Trash2}
+											tone="delete"
 											onClick={(e) => {
 												e.stopPropagation();
 												handleDelete(item);
 											}}
-											className="p-1.5 text-subtle"
-											aria-label="Delete item"
-										>
-											<Trash2 className="w-4 h-4" strokeWidth={2} />
-										</button>
+											ariaLabel="Delete item"
+										/>
 									</div>
 								</div>
 							</div>
