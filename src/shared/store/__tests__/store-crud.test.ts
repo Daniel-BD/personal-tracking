@@ -308,6 +308,23 @@ describe('store CRUD', () => {
 			expect(data2.dashboardCards).toHaveLength(0);
 		});
 
+		it('re-adding a removed dashboard card clears tombstone and pending deletion', async () => {
+			const { pendingDeletions, removeTombstone } = vi.mocked(await import('@/shared/store/sync'));
+
+			addDashboardCard({ categoryId: 'cat-1' });
+			removeDashboardCard('cat-1');
+			expect(dataStore.getSnapshot().dashboardCards).toHaveLength(0);
+			expect(pendingDeletions.dashboardCards.has('cat-1')).toBe(true);
+
+			// Re-add the same card
+			addDashboardCard({ categoryId: 'cat-1' });
+			const data = dataStore.getSnapshot();
+			expect(data.dashboardCards).toHaveLength(1);
+			expect(data.dashboardCards![0].categoryId).toBe('cat-1');
+			expect(pendingDeletions.dashboardCards.has('cat-1')).toBe(false);
+			expect(removeTombstone).toHaveBeenCalledWith(expect.anything(), 'cat-1', 'dashboardCard');
+		});
+
 		it('addDashboardCard throws when neither categoryId nor itemId provided', () => {
 			expect(() => addDashboardCard({})).toThrow('Either categoryId or itemId is required');
 		});
