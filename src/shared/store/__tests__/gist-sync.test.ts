@@ -33,6 +33,8 @@ import {
 	clearConfirmedDeletions,
 	filterPendingDeletions,
 	mergeTrackerData,
+	pendingRestorations,
+	markDashboardCardRestored,
 } from '../sync';
 import { getConfig, isConfigured, fetchGist, updateGist } from '@/shared/lib/github';
 
@@ -996,6 +998,29 @@ describe('gist sync', () => {
 			const stored = JSON.parse(localStorage.getItem('pending_deletions') ?? '{}');
 			expect(stored.entries ?? []).not.toContain('gone');
 			expect(stored.entries ?? []).toContain('still-here');
+		});
+
+		it('clears dashboard restoration markers once remote tombstone is gone', () => {
+			markDashboardCardRestored('card-1');
+			const remote = makeValidData({ tombstones: [] });
+
+			clearConfirmedDeletions(remote);
+
+			expect(pendingRestorations.dashboardCards.has('card-1')).toBe(false);
+			expect(localStorage.getItem('pending_restorations')).toBeNull();
+		});
+
+		it('keeps dashboard restoration markers while remote tombstone still exists', () => {
+			markDashboardCardRestored('card-1');
+			const remote = makeValidData({
+				tombstones: [{ id: 'card-1', entityType: 'dashboardCard', deletedAt: new Date().toISOString() }],
+			});
+
+			clearConfirmedDeletions(remote);
+
+			expect(pendingRestorations.dashboardCards.has('card-1')).toBe(true);
+			const stored = JSON.parse(localStorage.getItem('pending_restorations') ?? '{}');
+			expect(stored.dashboardCards ?? []).toContain('card-1');
 		});
 	});
 
