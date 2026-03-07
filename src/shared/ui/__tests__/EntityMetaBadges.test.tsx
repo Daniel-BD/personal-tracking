@@ -1,13 +1,18 @@
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, afterEach } from 'vitest';
-import { EntityHeaderMeta, CategorySentimentPills } from '../EntityMetaBadges';
+import { SentimentDot, EntryTypePill, CategorySentimentPills } from '../EntityMetaBadges';
 
 afterEach(cleanup);
 
 describe('EntityMetaBadges', () => {
-	it('renders type pill in header meta', () => {
-		render(<EntityHeaderMeta dotColor="red" type="activity" />);
+	it('renders type pill', () => {
+		render(<EntryTypePill type="activity" />);
 		expect(screen.getByText('activity')).toBeTruthy();
+	});
+
+	it('renders sentiment dot', () => {
+		const { container } = render(<SentimentDot color="red" />);
+		expect(container.querySelector('div')).toBeTruthy();
 	});
 
 	it('renders category sentiment pills', () => {

@@ -7,18 +7,23 @@ const SENTIMENT_PILL_COLORS: Record<CategorySentiment, { bg: string; text: strin
 	neutral: { bg: 'var(--bg-inset)', text: 'var(--text-secondary)' },
 };
 
-interface EntityHeaderMetaProps {
-	dotColor: string;
+interface SentimentDotProps {
+	color: string;
+	className?: string;
+}
+
+export function SentimentDot({ color, className }: SentimentDotProps) {
+	return <div className={cn('w-2 h-2 rounded-full shrink-0', className)} style={{ backgroundColor: color }} />;
+}
+
+interface EntryTypePillProps {
 	type: EntryType;
 	className?: string;
 }
 
-export function EntityHeaderMeta({ dotColor, type, className }: EntityHeaderMetaProps) {
+export function EntryTypePill({ type, className }: EntryTypePillProps) {
 	return (
-		<div className={cn('flex items-center gap-2', className)}>
-			<div className="w-2 h-2 rounded-full" style={{ backgroundColor: dotColor }} />
-			<span className="text-xs text-label px-1.5 py-0.5 rounded-full bg-inset capitalize">{type}</span>
-		</div>
+		<span className={cn('text-xs text-label px-1.5 py-0.5 rounded-full bg-inset capitalize', className)}>{type}</span>
 	);
 }
 

@@ -7,7 +7,7 @@ import { useEntries, useActivityItems, useFoodItems } from '@/shared/store/hooks
 import { CategoryPicker } from '@/features/tracking';
 import { cn } from '@/shared/lib/cn';
 import { getItemAccentColor } from '@/features/stats';
-import { EntityHeaderMeta, CategorySentimentPills } from '@/shared/ui/EntityMetaBadges';
+import { SentimentDot, EntryTypePill, CategorySentimentPills } from '@/shared/ui/EntityMetaBadges';
 import StarIcon from '@/shared/ui/StarIcon';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
@@ -132,11 +132,9 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 								<div className="flex items-center justify-between gap-3">
 									<div className="flex-1 min-w-0">
 										<div className="flex items-center gap-2">
+											<SentimentDot color={getItemAccentColor(item.categories, categoriesByType[item.type])} />
 											<span className="font-medium text-heading truncate block">{item.name}</span>
-											<EntityHeaderMeta
-												type={item.type}
-												dotColor={getItemAccentColor(item.categories, categoriesByType[item.type])}
-											/>
+											<EntryTypePill type={item.type} />
 										</div>
 										<CategorySentimentPills categories={itemCategories} emptyText="No categories" />
 									</div>

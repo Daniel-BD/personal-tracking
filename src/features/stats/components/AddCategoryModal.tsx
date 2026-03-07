@@ -13,7 +13,7 @@ import { getCardId } from '@/shared/lib/types';
 import type { EntryType } from '@/shared/lib/types';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import { SENTIMENT_COLORS, getItemAccentColor } from '../utils/stats-engine';
-import { EntityHeaderMeta, CategorySentimentPills } from '@/shared/ui/EntityMetaBadges';
+import { SentimentDot, EntryTypePill, CategorySentimentPills } from '@/shared/ui/EntityMetaBadges';
 
 interface AddCategoryModalProps {
 	onClose: () => void;
@@ -128,8 +128,9 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 								>
 									<div className="min-w-0">
 										<div className="flex items-center gap-2">
+											<SentimentDot color={SENTIMENT_COLORS[category.sentiment]} />
 											<span className="font-medium truncate">{category.name}</span>
-											<EntityHeaderMeta dotColor={SENTIMENT_COLORS[category.sentiment]} type={category.type} />
+											<EntryTypePill type={category.type} />
 										</div>
 									</div>
 									{isAdded && <span className="text-xs font-medium text-label">{t('addCategoryModal.added')}</span>}
@@ -151,14 +152,14 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 								>
 									<div className="min-w-0">
 										<div className="flex items-center gap-2">
-											<span className="font-medium truncate">{item.name}</span>
-											<EntityHeaderMeta
-												dotColor={getItemAccentColor(
+											<SentimentDot
+												color={getItemAccentColor(
 													item.categories,
 													item.type === 'food' ? foodCategories : activityCategories,
 												)}
-												type={item.type}
 											/>
+											<span className="font-medium truncate">{item.name}</span>
+											<EntryTypePill type={item.type} />
 										</div>
 										<CategorySentimentPills categories={resolveItemCategories(item)} />
 									</div>
