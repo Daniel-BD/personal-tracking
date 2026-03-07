@@ -23,6 +23,8 @@ vi.mock('@/shared/store/sync', () => ({
 	addTombstone: vi.fn((data: unknown) => data),
 	addTombstones: vi.fn((data: unknown) => data),
 	removeTombstone: vi.fn((data: unknown) => data),
+	markDashboardCardRestored: vi.fn(),
+	clearDashboardCardRestored: vi.fn(),
 }));
 
 import {
@@ -333,6 +335,28 @@ describe('store CRUD', () => {
 			expect(pendingDeletions.dashboardCards.has('cat-1')).toBe(false);
 			expect(removeTombstone).toHaveBeenCalledTimes(1);
 			expect(removeTombstone).toHaveBeenCalledWith(expect.anything(), 'cat-1', 'dashboardCard');
+		});
+
+		it('new dashboard cards do not create restoration markers', async () => {
+			const { markDashboardCardRestored, clearDashboardCardRestored } = vi.mocked(await import('@/shared/store/sync'));
+			markDashboardCardRestored.mockClear();
+			clearDashboardCardRestored.mockClear();
+
+			addDashboardCard({ categoryId: 'cat-1' });
+
+			expect(markDashboardCardRestored).not.toHaveBeenCalled();
+			expect(clearDashboardCardRestored).toHaveBeenCalledWith('cat-1');
+		});
+
+		it('re-adding a removed dashboard card creates a restoration marker', async () => {
+			const { markDashboardCardRestored } = vi.mocked(await import('@/shared/store/sync'));
+			markDashboardCardRestored.mockClear();
+
+			addDashboardCard({ categoryId: 'cat-1' });
+			removeDashboardCard('cat-1');
+			addDashboardCard({ categoryId: 'cat-1' });
+
+			expect(markDashboardCardRestored).toHaveBeenCalledWith('cat-1');
 		});
 
 		it('addDashboardCard is idempotent (no duplicates)', () => {

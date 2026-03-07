@@ -20,7 +20,12 @@ interface PendingDeletions {
 	favoriteItems: Set<string>;
 }
 
+interface PendingRestorations {
+	dashboardCards: Set<string>;
+}
+
 const PENDING_DELETIONS_KEY = 'pending_deletions';
+const PENDING_RESTORATIONS_KEY = 'pending_restorations';
 
 const PENDING_DELETION_KEYS: (keyof PendingDeletions)[] = [
 	'entries',
@@ -42,6 +47,10 @@ export const pendingDeletions: PendingDeletions = {
 	favoriteItems: new Set(),
 };
 
+export const pendingRestorations: PendingRestorations = {
+	dashboardCards: new Set(),
+};
+
 /** Persist pending deletions to localStorage so they survive page reloads. */
 export function persistPendingDeletions(): void {
 	if (typeof localStorage === 'undefined') return;
@@ -56,6 +65,19 @@ export function persistPendingDeletions(): void {
 	} else {
 		localStorage.setItem(PENDING_DELETIONS_KEY, JSON.stringify(serialized));
 	}
+}
+
+function persistPendingRestorations(): void {
+	if (typeof localStorage === 'undefined') return;
+	if (pendingRestorations.dashboardCards.size === 0) {
+		localStorage.removeItem(PENDING_RESTORATIONS_KEY);
+		return;
+	}
+
+	localStorage.setItem(
+		PENDING_RESTORATIONS_KEY,
+		JSON.stringify({ dashboardCards: Array.from(pendingRestorations.dashboardCards) }),
+	);
 }
 
 /** Load persisted pending deletions from localStorage (called at module init). */
@@ -76,16 +98,47 @@ function loadPersistedPendingDeletions(): void {
 	}
 }
 
+function loadPersistedPendingRestorations(): void {
+	if (typeof localStorage === 'undefined') return;
+	const stored = localStorage.getItem(PENDING_RESTORATIONS_KEY);
+	if (!stored) return;
+	try {
+		const parsed = JSON.parse(stored) as { dashboardCards?: string[] };
+		if (Array.isArray(parsed.dashboardCards)) {
+			for (const id of parsed.dashboardCards) pendingRestorations.dashboardCards.add(id);
+		}
+	} catch {
+		// Corrupt data — ignore and start fresh
+	}
+}
+
 // Restore any pending deletions from a previous session
 loadPersistedPendingDeletions();
+loadPersistedPendingRestorations();
 
 export function clearPendingDeletions(): void {
 	for (const key of PENDING_DELETION_KEYS) {
 		pendingDeletions[key].clear();
 	}
+	pendingRestorations.dashboardCards.clear();
 	if (typeof localStorage !== 'undefined') {
 		localStorage.removeItem(PENDING_DELETIONS_KEY);
+		localStorage.removeItem(PENDING_RESTORATIONS_KEY);
 	}
+}
+
+export function markDashboardCardRestored(cardId: string): void {
+	pendingRestorations.dashboardCards.add(cardId);
+	persistPendingRestorations();
+}
+
+export function clearDashboardCardRestored(cardId: string): void {
+	if (!pendingRestorations.dashboardCards.delete(cardId)) return;
+	persistPendingRestorations();
+}
+
+function shouldTreatDashboardCardAsRestored(cardId: string): boolean {
+	return pendingRestorations.dashboardCards.has(cardId) && !pendingDeletions.dashboardCards.has(cardId);
 }
 
 // ── Tombstone helpers ────────────────────────────────────────
@@ -211,7 +264,15 @@ export function clearConfirmedDeletions(remote: TrackerData): void {
 	clearConfirmedFor('dashboardCards', new Set((remote.dashboardCards || []).map((c) => getCardId(c))));
 	clearConfirmedFor('favoriteItems', new Set(remote.favoriteItems || []));
 
+	const remoteDashboardCardTombstones = tombstoneExcludeIds(remote.tombstones || [], 'dashboardCard');
+	for (const id of Array.from(pendingRestorations.dashboardCards)) {
+		if (!remoteDashboardCardTombstones.has(id)) {
+			pendingRestorations.dashboardCards.delete(id);
+		}
+	}
+
 	persistPendingDeletions();
+	persistPendingRestorations();
 }
 
 /**
@@ -242,7 +303,15 @@ export function filterPendingDeletions(data: TrackerData): TrackerData {
 		foodItems: data.foodItems.filter((i) => !foodItemExclude.has(i.id)),
 		activityCategories: data.activityCategories.filter((c) => !activityCategoryExclude.has(c.id)),
 		foodCategories: data.foodCategories.filter((c) => !foodCategoryExclude.has(c.id)),
-		dashboardCards: (data.dashboardCards || []).filter((c) => !dashboardCardExclude.has(getCardId(c))),
+		dashboardCards: (data.dashboardCards || []).filter((c) => {
+			const id = getCardId(c);
+			if (pendingDeletions.dashboardCards.has(id)) return false;
+			if (shouldTreatDashboardCardAsRestored(id)) {
+				const hasDashboardCardTombstone = tombstones.some((t) => t.entityType === 'dashboardCard' && t.id === id);
+				if (hasDashboardCardTombstone) return true;
+			}
+			return !dashboardCardExclude.has(id);
+		}),
 		favoriteItems: (data.favoriteItems || []).filter((id) => !favoriteItemExclude.has(id)),
 	};
 }
@@ -256,10 +325,16 @@ export function filterPendingDeletions(data: TrackerData): TrackerData {
 export function mergeTrackerData(local: TrackerData, remote: TrackerData): TrackerData {
 	// Merge tombstones first — they inform all other merges
 	const mergedTombstones = mergeTombstones(local.tombstones || [], remote.tombstones || []);
+	const localCardIds = new Set((local.dashboardCards || []).map((c) => getCardId(c)));
+	const effectiveTombstones = mergedTombstones.filter((t) => {
+		if (t.entityType !== 'dashboardCard') return true;
+		if (!shouldTreatDashboardCardAsRestored(t.id)) return true;
+		return !localCardIds.has(t.id);
+	});
 
 	const localCards = local.dashboardCards || [];
 	const remoteCards = remote.dashboardCards || [];
-	const cardExclude = excludeFor('dashboardCards', mergedTombstones);
+	const cardExclude = excludeFor('dashboardCards', effectiveTombstones);
 
 	// Merge dashboard cards by card ID (categoryId or itemId), respecting deletions
 	const cardMap = new Map<string, DashboardCard>();
@@ -280,9 +355,9 @@ export function mergeTrackerData(local: TrackerData, remote: TrackerData): Track
 		}
 	});
 
-	const activityItemExclude = excludeFor('activityItems', mergedTombstones);
-	const foodItemExclude = excludeFor('foodItems', mergedTombstones);
-	const favoriteExclude = excludeFor('favoriteItems', mergedTombstones);
+	const activityItemExclude = excludeFor('activityItems', effectiveTombstones);
+	const foodItemExclude = excludeFor('foodItems', effectiveTombstones);
+	const favoriteExclude = excludeFor('favoriteItems', effectiveTombstones);
 
 	const mergedActivityItems = mergeById(local.activityItems, remote.activityItems, activityItemExclude);
 	const mergedFoodItems = mergeById(local.foodItems, remote.foodItems, foodItemExclude);
@@ -304,18 +379,18 @@ export function mergeTrackerData(local: TrackerData, remote: TrackerData): Track
 		activityCategories: mergeById(
 			local.activityCategories,
 			remote.activityCategories,
-			excludeFor('activityCategories', mergedTombstones),
+			excludeFor('activityCategories', effectiveTombstones),
 		),
 		foodCategories: mergeById(
 			local.foodCategories,
 			remote.foodCategories,
-			excludeFor('foodCategories', mergedTombstones),
+			excludeFor('foodCategories', effectiveTombstones),
 		),
-		entries: mergeById(local.entries, remote.entries, excludeFor('entries', mergedTombstones)),
+		entries: mergeById(local.entries, remote.entries, excludeFor('entries', effectiveTombstones)),
 		dashboardCards: Array.from(cardMap.values()),
 		dashboardInitialized: local.dashboardInitialized || remote.dashboardInitialized,
 		favoriteItems: mergedFavorites,
-		tombstones: mergedTombstones,
+		tombstones: effectiveTombstones,
 	};
 }
 

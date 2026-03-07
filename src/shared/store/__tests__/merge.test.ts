@@ -23,6 +23,8 @@ vi.mock('@/shared/store/sync', () => ({
 	addTombstone: vi.fn((data: unknown) => data),
 	addTombstones: vi.fn((data: unknown) => data),
 	removeTombstone: vi.fn((data: unknown) => data),
+	markDashboardCardRestored: vi.fn(),
+	clearDashboardCardRestored: vi.fn(),
 	filterPendingDeletions: vi.fn((data: unknown) => data),
 }));
 
@@ -209,7 +211,8 @@ describe('mergeCategory', () => {
 		expect(entry.categoryOverrides).toEqual([target.id]);
 	});
 
-	it('transfers dashboard card from source to target when target has no card', () => {
+	it('transfers dashboard card from source to target when target has no card', async () => {
+		const { clearDashboardCardRestored } = vi.mocked(await import('@/shared/store/sync'));
 		const source = addCategory('food', 'Source Cat');
 		const target = addCategory('food', 'Target Cat');
 		addDashboardCard({ categoryId: source.id });
@@ -219,6 +222,7 @@ describe('mergeCategory', () => {
 		const data = getData();
 		expect(data.dashboardCards!.find((c) => c.categoryId === source.id)).toBeUndefined();
 		expect(data.dashboardCards!.find((c) => c.categoryId === target.id)).toBeDefined();
+		expect(clearDashboardCardRestored).toHaveBeenCalledWith(source.id);
 	});
 
 	it('removes source dashboard card when target already has one', () => {
