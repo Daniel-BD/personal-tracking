@@ -1,50 +1,21 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { TrackerData, EntryType, Entry, CategorySentiment } from '@/shared/lib/types';
+import type { TrackerData, Entry } from '@/shared/lib/types';
 import { getTodayDate } from '@/shared/lib/types';
 import { filterEntriesByType, filterEntriesByDateRange, getEntryCategoryIds } from '@/features/tracking';
 import { getDateNDaysAgo } from '@/shared/lib/date-utils';
 import { cn } from '@/shared/lib/cn';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import TypeIcon from '@/shared/ui/TypeIcon';
+import { rankItems, buildItemLookup, type RankedItem } from '../utils/ranking-utils';
 
 type TimePeriod = 'all' | '7d' | '30d';
 type TypeFilter = 'all' | 'activity' | 'food';
 type ViewMode = 'items' | 'categories';
 
-interface RankedRow {
-	id: string;
-	name: string;
-	count: number;
-	type: EntryType;
-	sentiment?: CategorySentiment;
-}
-
-function rankItems(entries: Entry[], data: TrackerData): RankedRow[] {
-	const itemLookup = new Map([...data.activityItems, ...data.foodItems].map((item) => [item.id, item]));
-	const counts = new Map<string, RankedRow>();
-
-	for (const entry of entries) {
-		const existing = counts.get(entry.itemId);
-		if (existing) {
-			existing.count++;
-		} else {
-			const item = itemLookup.get(entry.itemId);
-			counts.set(entry.itemId, {
-				id: entry.itemId,
-				name: item?.name ?? 'Unknown',
-				count: 1,
-				type: entry.type,
-			});
-		}
-	}
-
-	return Array.from(counts.values()).sort((a, b) => b.count - a.count);
-}
-
-function rankCategories(entries: Entry[], data: TrackerData): RankedRow[] {
+function rankCategories(entries: Entry[], data: TrackerData): RankedItem[] {
 	const catLookup = new Map([...data.activityCategories, ...data.foodCategories].map((cat) => [cat.id, cat]));
-	const counts = new Map<string, RankedRow>();
+	const counts = new Map<string, RankedItem>();
 
 	for (const entry of entries) {
 		const catIds = getEntryCategoryIds(entry, data);
@@ -93,12 +64,14 @@ export default function FrequencyRanking({ entries, data }: Props) {
 		return filterEntriesByType(timeFilteredEntries, typeFilter);
 	}, [timeFilteredEntries, typeFilter]);
 
+	const itemLookup = useMemo(() => buildItemLookup(data), [data.activityItems, data.foodItems]);
+
 	const ranked = useMemo(() => {
 		if (viewMode === 'items') {
-			return rankItems(filteredEntries, data);
+			return rankItems(filteredEntries, itemLookup);
 		}
 		return rankCategories(filteredEntries, data);
-	}, [filteredEntries, data, viewMode]);
+	}, [filteredEntries, data, viewMode, itemLookup]);
 
 	const maxCount = ranked.length > 0 ? ranked[0].count : 0;
 

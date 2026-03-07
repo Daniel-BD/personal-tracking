@@ -4,38 +4,11 @@ import type { TrackerData, Entry, CategorySentiment } from '@/shared/lib/types';
 import { getTodayDate } from '@/shared/lib/types';
 import { filterEntriesByDateRange } from '@/features/tracking';
 import { getDateNDaysAgo } from '@/shared/lib/date-utils';
-import { cn } from '@/shared/lib/cn';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import { SENTIMENT_COLORS } from '../utils/stats-engine';
+import { rankItems, buildItemLookup } from '../utils/ranking-utils';
 
 type TimePeriod = 'all' | '7d' | '30d';
-
-interface RankedItem {
-	id: string;
-	name: string;
-	count: number;
-}
-
-function rankItems(entries: Entry[], data: TrackerData): RankedItem[] {
-	const itemLookup = new Map([...data.activityItems, ...data.foodItems].map((item) => [item.id, item]));
-	const counts = new Map<string, RankedItem>();
-
-	for (const entry of entries) {
-		const existing = counts.get(entry.itemId);
-		if (existing) {
-			existing.count++;
-		} else {
-			const item = itemLookup.get(entry.itemId);
-			counts.set(entry.itemId, {
-				id: entry.itemId,
-				name: item?.name ?? 'Unknown',
-				count: 1,
-			});
-		}
-	}
-
-	return Array.from(counts.values()).sort((a, b) => b.count - a.count);
-}
 
 interface Props {
 	entries: Entry[];
@@ -56,7 +29,8 @@ export default function CategoryMostLogged({ entries, data, sentiment }: Props) 
 		});
 	}, [entries, timePeriod]);
 
-	const ranked = useMemo(() => rankItems(filteredEntries, data), [filteredEntries, data]);
+	const itemLookup = useMemo(() => buildItemLookup(data), [data.activityItems, data.foodItems]);
+	const ranked = useMemo(() => rankItems(filteredEntries, itemLookup), [filteredEntries, itemLookup]);
 
 	const maxCount = ranked.length > 0 ? ranked[0].count : 0;
 	const totalCount = filteredEntries.length;
@@ -98,7 +72,7 @@ export default function CategoryMostLogged({ entries, data, sentiment }: Props) 
 									</div>
 									<div className="h-1 rounded-full bg-[var(--bg-inset)] overflow-hidden">
 										<div
-											className={cn('h-full rounded-full transition-all')}
+											className="h-full rounded-full transition-all"
 											style={{
 												width: `${(row.count / maxCount) * 100}%`,
 												backgroundColor: barColor,

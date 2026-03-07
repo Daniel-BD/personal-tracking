@@ -80,7 +80,7 @@ export default function CategoryDetailPage() {
 	const categoryEntries = useMemo(() => {
 		if (!categoryId) return [];
 		return filterEntriesByCategory(data.entries, categoryId, data);
-	}, [categoryId, data]);
+	}, [categoryId, data.entries, data.activityItems, data.foodItems, data.activityCategories, data.foodCategories]);
 
 	// Week history data (week number, count, % change from previous)
 	const weekHistoryData = useMemo(() => {
