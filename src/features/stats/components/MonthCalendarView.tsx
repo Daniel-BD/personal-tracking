@@ -128,23 +128,23 @@ export default function MonthCalendarView({
 
 						const hasEntries = cell.count > 0;
 						const isToday = cell.dateStr === todayStr;
-						const bgPct = hasEntries ? Math.min(12 + cell.count * 8, 40) : 0;
-						const borderPct = hasEntries ? Math.min(25 + cell.count * 10, 55) : 0;
+						const bgPct = hasEntries ? Math.min(15 + cell.count * 5, 35) : 0;
+						const borderPct = hasEntries ? Math.min(20 + cell.count * 5, 40) : 0;
 
 						return (
 							<div
 								key={cell.dateStr}
 								className={cn(
 									'aspect-square rounded-md flex flex-col items-center justify-center relative text-[11px]',
-									hasEntries ? 'font-semibold' : 'text-label',
+									hasEntries ? 'font-bold' : 'text-label',
 									isToday && !hasEntries && 'ring-1 ring-[var(--border-default)]',
 								)}
 								style={
 									hasEntries
 										? {
-												backgroundColor: `color-mix(in srgb, ${color} ${bgPct}%, var(--bg-card))`,
+												backgroundColor: `color-mix(in srgb, ${color} ${bgPct}%, var(--bg-page))`,
 												border: `1px solid color-mix(in srgb, ${color} ${borderPct}%, transparent)`,
-												color: 'var(--text-heading)',
+												color: color,
 											}
 										: undefined
 								}
