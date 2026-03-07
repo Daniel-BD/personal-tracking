@@ -513,6 +513,9 @@ export function addDashboardCard(opts: { categoryId?: string; itemId?: string })
 
 	const cardId = (opts.categoryId ?? opts.itemId)!;
 
+	// Idempotent: skip if this card already exists
+	if ((currentData.dashboardCards || []).some((c) => getCardId(c) === cardId)) return;
+
 	// Clear any previous deletion markers so re-added cards aren't filtered out
 	// (mirrors the toggleFavorite pattern for re-favoriting)
 	pendingDeletions.dashboardCards.delete(cardId);

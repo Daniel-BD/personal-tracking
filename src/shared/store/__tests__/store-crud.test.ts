@@ -53,9 +53,15 @@ function resetStore() {
 }
 
 describe('store CRUD', () => {
-	beforeEach(() => {
+	beforeEach(async () => {
 		localStorage.clear();
 		resetStore();
+
+		// Clear mocked pendingDeletions sets (not reset by importData/resetStore)
+		const { pendingDeletions } = await import('@/shared/store/sync');
+		for (const set of Object.values(pendingDeletions)) {
+			(set as Set<string>).clear();
+		}
 	});
 
 	describe('category CRUD', () => {
@@ -316,13 +322,23 @@ describe('store CRUD', () => {
 			expect(dataStore.getSnapshot().dashboardCards).toHaveLength(0);
 			expect(pendingDeletions.dashboardCards.has('cat-1')).toBe(true);
 
+			// Clear spy so we can assert specifically on the re-add call
+			removeTombstone.mockClear();
+
 			// Re-add the same card
 			addDashboardCard({ categoryId: 'cat-1' });
 			const data = dataStore.getSnapshot();
 			expect(data.dashboardCards).toHaveLength(1);
 			expect(data.dashboardCards![0].categoryId).toBe('cat-1');
 			expect(pendingDeletions.dashboardCards.has('cat-1')).toBe(false);
+			expect(removeTombstone).toHaveBeenCalledTimes(1);
 			expect(removeTombstone).toHaveBeenCalledWith(expect.anything(), 'cat-1', 'dashboardCard');
+		});
+
+		it('addDashboardCard is idempotent (no duplicates)', () => {
+			addDashboardCard({ categoryId: 'cat-1' });
+			addDashboardCard({ categoryId: 'cat-1' });
+			expect(dataStore.getSnapshot().dashboardCards).toHaveLength(1);
 		});
 
 		it('addDashboardCard throws when neither categoryId nor itemId provided', () => {
