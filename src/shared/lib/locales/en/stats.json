@@ -110,6 +110,15 @@
 		"monthView": "Month View",
 		"yearView": "Year View",
 		"logged_one": "{{count}}",
-		"logged_other": "{{count}}"
+		"logged_other": "{{count}}",
+		"mostLogged": {
+			"title": "Most logged",
+			"timePeriod": {
+				"all": "All time",
+				"7d": "7 days",
+				"30d": "30 days"
+			},
+			"empty": "No items logged in this period"
+		}
 	}
 }

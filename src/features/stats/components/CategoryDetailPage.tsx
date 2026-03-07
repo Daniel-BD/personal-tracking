@@ -17,6 +17,7 @@ import CategoryTrendChart from './CategoryTrendChart';
 import WeekHistoryGrid from './WeekHistoryGrid';
 import MonthCalendarView from './MonthCalendarView';
 import YearlyActivityGrid from './YearlyActivityGrid';
+import CategoryMostLogged from './CategoryMostLogged';
 
 export default function CategoryDetailPage() {
 	const { categoryId } = useParams<{ categoryId: string }>();
@@ -74,6 +75,12 @@ export default function CategoryDetailPage() {
 
 	const sentiment = category?.sentiment ?? 'neutral';
 	const color = SENTIMENT_COLORS[sentiment];
+
+	// All entries for this category (used by most-logged section)
+	const categoryEntries = useMemo(() => {
+		if (!categoryId) return [];
+		return filterEntriesByCategory(data.entries, categoryId, data);
+	}, [categoryId, data.entries, data.activityItems, data.foodItems, data.activityCategories, data.foodCategories]);
 
 	// Week history data (week number, count, % change from previous)
 	const weekHistoryData = useMemo(() => {
@@ -178,6 +185,9 @@ export default function CategoryDetailPage() {
 
 			{/* Yearly activity grid */}
 			<YearlyActivityGrid entries={data.entries} categoryId={categoryId!} data={data} sentiment={sentiment} />
+
+			{/* Most logged items in this category */}
+			<CategoryMostLogged entries={categoryEntries} data={data} sentiment={sentiment} />
 		</div>
 	);
 }
