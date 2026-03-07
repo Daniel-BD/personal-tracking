@@ -1,10 +1,18 @@
 import { useState, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useDashboardCards, useFoodCategories, useActivityCategories, useFoodItems } from '@/shared/store/hooks';
+import {
+	useDashboardCards,
+	useFoodCategories,
+	useActivityCategories,
+	useFoodItems,
+	useActivityItems,
+} from '@/shared/store/hooks';
 import { addDashboardCard } from '@/shared/store/store';
 import { getCardId } from '@/shared/lib/types';
+import type { EntryType } from '@/shared/lib/types';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
+import { SENTIMENT_COLORS, getItemAccentColor } from '../utils/stats-engine';
 
 interface AddCategoryModalProps {
 	onClose: () => void;
@@ -18,6 +26,7 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 	const foodCategories = useFoodCategories();
 	const activityCategories = useActivityCategories();
 	const foodItems = useFoodItems();
+	const activityItems = useActivityItems();
 	const [search, setSearch] = useState('');
 	const [tab, setTab] = useState<Tab>('categories');
 
@@ -40,8 +49,12 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 	}, [categories, search]);
 
 	const sortedItems = useMemo(() => {
-		return [...foodItems].sort((a, b) => a.name.localeCompare(b.name));
-	}, [foodItems]);
+		const all = [
+			...foodItems.map((i) => ({ ...i, type: 'food' as EntryType })),
+			...activityItems.map((i) => ({ ...i, type: 'activity' as EntryType })),
+		];
+		return all.sort((a, b) => a.name.localeCompare(b.name));
+	}, [foodItems, activityItems]);
 
 	const filteredItems = useMemo(() => {
 		const term = search.toLowerCase().trim();
@@ -110,7 +123,7 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 										<div
 											className="w-2 h-2 rounded-full"
 											style={{
-												backgroundColor: category.type === 'food' ? 'var(--color-food)' : 'var(--color-activity)',
+												backgroundColor: SENTIMENT_COLORS[category.sentiment],
 											}}
 										/>
 										<span className="font-medium">{category.name}</span>
@@ -136,8 +149,19 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 									}`}
 								>
 									<div className="flex items-center gap-2">
-										<div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-activity)' }} />
+										<div
+											className="w-2 h-2 rounded-full"
+											style={{
+												backgroundColor: getItemAccentColor(
+													item.categories,
+													item.type === 'food' ? foodCategories : activityCategories,
+												),
+											}}
+										/>
 										<span className="font-medium">{item.name}</span>
+										<span className="text-xs text-label px-1.5 py-0.5 rounded-full bg-inset capitalize">
+											{item.type}
+										</span>
 									</div>
 									{isAdded && <span className="text-xs font-medium text-label">{t('addCategoryModal.added')}</span>}
 								</button>

@@ -5,7 +5,7 @@ import { useTrackerData } from '@/shared/store/hooks';
 import { getLastNWeeks, getDaysElapsedInCurrentWeek, formatWeekLabel, getItemAccentColor } from '../utils/stats-engine';
 import { filterEntriesByCategory, filterEntriesByItem, filterEntriesByDateRange } from '@/features/tracking';
 import { formatDateLocal } from '@/shared/lib/date-utils';
-import { getCardId } from '@/shared/lib/types';
+import { getCardId, findItemWithCategories } from '@/shared/lib/types';
 import GoalCard from './GoalCard';
 import { removeDashboardCard } from '@/shared/store/store';
 import AddCategoryModal from './AddCategoryModal';
@@ -44,8 +44,9 @@ export default function GoalDashboard() {
 				const isItemCard = !!card.itemId;
 
 				if (isItemCard) {
-					const item = data.foodItems.find((i) => i.id === card.itemId);
-					if (!item) return null;
+					const found = findItemWithCategories(data, card.itemId!);
+					if (!found) return null;
+					const { item, categories } = found;
 
 					const sparklineData = weeks.map((week) => {
 						const range = { start: formatDateLocal(week.start), end: formatDateLocal(week.end) };
@@ -58,7 +59,7 @@ export default function GoalDashboard() {
 						cardId,
 						name: item.name,
 						sentiment: 'neutral' as const,
-						accentColor: getItemAccentColor(item.categories, data.foodCategories),
+						accentColor: getItemAccentColor(item.categories, categories),
 						sparklineData,
 						...stats,
 						daysElapsed,

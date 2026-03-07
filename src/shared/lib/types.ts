@@ -103,3 +103,15 @@ export function getItemsKey(type: EntryType): 'activityItems' | 'foodItems' {
 export function getCategoriesKey(type: EntryType): 'activityCategories' | 'foodCategories' {
 	return type === 'activity' ? 'activityCategories' : 'foodCategories';
 }
+
+/** Search both food and activity items for the given ID, returning the item and its corresponding categories. */
+export function findItemWithCategories(
+	data: TrackerData,
+	itemId: string,
+): { item: Item; categories: Category[] } | undefined {
+	const foodItem = data.foodItems.find((i) => i.id === itemId);
+	if (foodItem) return { item: foodItem, categories: data.foodCategories };
+	const activityItem = data.activityItems.find((i) => i.id === itemId);
+	if (activityItem) return { item: activityItem, categories: data.activityCategories };
+	return undefined;
+}

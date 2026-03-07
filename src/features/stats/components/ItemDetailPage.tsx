@@ -14,6 +14,7 @@ import {
 	SENTIMENT_COLORS,
 	getItemAccentColor,
 } from '../utils/stats-engine';
+import { findItemWithCategories } from '@/shared/lib/types';
 import type { CategorySentiment } from '@/shared/lib/types';
 import CategoryTrendChart from './CategoryTrendChart';
 import WeekHistoryGrid from './WeekHistoryGrid';
@@ -38,26 +39,22 @@ export default function ItemDetailPage() {
 	const currentWeek = weeks[weeks.length - 1];
 	const daysElapsed = currentWeek ? getDaysElapsedInCurrentWeek(currentWeek.start) : 7;
 
-	// Find the food item
-	const item = useMemo(() => {
-		return data.foodItems.find((i) => i.id === itemId);
-	}, [data.foodItems, itemId]);
+	const found = useMemo(() => (itemId ? findItemWithCategories(data, itemId) : undefined), [data, itemId]);
+	const item = found?.item;
+	const itemCategories = found?.categories ?? [];
 
 	// Resolve default categories for this item
 	const defaultCategories = useMemo(() => {
 		if (!item) return [];
 		return item.categories
 			.map((catId) => {
-				const cat = data.foodCategories.find((c) => c.id === catId);
+				const cat = itemCategories.find((c) => c.id === catId);
 				return cat ?? null;
 			})
 			.filter((c): c is NonNullable<typeof c> => c !== null);
-	}, [item, data.foodCategories]);
+	}, [item, itemCategories]);
 
-	const accentColor = useMemo(
-		() => getItemAccentColor(item?.categories ?? [], data.foodCategories),
-		[item, data.foodCategories],
-	);
+	const accentColor = useMemo(() => getItemAccentColor(item?.categories ?? [], itemCategories), [item, itemCategories]);
 
 	// Calculate weekly data for this item
 	const weeklyStats = useMemo(() => {

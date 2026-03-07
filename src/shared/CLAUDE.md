@@ -16,7 +16,7 @@ Instead of React Context, the store uses a module-level singleton with `useSyncE
 
 ### Dashboard Cards
 
-`TrackerData.dashboardCards` stores user-configured goal cards. Each card has either a `categoryId` or an `itemId` (both optional, exactly one set). Category cards derive accent color from sentiment; item cards use a neutral blue (`--color-activity`). Cards compare this week's count against a rolling 4-week baseline average. The `getCardId()` helper in `types.ts` returns the card's unique identifier (whichever ID is set). CRUD: `addDashboardCard({ categoryId })` or `addDashboardCard({ itemId })`, `removeDashboardCard(cardId)` in `store.ts`.
+`TrackerData.dashboardCards` stores user-configured goal cards. Each card has either a `categoryId` or an `itemId` (both optional, exactly one set). Category cards derive accent color from sentiment; item cards use sentiment-based accent color via `getItemAccentColor()` (positive if mostly positive categories, limit if mostly limit, neutral otherwise). Cards compare this week's count against a rolling 4-week baseline average. The `getCardId()` helper in `types.ts` returns the card's unique identifier (whichever ID is set). CRUD: `addDashboardCard({ categoryId })` or `addDashboardCard({ itemId })`, `removeDashboardCard(cardId)` in `store.ts`.
 
 ### Favorites
 
@@ -45,7 +45,7 @@ Test files in `store/__tests__/`:
 
 ## Lib (`lib/`)
 
-- **`types.ts`** — Data interfaces (`Entry`, `ActivityItem`, `FoodItem`, `Category`, `TrackerData`, `DashboardCard`, `CategorySentiment`, `Tombstone`, `TombstoneEntityType`) and utility functions (`generateId()`, `getTodayDate()`, `getCurrentTime()`, `getCardId()`, collection accessor helpers like `getItems()`, `getCategories()`).
+- **`types.ts`** — Data interfaces (`Entry`, `ActivityItem`, `FoodItem`, `Category`, `TrackerData`, `DashboardCard`, `CategorySentiment`, `Tombstone`, `TombstoneEntityType`) and utility functions (`generateId()`, `getTodayDate()`, `getCurrentTime()`, `getCardId()`, collection accessor helpers like `getItems()`, `getCategories()`, `findItemWithCategories()`).
 - **`date-utils.ts`** — Shared date/time formatting utilities (`formatTime`, `formatDate`, `formatDateWithYear`, `formatDateLocal`, `formatMonthYear`, `formatWeekLabel`, `getISOWeekNumber`). `formatWeekLabel` returns week numbers (e.g. "W9") instead of dates. `getISOWeekNumber` computes the ISO week number (1–53) from a Date.
 - **`github.ts`** — GitHub Gist API integration for backup sync.
 - **`theme.ts`** — Theme preference management (light/dark/system). Dark mode applied via `.dark` class on `<html>`.
