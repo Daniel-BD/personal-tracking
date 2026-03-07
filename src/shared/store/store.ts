@@ -480,6 +480,7 @@ export function mergeCategory(
 		const srcCard = currentCards.find((c) => c.categoryId === sourceId);
 		const tgtCard = currentCards.find((c) => c.categoryId === targetId);
 		if (srcCard) {
+			clearDashboardCardRestored(sourceId);
 			if (tgtCard) {
 				// Both source and target have cards — delete source card
 				updatedCards = currentCards.filter((c) => c.categoryId !== sourceId);
@@ -521,8 +522,17 @@ export function addDashboardCard(opts: { categoryId?: string; itemId?: string })
 
 	// Clear any previous deletion markers so re-added cards aren't filtered out
 	// (mirrors the toggleFavorite pattern for re-favoriting)
+	const hadPendingDeletion = pendingDeletions.dashboardCards.has(cardId);
+	const hadDashboardCardTombstone = (currentData.tombstones || []).some(
+		(t) => t.entityType === 'dashboardCard' && t.id === cardId,
+	);
 	pendingDeletions.dashboardCards.delete(cardId);
-	markDashboardCardRestored(cardId);
+
+	if (hadPendingDeletion || hadDashboardCardTombstone) {
+		markDashboardCardRestored(cardId);
+	} else {
+		clearDashboardCardRestored(cardId);
+	}
 	persistPendingDeletions();
 
 	const card: DashboardCard = {
