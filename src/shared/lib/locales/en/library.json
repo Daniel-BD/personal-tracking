@@ -65,7 +65,9 @@
 			"cancelButton": "Cancel",
 			"successToast": "Merged \"{{source}}\" into \"{{target}}\""
 		},
-		"emptySearchAll": "No items match \"{{query}}\""
+		"emptySearchAll": "No items match \"{{query}}\"",
+		"emptyAll": "No items yet",
+		"noCategories": "No categories"
 	},
 	"categories": {
 		"empty": "No categories for {{type}} yet",
@@ -104,6 +106,7 @@
 			"confirmButton": "Merge",
 			"cancelButton": "Cancel",
 			"successToast": "Merged \"{{source}}\" into \"{{target}}\""
-		}
+		},
+		"emptyAll": "No categories yet"
 	}
 }

@@ -1,3 +1,4 @@
+import { useState, type KeyboardEvent } from 'react';
 import { Pencil, Trash2, PackageOpen, Merge } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -17,6 +18,7 @@ import { useMergeFlow } from '../hooks/useMergeFlow';
 import { countAffectedEntriesForItemMerge } from '../utils/merge-utils';
 import MergeTargetSheet from './MergeTargetSheet';
 import MergeConfirmSheet from './MergeConfirmSheet';
+import TypeSegmentedPicker from './TypeSegmentedPicker';
 
 export type TypedItem = Item & { type: EntryType };
 
@@ -39,6 +41,7 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 		{ id: string; name: string; type: EntryType }
 	>({ showAddSheet, defaults: ITEM_FORM_DEFAULTS });
 
+	const [mergeType, setMergeType] = useState<EntryType | null>(null);
 	const entries = useEntries();
 	const activityItems = useActivityItems();
 	const foodItems = useFoodItems();
@@ -53,25 +56,37 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 		completeMerge,
 	} = useMergeFlow();
 
-	const activeItemsForMerge = fields.type === 'activity' ? activityItems : foodItems;
+	const effectiveMergeType = mergeType ?? fields.type;
+	const activeItemsForMerge = effectiveMergeType === 'activity' ? activityItems : foodItems;
 	const categories = fields.type === 'activity' ? categoriesByType.activity : categoriesByType.food;
 
 	function handleStartMerge() {
 		if (!editing) return;
+		setMergeType(editing.type);
 		const source = { id: editing.id, name: editing.name };
 		resetForm();
 		startMerge(source);
 	}
 
-	function handleConfirmMerge(noteToAppend?: string) {
-		if (!mergeSource || !mergeTarget) return;
-		mergeItem(fields.type, mergeSource.id, mergeTarget.id, noteToAppend);
-		showToast(t('items.merge.successToast', { source: mergeSource.name, target: mergeTarget.name }));
+	function handleCancelMerge() {
+		setMergeType(null);
+		cancelMerge();
+	}
+
+	function handleCompleteMerge() {
+		setMergeType(null);
 		completeMerge();
 	}
 
+	function handleConfirmMerge(noteToAppend?: string) {
+		if (!mergeSource || !mergeTarget) return;
+		mergeItem(effectiveMergeType, mergeSource.id, mergeTarget.id, noteToAppend);
+		showToast(t('items.merge.successToast', { source: mergeSource.name, target: mergeTarget.name }));
+		handleCompleteMerge();
+	}
+
 	const mergeAffectedEntryCount =
-		mergeSource && isConfirming ? countAffectedEntriesForItemMerge(entries, fields.type, mergeSource.id) : 0;
+		mergeSource && isConfirming ? countAffectedEntriesForItemMerge(entries, effectiveMergeType, mergeSource.id) : 0;
 
 	function handleAdd() {
 		if (!fields.name.trim()) return;
@@ -100,7 +115,12 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 		resetForm();
 	}
 
-	const typeLabel = t('common:type.activity');
+	function handleRowKeyDown(event: KeyboardEvent<HTMLDivElement>, itemId: string) {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			navigate(`/stats/item/${itemId}`);
+		}
+	}
 
 	return (
 		<>
@@ -108,9 +128,7 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 				<div className="text-center py-12">
 					<PackageOpen className="w-10 h-10 text-subtle mx-auto mb-3" strokeWidth={1.5} />
 					<p className="text-label mb-1">
-						{searchQuery.trim()
-							? t('items.emptySearchAll', { query: searchQuery })
-							: t('items.empty', { type: typeLabel })}
+						{searchQuery.trim() ? t('items.emptySearchAll', { query: searchQuery }) : t('items.emptyAll')}
 					</p>
 					{!searchQuery.trim() && <p className="text-xs text-subtle">{t('items.emptyHint')}</p>}
 				</div>
@@ -128,6 +146,9 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 								key={item.id}
 								className={cn('px-4 py-3', !isLastInGroup && 'border-b border-[var(--border-subtle)]')}
 								onClick={() => navigate(`/stats/item/${item.id}`)}
+								onKeyDown={(event) => handleRowKeyDown(event, item.id)}
+								role="button"
+								tabIndex={0}
 							>
 								<div className="flex items-center justify-between gap-3">
 									<div className="flex-1 min-w-0">
@@ -136,7 +157,7 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 											<span className="font-medium text-heading truncate block">{item.name}</span>
 											<EntryTypePill type={item.type} />
 										</div>
-										<CategorySentimentPills categories={itemCategories} emptyText="No categories" />
+										<CategorySentimentPills categories={itemCategories} emptyText={t('items.noCategories')} />
 									</div>
 									<div className="flex items-center gap-1 flex-shrink-0">
 										<button
@@ -206,7 +227,7 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 				actionDisabled={!fields.name.trim()}
 			>
 				<div className="space-y-4">
-					<SegmentedTypePicker value={fields.type} onChange={(type) => setField('type', type)} />
+					<TypeSegmentedPicker value={fields.type} onChange={(type) => setField('type', type)} />
 					<div>
 						<label htmlFor="addItemName" className="form-label">
 							{t('items.form.nameLabel')}
@@ -283,7 +304,7 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 
 			<MergeTargetSheet
 				open={isSelectingTarget}
-				onClose={cancelMerge}
+				onClose={handleCancelMerge}
 				onSelect={selectTarget}
 				title={t('items.merge.selectTitle')}
 				candidates={activeItemsForMerge
@@ -294,7 +315,7 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 
 			<MergeConfirmSheet
 				open={isConfirming}
-				onClose={cancelMerge}
+				onClose={handleCancelMerge}
 				onConfirm={handleConfirmMerge}
 				sourceName={mergeSource?.name ?? ''}
 				targetName={mergeTarget?.name ?? ''}
@@ -303,30 +324,5 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 				entityType="item"
 			/>
 		</>
-	);
-}
-
-interface SegmentedTypePickerProps {
-	value: EntryType;
-	onChange: (value: EntryType) => void;
-}
-
-function SegmentedTypePicker({ value, onChange }: SegmentedTypePickerProps) {
-	return (
-		<div className="flex rounded-lg bg-inset p-1 gap-1">
-			{(['activity', 'food'] as const).map((type) => (
-				<button
-					key={type}
-					type="button"
-					onClick={() => onChange(type)}
-					className={cn(
-						'flex-1 text-sm py-1.5 rounded-md capitalize transition-colors',
-						value === type ? 'bg-card text-heading font-medium' : 'text-label hover:text-heading',
-					)}
-				>
-					{type}
-				</button>
-			))}
-		</div>
 	);
 }
