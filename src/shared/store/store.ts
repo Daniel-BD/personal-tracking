@@ -32,6 +32,8 @@ import {
 	addTombstone,
 	addTombstones,
 	removeTombstone,
+	markDashboardCardRestored,
+	clearDashboardCardRestored,
 } from './sync';
 import { triggerExportDownload, validateAndParseImport } from './import-export';
 
@@ -519,6 +521,7 @@ export function addDashboardCard(opts: { categoryId?: string; itemId?: string })
 	// Clear any previous deletion markers so re-added cards aren't filtered out
 	// (mirrors the toggleFavorite pattern for re-favoriting)
 	pendingDeletions.dashboardCards.delete(cardId);
+	markDashboardCardRestored(cardId);
 	persistPendingDeletions();
 
 	const card: DashboardCard = {
@@ -544,6 +547,7 @@ export function addDashboardCard(opts: { categoryId?: string; itemId?: string })
 
 export function removeDashboardCard(cardId: string): void {
 	pendingDeletions.dashboardCards.add(cardId);
+	clearDashboardCardRestored(cardId);
 	persistPendingDeletions();
 
 	updateData((data) =>

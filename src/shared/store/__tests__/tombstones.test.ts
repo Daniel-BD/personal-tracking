@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { mergeTrackerData, clearPendingDeletions, filterPendingDeletions, addTombstone, addTombstones } from '../sync';
+import {
+	mergeTrackerData,
+	clearPendingDeletions,
+	filterPendingDeletions,
+	addTombstone,
+	addTombstones,
+	markDashboardCardRestored,
+} from '../sync';
 import { makeValidData, makeEntry, makeItem, makeCategory, makeTombstone, resetIdCounter } from './fixtures';
 
 describe('tombstone sync', () => {
@@ -65,6 +72,21 @@ describe('tombstone sync', () => {
 			expect(merged.dashboardCards).toHaveLength(0);
 		});
 
+		it('allows re-added dashboard cards even if remote still has a tombstone', () => {
+			const card = { categoryId: 'card-x', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const };
+			const tombstone = makeTombstone({ id: 'card-x', entityType: 'dashboardCard' });
+
+			const local = makeValidData({ dashboardCards: [card] });
+			const remote = makeValidData({ tombstones: [tombstone] });
+
+			markDashboardCardRestored('card-x');
+
+			const merged = mergeTrackerData(local, remote);
+
+			expect(merged.dashboardCards).toHaveLength(1);
+			expect(merged.dashboardCards![0].categoryId).toBe('card-x');
+			expect(merged.tombstones?.some((t) => t.entityType === 'dashboardCard' && t.id === 'card-x')).toBe(false);
+		});
 		it('prevents deleted favorite resurrection across devices', () => {
 			const item = makeItem({ id: 'fav-item' });
 			const tombstone = makeTombstone({ id: 'fav-item', entityType: 'favoriteItem' });
@@ -219,6 +241,18 @@ describe('tombstone sync', () => {
 	});
 
 	describe('filterPendingDeletions with tombstones', () => {
+		it('keeps re-added dashboard cards when a stale tombstone is still present', () => {
+			const card = { categoryId: 'card-x', baseline: 'rolling_4_week_avg' as const, comparison: 'last_week' as const };
+			const tombstone = makeTombstone({ id: 'card-x', entityType: 'dashboardCard' });
+			const data = makeValidData({ dashboardCards: [card], tombstones: [tombstone] });
+
+			markDashboardCardRestored('card-x');
+
+			const filtered = filterPendingDeletions(data);
+
+			expect(filtered.dashboardCards).toHaveLength(1);
+			expect(filtered.dashboardCards![0].categoryId).toBe('card-x');
+		});
 		it('filters items based on tombstones in the data', () => {
 			const entry = makeEntry({ id: 'e1' });
 			const tombstone = makeTombstone({ id: 'e1', entityType: 'entry' });

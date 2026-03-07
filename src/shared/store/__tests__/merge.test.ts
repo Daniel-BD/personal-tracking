@@ -23,6 +23,8 @@ vi.mock('@/shared/store/sync', () => ({
 	addTombstone: vi.fn((data: unknown) => data),
 	addTombstones: vi.fn((data: unknown) => data),
 	removeTombstone: vi.fn((data: unknown) => data),
+	markDashboardCardRestored: vi.fn(),
+	clearDashboardCardRestored: vi.fn(),
 	filterPendingDeletions: vi.fn((data: unknown) => data),
 }));
 
