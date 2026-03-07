@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TrackerData, Entry } from '@/shared/lib/types';
 import { getTodayDate } from '@/shared/lib/types';
@@ -7,7 +8,7 @@ import { getDateNDaysAgo } from '@/shared/lib/date-utils';
 import { cn } from '@/shared/lib/cn';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import TypeIcon from '@/shared/ui/TypeIcon';
-import { rankItems, buildItemLookup, type RankedItem } from '../utils/ranking-utils';
+import { rankItems, buildItemLookup, buildItemAccentColorLookup, type RankedItem } from '../utils/ranking-utils';
 
 type TimePeriod = 'all' | '7d' | '30d';
 type TypeFilter = 'all' | 'activity' | 'food';
@@ -46,6 +47,7 @@ interface Props {
 
 export default function FrequencyRanking({ entries, data }: Props) {
 	const { t } = useTranslation('stats');
+	const navigate = useNavigate();
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('all');
 	const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
 	const [viewMode, setViewMode] = useState<ViewMode>('items');
@@ -65,13 +67,17 @@ export default function FrequencyRanking({ entries, data }: Props) {
 	}, [timeFilteredEntries, typeFilter]);
 
 	const itemLookup = useMemo(() => buildItemLookup(data), [data.activityItems, data.foodItems]);
+	const itemAccentColorLookup = useMemo(
+		() => buildItemAccentColorLookup(data),
+		[data.activityItems, data.foodItems, data.activityCategories, data.foodCategories],
+	);
 
 	const ranked = useMemo(() => {
 		if (viewMode === 'items') {
-			return rankItems(filteredEntries, itemLookup);
+			return rankItems(filteredEntries, itemLookup, itemAccentColorLookup);
 		}
 		return rankCategories(filteredEntries, data);
-	}, [filteredEntries, data, viewMode, itemLookup]);
+	}, [filteredEntries, data, viewMode, itemLookup, itemAccentColorLookup]);
 
 	const maxCount = ranked.length > 0 ? ranked[0].count : 0;
 
@@ -129,7 +135,12 @@ export default function FrequencyRanking({ entries, data }: Props) {
 			) : (
 				<div className="space-y-1.5">
 					{ranked.map((row, i) => (
-						<div key={row.id} className="flex items-center gap-3">
+						<button
+							key={row.id}
+							type="button"
+							onClick={() => navigate(viewMode === 'items' ? `/stats/item/${row.id}` : `/stats/category/${row.id}`)}
+							className="w-full flex items-center gap-3 text-left cursor-pointer"
+						>
 							<span className="text-xs text-muted w-5 text-right shrink-0">{i + 1}</span>
 							<div className="flex-1 min-w-0">
 								<div className="flex items-center justify-between gap-2 mb-0.5">
@@ -144,15 +155,19 @@ export default function FrequencyRanking({ entries, data }: Props) {
 								<div className="h-1 rounded-full bg-[var(--bg-inset)] overflow-hidden">
 									<div
 										className={cn('h-full rounded-full transition-all', {
-											'bg-[var(--color-success)]': row.sentiment === 'positive',
-											'bg-[var(--color-danger)]': row.sentiment === 'limit',
-											'bg-[var(--color-activity)]': row.sentiment !== 'positive' && row.sentiment !== 'limit',
+											'bg-[var(--color-success)]': !row.accentColor && row.sentiment === 'positive',
+											'bg-[var(--color-danger)]': !row.accentColor && row.sentiment === 'limit',
+											'bg-[var(--color-neutral)]':
+												!row.accentColor && row.sentiment !== 'positive' && row.sentiment !== 'limit',
 										})}
-										style={{ width: `${(row.count / maxCount) * 100}%` }}
+										style={{
+											width: `${(row.count / maxCount) * 100}%`,
+											...(row.accentColor ? { backgroundColor: row.accentColor } : {}),
+										}}
 									/>
 								</div>
 							</div>
-						</div>
+						</button>
 					))}
 				</div>
 			)}
