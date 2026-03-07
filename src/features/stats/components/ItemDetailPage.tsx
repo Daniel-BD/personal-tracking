@@ -14,6 +14,7 @@ import {
 	SENTIMENT_COLORS,
 	getItemAccentColor,
 } from '../utils/stats-engine';
+import { findItemWithCategories } from '@/shared/lib/types';
 import type { CategorySentiment } from '@/shared/lib/types';
 import CategoryTrendChart from './CategoryTrendChart';
 import WeekHistoryGrid from './WeekHistoryGrid';
@@ -38,14 +39,9 @@ export default function ItemDetailPage() {
 	const currentWeek = weeks[weeks.length - 1];
 	const daysElapsed = currentWeek ? getDaysElapsedInCurrentWeek(currentWeek.start) : 7;
 
-	// Find the item in either food or activity items
-	const { item, categories: itemCategories } = useMemo(() => {
-		const foodItem = data.foodItems.find((i) => i.id === itemId);
-		if (foodItem) return { item: foodItem, categories: data.foodCategories };
-		const activityItem = data.activityItems.find((i) => i.id === itemId);
-		if (activityItem) return { item: activityItem, categories: data.activityCategories };
-		return { item: undefined, categories: data.foodCategories };
-	}, [data.foodItems, data.activityItems, data.foodCategories, data.activityCategories, itemId]);
+	const found = useMemo(() => (itemId ? findItemWithCategories(data, itemId) : undefined), [data, itemId]);
+	const item = found?.item;
+	const itemCategories = found?.categories ?? [];
 
 	// Resolve default categories for this item
 	const defaultCategories = useMemo(() => {

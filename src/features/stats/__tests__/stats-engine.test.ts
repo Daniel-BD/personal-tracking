@@ -592,20 +592,20 @@ describe('getItemAccentColor', () => {
 		expect(getItemAccentColor([catLim.id, catLim2.id, catPos.id], categories)).toBe(SENTIMENT_COLORS.limit);
 	});
 
-	it('returns neutral blue when positive equals limit', () => {
+	it('returns neutral color when positive equals limit', () => {
 		const catPos = makeCategory({ sentiment: 'positive' });
 		const catLim = makeCategory({ sentiment: 'limit' });
 		const categories = [catPos, catLim];
-		expect(getItemAccentColor([catPos.id, catLim.id], categories)).toBe('var(--color-activity)');
+		expect(getItemAccentColor([catPos.id, catLim.id], categories)).toBe(SENTIMENT_COLORS.neutral);
 	});
 
-	it('returns neutral blue when all categories are neutral', () => {
+	it('returns neutral color when all categories are neutral', () => {
 		const cat = makeCategory({ sentiment: 'neutral' });
-		expect(getItemAccentColor([cat.id], [cat])).toBe('var(--color-activity)');
+		expect(getItemAccentColor([cat.id], [cat])).toBe(SENTIMENT_COLORS.neutral);
 	});
 
-	it('returns neutral blue for empty category list', () => {
-		expect(getItemAccentColor([], [])).toBe('var(--color-activity)');
+	it('returns neutral color for empty category list', () => {
+		expect(getItemAccentColor([], [])).toBe(SENTIMENT_COLORS.neutral);
 	});
 
 	it('ignores unknown category IDs', () => {

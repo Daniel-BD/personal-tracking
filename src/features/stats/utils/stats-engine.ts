@@ -21,14 +21,14 @@ export const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
 /**
  * Returns the accent color for an item dashboard card based on the balance of positive vs. limit
  * categories. Neutral categories are not counted. Returns the limit color if limit > positive,
- * the positive color if positive > limit, and the neutral blue activity color otherwise
+ * the positive color if positive > limit, and the neutral sentiment color otherwise
  * (equal counts, or no positive/limit categories at all).
  */
 export function getItemAccentColor(categoryIds: string[], categories: Category[]): string {
 	const { positive, limit } = getCategorySentimentCounts(categoryIds, categories);
 	if (limit > positive) return SENTIMENT_COLORS.limit;
 	if (positive > limit) return SENTIMENT_COLORS.positive;
-	return 'var(--color-activity)';
+	return SENTIMENT_COLORS.neutral;
 }
 
 /**
