@@ -13,7 +13,7 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 - **`StatsPage.tsx`** — Layout shell orchestrating all stats sections.
 - **`GoalDashboard.tsx`** — Goal cards grid. Each card tied to a `categoryId` or `itemId` from `TrackerData.dashboardCards`. Category cards use sentiment-derived colors; item cards use sentiment-based accent color derived from their categories via `getItemAccentColor()`. Supports both food and activity items/categories.
 - **`GoalCard.tsx`** — Individual sparkline card showing this week's count vs. 4-week rolling baseline average. Uses Recharts `<Line>`. Accepts optional `accentColor` prop to override sentiment-derived color (used for item cards).
-- **`AddCategoryModal.tsx`** — Modal for adding new dashboard goal cards. Has a `SegmentedControl` toggle between "Categories" and "Items" tabs. Both tabs show food and activity entries. Category dots use sentiment colors; item dots use `getItemAccentColor()`. Both show a type pill (food/activity).
+- **`AddCategoryModal.tsx`** — Modal for adding new dashboard goal cards. Has a `SegmentedControl` toggle between "Categories" and "Items" tabs. Both tabs show food and activity entries. Category dots use sentiment colors; item dots use `getItemAccentColor()`. Both show a type pill (food/activity), and item rows also display default-category sentiment pills.
 - **`ItemDetailPage.tsx`** — Detail page for item-based dashboard cards (`/stats/item/:itemId`). Supports both food and activity items — looks up the item in both collections and uses the corresponding categories. Shows weekly stats, trend chart, week history, calendar, and yearly grid with sentiment-based accent color. Displays the item's default categories as colored sentiment pills at the top.
 - **`BalanceOverview.tsx`** — Overall balance score visualization (score card, trend chart, weekly breakdown).
 - **`BalanceScoreTrendChart.tsx`** — 8-week balance score line chart (Recharts `<Line>`). Shows score % above each dot and small positive/limit counts below. Modeled after `CategoryTrendChart`.
@@ -33,3 +33,5 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 ## Tests
 
 - `__tests__/stats-engine.test.ts`
+
+- `index.ts` re-exports `SENTIMENT_COLORS` and `getItemAccentColor` from `utils/stats-engine.ts` for cross-feature consumption via the feature barrel.

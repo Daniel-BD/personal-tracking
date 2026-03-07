@@ -31,7 +31,7 @@
 	},
 	"balanceOverview": {
 		"scoreTitle": "Balance Score",
-		"scoreMeterDescription": "This week · Positive ÷ (Positive + Limit)",
+		"scoreMeterDescription": "This week \u00b7 Positive \u00f7 (Positive + Limit)",
 		"weeklyBreakdownTitle": "Weekly Breakdown",
 		"chartPositive": "Positive",
 		"chartNeutral": "Neutral",
@@ -45,7 +45,7 @@
 			"title": "Top Limit Categories",
 			"subtitle": "These dominate your limit choices"
 		},
-"following": "✓ Following",
+		"following": "\u2713 Following",
 		"follow": "+ Follow",
 		"dashboardFull": "Dashboard is full. Remove a category to add another.",
 		"addedToDashboard": "{{name}} added to your dashboard"
@@ -54,8 +54,8 @@
 		"title": "Add to Dashboard",
 		"tabCategories": "Categories",
 		"tabItems": "Items",
-		"searchPlaceholder": "Search categories...",
-		"searchItemsPlaceholder": "Search food items...",
+		"searchPlaceholder": "Search\u2026",
+		"searchItemsPlaceholder": "Search\u2026",
 		"added": "Added",
 		"noResults": "No categories found matching \"{{search}}\"",
 		"noItemResults": "No items found matching \"{{search}}\""

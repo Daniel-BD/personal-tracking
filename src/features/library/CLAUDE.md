@@ -1,12 +1,12 @@
 # Library Feature
 
-Library page for item & category CRUD management. Compact card list with inline action icon buttons (edit/delete) on each row, tap-to-edit via BottomSheet, and a `+` icon button in the header for adding.
+Library page for item & category CRUD management. Compact card list with inline action icon buttons (favorite/edit/delete on items, edit/delete on categories), cross-type listing (activity + food), and a `+` icon button in the header for adding.
 
 ## Components
 
-- **`LibraryPage.tsx`** — Layout shell with header, segment controls (Items/Categories tabs), and search bar.
-- **`ItemsTab.tsx`** — Item list with inline action buttons (favorite star, edit, delete) + add/edit BottomSheets. Uses `CategoryPicker` for category assignment. Edit sheet includes "Merge into..." button.
-- **`CategoriesTab.tsx`** — Category list with inline action buttons (edit, delete) + add/edit BottomSheets. Non-neutral sentiments display as colored badges (green for positive, red for limit) next to the category name. Edit sheet includes "Merge into..." button.
+- **`LibraryPage.tsx`** — Layout shell with header, Items/Categories segmented control, unified cross-type search, and add button. Activity/Food top-level segmented control was removed from the page list UI.
+- **`ItemsTab.tsx`** — Item list across both activity and food types with sentiment accent dot, type pill, and default-category sentiment pills. Row tap navigates to `/stats/item/:itemId`; inline favorite/edit/delete icon buttons are preserved. Add/edit BottomSheets include an in-sheet type picker and use `CategoryPicker` for category assignment. Edit sheet includes "Merge into..." button.
+- **`CategoriesTab.tsx`** — Category list across both activity and food types with sentiment dot + type pill metadata. Row tap navigates to `/stats/category/:categoryId`; inline edit/delete icon buttons are preserved. Add/edit BottomSheets include an in-sheet type picker. Edit sheet includes "Merge into..." button.
 - **`SentimentPicker.tsx`** — Positive/neutral/limit radio group for setting category sentiment when creating or editing categories.
 - **`MergeTargetSheet.tsx`** — BottomSheet with search input for selecting a merge target. Used by both items and categories.
 - **`MergeConfirmSheet.tsx`** — BottomSheet showing merge summary (affected counts), optional note input (items only), and confirm/cancel buttons.

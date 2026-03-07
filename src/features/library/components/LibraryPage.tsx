@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, X, Plus } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useActivityItems, useFoodItems, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
@@ -13,22 +13,26 @@ export default function LibraryPage() {
 	const activityCategories = useActivityCategories();
 	const foodCategories = useFoodCategories();
 
-	const [activeTab, setActiveTab] = useState<'activity' | 'food'>('activity');
 	const [activeSubTab, setActiveSubTab] = useState<'items' | 'categories'>('items');
 	const [searchQuery, setSearchQuery] = useState('');
 	const [showAddSheet, setShowAddSheet] = useState(false);
 
 	const allItems = useMemo(
-		() => (activeTab === 'activity' ? activityItems : foodItems).slice().sort((a, b) => a.name.localeCompare(b.name)),
-		[activeTab, activityItems, foodItems],
+		() =>
+			[
+				...activityItems.map((item) => ({ ...item, type: 'activity' as const })),
+				...foodItems.map((item) => ({ ...item, type: 'food' as const })),
+			].sort((a, b) => a.name.localeCompare(b.name)),
+		[activityItems, foodItems],
 	);
 
 	const allCategories = useMemo(
 		() =>
-			(activeTab === 'activity' ? activityCategories : foodCategories)
-				.slice()
-				.sort((a, b) => a.name.localeCompare(b.name)),
-		[activeTab, activityCategories, foodCategories],
+			[
+				...activityCategories.map((category) => ({ ...category, type: 'activity' as const })),
+				...foodCategories.map((category) => ({ ...category, type: 'food' as const })),
+			].sort((a, b) => a.name.localeCompare(b.name)),
+		[activityCategories, foodCategories],
 	);
 
 	const currentItems = useMemo(
@@ -47,12 +51,19 @@ export default function LibraryPage() {
 		[allCategories, searchQuery],
 	);
 
+	const categoriesByType = useMemo(
+		() => ({
+			activity: allCategories.filter((category) => category.type === 'activity'),
+			food: allCategories.filter((category) => category.type === 'food'),
+		}),
+		[allCategories],
+	);
+
 	const count = activeSubTab === 'items' ? currentItems.length : currentCategories.length;
 	const countLabel = activeSubTab === 'items' ? t('countLabel.item', { count }) : t('countLabel.category', { count });
 
 	return (
 		<div className="space-y-3">
-			{/* Header with title + add button */}
 			<div className="flex items-center justify-between">
 				<div>
 					<h2 className="text-2xl font-bold text-heading">{t('title')}</h2>
@@ -68,19 +79,6 @@ export default function LibraryPage() {
 				</button>
 			</div>
 
-			{/* Type filter */}
-			<SegmentedControl
-				options={[
-					{ value: 'activity' as const, label: t('typeFilter.activities'), activeClass: 'type-activity' },
-					{ value: 'food' as const, label: t('typeFilter.food'), activeClass: 'type-food' },
-				]}
-				value={activeTab}
-				onChange={setActiveTab}
-				variant="segment"
-				size="sm"
-			/>
-
-			{/* Sub-tab filter */}
 			<SegmentedControl
 				options={[
 					{ value: 'items' as const, label: t('subTabs.items') },
@@ -92,15 +90,13 @@ export default function LibraryPage() {
 				size="sm"
 			/>
 
-			{/* Search */}
 			<div className="relative">
-				<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle" strokeWidth={2} />
 				<input
 					type="text"
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
-					placeholder={activeSubTab === 'items' ? t('searchPlaceholder.items') : t('searchPlaceholder.categories')}
-					className="form-input-sm pl-9 pr-8"
+					placeholder={t('searchPlaceholder.simple')}
+					className="form-input-sm pr-8"
 				/>
 				{searchQuery && (
 					<button
@@ -117,8 +113,7 @@ export default function LibraryPage() {
 			{activeSubTab === 'items' ? (
 				<ItemsTab
 					items={currentItems}
-					categories={allCategories}
-					activeTab={activeTab}
+					categoriesByType={categoriesByType}
 					searchQuery={searchQuery}
 					showAddSheet={showAddSheet}
 					onCloseAddSheet={() => setShowAddSheet(false)}
@@ -127,7 +122,6 @@ export default function LibraryPage() {
 				<CategoriesTab
 					categories={currentCategories}
 					allItems={allItems}
-					activeTab={activeTab}
 					searchQuery={searchQuery}
 					showAddSheet={showAddSheet}
 					onCloseAddSheet={() => setShowAddSheet(false)}
