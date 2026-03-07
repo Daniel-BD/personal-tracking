@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { Item, Category, EntryType } from '@/shared/lib/types';
 import { addItem, updateItem, deleteItem, mergeItem, toggleFavorite, isFavorite } from '@/shared/store/store';
 import { useEntries, useActivityItems, useFoodItems } from '@/shared/store/hooks';
-import { CategoryPicker, CategoryLine, useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
+import { CategoryPicker, CategoryLine } from '@/features/tracking';
 import { cn } from '@/shared/lib/cn';
 import StarIcon from '@/shared/ui/StarIcon';
 import BottomSheet from '@/shared/ui/BottomSheet';
@@ -48,17 +48,6 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 		completeMerge,
 	} = useMergeFlow();
 
-	const {
-		swipedEntryId,
-		swipeOffset,
-		handleTouchStart,
-		handleTouchMove,
-		handleTouchEnd,
-		handleRowTap,
-		resetSwipe,
-		isTouching,
-	} = useSwipeGesture();
-
 	function handleStartMerge() {
 		if (!editing) return;
 		const source = { id: editing.id, name: editing.name };
@@ -85,7 +74,6 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 
 	function handleStartEdit(item: Item) {
 		startEdit(item, { name: item.name, categories: [...item.categories] });
-		resetSwipe();
 	}
 
 	function handleSaveEdit() {
@@ -102,7 +90,6 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 	function confirmDeleteItem() {
 		if (!deleting) return;
 		deleteItem(activeTab, deleting.id);
-		resetSwipe();
 		resetForm();
 	}
 
@@ -125,64 +112,53 @@ export default function ItemsTab({ items, categories, activeTab, searchQuery, sh
 				<div className="card overflow-hidden">
 					{items.map((item, idx) => {
 						const isLastInGroup = idx === items.length - 1;
-						const isSwiped = swipedEntryId === item.id;
 
 						return (
-							<div key={item.id} className="relative overflow-hidden">
-								{/* Swipe action background */}
-								<div className="absolute inset-0 flex items-center justify-end">
-									<button
-										type="button"
-										onClick={() => handleStartEdit(item)}
-										style={{ background: 'var(--swipe-edit)', width: ACTION_WIDTH }}
-										className="h-full flex items-center justify-center"
-										aria-label="Edit item"
-									>
-										<Pencil className="w-5 h-5" style={{ color: 'var(--swipe-edit-text)' }} strokeWidth={2} />
-									</button>
-									<button
-										type="button"
-										onClick={() => handleDelete(item.id)}
-										style={{ background: 'var(--color-delete)', width: ACTION_WIDTH }}
-										className="h-full flex items-center justify-center"
-										aria-label="Delete item"
-									>
-										<Trash2 className="w-5 h-5" style={{ color: 'var(--color-delete-text)' }} strokeWidth={2} />
-									</button>
-								</div>
-
-								{/* Row content */}
-								<div
-									className={cn(
-										'relative bg-[var(--bg-card)] px-4 py-3 transition-transform',
-										!isLastInGroup && 'border-b border-[var(--border-subtle)]',
-									)}
-									style={{
-										transform: isSwiped ? `translateX(${swipeOffset}px)` : 'translateX(0)',
-										transition: isTouching() ? 'none' : 'transform 0.25s ease-out',
-									}}
-									onTouchStart={(e) => handleTouchStart(e, item.id)}
-									onTouchMove={handleTouchMove}
-									onTouchEnd={handleTouchEnd}
-									onClick={() => handleRowTap(() => handleStartEdit(item))}
-								>
-									<div className="flex items-center justify-between gap-3">
-										<div className="flex-1 min-w-0">
-											<span className="font-medium text-heading truncate block">{item.name}</span>
-											<CategoryLine categoryIds={item.categories} categories={categories} emptyText="No categories" />
-										</div>
+							<div
+								key={item.id}
+								className={cn('px-4 py-3', !isLastInGroup && 'border-b border-[var(--border-subtle)]')}
+								onClick={() => handleStartEdit(item)}
+							>
+								<div className="flex items-center justify-between gap-3">
+									<div className="flex-1 min-w-0">
+										<span className="font-medium text-heading truncate block">{item.name}</span>
+										<CategoryLine categoryIds={item.categories} categories={categories} emptyText="No categories" />
+									</div>
+									<div className="flex items-center gap-1 flex-shrink-0">
 										<button
 											type="button"
 											onClick={(e) => {
 												e.stopPropagation();
 												toggleFavorite(item.id);
 											}}
-											className="p-0.5 flex-shrink-0"
+											className="p-1.5"
 											aria-label={
 												isFavorite(item.id) ? t('items.favoriteAriaLabel.remove') : t('items.favoriteAriaLabel.add')
 											}
 										>
 											<StarIcon filled={isFavorite(item.id)} className="w-4 h-4" />
+										</button>
+										<button
+											type="button"
+											onClick={(e) => {
+												e.stopPropagation();
+												handleStartEdit(item);
+											}}
+											className="p-1.5 text-subtle"
+											aria-label="Edit item"
+										>
+											<Pencil className="w-4 h-4" strokeWidth={2} />
+										</button>
+										<button
+											type="button"
+											onClick={(e) => {
+												e.stopPropagation();
+												handleDelete(item.id);
+											}}
+											className="p-1.5 text-subtle"
+											aria-label="Delete item"
+										>
+											<Trash2 className="w-4 h-4" strokeWidth={2} />
 										</button>
 									</div>
 								</div>

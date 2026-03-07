@@ -30,9 +30,6 @@ export {
 } from './utils/entry-grouping';
 export type { ComparisonResult } from './utils/entry-grouping';
 
-// Hooks
-export { useSwipeGesture, ACTION_WIDTH } from './hooks/useSwipeGesture';
-
 // Components
 export { default as EntryList } from './components/EntryList';
 export { default as CategoryPicker } from './components/CategoryPicker';

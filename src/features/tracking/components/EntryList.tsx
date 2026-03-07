@@ -1,10 +1,10 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Pencil, Trash2, Star } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import TypeIcon from '@/shared/ui/TypeIcon';
 import { useTranslation } from 'react-i18next';
 import type { Entry, EntryType } from '@/shared/lib/types';
-import { getItemById, deleteEntry, updateEntry, toggleFavorite, isFavorite } from '@/shared/store/store';
+import { getItemById, deleteEntry, updateEntry } from '@/shared/store/store';
 import { useTrackerData } from '@/shared/store/hooks';
 import { getEntriesGroupedByDate } from '../utils/entry-grouping';
 import { getEntryCategoryIds } from '../utils/category-utils';
@@ -15,7 +15,6 @@ import CategoryPicker from './CategoryPicker';
 import NativePickerInput from '@/shared/ui/NativePickerInput';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
-import { useSwipeGesture, ACTION_WIDTH } from '../hooks/useSwipeGesture';
 
 interface Props {
 	entries: Entry[];
@@ -35,17 +34,6 @@ export default function EntryList({ entries, showType = false }: Props) {
 	const [editCategories, setEditCategories] = useState<string[]>([]);
 	const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
 
-	const {
-		swipedEntryId,
-		swipeOffset,
-		handleTouchStart,
-		handleTouchMove,
-		handleTouchEnd,
-		handleRowTap,
-		resetSwipe,
-		isTouching,
-	} = useSwipeGesture(3);
-
 	function getItemName(type: EntryType, itemId: string): string {
 		const item = getItemById(type, itemId);
 		return item?.name ?? 'Unknown';
@@ -58,7 +46,6 @@ export default function EntryList({ entries, showType = false }: Props) {
 	function confirmDeleteEntry() {
 		if (!deletingEntryId) return;
 		deleteEntry(deletingEntryId);
-		resetSwipe();
 		cancelEdit();
 	}
 
@@ -69,9 +56,8 @@ export default function EntryList({ entries, showType = false }: Props) {
 			setEditTime(entry.time ?? '');
 			setEditNotes(entry.notes ?? '');
 			setEditCategories(getEntryCategoryIds(entry, data));
-			resetSwipe();
 		},
-		[data, resetSwipe],
+		[data],
 	);
 
 	function cancelEdit() {
@@ -128,88 +114,59 @@ export default function EntryList({ entries, showType = false }: Props) {
 								const categoryIds = getEntryCategoryIds(entry, data);
 								const typeCategories = entry.type === 'activity' ? data.activityCategories : data.foodCategories;
 								const isLastInGroup = idx === dateEntries.length - 1;
-								const isSwiped = swipedEntryId === entry.id;
 
 								return (
-									<div key={entry.id} className="relative overflow-hidden">
-										{/* Swipe action background */}
-										<div className="absolute inset-0 flex items-center justify-end">
-											<button
-												type="button"
-												onClick={() => {
-													toggleFavorite(entry.itemId);
-													resetSwipe();
-												}}
-												className="h-full flex items-center justify-center"
-												style={{ background: 'var(--swipe-favorite)', width: ACTION_WIDTH }}
-												aria-label={isFavorite(entry.itemId) ? 'Remove from favorites' : 'Add to favorites'}
-											>
-												<Star
-													className="w-5 h-5"
-													style={{ color: 'var(--swipe-favorite-text)' }}
-													strokeWidth={2}
-													fill={isFavorite(entry.itemId) ? 'currentColor' : 'none'}
-												/>
-											</button>
-											<button
-												type="button"
-												onClick={() => startEdit(entry)}
-												className="h-full flex items-center justify-center"
-												style={{ background: 'var(--swipe-edit)', width: ACTION_WIDTH }}
-												aria-label="Edit entry"
-											>
-												<Pencil className="w-5 h-5" style={{ color: 'var(--swipe-edit-text)' }} strokeWidth={2} />
-											</button>
-											<button
-												type="button"
-												onClick={() => handleDelete(entry.id)}
-												className="h-full flex items-center justify-center"
-												style={{ background: 'var(--color-delete)', width: ACTION_WIDTH }}
-												aria-label="Delete entry"
-											>
-												<Trash2 className="w-5 h-5" style={{ color: 'var(--color-delete-text)' }} strokeWidth={2} />
-											</button>
-										</div>
-
-										{/* Entry row content */}
-										<div
-											className={`relative bg-[var(--bg-card)] px-4 py-3 transition-transform ${
-												!isLastInGroup ? 'border-b border-[var(--border-subtle)]' : ''
-											}`}
-											style={{
-												transform: isSwiped ? `translateX(${swipeOffset}px)` : 'translateX(0)',
-												transition: isTouching() ? 'none' : 'transform 0.25s ease-out',
-											}}
-											onTouchStart={(e) => handleTouchStart(e, entry.id)}
-											onTouchMove={handleTouchMove}
-											onTouchEnd={handleTouchEnd}
-											onClick={() => handleRowTap(() => navigate(`/log/item/${entry.itemId}?type=${entry.type}`))}
-										>
-											<div className="flex items-center justify-between gap-3">
-												<div className="flex-1 min-w-0">
-													<div className="flex items-center gap-2">
-														{showType && (
-															<span
-																className="flex-shrink-0"
-																style={{
-																	color: `var(${entry.type === 'activity' ? '--color-activity' : '--color-food'})`,
-																}}
-															>
-																<TypeIcon type={entry.type} className="w-4 h-4" />
-															</span>
-														)}
-														<span className="font-medium text-heading truncate">
-															{getItemName(entry.type, entry.itemId)}
+									<div
+										key={entry.id}
+										className={`px-4 py-3 ${!isLastInGroup ? 'border-b border-[var(--border-subtle)]' : ''}`}
+										onClick={() => navigate(`/log/item/${entry.itemId}?type=${entry.type}`)}
+									>
+										<div className="flex items-center justify-between gap-3">
+											<div className="flex-1 min-w-0">
+												<div className="flex items-center gap-2">
+													{showType && (
+														<span
+															className="flex-shrink-0"
+															style={{
+																color: `var(${entry.type === 'activity' ? '--color-activity' : '--color-food'})`,
+															}}
+														>
+															<TypeIcon type={entry.type} className="w-4 h-4" />
 														</span>
-													</div>
-													<CategoryLine categoryIds={categoryIds} categories={typeCategories} />
-													{entry.notes && <p className="text-xs text-subtle mt-0.5 truncate italic">{entry.notes}</p>}
-												</div>
-												{entry.time && (
-													<span className="text-xs text-subtle tabular-nums flex-shrink-0">
-														{formatTime(entry.time)}
+													)}
+													<span className="font-medium text-heading truncate">
+														{getItemName(entry.type, entry.itemId)}
 													</span>
+												</div>
+												<CategoryLine categoryIds={categoryIds} categories={typeCategories} />
+												{entry.notes && <p className="text-xs text-subtle mt-0.5 truncate italic">{entry.notes}</p>}
+											</div>
+											<div className="flex items-center gap-1 flex-shrink-0">
+												{entry.time && (
+													<span className="text-xs text-subtle tabular-nums mr-1">{formatTime(entry.time)}</span>
 												)}
+												<button
+													type="button"
+													onClick={(e) => {
+														e.stopPropagation();
+														startEdit(entry);
+													}}
+													className="p-1.5 text-subtle"
+													aria-label="Edit entry"
+												>
+													<Pencil className="w-4 h-4" strokeWidth={2} />
+												</button>
+												<button
+													type="button"
+													onClick={(e) => {
+														e.stopPropagation();
+														handleDelete(entry.id);
+													}}
+													className="p-1.5 text-subtle"
+													aria-label="Delete entry"
+												>
+													<Trash2 className="w-4 h-4" strokeWidth={2} />
+												</button>
 											</div>
 										</div>
 									</div>

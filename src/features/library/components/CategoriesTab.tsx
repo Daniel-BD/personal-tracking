@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import type { Item, Category, CategorySentiment, EntryType } from '@/shared/lib/types';
 import { addCategory, updateCategory, deleteCategory, mergeCategory } from '@/shared/store/store';
 import { useEntries, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
-import { useSwipeGesture, ACTION_WIDTH } from '@/features/tracking';
 import { cn } from '@/shared/lib/cn';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
@@ -56,17 +55,6 @@ export default function CategoriesTab({
 		completeMerge,
 	} = useMergeFlow();
 
-	const {
-		swipedEntryId,
-		swipeOffset,
-		handleTouchStart,
-		handleTouchMove,
-		handleTouchEnd,
-		handleRowTap,
-		resetSwipe,
-		isTouching,
-	} = useSwipeGesture();
-
 	function getItemCountForCategory(categoryId: string): number {
 		return allItems.filter((item) => item.categories.includes(categoryId)).length;
 	}
@@ -80,7 +68,6 @@ export default function CategoriesTab({
 
 	function handleStartEdit(category: Category) {
 		startEdit(category, { name: category.name, sentiment: category.sentiment });
-		resetSwipe();
 	}
 
 	function handleSaveEdit() {
@@ -98,7 +85,6 @@ export default function CategoriesTab({
 	function confirmDeleteCategory() {
 		if (!deleting) return;
 		deleteCategory(activeTab, deleting.id);
-		resetSwipe();
 		resetForm();
 	}
 
@@ -142,66 +128,55 @@ export default function CategoriesTab({
 					{categories.map((category, idx) => {
 						const itemCount = getItemCountForCategory(category.id);
 						const isLastInGroup = idx === categories.length - 1;
-						const isSwiped = swipedEntryId === category.id;
 
 						return (
-							<div key={category.id} className="relative overflow-hidden">
-								{/* Swipe action background */}
-								<div className="absolute inset-0 flex items-center justify-end">
-									<button
-										type="button"
-										onClick={() => handleStartEdit(category)}
-										style={{ background: 'var(--swipe-edit)', width: ACTION_WIDTH }}
-										className="h-full flex items-center justify-center"
-										aria-label="Edit category"
-									>
-										<Pencil className="w-5 h-5" style={{ color: 'var(--swipe-edit-text)' }} strokeWidth={2} />
-									</button>
-									<button
-										type="button"
-										onClick={() => handleDelete(category.id)}
-										style={{ background: 'var(--color-delete)', width: ACTION_WIDTH }}
-										className="h-full flex items-center justify-center"
-										aria-label="Delete category"
-									>
-										<Trash2 className="w-5 h-5" style={{ color: 'var(--color-delete-text)' }} strokeWidth={2} />
-									</button>
-								</div>
-
-								{/* Row content */}
-								<div
-									className={cn(
-										'relative bg-[var(--bg-card)] px-4 py-3 transition-transform',
-										!isLastInGroup && 'border-b border-[var(--border-subtle)]',
-									)}
-									style={{
-										transform: isSwiped ? `translateX(${swipeOffset}px)` : 'translateX(0)',
-										transition: isTouching() ? 'none' : 'transform 0.25s ease-out',
-									}}
-									onTouchStart={(e) => handleTouchStart(e, category.id)}
-									onTouchMove={handleTouchMove}
-									onTouchEnd={handleTouchEnd}
-									onClick={() => handleRowTap(() => handleStartEdit(category))}
-								>
-									<div className="flex items-center justify-between gap-3">
-										<div className="flex-1 min-w-0">
-											<div className="flex items-center gap-2">
-												<span className="font-medium text-heading truncate">{category.name}</span>
-												{category.sentiment && category.sentiment !== 'neutral' && (
-													<span
-														className={cn(
-															'text-xs font-medium px-1.5 py-0.5 rounded-full flex-shrink-0',
-															category.sentiment === 'positive'
-																? 'bg-[var(--color-success-bg)] text-[var(--color-success-text)]'
-																: 'bg-[var(--color-danger-bg)] text-[var(--color-danger-text)]',
-														)}
-													>
-														{category.sentiment}
-													</span>
-												)}
-											</div>
-											<p className="text-xs text-subtle mt-0.5">{t('categories.itemCount', { count: itemCount })}</p>
+							<div
+								key={category.id}
+								className={cn('px-4 py-3', !isLastInGroup && 'border-b border-[var(--border-subtle)]')}
+								onClick={() => handleStartEdit(category)}
+							>
+								<div className="flex items-center justify-between gap-3">
+									<div className="flex-1 min-w-0">
+										<div className="flex items-center gap-2">
+											<span className="font-medium text-heading truncate">{category.name}</span>
+											{category.sentiment && category.sentiment !== 'neutral' && (
+												<span
+													className={cn(
+														'text-xs font-medium px-1.5 py-0.5 rounded-full flex-shrink-0',
+														category.sentiment === 'positive'
+															? 'bg-[var(--color-success-bg)] text-[var(--color-success-text)]'
+															: 'bg-[var(--color-danger-bg)] text-[var(--color-danger-text)]',
+													)}
+												>
+													{category.sentiment}
+												</span>
+											)}
 										</div>
+										<p className="text-xs text-subtle mt-0.5">{t('categories.itemCount', { count: itemCount })}</p>
+									</div>
+									<div className="flex items-center gap-1 flex-shrink-0">
+										<button
+											type="button"
+											onClick={(e) => {
+												e.stopPropagation();
+												handleStartEdit(category);
+											}}
+											className="p-1.5 text-subtle"
+											aria-label="Edit category"
+										>
+											<Pencil className="w-4 h-4" strokeWidth={2} />
+										</button>
+										<button
+											type="button"
+											onClick={(e) => {
+												e.stopPropagation();
+												handleDelete(category.id);
+											}}
+											className="p-1.5 text-subtle"
+											aria-label="Delete category"
+										>
+											<Trash2 className="w-4 h-4" strokeWidth={2} />
+										</button>
 									</div>
 								</div>
 							</div>

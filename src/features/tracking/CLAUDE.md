@@ -16,13 +16,9 @@ Entries can override their item's default categories via `categoryOverrides`. Al
 
 Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`). `getCategorySentimentCounts()` computes positive/limit counts for display. The `CategoryLine` component renders sentiment indicators: green `+` for positive, red `−` for limit (positives first).
 
-## Hooks
-
-- **`useSwipeGesture.ts`** — Touch-based swipe-left logic to reveal Edit (blue) and Delete (red) action buttons. Uses a 70px threshold. Returns `swipedEntryId`, `swipeOffset`, touch handlers, `resetSwipe`, and `handleRowTap`. Used by EntryList, ItemsTab, and CategoriesTab.
-
 ## Components
 
-- **`EntryList.tsx`** — Grouped-by-date entry display with swipe actions + edit sheet. Date headers are sticky, uppercase, muted. Uses `BottomSheet` for editing entries. Tap row to edit.
+- **`EntryList.tsx`** — Grouped-by-date entry display with inline edit and delete icon buttons on each row. Date headers are sticky, uppercase, muted. Uses `BottomSheet` for editing entries. Tap row to navigate to item detail.
 - **`CategoryLine.tsx`** — Shared category display with sentiment indicators (green `+`, red `−`). Used on item/entry rows across Log and Library pages.
 - **`CategoryPicker.tsx`** — Multi-select category chips with inline creation. New categories created inline default to neutral sentiment.
 
