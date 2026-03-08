@@ -30,6 +30,7 @@ All colors are defined as CSS custom properties on `:root` (light) and `.dark` (
 - **Activity (blue)**: `--color-activity`, `--color-activity-hover`, `--color-activity-bg`, `--color-activity-bg-strong`, `--color-activity-text`, `--color-activity-border`
 - **Food (green)**: `--color-food`, `--color-food-hover`, `--color-food-bg`, `--color-food-bg-strong`, `--color-food-text`, `--color-food-border`
 - **Status**: `--color-success*`, `--color-danger*`, `--color-warning*`, `--color-neutral`
+  - Includes `--color-warning-bg-strong` and `--color-danger-bg-strong` for stronger hover/pressed backgrounds on warning/danger icon actions.
 - **Other**: `--color-favorite` (star yellow), `--chart-color-1` through `--chart-color-9`, `--bg-toast`, `--shadow-card`, `--shadow-elevated`
 
 Dark mode is applied via `.dark` class on `<html>`, managed by `theme.ts`.

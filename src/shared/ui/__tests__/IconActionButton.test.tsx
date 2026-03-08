@@ -14,7 +14,9 @@ describe('IconActionButton', () => {
 	it('applies tone classes', () => {
 		render(<IconActionButton icon={Plus} tone="delete" onClick={() => {}} ariaLabel="Delete" />);
 		const button = screen.getByRole('button', { name: 'Delete' });
-		expect(button.className).toContain('color-danger');
+		expect(button.className).toContain('text-[var(--color-danger)]');
+		expect(button.className).toContain('bg-[var(--color-danger-bg)]');
+		expect(button.className).toContain('hover:bg-[var(--color-danger-bg-strong)]');
 		expect(button.className).toContain('rounded-full');
 	});
 });
