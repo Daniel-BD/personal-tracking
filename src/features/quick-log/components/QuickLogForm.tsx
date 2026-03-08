@@ -153,8 +153,8 @@ export default function QuickLogForm({ children }: Props) {
 							<label className="form-label">{t('form.typeLabel')}</label>
 							<SegmentedControl
 								options={[
-									{ value: 'activity' as EntryType, label: t('common:type.activity'), activeClass: 'type-activity' },
-									{ value: 'food' as EntryType, label: t('common:type.food'), activeClass: 'type-food' },
+									{ value: 'activity' as EntryType, label: t('common:type.activity'), activeClass: 'type-accent' },
+									{ value: 'food' as EntryType, label: t('common:type.food'), activeClass: 'type-accent' },
 								]}
 								value={itemType}
 								onChange={setItemType}

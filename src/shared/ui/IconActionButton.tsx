@@ -12,7 +12,7 @@ interface Props {
 }
 
 const TONE_CLASSES: Record<IconActionTone, string> = {
-	add: 'text-[var(--color-activity)] bg-[var(--color-activity-bg)] hover:bg-[var(--color-activity-bg-strong)]',
+	add: 'text-[var(--color-accent)] bg-[var(--color-accent-bg)] hover:bg-[var(--color-accent-bg-strong)]',
 	edit: 'text-[var(--color-warning)] bg-[var(--color-warning-bg)] hover:bg-[var(--color-warning-bg-strong)]',
 	delete: 'text-[var(--color-danger)] bg-[var(--color-danger-bg)] hover:bg-[var(--color-danger-bg-strong)]',
 };

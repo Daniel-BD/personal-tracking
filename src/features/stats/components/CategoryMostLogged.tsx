@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TrackerData, Entry, CategorySentiment } from '@/shared/lib/types';
-import { getTodayDate } from '@/shared/lib/types';
+import { getTodayDate, findItemWithCategories } from '@/shared/lib/types';
 import { filterEntriesByDateRange } from '@/features/tracking';
 import { getDateNDaysAgo } from '@/shared/lib/date-utils';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
-import { SENTIMENT_COLORS } from '../utils/stats-engine';
+import { SENTIMENT_COLORS, getItemAccentColor } from '../utils/stats-engine';
 import { rankItems, buildItemLookup } from '../utils/ranking-utils';
 
 type TimePeriod = 'all' | '7d' | '30d';
@@ -16,8 +17,9 @@ interface Props {
 	sentiment: CategorySentiment;
 }
 
-export default function CategoryMostLogged({ entries, data, sentiment }: Props) {
+export default function CategoryMostLogged({ entries, data, sentiment: _sentiment }: Props) {
 	const { t } = useTranslation('stats');
+	const navigate = useNavigate();
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('all');
 
 	const filteredEntries = useMemo(() => {
@@ -29,13 +31,11 @@ export default function CategoryMostLogged({ entries, data, sentiment }: Props) 
 		});
 	}, [entries, timePeriod]);
 
-	const itemLookup = useMemo(() => buildItemLookup(data), [data.activityItems, data.foodItems]);
+	const itemLookup = useMemo(() => buildItemLookup(data), [data]);
 	const ranked = useMemo(() => rankItems(filteredEntries, itemLookup), [filteredEntries, itemLookup]);
 
 	const maxCount = ranked.length > 0 ? ranked[0].count : 0;
 	const totalCount = filteredEntries.length;
-
-	const barColor = SENTIMENT_COLORS[sentiment] ?? 'var(--color-activity)';
 
 	return (
 		<div className="space-y-3">
@@ -59,8 +59,17 @@ export default function CategoryMostLogged({ entries, data, sentiment }: Props) 
 				<div className="space-y-1.5">
 					{ranked.map((row, i) => {
 						const pct = totalCount > 0 ? Math.round((row.count / totalCount) * 100) : 0;
+						const found = findItemWithCategories(data, row.id);
+						const barColor = found
+							? getItemAccentColor(found.item.categories, found.categories)
+							: SENTIMENT_COLORS.neutral;
 						return (
-							<div key={row.id} className="flex items-center gap-3">
+							<button
+								key={row.id}
+								type="button"
+								onClick={() => navigate(`/stats/item/${row.id}`)}
+								className="w-full flex items-center gap-3 text-left hover:bg-[var(--bg-card-hover)] rounded-lg p-1 -m-1 transition-colors"
+							>
 								<span className="text-xs text-muted w-5 text-right shrink-0">{i + 1}</span>
 								<div className="flex-1 min-w-0">
 									<div className="flex items-center justify-between gap-2 mb-0.5">
@@ -80,7 +89,7 @@ export default function CategoryMostLogged({ entries, data, sentiment }: Props) 
 										/>
 									</div>
 								</div>
-							</div>
+							</button>
 						);
 					})}
 				</div>

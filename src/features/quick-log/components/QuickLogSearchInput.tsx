@@ -87,7 +87,7 @@ export default function QuickLogSearchInput({
 							type="button"
 							onMouseDown={(e) => e.preventDefault()}
 							onClick={handleCreateTap}
-							className="w-full text-left px-4 py-3 hover:bg-[var(--bg-card-hover)] flex items-center gap-3 text-[var(--color-activity)]"
+							className="w-full text-left px-4 py-3 hover:bg-[var(--bg-card-hover)] flex items-center gap-3 text-[var(--color-accent)]"
 						>
 							<span className="text-sm font-bold">+</span>
 							<span>{t('createButton', { name: query.trim() })}</span>

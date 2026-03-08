@@ -8,7 +8,7 @@ interface BalanceScoreTrendChartProps {
 }
 
 export default function BalanceScoreTrendChart({ weeklyData }: BalanceScoreTrendChartProps) {
-	const color = 'var(--color-activity)';
+	const color = 'var(--color-accent)';
 
 	const chartData = useMemo(
 		() =>
