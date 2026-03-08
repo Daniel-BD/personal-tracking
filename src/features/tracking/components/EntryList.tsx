@@ -1,10 +1,10 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import TypeIcon from '@/shared/ui/TypeIcon';
 import { useTranslation } from 'react-i18next';
-import type { Entry, EntryType } from '@/shared/lib/types';
-import { getItemById, deleteEntry, updateEntry } from '@/shared/store/store';
+import { getCurrentTime, getTodayDate, type Entry, type EntryType } from '@/shared/lib/types';
+import { addEntry, getItemById, deleteEntry, updateEntry } from '@/shared/store/store';
 import { useTrackerData } from '@/shared/store/hooks';
 import { getEntriesGroupedByDate } from '../utils/entry-grouping';
 import { getEntryCategoryIds } from '../utils/category-utils';
@@ -15,6 +15,8 @@ import CategoryPicker from './CategoryPicker';
 import NativePickerInput from '@/shared/ui/NativePickerInput';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
+import IconActionButton from '@/shared/ui/IconActionButton';
+import { showToast } from '@/shared/ui/Toast';
 
 interface Props {
 	entries: Entry[];
@@ -91,6 +93,20 @@ export default function EntryList({ entries, showType = false }: Props) {
 		return type === 'activity' ? data.activityCategories : data.foodCategories;
 	}
 
+	function handleQuickLog(entry: Entry) {
+		const item = getItemById(entry.type, entry.itemId);
+		if (!item) return;
+
+		const newEntry = addEntry(entry.type, entry.itemId, getTodayDate(), getCurrentTime(), null, null);
+		showToast(`Logged "${item.name}"`, {
+			label: 'Undo',
+			onClick: () => {
+				deleteEntry(newEntry.id);
+				showToast('Entry undone');
+			},
+		});
+	}
+
 	const groupedArray = useMemo(() => Array.from(groupedEntries.entries()), [groupedEntries]);
 
 	if (groupedArray.length === 0) {
@@ -138,28 +154,33 @@ export default function EntryList({ entries, showType = false }: Props) {
 												{entry.time && (
 													<span className="text-xs text-subtle tabular-nums mr-1">{formatTime(entry.time)}</span>
 												)}
-												<button
-													type="button"
+												<IconActionButton
+													icon={Plus}
+													tone="add"
+													onClick={(e) => {
+														e.stopPropagation();
+														handleQuickLog(entry);
+													}}
+													ariaLabel="Quick add entry"
+												/>
+												<IconActionButton
+													icon={Pencil}
+													tone="edit"
 													onClick={(e) => {
 														e.stopPropagation();
 														startEdit(entry);
 													}}
-													className="p-1.5 text-subtle"
-													aria-label="Edit entry"
-												>
-													<Pencil className="w-4 h-4" strokeWidth={2} />
-												</button>
-												<button
-													type="button"
+													ariaLabel="Edit entry"
+												/>
+												<IconActionButton
+													icon={Trash2}
+													tone="delete"
 													onClick={(e) => {
 														e.stopPropagation();
 														handleDelete(entry.id);
 													}}
-													className="p-1.5 text-subtle"
-													aria-label="Delete entry"
-												>
-													<Trash2 className="w-4 h-4" strokeWidth={2} />
-												</button>
+													ariaLabel="Delete entry"
+												/>
 											</div>
 										</div>
 									</div>

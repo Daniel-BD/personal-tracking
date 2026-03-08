@@ -90,6 +90,7 @@ Reserve `children` for the body/content area where each usage genuinely needs di
 - **`NativePickerInput.tsx`** — iOS-safe date/time picker. Renders a styled `<div>` for display with a transparent native `<input>` overlay on top that captures taps, reliably opening the OS picker. Supports optional `onClear` prop for clearable time fields.
 - **`NavIcon.tsx`** — Navigation icon component (Lucide icons for bottom nav).
 - **`StarIcon.tsx`** — Reusable star icon (Lucide Star, filled/unfilled) for favorites.
+- **`IconActionButton.tsx`** — Reusable circular icon action button with semantic tones (`add`, `edit`, `delete`) and app color tokens.
 - **`Toast.tsx`** — Toast notification system. `showToast()` is a module-level function (no provider). Toasts auto-dismiss after 3.5s, optionally include an action button.
 - **`ConfirmDialog.tsx`** — Wraps `BottomSheet` for destructive action confirmations. Accepts `open`, `onClose`, `onConfirm`, `title`, `message` (optional), and `confirmLabel` (defaults to `'Delete'`). Confirm button is always danger-styled. Use this instead of native `confirm()`.
 - **`SentimentPills.tsx`** — Compact positive/limit count pills (green `N+`, red `N−`). Takes `{ positive, limit }` number props. Used by `DaySentimentSummary` and `DailyBalanceScore`.
