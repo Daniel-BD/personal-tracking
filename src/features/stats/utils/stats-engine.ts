@@ -408,6 +408,33 @@ export function calcActualDeltaPercent(currentCount: number, baselineAvg: number
 }
 
 /**
+ * Build reusable summary parts for "delta vs baseline" UI copy.
+ */
+export function getDeltaSummaryParts(
+	deltaPercent: number,
+	delta: number,
+): {
+	isStable: boolean;
+	changeText: string;
+	deltaValueText: string;
+	sign: '+' | '\u2212';
+} {
+	const isStable = Math.abs(deltaPercent) < 0.1;
+	const sign: '+' | '\u2212' = deltaPercent > 0 ? '+' : '\u2212';
+	const absPercent = Math.round(Math.abs(deltaPercent) * 100);
+	const changeText = isStable ? '' : `${sign}${absPercent}%`;
+	const deltaRaw = Math.abs(delta);
+	const deltaValueText = Number.isInteger(deltaRaw) ? deltaRaw.toString() : deltaRaw.toFixed(1);
+
+	return {
+		isStable,
+		changeText,
+		deltaValueText,
+		sign,
+	};
+}
+
+/**
  * Top Limit Categories (last 4 weeks)
  */
 export function getTopLimitCategories(
