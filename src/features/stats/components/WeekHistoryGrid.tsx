@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { CategorySentiment } from '@/shared/lib/types';
 import { cn } from '@/shared/lib/cn';
-import { SENTIMENT_COLORS } from '../utils/stats-engine';
+import { SENTIMENT_COLORS } from '@/shared/lib/sentiment';
 
 interface WeekData {
 	weekNumber: number;

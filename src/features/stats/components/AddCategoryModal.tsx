@@ -12,7 +12,7 @@ import { addDashboardCard } from '@/shared/store/store';
 import { getCardId } from '@/shared/lib/types';
 import type { EntryType } from '@/shared/lib/types';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
-import { SENTIMENT_COLORS, getItemAccentColor } from '../utils/stats-engine';
+import { SENTIMENT_COLORS, getSentimentAccentColor } from '@/shared/lib/sentiment';
 import { SentimentDot, EntryTypePill, CategorySentimentPills } from '@/shared/ui/EntityMetaBadges';
 
 interface AddCategoryModalProps {
@@ -153,7 +153,7 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 									<div className="min-w-0">
 										<div className="flex items-center gap-2">
 											<SentimentDot
-												color={getItemAccentColor(
+												color={getSentimentAccentColor(
 													item.categories,
 													item.type === 'food' ? foodCategories : activityCategories,
 												)}

@@ -1,16 +1,11 @@
 import { useMemo, useState } from 'react';
 import type { Entry, TrackerData } from '@/shared/lib/types';
 import type { CategorySentiment } from '@/shared/lib/types';
+import { SENTIMENT_COLORS } from '@/shared/lib/sentiment';
 import { formatDateLocal } from '@/shared/lib/date-utils';
 import { filterEntriesByCategory, filterEntriesByItem, filterEntriesByDateRange } from '@/features/tracking';
 import { cn } from '@/shared/lib/cn';
 import PeriodNavigator from './PeriodNavigator';
-
-const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
-	positive: 'var(--color-success)',
-	limit: 'var(--color-danger)',
-	neutral: 'var(--color-activity)',
-};
 
 const DAY_LABELS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 

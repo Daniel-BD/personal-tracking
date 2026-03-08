@@ -1,5 +1,5 @@
 import type { Entry, EntryType, CategorySentiment, Item, TrackerData } from '@/shared/lib/types';
-import { getItemAccentColor } from './stats-engine';
+import { getSentimentAccentColor } from '@/shared/lib/sentiment';
 
 export interface RankedItem {
 	id: string;
@@ -18,11 +18,11 @@ export function buildItemAccentColorLookup(data: TrackerData): Map<string, strin
 	const accents = new Map<string, string>();
 
 	for (const item of data.activityItems) {
-		accents.set(item.id, getItemAccentColor(item.categories, data.activityCategories));
+		accents.set(item.id, getSentimentAccentColor(item.categories, data.activityCategories));
 	}
 
 	for (const item of data.foodItems) {
-		accents.set(item.id, getItemAccentColor(item.categories, data.foodCategories));
+		accents.set(item.id, getSentimentAccentColor(item.categories, data.foodCategories));
 	}
 
 	return accents;

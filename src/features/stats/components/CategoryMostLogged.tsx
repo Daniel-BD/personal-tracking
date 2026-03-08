@@ -5,7 +5,7 @@ import { getTodayDate } from '@/shared/lib/types';
 import { filterEntriesByDateRange } from '@/features/tracking';
 import { getDateNDaysAgo } from '@/shared/lib/date-utils';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
-import { SENTIMENT_COLORS } from '../utils/stats-engine';
+import { SENTIMENT_COLORS } from '@/shared/lib/sentiment';
 import { rankItems, buildItemLookup } from '../utils/ranking-utils';
 
 type TimePeriod = 'all' | '7d' | '30d';
@@ -35,7 +35,7 @@ export default function CategoryMostLogged({ entries, data, sentiment }: Props) 
 	const maxCount = ranked.length > 0 ? ranked[0].count : 0;
 	const totalCount = filteredEntries.length;
 
-	const barColor = SENTIMENT_COLORS[sentiment] ?? 'var(--color-activity)';
+	const barColor = SENTIMENT_COLORS[sentiment] ?? 'var(--color-neutral)';
 
 	return (
 		<div className="space-y-3">

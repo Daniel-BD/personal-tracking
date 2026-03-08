@@ -27,9 +27,8 @@ All colors are defined as CSS custom properties on `:root` (light) and `.dark` (
 - **Backgrounds**: `--bg-page`, `--bg-card`, `--bg-card-hover`, `--bg-elevated`, `--bg-inset`, `--bg-input`
 - **Text**: `--text-primary`, `--text-secondary`, `--text-tertiary`, `--text-muted`
 - **Borders**: `--border-default`, `--border-input`, `--border-subtle`
-- **Activity (blue)**: `--color-activity`, `--color-activity-hover`, `--color-activity-bg`, `--color-activity-bg-strong`, `--color-activity-text`, `--color-activity-border`
-- **Food (green)**: `--color-food`, `--color-food-hover`, `--color-food-bg`, `--color-food-bg-strong`, `--color-food-text`, `--color-food-border`
-- **Status**: `--color-success*`, `--color-danger*`, `--color-warning*`, `--color-neutral`
+- **Neutral / primary (blue)**: `--color-neutral`, `--color-neutral-hover`, `--color-neutral-bg`, `--color-neutral-bg-strong`, `--color-neutral-text`, `--color-neutral-border`
+- **Status**: `--color-success*`, `--color-danger*`, `--color-warning*`
 - **Other**: `--color-favorite` (star yellow), `--chart-color-1` through `--chart-color-9`, `--bg-toast`, `--shadow-card`, `--shadow-elevated`
 
 Dark mode is applied via `.dark` class on `<html>`, managed by `theme.ts`.
@@ -40,7 +39,7 @@ Dark mode is applied via `.dark` class on `<html>`, managed by `theme.ts`.
 - **Buttons**: `.btn`, `.btn-primary`, `.btn-success`, `.btn-secondary`, `.btn-danger`, `.btn-sm`, `.btn-lg`
 - **Layout**: `.card`, `.bg-surface`, `.bg-inset`
 - **Text**: `.text-heading`, `.text-body`, `.text-label`, `.text-subtle`
-- **Type accents**: `.type-activity`, `.type-food`, `.type-activity-muted`, `.type-food-muted`
+- **Type accents**: `.type-activity`, `.type-food`, `.type-activity-muted`, `.type-food-muted` (all use the same neutral/primary palette; no food/activity color split)
 - **Animation**: `.animate-fade-in`, `.animate-slide-up`
 - **Quick Log button**: `.ql-btn` + child classes `.ql-ripple`, `.ql-settle`, `.ql-icon`, `.ql-sweep` (static positioning only — animation driven by Motion in QuickLogButton.tsx)
 
@@ -57,7 +56,7 @@ className={`base-classes ${condition ? 'conditional-classes' : ''}`}
 
 ### Color Conventions
 
-- Activity = blue (`--color-activity`), Food = green (`--color-food`)
-- Positive sentiment = success green, Limit sentiment = danger red, Neutral = gray
+- Do not visually distinguish activity vs food by color; use the neutral/primary blue palette for generic accents.
+- Positive sentiment = success green, Limit sentiment = danger red, Neutral sentiment = blue (`--color-neutral`).
 - Cards use the `.card` utility class
 - Category pills: `bg-[var(--bg-inset)] text-label px-2 py-0.5 rounded`

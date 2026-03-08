@@ -7,7 +7,7 @@ import { addItem, updateItem, deleteItem, mergeItem, toggleFavorite, isFavorite 
 import { useEntries, useActivityItems, useFoodItems } from '@/shared/store/hooks';
 import { CategoryPicker } from '@/features/tracking';
 import { cn } from '@/shared/lib/cn';
-import { getItemAccentColor } from '@/features/stats';
+import { getSentimentAccentColor } from '@/shared/lib/sentiment';
 import { SentimentDot, EntryTypePill, CategorySentimentPills } from '@/shared/ui/EntityMetaBadges';
 import StarIcon from '@/shared/ui/StarIcon';
 import BottomSheet from '@/shared/ui/BottomSheet';
@@ -153,7 +153,7 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 								<div className="flex items-center justify-between gap-3">
 									<div className="flex-1 min-w-0">
 										<div className="flex items-center gap-2">
-											<SentimentDot color={getItemAccentColor(item.categories, categoriesByType[item.type])} />
+											<SentimentDot color={getSentimentAccentColor(item.categories, categoriesByType[item.type])} />
 											<span className="font-medium text-heading truncate block">{item.name}</span>
 											<EntryTypePill type={item.type} />
 										</div>

@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTrackerData } from '@/shared/store/hooks';
-import { getLastNWeeks, getDaysElapsedInCurrentWeek, formatWeekLabel, getItemAccentColor } from '../utils/stats-engine';
+import { getLastNWeeks, getDaysElapsedInCurrentWeek, formatWeekLabel } from '../utils/stats-engine';
+import { getSentimentAccentColor } from '@/shared/lib/sentiment';
 import { filterEntriesByCategory, filterEntriesByItem, filterEntriesByDateRange } from '@/features/tracking';
 import { formatDateLocal } from '@/shared/lib/date-utils';
 import { getCardId, findItemWithCategories } from '@/shared/lib/types';
@@ -59,7 +60,7 @@ export default function GoalDashboard() {
 						cardId,
 						name: item.name,
 						sentiment: 'neutral' as const,
-						accentColor: getItemAccentColor(item.categories, categories),
+						accentColor: getSentimentAccentColor(item.categories, categories),
 						sparklineData,
 						...stats,
 						daysElapsed,
@@ -101,7 +102,7 @@ export default function GoalDashboard() {
 				<button
 					onClick={() => setIsModalOpen(true)}
 					className="text-sm font-medium transition-colors hover:opacity-80"
-					style={{ color: 'var(--color-activity)' }}
+					style={{ color: 'var(--color-neutral)' }}
 				>
 					{t('goalDashboard.addToDashboard')}
 				</button>
@@ -130,7 +131,7 @@ export default function GoalDashboard() {
 						<button
 							onClick={() => setIsModalOpen(true)}
 							className="mt-2 text-sm font-semibold"
-							style={{ color: 'var(--color-activity)' }}
+							style={{ color: 'var(--color-neutral)' }}
 						>
 							{t('goalDashboard.addFirstCategory')}
 						</button>

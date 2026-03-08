@@ -56,13 +56,13 @@ export default function MultiSelectFilter({ options, selected, onChange, placeho
 					{selectedOptions.map((option) => (
 						<span
 							key={option.id}
-							className="inline-flex items-center gap-1 bg-[var(--color-activity-bg-strong)] text-[var(--color-activity-text)] px-2 py-0.5 rounded-full text-sm"
+							className="inline-flex items-center gap-1 bg-[var(--color-neutral-bg-strong)] text-[var(--color-neutral-text)] px-2 py-0.5 rounded-full text-sm"
 						>
 							{option.name}
 							<button
 								type="button"
 								onClick={() => removeOption(option.id)}
-								className="hover:text-[var(--color-activity)] ml-0.5"
+								className="hover:text-[var(--color-neutral)] ml-0.5"
 								aria-label={`Remove ${option.name}`}
 							>
 								<X className="w-3.5 h-3.5" strokeWidth={2} />
@@ -102,7 +102,7 @@ export default function MultiSelectFilter({ options, selected, onChange, placeho
 										className={cn(
 											'flex-shrink-0 w-4 h-4 border rounded flex items-center justify-center',
 											selected.includes(option.id)
-												? 'bg-[var(--color-activity)] border-[var(--color-activity)]'
+												? 'bg-[var(--color-neutral)] border-[var(--color-neutral)]'
 												: 'border-[var(--border-input)]',
 										)}
 									>

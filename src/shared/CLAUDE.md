@@ -51,6 +51,7 @@ Test files in `store/__tests__/`:
 - **`theme.ts`** — Theme preference management (light/dark/system). Dark mode applied via `.dark` class on `<html>`.
 - **`schemas.ts`** — Zod validation schemas for data import/sync. Types in `types.ts` are derived via `z.infer`.
 - **`animation.ts`** — `useAnimatedValue` hook (RAF-based value interpolation, easeOutCubic) and shared easing functions with documented cubic-bezier equivalents. Performance rule: only animate `transform` and `opacity` in DOM keyframes. Always respect `prefers-reduced-motion` (use Motion's `useReducedMotion` hook).
+- **`sentiment.ts`** — Shared sentiment visual tokens and accent logic (`SENTIMENT_COLORS`, `SENTIMENT_PILL_COLORS`, `getSentimentAccentColor`) used across all features. Neutral sentiment maps to `var(--color-neutral)`.
 
 ### Tests
 

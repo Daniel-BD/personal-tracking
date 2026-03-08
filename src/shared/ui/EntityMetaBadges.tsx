@@ -1,11 +1,6 @@
 import { cn } from '@/shared/lib/cn';
-import type { Category, CategorySentiment, EntryType } from '@/shared/lib/types';
-
-const SENTIMENT_PILL_COLORS: Record<CategorySentiment, { bg: string; text: string }> = {
-	positive: { bg: 'color-mix(in srgb, var(--color-success) 15%, var(--bg-card))', text: 'var(--color-success)' },
-	limit: { bg: 'color-mix(in srgb, var(--color-danger) 15%, var(--bg-card))', text: 'var(--color-danger)' },
-	neutral: { bg: 'var(--bg-inset)', text: 'var(--text-secondary)' },
-};
+import type { Category, EntryType } from '@/shared/lib/types';
+import { SENTIMENT_PILL_COLORS } from '@/shared/lib/sentiment';
 
 interface SentimentDotProps {
 	color: string;

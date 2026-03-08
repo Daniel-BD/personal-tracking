@@ -3,7 +3,7 @@ import { makeCategory, makeEntry, makeItem, makeValidData } from '@/shared/store
 import { buildItemAccentColorLookup, buildItemLookup, rankItems } from '../utils/ranking-utils';
 
 describe('ranking-utils', () => {
-	it('builds item accent colors using dashboard-card sentiment logic', () => {
+	it('builds item accent colors using shared sentiment accent logic', () => {
 		const pos = makeCategory({ id: 'pos', sentiment: 'positive' });
 		const lim = makeCategory({ id: 'lim', sentiment: 'limit' });
 		const neutral = makeCategory({ id: 'neu', sentiment: 'neutral' });
@@ -21,7 +21,7 @@ describe('ranking-utils', () => {
 
 		expect(accentLookup.get('item-positive')).toBe('var(--color-success)');
 		expect(accentLookup.get('item-limit')).toBe('var(--color-danger)');
-		expect(accentLookup.get('item-neutral')).toBe('var(--color-activity)');
+		expect(accentLookup.get('item-neutral')).toBe('var(--color-neutral)');
 	});
 
 	it('includes accent colors in ranked items when provided', () => {

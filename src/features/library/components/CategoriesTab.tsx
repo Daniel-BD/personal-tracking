@@ -6,7 +6,7 @@ import type { Item, Category, CategorySentiment, EntryType } from '@/shared/lib/
 import { addCategory, updateCategory, deleteCategory, mergeCategory } from '@/shared/store/store';
 import { useEntries, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
 import { cn } from '@/shared/lib/cn';
-import { SENTIMENT_COLORS } from '@/features/stats';
+import { SENTIMENT_COLORS } from '@/shared/lib/sentiment';
 import { SentimentDot, EntryTypePill } from '@/shared/ui/EntityMetaBadges';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';

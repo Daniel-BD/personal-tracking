@@ -50,7 +50,7 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 				<div className="flex items-baseline justify-between">
 					<h3 className="text-lg font-semibold">{t('balanceOverview.scoreTitle')}</h3>
 					<div className="flex items-center gap-2">
-						<span className="text-4xl font-bold" style={{ color: 'var(--color-activity)' }}>
+						<span className="text-4xl font-bold" style={{ color: 'var(--color-neutral)' }}>
 							{Math.round(currentScore)}%
 						</span>
 						{scoreChange.direction !== 'stable' && (
@@ -121,7 +121,7 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 						<Bar
 							dataKey="neutral"
 							stackId="sentiment"
-							fill="var(--color-activity)"
+							fill="var(--color-neutral)"
 							name={t('balanceOverview.chartNeutral')}
 						>
 							{data.map((entry, index) => (

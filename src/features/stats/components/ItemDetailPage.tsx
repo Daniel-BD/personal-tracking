@@ -12,20 +12,14 @@ import {
 	calcActualDeltaPercent,
 	formatChangeText,
 	SENTIMENT_COLORS,
-	getItemAccentColor,
 } from '../utils/stats-engine';
 import { findItemWithCategories } from '@/shared/lib/types';
-import type { CategorySentiment } from '@/shared/lib/types';
+import { getSentimentAccentColor } from '@/shared/lib/sentiment';
+import { SENTIMENT_PILL_COLORS } from '@/shared/lib/sentiment';
 import CategoryTrendChart from './CategoryTrendChart';
 import WeekHistoryGrid from './WeekHistoryGrid';
 import MonthCalendarView from './MonthCalendarView';
 import YearlyActivityGrid from './YearlyActivityGrid';
-
-const SENTIMENT_PILL_COLORS: Record<CategorySentiment, { bg: string; text: string }> = {
-	positive: { bg: 'color-mix(in srgb, var(--color-success) 15%, var(--bg-card))', text: 'var(--color-success)' },
-	limit: { bg: 'color-mix(in srgb, var(--color-danger) 15%, var(--bg-card))', text: 'var(--color-danger)' },
-	neutral: { bg: 'var(--bg-inset)', text: 'var(--text-secondary)' },
-};
 
 export default function ItemDetailPage() {
 	const { itemId } = useParams<{ itemId: string }>();
@@ -54,7 +48,10 @@ export default function ItemDetailPage() {
 			.filter((c): c is NonNullable<typeof c> => c !== null);
 	}, [item, itemCategories]);
 
-	const accentColor = useMemo(() => getItemAccentColor(item?.categories ?? [], itemCategories), [item, itemCategories]);
+	const accentColor = useMemo(
+		() => getSentimentAccentColor(item?.categories ?? [], itemCategories),
+		[item, itemCategories],
+	);
 
 	// Calculate weekly data for this item
 	const weeklyStats = useMemo(() => {

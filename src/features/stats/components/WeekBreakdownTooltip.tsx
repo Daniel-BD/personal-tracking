@@ -1,11 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { CategorySentiment } from '@/shared/lib/types';
-
-const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
-	positive: 'var(--color-success)',
-	limit: 'var(--color-danger)',
-	neutral: 'var(--color-activity)',
-};
+import { SENTIMENT_COLORS } from '@/shared/lib/sentiment';
 
 interface WeekBreakdownTooltipProps {
 	weekNumber: number;

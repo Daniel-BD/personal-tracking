@@ -1,22 +1,12 @@
-import type { Entry, TrackerData, CategorySentiment, Category } from '@/shared/lib/types';
+import type { Entry, TrackerData } from '@/shared/lib/types';
 import { getCategories } from '@/shared/lib/types';
-import {
-	getCategoryNameById,
-	getEntryCategoryIds,
-	filterEntriesByType,
-	getCategorySentimentCounts,
-} from '@/features/tracking';
+import { getCategoryNameById, getEntryCategoryIds, filterEntriesByType } from '@/features/tracking';
 import { getISOWeekAndYear } from '@/shared/lib/date-utils';
+import { getSentimentAccentColor } from '@/shared/lib/sentiment';
 
 // Re-export for consumers
 export { formatWeekLabel, getISOWeekNumber, getISOWeekAndYear } from '@/shared/lib/date-utils';
-
-/** Shared sentiment → CSS color mapping used across all stats chart components. */
-export const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
-	positive: 'var(--color-success)',
-	limit: 'var(--color-danger)',
-	neutral: 'var(--color-activity)',
-};
+export { SENTIMENT_COLORS } from '@/shared/lib/sentiment';
 
 /**
  * Returns the accent color for an item dashboard card based on the balance of positive vs. limit
@@ -24,11 +14,8 @@ export const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
  * the positive color if positive > limit, and the neutral sentiment color otherwise
  * (equal counts, or no positive/limit categories at all).
  */
-export function getItemAccentColor(categoryIds: string[], categories: Category[]): string {
-	const { positive, limit } = getCategorySentimentCounts(categoryIds, categories);
-	if (limit > positive) return SENTIMENT_COLORS.limit;
-	if (positive > limit) return SENTIMENT_COLORS.positive;
-	return SENTIMENT_COLORS.neutral;
+export function getItemAccentColor(categoryIds: string[], categories: TrackerData['foodCategories']): string {
+	return getSentimentAccentColor(categoryIds, categories);
 }
 
 /**
@@ -262,7 +249,7 @@ export function buildCategoryColorMap(topCategoryIds: string[]): Map<string, str
 	topCategoryIds.forEach((catId, index) => {
 		map.set(catId, chartColors[index % chartColors.length]);
 	});
-	map.set('OTHER', 'var(--color-activity)');
+	map.set('OTHER', 'var(--color-neutral)');
 	return map;
 }
 

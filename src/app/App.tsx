@@ -113,13 +113,13 @@ export default function App() {
 								key={path}
 								to={path}
 								className="flex flex-col items-center pt-2 pb-2 px-3 text-xs transition-colors relative flex-1"
-								style={{ color: isActive ? 'var(--color-activity)' : 'var(--text-muted)' }}
+								style={{ color: isActive ? 'var(--color-neutral)' : 'var(--text-muted)' }}
 							>
 								{isActive && (
 									<motion.span
 										layoutId="nav-indicator"
 										className="absolute top-0 left-0 right-0 h-0.5 rounded-full"
-										style={{ background: 'var(--color-activity)' }}
+										style={{ background: 'var(--color-neutral)' }}
 										transition={{ type: 'spring', stiffness: 500, damping: 35 }}
 									/>
 								)}

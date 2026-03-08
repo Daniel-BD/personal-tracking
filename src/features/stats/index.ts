@@ -8,4 +8,5 @@ export { default as CategoryComposition } from './components/CategoryComposition
 export { default as FrequencyRanking } from './components/FrequencyRanking';
 export { default as CategoryDetailPage } from './components/CategoryDetailPage';
 export { default as ItemDetailPage } from './components/ItemDetailPage';
-export { SENTIMENT_COLORS, getItemAccentColor } from './utils/stats-engine';
+export { SENTIMENT_COLORS, getSentimentAccentColor } from '@/shared/lib/sentiment';
+export { getItemAccentColor } from './utils/stats-engine';

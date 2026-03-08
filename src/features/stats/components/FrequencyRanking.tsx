@@ -157,7 +157,7 @@ export default function FrequencyRanking({ entries, data }: Props) {
 										className={cn('h-full rounded-full transition-all', {
 											'bg-[var(--color-success)]': !row.accentColor && row.sentiment === 'positive',
 											'bg-[var(--color-danger)]': !row.accentColor && row.sentiment === 'limit',
-											'bg-[var(--color-activity)]':
+											'bg-[var(--color-neutral)]':
 												!row.accentColor && row.sentiment !== 'positive' && row.sentiment !== 'limit',
 										})}
 										style={{

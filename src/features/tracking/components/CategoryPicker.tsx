@@ -104,14 +104,14 @@ export default function CategoryPicker({ selected, categories, onChange, type }:
 					{selectedCategories.map((category) => (
 						<span
 							key={category.id}
-							className="inline-flex items-center gap-1 bg-[var(--color-activity-bg-strong)] text-[var(--color-activity-text)] px-2 py-1 rounded-full text-sm"
+							className="inline-flex items-center gap-1 bg-[var(--color-neutral-bg-strong)] text-[var(--color-neutral-text)] px-2 py-1 rounded-full text-sm"
 						>
 							{category.name}
 							<button
 								type="button"
 								onClick={() => removeCategory(category.id)}
 								onMouseDown={preventFocusSteal}
-								className="hover:text-[var(--color-activity)]"
+								className="hover:text-[var(--color-neutral)]"
 							>
 								&times;
 							</button>
