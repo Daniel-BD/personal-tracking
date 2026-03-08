@@ -13,6 +13,7 @@ import {
 	getDailyBreakdown,
 	calcActualDeltaPercent,
 	formatChangeText,
+	getDeltaSummaryParts,
 	getItemAccentColor,
 	SENTIMENT_COLORS,
 	type WeeklyData,
@@ -572,6 +573,38 @@ describe('formatChangeText', () => {
 
 	it('rounds to nearest integer percentage', () => {
 		expect(formatChangeText(0.126)).toBe('+13%');
+	});
+});
+
+describe('getDeltaSummaryParts', () => {
+	it('returns stable summary for small changes under 10%', () => {
+		const result = getDeltaSummaryParts(0.08, 0.2);
+		expect(result).toEqual({
+			isStable: true,
+			changeText: '',
+			deltaValueText: '0.2',
+			sign: '+',
+		});
+	});
+
+	it('returns signed rounded percent and integer delta text for increases', () => {
+		const result = getDeltaSummaryParts(0.756, 3);
+		expect(result).toEqual({
+			isStable: false,
+			changeText: '+76%',
+			deltaValueText: '3',
+			sign: '+',
+		});
+	});
+
+	it('returns unicode minus and decimal delta text for decreases', () => {
+		const result = getDeltaSummaryParts(-0.2, -1.5);
+		expect(result).toEqual({
+			isStable: false,
+			changeText: '\u221220%',
+			deltaValueText: '1.5',
+			sign: '\u2212',
+		});
 	});
 });
 

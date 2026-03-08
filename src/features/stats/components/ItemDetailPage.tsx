@@ -8,16 +8,12 @@ import { filterEntriesByItem, filterEntriesByDateRange } from '@/features/tracki
 import {
 	getLastNWeeks,
 	getDaysElapsedInCurrentWeek,
-	getWeekNumber,
-	calcActualDeltaPercent,
-	formatChangeText,
-	SENTIMENT_COLORS,
+	getDeltaSummaryParts,
 	getItemAccentColor,
 } from '../utils/stats-engine';
 import { findItemWithCategories } from '@/shared/lib/types';
 import type { CategorySentiment } from '@/shared/lib/types';
 import CategoryTrendChart from './CategoryTrendChart';
-import WeekHistoryGrid from './WeekHistoryGrid';
 import MonthCalendarView from './MonthCalendarView';
 import YearlyActivityGrid from './YearlyActivityGrid';
 
@@ -86,24 +82,6 @@ export default function ItemDetailPage() {
 	const proratedBaseline = baselineAvg * (daysElapsed / 7);
 	const delta = currentCount - proratedBaseline;
 	const deltaPercent = proratedBaseline === 0 ? (currentCount > 0 ? 1 : 0) : delta / proratedBaseline;
-	const isStable = Math.abs(deltaPercent) < 0.1;
-
-	// Actual (non-prorated) comparison
-	const actualDeltaPercent = calcActualDeltaPercent(currentCount, baselineAvg);
-
-	// Week history data
-	const weekHistoryData = useMemo(() => {
-		return weeklyStats.map((week, i) => {
-			const prev = i > 0 ? weeklyStats[i - 1].count : null;
-			const percentChange =
-				prev === null ? null : prev === 0 ? (week.count > 0 ? 100 : 0) : ((week.count - prev) / prev) * 100;
-			return {
-				weekNumber: getWeekNumber(week.weekKey),
-				count: week.count,
-				percentChange,
-			};
-		});
-	}, [weeklyStats]);
 
 	if (!item) {
 		return (
@@ -116,16 +94,10 @@ export default function ItemDetailPage() {
 		);
 	}
 
-	const avgFormatted = Number.isInteger(baselineAvg) ? baselineAvg.toString() : baselineAvg.toFixed(1);
-	const absPercent = Math.round(Math.abs(deltaPercent) * 100);
-	const changeSign = deltaPercent > 0 ? '+' : '\u2212';
-	const changeText = isStable ? '' : `${changeSign}${absPercent}%`;
-	const deltaRaw = Math.abs(delta);
-	const deltaFormatted = Number.isInteger(deltaRaw) ? deltaRaw.toString() : deltaRaw.toFixed(1);
-	const deltaUnit = t('itemDetail.event', { count: Math.round(deltaRaw) });
-	const deltaEventsText = isStable ? null : `(${changeSign}${deltaFormatted} ${deltaUnit})`;
-
-	const actualChangeText = formatChangeText(actualDeltaPercent);
+	const summary = getDeltaSummaryParts(deltaPercent, delta);
+	const deltaUnit = t('itemDetail.event', { count: Math.round(Math.abs(delta)) });
+	const deltaEventsText = summary.isStable ? null : `(${summary.sign}${summary.deltaValueText} ${deltaUnit})`;
+	const comparisonText = t('itemDetail.comparedToAverage');
 
 	return (
 		<div className="space-y-6 pb-4">
@@ -150,15 +122,15 @@ export default function ItemDetailPage() {
 						{defaultCategories.map((cat) => {
 							const pillColors = SENTIMENT_PILL_COLORS[cat.sentiment];
 							return (
-								<span
+								<button
 									key={cat.id}
-									className="text-xs font-medium px-2.5 py-1 rounded-full"
+									type="button"
+									onClick={() => navigate(`/stats/category/${cat.id}`)}
+									className="text-xs font-medium px-2.5 py-1 rounded-full transition-opacity hover:opacity-85"
 									style={{ backgroundColor: pillColors.bg, color: pillColors.text }}
 								>
 									{cat.name}
-									{cat.sentiment === 'positive' && <span style={{ color: SENTIMENT_COLORS.positive }}> +</span>}
-									{cat.sentiment === 'limit' && <span style={{ color: SENTIMENT_COLORS.limit }}> −</span>}
-								</span>
+								</button>
 							);
 						})}
 					</div>
@@ -176,19 +148,13 @@ export default function ItemDetailPage() {
 						</span>
 					)}
 				</div>
-				<div className="text-xs text-label">{t('itemDetail.baselineAvg', { avg: avgFormatted })}</div>
-				{!isStable && (
+				{!summary.isStable && (
 					<div className="flex items-baseline gap-1.5 pt-1">
 						<span className="text-lg font-bold" style={{ color: accentColor }}>
-							{changeText}
+							{summary.changeText}
 						</span>
 						{deltaEventsText && <span className="text-xs text-label">{deltaEventsText}</span>}
-						{daysElapsed < 7 && <span className="text-[10px] text-label">{t('itemDetail.projected')}</span>}
-					</div>
-				)}
-				{daysElapsed < 7 && (
-					<div className="text-[11px] text-[var(--text-tertiary)]">
-						{t('itemDetail.currentlyLabel', { change: actualChangeText })}
+						<span className="text-xs text-label">• {comparisonText}</span>
 					</div>
 				)}
 			</div>
@@ -200,15 +166,6 @@ export default function ItemDetailPage() {
 				sentiment="neutral"
 				accentColor={accentColor}
 				selectedWeekIndex={selectedWeekIndex}
-				onSelectWeek={setSelectedWeekIndex}
-			/>
-
-			{/* Week history grid */}
-			<WeekHistoryGrid
-				weeks={weekHistoryData}
-				selectedWeekIndex={selectedWeekIndex}
-				sentiment="neutral"
-				accentColor={accentColor}
 				onSelectWeek={setSelectedWeekIndex}
 			/>
 

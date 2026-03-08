@@ -8,13 +8,10 @@ import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tr
 import {
 	getLastNWeeks,
 	getDaysElapsedInCurrentWeek,
-	getWeekNumber,
-	calcActualDeltaPercent,
-	formatChangeText,
+	getDeltaSummaryParts,
 	SENTIMENT_COLORS,
 } from '../utils/stats-engine';
 import CategoryTrendChart from './CategoryTrendChart';
-import WeekHistoryGrid from './WeekHistoryGrid';
 import MonthCalendarView from './MonthCalendarView';
 import YearlyActivityGrid from './YearlyActivityGrid';
 import CategoryMostLogged from './CategoryMostLogged';
@@ -68,10 +65,6 @@ export default function CategoryDetailPage() {
 	const proratedBaseline = baselineAvg * (daysElapsed / 7);
 	const delta = currentCount - proratedBaseline;
 	const deltaPercent = proratedBaseline === 0 ? (currentCount > 0 ? 1 : 0) : delta / proratedBaseline;
-	const isStable = Math.abs(deltaPercent) < 0.1;
-
-	// Actual (non-prorated) comparison: current count vs full-week baseline
-	const actualDeltaPercent = calcActualDeltaPercent(currentCount, baselineAvg);
 
 	const sentiment = category?.sentiment ?? 'neutral';
 	const color = SENTIMENT_COLORS[sentiment];
@@ -81,20 +74,6 @@ export default function CategoryDetailPage() {
 		if (!categoryId) return [];
 		return filterEntriesByCategory(data.entries, categoryId, data);
 	}, [categoryId, data.entries, data.activityItems, data.foodItems, data.activityCategories, data.foodCategories]);
-
-	// Week history data (week number, count, % change from previous)
-	const weekHistoryData = useMemo(() => {
-		return weeklyStats.map((week, i) => {
-			const prev = i > 0 ? weeklyStats[i - 1].count : null;
-			const percentChange =
-				prev === null ? null : prev === 0 ? (week.count > 0 ? 100 : 0) : ((week.count - prev) / prev) * 100;
-			return {
-				weekNumber: getWeekNumber(week.weekKey),
-				count: week.count,
-				percentChange,
-			};
-		});
-	}, [weeklyStats]);
 
 	if (!category) {
 		return (
@@ -107,17 +86,10 @@ export default function CategoryDetailPage() {
 		);
 	}
 
-	const avgFormatted = Number.isInteger(baselineAvg) ? baselineAvg.toString() : baselineAvg.toFixed(1);
-	const absPercent = Math.round(Math.abs(deltaPercent) * 100);
-	const changeSign = deltaPercent > 0 ? '+' : '\u2212';
-	const changeText = isStable ? '' : `${changeSign}${absPercent}%`;
-	const deltaRaw = Math.abs(delta);
-	const deltaFormatted = Number.isInteger(deltaRaw) ? deltaRaw.toString() : deltaRaw.toFixed(1);
-	const deltaUnit = t('categoryDetail.event', { count: Math.round(deltaRaw) });
-	const deltaEventsText = isStable ? null : `(${changeSign}${deltaFormatted} ${deltaUnit})`;
-
-	// Actual change text (non-prorated)
-	const actualChangeText = formatChangeText(actualDeltaPercent);
+	const summary = getDeltaSummaryParts(deltaPercent, delta);
+	const deltaUnit = t('categoryDetail.event', { count: Math.round(Math.abs(delta)) });
+	const deltaEventsText = summary.isStable ? null : `(${summary.sign}${summary.deltaValueText} ${deltaUnit})`;
+	const comparisonText = t('categoryDetail.comparedToAverage');
 
 	return (
 		<div className="space-y-6 pb-4">
@@ -146,19 +118,13 @@ export default function CategoryDetailPage() {
 						</span>
 					)}
 				</div>
-				<div className="text-xs text-label">{t('categoryDetail.baselineAvg', { avg: avgFormatted })}</div>
-				{!isStable && (
+				{!summary.isStable && (
 					<div className="flex items-baseline gap-1.5 pt-1">
 						<span className="text-lg font-bold" style={{ color }}>
-							{changeText}
+							{summary.changeText}
 						</span>
 						{deltaEventsText && <span className="text-xs text-label">{deltaEventsText}</span>}
-						{daysElapsed < 7 && <span className="text-[10px] text-label">{t('categoryDetail.projected')}</span>}
-					</div>
-				)}
-				{daysElapsed < 7 && (
-					<div className="text-[11px] text-[var(--text-tertiary)]">
-						{t('categoryDetail.currentlyLabel', { change: actualChangeText })}
+						<span className="text-xs text-label">• {comparisonText}</span>
 					</div>
 				)}
 			</div>
@@ -169,14 +135,6 @@ export default function CategoryDetailPage() {
 				baselineAvg={baselineAvg}
 				sentiment={sentiment}
 				selectedWeekIndex={selectedWeekIndex}
-				onSelectWeek={setSelectedWeekIndex}
-			/>
-
-			{/* Week history grid */}
-			<WeekHistoryGrid
-				weeks={weekHistoryData}
-				selectedWeekIndex={selectedWeekIndex}
-				sentiment={sentiment}
 				onSelectWeek={setSelectedWeekIndex}
 			/>
 
