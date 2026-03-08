@@ -16,7 +16,8 @@
 		"type-check": "tsc --noEmit",
 		"format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
 		"format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
-		"prepare": "husky"
+		"prepare": "husky",
+		"mock-data:generate": "node scripts/mock-data/generate-storage-state.mjs"
 	},
 	"dependencies": {
 		"clsx": "^2.1.1",
