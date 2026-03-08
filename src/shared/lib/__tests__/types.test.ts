@@ -72,12 +72,12 @@ describe('getCurrentTime', () => {
 });
 
 describe('getTypeColor', () => {
-	it('returns type-activity for activity', () => {
-		expect(getTypeColor('activity')).toBe('type-activity');
+	it('returns type-accent for activity', () => {
+		expect(getTypeColor('activity')).toBe('type-accent');
 	});
 
-	it('returns type-food for food', () => {
-		expect(getTypeColor('food')).toBe('type-food');
+	it('returns type-accent for food', () => {
+		expect(getTypeColor('food')).toBe('type-accent');
 	});
 });
 
@@ -102,12 +102,12 @@ describe('getTypeIcon', () => {
 });
 
 describe('getTypeColorMuted', () => {
-	it('returns type-activity-muted for activity', () => {
-		expect(getTypeColorMuted('activity')).toBe('type-activity-muted');
+	it('returns type-accent-muted for activity', () => {
+		expect(getTypeColorMuted('activity')).toBe('type-accent-muted');
 	});
 
-	it('returns type-food-muted for food', () => {
-		expect(getTypeColorMuted('food')).toBe('type-food-muted');
+	it('returns type-accent-muted for food', () => {
+		expect(getTypeColorMuted('food')).toBe('type-accent-muted');
 	});
 });
 

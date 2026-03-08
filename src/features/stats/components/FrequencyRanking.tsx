@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TrackerData, Entry } from '@/shared/lib/types';
-import { getTodayDate } from '@/shared/lib/types';
+import { getTodayDate, findItemWithCategories } from '@/shared/lib/types';
 import { filterEntriesByType, filterEntriesByDateRange, getEntryCategoryIds } from '@/features/tracking';
 import { getDateNDaysAgo } from '@/shared/lib/date-utils';
-import { cn } from '@/shared/lib/cn';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import TypeIcon from '@/shared/ui/TypeIcon';
 import { rankItems, buildItemLookup, type RankedItem } from '../utils/ranking-utils';
+import { getItemAccentColor, SENTIMENT_COLORS } from '../utils/stats-engine';
 
 type TimePeriod = 'all' | '7d' | '30d';
 type TypeFilter = 'all' | 'activity' | 'food';
@@ -46,6 +47,7 @@ interface Props {
 
 export default function FrequencyRanking({ entries, data }: Props) {
 	const { t } = useTranslation('stats');
+	const navigate = useNavigate();
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('all');
 	const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
 	const [viewMode, setViewMode] = useState<ViewMode>('items');
@@ -64,7 +66,7 @@ export default function FrequencyRanking({ entries, data }: Props) {
 		return filterEntriesByType(timeFilteredEntries, typeFilter);
 	}, [timeFilteredEntries, typeFilter]);
 
-	const itemLookup = useMemo(() => buildItemLookup(data), [data.activityItems, data.foodItems]);
+	const itemLookup = useMemo(() => buildItemLookup(data), [data]);
 
 	const ranked = useMemo(() => {
 		if (viewMode === 'items') {
@@ -74,6 +76,15 @@ export default function FrequencyRanking({ entries, data }: Props) {
 	}, [filteredEntries, data, viewMode, itemLookup]);
 
 	const maxCount = ranked.length > 0 ? ranked[0].count : 0;
+
+	const getRowColor = (row: RankedItem) => {
+		if (viewMode === 'categories') {
+			return SENTIMENT_COLORS[row.sentiment ?? 'neutral'];
+		}
+		const found = findItemWithCategories(data, row.id);
+		if (!found) return SENTIMENT_COLORS.neutral;
+		return getItemAccentColor(found.item.categories, found.categories);
+	};
 
 	return (
 		<div className="space-y-3">
@@ -101,9 +112,13 @@ export default function FrequencyRanking({ entries, data }: Props) {
 					{
 						value: 'activity' as const,
 						label: t('frequencyRanking.typeFilter.activities'),
-						activeClass: 'type-activity',
+						activeClass: 'bg-[var(--text-primary)] text-[var(--bg-card)]',
 					},
-					{ value: 'food' as const, label: t('frequencyRanking.typeFilter.food'), activeClass: 'type-food' },
+					{
+						value: 'food' as const,
+						label: t('frequencyRanking.typeFilter.food'),
+						activeClass: 'bg-[var(--text-primary)] text-[var(--bg-card)]',
+					},
 				]}
 				value={typeFilter}
 				onChange={setTypeFilter}
@@ -128,32 +143,41 @@ export default function FrequencyRanking({ entries, data }: Props) {
 				</p>
 			) : (
 				<div className="space-y-1.5">
-					{ranked.map((row, i) => (
-						<div key={row.id} className="flex items-center gap-3">
-							<span className="text-xs text-muted w-5 text-right shrink-0">{i + 1}</span>
-							<div className="flex-1 min-w-0">
-								<div className="flex items-center justify-between gap-2 mb-0.5">
-									<div className="flex items-center gap-1.5 min-w-0">
-										{typeFilter === 'all' && (
-											<TypeIcon type={row.type} className="w-3.5 h-3.5 shrink-0 text-[var(--text-muted)]" />
-										)}
-										<span className="text-sm text-heading truncate">{row.name}</span>
+					{ranked.map((row, i) => {
+						const rowColor = getRowColor(row);
+						const detailPath = viewMode === 'items' ? `/stats/item/${row.id}` : `/stats/category/${row.id}`;
+
+						return (
+							<button
+								key={row.id}
+								type="button"
+								onClick={() => navigate(detailPath)}
+								className="w-full flex items-center gap-3 text-left hover:bg-[var(--bg-card-hover)] rounded-lg p-1 -m-1 transition-colors"
+							>
+								<span className="text-xs text-muted w-5 text-right shrink-0">{i + 1}</span>
+								<div className="flex-1 min-w-0">
+									<div className="flex items-center justify-between gap-2 mb-0.5">
+										<div className="flex items-center gap-1.5 min-w-0">
+											{typeFilter === 'all' && (
+												<TypeIcon type={row.type} className="w-3.5 h-3.5 shrink-0 text-[var(--text-muted)]" />
+											)}
+											<span className="text-sm text-heading truncate">{row.name}</span>
+										</div>
+										<span className="text-xs text-label shrink-0">{row.count}</span>
 									</div>
-									<span className="text-xs text-label shrink-0">{row.count}</span>
+									<div className="h-1 rounded-full bg-[var(--bg-inset)] overflow-hidden">
+										<div
+											className="h-full rounded-full transition-all"
+											style={{
+												width: `${(row.count / maxCount) * 100}%`,
+												backgroundColor: rowColor,
+											}}
+										/>
+									</div>
 								</div>
-								<div className="h-1 rounded-full bg-[var(--bg-inset)] overflow-hidden">
-									<div
-										className={cn('h-full rounded-full transition-all', {
-											'bg-[var(--color-success)]': row.sentiment === 'positive',
-											'bg-[var(--color-danger)]': row.sentiment === 'limit',
-											'bg-[var(--color-activity)]': row.sentiment !== 'positive' && row.sentiment !== 'limit',
-										})}
-										style={{ width: `${(row.count / maxCount) * 100}%` }}
-									/>
-								</div>
-							</div>
-						</div>
-					))}
+							</button>
+						);
+					})}
 				</div>
 			)}
 		</div>

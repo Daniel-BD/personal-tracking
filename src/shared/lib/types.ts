@@ -71,8 +71,8 @@ export function getCurrentTime(): string {
 }
 
 // Entry type display utilities
-export function getTypeColor(type: EntryType): string {
-	return type === 'activity' ? 'type-activity' : 'type-food';
+export function getTypeColor(_type: EntryType): string {
+	return 'type-accent';
 }
 
 export function getTypeLabel(type: EntryType): string {
@@ -83,8 +83,8 @@ export function getTypeIcon(type: EntryType): string {
 	return type === 'activity' ? '🏃' : '🍽️';
 }
 
-export function getTypeColorMuted(type: EntryType): string {
-	return type === 'activity' ? 'type-activity-muted' : 'type-food-muted';
+export function getTypeColorMuted(_type: EntryType): string {
+	return 'type-accent-muted';
 }
 
 // Collection accessor helpers

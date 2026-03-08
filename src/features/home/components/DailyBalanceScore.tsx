@@ -24,7 +24,7 @@ export default function DailyBalanceScore() {
 			<div className="flex items-baseline justify-between">
 				<span className="text-xs font-medium text-label uppercase tracking-wide">Balance Score</span>
 				<div className="flex items-center gap-2">
-					<span className="text-lg font-bold" style={{ color: 'var(--color-activity)' }}>
+					<span className="text-lg font-bold" style={{ color: 'var(--color-accent)' }}>
 						{Math.round(displayScore)}%
 					</span>
 					<SentimentPills positive={positive} limit={limit} />
