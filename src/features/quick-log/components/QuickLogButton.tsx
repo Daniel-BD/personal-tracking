@@ -65,7 +65,7 @@ export default function QuickLogButton({ onClick, ariaLabel }: Props) {
 			onClick={handleClick}
 			className={cn(
 				'ql-btn relative flex-shrink-0 p-1.5 rounded-md text-[var(--text-muted)]',
-				'hover:text-[var(--color-activity)] hover:bg-[var(--bg-inset)]',
+				'hover:text-[var(--color-accent)] hover:bg-[var(--bg-inset)]',
 			)}
 			aria-label={ariaLabel}
 		>

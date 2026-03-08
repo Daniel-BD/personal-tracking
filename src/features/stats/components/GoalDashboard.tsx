@@ -101,7 +101,7 @@ export default function GoalDashboard() {
 				<button
 					onClick={() => setIsModalOpen(true)}
 					className="text-sm font-medium transition-colors hover:opacity-80"
-					style={{ color: 'var(--color-activity)' }}
+					style={{ color: 'var(--color-accent)' }}
 				>
 					{t('goalDashboard.addToDashboard')}
 				</button>
@@ -130,7 +130,7 @@ export default function GoalDashboard() {
 						<button
 							onClick={() => setIsModalOpen(true)}
 							className="mt-2 text-sm font-semibold"
-							style={{ color: 'var(--color-activity)' }}
+							style={{ color: 'var(--color-accent)' }}
 						>
 							{t('goalDashboard.addFirstCategory')}
 						</button>

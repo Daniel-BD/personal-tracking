@@ -35,7 +35,7 @@ export default function CategoryMostLogged({ entries, data, sentiment }: Props) 
 	const maxCount = ranked.length > 0 ? ranked[0].count : 0;
 	const totalCount = filteredEntries.length;
 
-	const barColor = SENTIMENT_COLORS[sentiment] ?? 'var(--color-activity)';
+	const barColor = SENTIMENT_COLORS[sentiment] ?? 'var(--color-accent)';
 
 	return (
 		<div className="space-y-3">

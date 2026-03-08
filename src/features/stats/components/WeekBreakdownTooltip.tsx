@@ -4,7 +4,7 @@ import type { CategorySentiment } from '@/shared/lib/types';
 const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
 	positive: 'var(--color-success)',
 	limit: 'var(--color-danger)',
-	neutral: 'var(--color-neutral)',
+	neutral: 'var(--color-accent)',
 };
 
 interface WeekBreakdownTooltipProps {

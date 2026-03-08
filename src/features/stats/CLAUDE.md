@@ -6,7 +6,7 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 
 ## Utils
 
-- **`stats-engine.ts`** — Weekly food analytics, balance scores (based on category sentiment), actionable category rankings (top limit categories to reduce, lagging positive categories to increase).
+- **`stats-engine.ts`** — Weekly food analytics, balance scores (based on category sentiment), actionable category rankings (top limit categories to reduce, lagging positive categories to increase). `SENTIMENT_COLORS` maps neutral sentiment to the shared blue accent color (`var(--color-accent)`).
 
 ## Components
 
@@ -19,7 +19,7 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 - **`BalanceScoreTrendChart.tsx`** — 8-week balance score line chart (Recharts `<Line>`). Shows score % above each dot and small positive/limit counts below. Modeled after `CategoryTrendChart`.
 - **`ActionableCategories.tsx`** — Top limit categories to reduce + lagging positive categories to increase.
 - **`CategoryComposition.tsx`** — Stacked/bar chart showing category distribution.
-- **`FrequencyRanking.tsx`** — Ranked list of most-logged items or categories ordered by count, with SegmentedControl filters for time period (all time/7 days/30 days), type (all/activities/food), and view mode (items/categories).
+- **`FrequencyRanking.tsx`** — Ranked list of most-logged items or categories ordered by count, with SegmentedControl filters for time period (all time/7 days/30 days), type (all/activities/food), and view mode (items/categories). Item rows use the same sentiment-derived accent calculation as dashboard item cards (`getItemAccentColor()`); category rows use category sentiment colors. Rows are tappable and navigate to `/stats/item/:itemId` or `/stats/category/:categoryId`.
 - **`PeriodNavigator.tsx`** — Shared header component used by `MonthCalendarView` and `YearlyActivityGrid`. Shows total logged count in accent color and a styled pill-shaped prev/next navigation button.
 - **`MonthCalendarView.tsx`** — Month calendar grid on category/item detail page. Shows days with logged entries highlighted using sentiment or accent color with intensity-based saturation (more entries = more saturated). Accepts optional `itemId` and `accentColor` props. Prev/next month navigation via `PeriodNavigator`.
 - **`YearlyActivityGrid.tsx`** — GitHub-style yearly heatmap on category/item detail page. SVG grid of day squares colored by entry count with sentiment or accent color. Accepts optional `itemId` and `accentColor` props. Prev/next year navigation via `PeriodNavigator`.

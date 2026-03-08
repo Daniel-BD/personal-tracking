@@ -53,7 +53,7 @@ export default function LogPage() {
 					{activeFilterCount > 0 && (
 						<span
 							className="absolute top-1 right-1 w-2 h-2 rounded-full"
-							style={{ background: 'var(--color-activity)' }}
+							style={{ background: 'var(--color-accent)' }}
 						/>
 					)}
 				</button>
@@ -108,7 +108,7 @@ export default function LogPage() {
 					<button
 						type="button"
 						onClick={clearAllFilters}
-						className="text-xs text-[var(--color-activity)] hover:text-[var(--color-activity-hover)]"
+						className="text-xs text-[var(--color-accent)] hover:text-[var(--color-accent-hover)]"
 					>
 						{t('chips.clearAll')}
 					</button>
@@ -119,7 +119,7 @@ export default function LogPage() {
 			{!hasItems ? (
 				<div className="text-center py-12">
 					<p className="text-label mb-4">{t('empty.noItems')}</p>
-					<Link to="/library" className="text-[var(--color-activity)] hover:underline">
+					<Link to="/library" className="text-[var(--color-accent)] hover:underline">
 						{t('empty.addInLibrary')}
 					</Link>
 				</div>
@@ -127,7 +127,7 @@ export default function LogPage() {
 				<div className="text-center py-12">
 					<p className="text-label mb-2">{t('empty.noMatchingEntries')}</p>
 					{activeFilterCount > 0 ? (
-						<button type="button" onClick={clearAllFilters} className="text-[var(--color-activity)] hover:underline">
+						<button type="button" onClick={clearAllFilters} className="text-[var(--color-accent)] hover:underline">
 							{t('empty.clearAllFilters')}
 						</button>
 					) : (
@@ -164,7 +164,7 @@ export default function LogPage() {
 					{categoryOptions.length === 0 && itemOptions.length === 0 && (
 						<p className="text-sm text-label text-center py-2">
 							{t('filterSheet.noFilters')}{' '}
-							<Link to="/library" className="text-[var(--color-activity)] hover:underline">
+							<Link to="/library" className="text-[var(--color-accent)] hover:underline">
 								{t('filterSheet.addInLibrary')}
 							</Link>
 						</p>

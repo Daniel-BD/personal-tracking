@@ -8,7 +8,7 @@ import PeriodNavigator from './PeriodNavigator';
 const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
 	positive: 'var(--color-success)',
 	limit: 'var(--color-danger)',
-	neutral: 'var(--color-neutral)',
+	neutral: 'var(--color-accent)',
 };
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

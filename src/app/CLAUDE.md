@@ -27,8 +27,7 @@ All colors are defined as CSS custom properties on `:root` (light) and `.dark` (
 - **Backgrounds**: `--bg-page`, `--bg-card`, `--bg-card-hover`, `--bg-elevated`, `--bg-inset`, `--bg-input`
 - **Text**: `--text-primary`, `--text-secondary`, `--text-tertiary`, `--text-muted`
 - **Borders**: `--border-default`, `--border-input`, `--border-subtle`
-- **Activity (blue)**: `--color-activity`, `--color-activity-hover`, `--color-activity-bg`, `--color-activity-bg-strong`, `--color-activity-text`, `--color-activity-border`
-- **Food (green)**: `--color-food`, `--color-food-hover`, `--color-food-bg`, `--color-food-bg-strong`, `--color-food-text`, `--color-food-border`
+- **Accent (blue)**: `--color-accent`, `--color-accent-hover`, `--color-accent-bg`, `--color-accent-bg-strong`, `--color-accent-text`, `--color-accent-border`
 - **Status**: `--color-success*`, `--color-danger*`, `--color-warning*`, `--color-neutral`
 - **Other**: `--color-favorite` (star yellow), `--chart-color-1` through `--chart-color-9`, `--bg-toast`, `--shadow-card`, `--shadow-elevated`
 
@@ -57,7 +56,7 @@ className={`base-classes ${condition ? 'conditional-classes' : ''}`}
 
 ### Color Conventions
 
-- Activity = blue (`--color-activity`), Food = green (`--color-food`)
-- Positive sentiment = success green, Limit sentiment = danger red, Neutral = gray
+- Accent = blue (`--color-accent`)
+- Positive sentiment = success green, Limit sentiment = danger red, Neutral = accent blue
 - Cards use the `.card` utility class
 - Category pills: `bg-[var(--bg-inset)] text-label px-2 py-0.5 rounded`

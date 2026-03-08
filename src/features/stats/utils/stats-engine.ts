@@ -15,7 +15,7 @@ export { formatWeekLabel, getISOWeekNumber, getISOWeekAndYear } from '@/shared/l
 export const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
 	positive: 'var(--color-success)',
 	limit: 'var(--color-danger)',
-	neutral: 'var(--color-neutral)',
+	neutral: 'var(--color-accent)',
 };
 
 /**
@@ -262,7 +262,7 @@ export function buildCategoryColorMap(topCategoryIds: string[]): Map<string, str
 	topCategoryIds.forEach((catId, index) => {
 		map.set(catId, chartColors[index % chartColors.length]);
 	});
-	map.set('OTHER', 'var(--color-neutral)');
+	map.set('OTHER', 'var(--color-accent)');
 	return map;
 }
 
