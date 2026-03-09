@@ -2,10 +2,11 @@ import { useState, useMemo } from 'react';
 import type { EntryType, Category } from '@/shared/lib/types';
 import { getTodayDate, getCurrentTime } from '@/shared/lib/types';
 import { addEntry, addItem, deleteEntry } from '@/shared/store/store';
-import { showToast } from '@/shared/ui/toast-store';
+import { useToast } from '@/shared/ui/useToast';
 import type { UnifiedItem } from './useQuickLogSearch';
 
 export function useQuickLogForm(activityCategories: Category[], foodCategories: Category[]) {
+	const { showToast } = useToast();
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const [sheetMode, setSheetMode] = useState<'create' | 'log'>('create');
 	const [itemName, setItemName] = useState('');

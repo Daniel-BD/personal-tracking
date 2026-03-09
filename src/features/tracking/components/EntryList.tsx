@@ -16,7 +16,7 @@ import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import EntityTitle from '@/shared/ui/EntityTitle';
 import IconActionButton from '@/shared/ui/IconActionButton';
-import { showToast } from '@/shared/ui/toast-store';
+import { useToast } from '@/shared/ui/useToast';
 
 interface Props {
 	entries: Entry[];
@@ -24,6 +24,7 @@ interface Props {
 
 export default function EntryList({ entries }: Props) {
 	const { t } = useTranslation('log');
+	const { showToast } = useToast();
 	const navigate = useNavigate();
 	const data = useTrackerData();
 	const groupedEntries = useMemo(() => getEntriesGroupedByDate(entries), [entries]);

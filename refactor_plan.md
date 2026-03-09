@@ -15,11 +15,11 @@
 - [x] Preserve the current `TrackerData` wire format, tombstone format, and merge behavior. This phase is structural only.
 
 ### Phase 2: Notification and Sync UI Boundaries
-- [ ] Remove store-to-UI coupling from shared internals: sync code must stop importing toast utilities and translated strings.
-- [ ] Introduce a typed store event surface for semantic events such as sync push failed, sync load failed, and sync completed. Event payloads should be codes and IDs, not translated copy.
-- [ ] Move sync presentation into the app layer: relocate the sync status pill out of shared UI and add an app-owned bridge that translates store events into localized toasts.
-- [ ] Replace `toast-store.ts` handler injection with a React-facing toast API used from components and hooks. Migrate existing feature callers to that API; non-React store code must emit events instead of triggering UI directly.
-- [ ] Update shared-layer docs so `shared/ui` is again store-free and generic.
+- [x] Remove store-to-UI coupling from shared internals: sync code must stop importing toast utilities and translated strings.
+- [x] Introduce a typed store event surface for semantic events such as sync push failed, sync load failed, and sync completed. Event payloads should be codes and IDs, not translated copy.
+- [x] Move sync presentation into the app layer: relocate the sync status pill out of shared UI and add an app-owned bridge that translates store events into localized toasts.
+- [x] Replace `toast-store.ts` handler injection with a React-facing toast API used from components and hooks. Migrate existing feature callers to that API; non-React store code must emit events instead of triggering UI directly.
+- [x] Update shared-layer docs so `shared/ui` is again store-free and generic.
 
 ### Phase 3: Stats Selectors and Indexes
 - [ ] Add reusable tracking indexes as pure utilities plus hooks, exported through `@/features/tracking`: `entriesByItem`, `entriesByCategory`, `entriesByWeek`, `itemById`, `categoryById`, and per-item category lookups.
@@ -39,12 +39,12 @@
 ## Public APIs / Interfaces
 - [x] `@/shared/store/store` remains the compatibility entrypoint for existing callers throughout this refactor.
 - [x] `@/shared/store/hooks` keeps the current slice hooks; new hooks are additive.
-- [ ] Add a typed store-event subscription interface in `shared/store` for app presenters.
+- [x] Add a typed store-event subscription interface in `shared/store` for app presenters.
 - [ ] Add tracking index exports in `@/features/tracking` so stats and library share the same derived lookup layer.
 
 ## Test Plan
 - [x] Keep the current store sync, merge, and tombstone suites passing while extracting modules.
-- [ ] Add focused tests for the new merge and pending-deletion modules and for the new store-event surface.
+- [x] Add focused tests for the new merge and pending-deletion modules and for the new store-event surface.
 - [ ] Add focused tests for tracking index builders and stats view-model hooks, covering category and item lookup, week bucketing, and unchanged baseline calculations.
 - [ ] Add focused tests for library lookup helpers and one regression test per tab for add, edit, merge, and delete flow wiring.
 - [x] Each implementation slice ends with `npm run test -- --run`, `npm run lint`, `npm run build`, and `npm run format`.

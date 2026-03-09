@@ -1,8 +1,6 @@
 import type { SyncStatus, TrackerData, TombstoneEntityType } from '@/shared/lib/types';
 import { getCardId } from '@/shared/lib/types';
 import { fetchGist, getConfig, isConfigured, updateGist } from '@/shared/lib/github';
-import i18n from '@/shared/lib/i18n';
-import { showToast } from '@/shared/ui/toast-store';
 import {
 	addTombstone,
 	addTombstones,
@@ -23,6 +21,7 @@ import {
 	persistPendingDeletions,
 	persistPendingRestorations,
 } from './sync-state';
+import { emitStoreEvent, type SyncFailureCode } from './store-events';
 
 export {
 	addTombstone,
@@ -83,20 +82,24 @@ export async function pushToGist(
 	if (!config.gistId || !config.token) return;
 
 	setSyncStatus('syncing');
+	let failureCode: SyncFailureCode = 'unknown';
 
 	try {
+		failureCode = 'fetch_failed';
 		const remoteRaw = await fetchGist(config.gistId, config.token);
 		const remoteData = migrateData(remoteRaw);
 		const localData = getCurrentData();
 		const mergedData = mergeTrackerDataWithState(localData, remoteData, getPendingSyncSnapshot());
 		setData(mergedData);
+		failureCode = 'update_failed';
 		await updateGist(config.gistId, config.token, mergedData);
 		clearConfirmedDeletions(remoteData);
 		setSyncStatus('idle');
+		emitStoreEvent({ type: 'sync-completed', operation: 'push' });
 	} catch (error) {
 		console.error('Failed to sync to Gist:', error);
 		setSyncStatus('error');
-		showToast(i18n.t('common:sync.syncFailed'));
+		emitStoreEvent({ type: 'sync-push-failed', code: failureCode });
 	}
 }
 
@@ -111,20 +114,24 @@ export async function loadFromGistFn(
 	if (!config.gistId || !config.token) return;
 
 	setSyncStatus('syncing');
+	let failureCode: SyncFailureCode = 'unknown';
 
 	try {
+		failureCode = 'fetch_failed';
 		const raw = await fetchGist(config.gistId, config.token);
 		const remoteData = migrateData(raw);
 		const localData = getCurrentData();
 		const mergedData = mergeTrackerDataWithState(localData, remoteData, getPendingSyncSnapshot());
 		setData(mergedData);
+		failureCode = 'update_failed';
 		await updateGist(config.gistId, config.token, mergedData);
 		clearConfirmedDeletions(remoteData);
 		setSyncStatus('idle');
+		emitStoreEvent({ type: 'sync-completed', operation: 'load' });
 	} catch (error) {
 		console.error('Failed to load from Gist:', error);
 		setSyncStatus('error');
-		showToast(i18n.t('common:sync.loadFailed'));
+		emitStoreEvent({ type: 'sync-load-failed', code: failureCode });
 	}
 }
 

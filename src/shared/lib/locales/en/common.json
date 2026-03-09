@@ -23,7 +23,10 @@
 	},
 	"sync": {
 		"syncFailed": "Sync failed — changes saved locally",
-		"loadFailed": "Failed to load from Gist"
+		"loadFailed": "Failed to load from Gist",
+		"syncingStatus": "Syncing…",
+		"syncedStatus": "Synced",
+		"syncFailedStatus": "Sync failed"
 	},
 	"reload": {
 		"newVersionAvailable": "New version available",

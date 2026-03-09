@@ -13,7 +13,7 @@ import EntityTitle from '@/shared/ui/EntityTitle';
 import StarIcon from '@/shared/ui/StarIcon';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
-import { showToast } from '@/shared/ui/toast-store';
+import { useToast } from '@/shared/ui/useToast';
 import IconActionButton from '@/shared/ui/IconActionButton';
 import { useLibraryForm } from '../hooks/useLibraryForm';
 import { useMergeFlow } from '../hooks/useMergeFlow';
@@ -36,6 +36,7 @@ const ITEM_FORM_DEFAULTS = { name: '', categories: [] as string[], type: 'activi
 
 export default function ItemsTab({ items, categoriesByType, searchQuery, showAddSheet, onCloseAddSheet }: Props) {
 	const { t } = useTranslation('library');
+	const { showToast } = useToast();
 	const navigate = useNavigate();
 	const { editing, fields, deleting, setDeleting, setField, resetForm, startEdit, startDelete } = useLibraryForm<
 		TypedItem,

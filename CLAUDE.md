@@ -80,6 +80,7 @@ Navigation uses a 5-tab bottom nav bar defined in `App.tsx`.
 - **Path aliases**: `@/` maps to `src/` (configured in tsconfig, vite, vitest).
 - **Two parallel type hierarchies**: Activity and food share identical structures but are kept separate. Functions take `EntryType` ('activity' | 'food').
 - **External store**: Module singleton + `useSyncExternalStore` (not Context). Fine-grained selector hooks prevent re-renders. See `src/shared/CLAUDE.md`.
+- **App-owned notifications**: Shared store code emits typed semantic events; the app layer owns localized sync toasts and the sync status pill. Shared UI stays store-free. See `src/shared/CLAUDE.md` and `src/app/CLAUDE.md`.
 - **Category overrides**: Entries override item defaults via `categoryOverrides`. Use `getEntryCategoryIds()`. See `src/features/tracking/CLAUDE.md`.
 - **Category sentiment**: Categories have `sentiment` ('positive' | 'neutral' | 'limit'). See `src/features/tracking/CLAUDE.md`.
 - **Gist sync**: Debounced push, merge-on-load (local wins on conflict). See `src/shared/CLAUDE.md`.

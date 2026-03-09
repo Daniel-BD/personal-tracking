@@ -22,6 +22,8 @@ import {
 	restoreFromBackupGistFn,
 } from './sync';
 import { createSyncController } from './sync-state';
+export { subscribeToStoreEvents } from './store-events';
+export type { StoreEvent, StoreEventListener, SyncFailureCode, SyncOperation } from './store-events';
 
 export { dataStore, syncStatusStore };
 

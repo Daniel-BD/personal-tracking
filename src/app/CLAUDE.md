@@ -4,7 +4,9 @@ Root layout, entry point, and global CSS.
 
 ## Files
 
-- **`App.tsx`** — Root layout: React Router routes (each wrapped in `ErrorBoundary`) + 5-tab bottom nav bar + toast container + store initialization. Store init is called here on mount.
+- **`App.tsx`** — Root layout: React Router routes (each wrapped in `ErrorBoundary`) + 5-tab bottom nav bar + `ToastProvider` + store initialization. Store init is called here on mount.
+- **`components/StoreEventToastBridge.tsx`** — App-owned presenter that subscribes to typed store events and translates failure events into localized toasts.
+- **`components/SyncStatusPill.tsx`** — App-owned sync status floating pill. Uses `useSyncStatus()` for the active syncing phase and store events for the transient synced/error phases.
 - **`main.tsx`** — Entry point: `BrowserRouter` + `StrictMode`. Strips trailing slashes from `import.meta.env.BASE_URL` for basename.
 - **`app.css`** — Global CSS: color system (CSS custom properties on `:root` and `.dark`), reusable utility classes, dark mode variant, date/time input overrides.
 

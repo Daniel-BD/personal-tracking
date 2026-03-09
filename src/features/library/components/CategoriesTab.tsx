@@ -11,7 +11,7 @@ import EntityTitle from '@/shared/ui/EntityTitle';
 import { SentimentDot } from '@/shared/ui/EntityMetaBadges';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
-import { showToast } from '@/shared/ui/toast-store';
+import { useToast } from '@/shared/ui/useToast';
 import IconActionButton from '@/shared/ui/IconActionButton';
 import SentimentPicker from './SentimentPicker';
 import { useLibraryForm } from '../hooks/useLibraryForm';
@@ -36,6 +36,7 @@ const CATEGORY_FORM_DEFAULTS = { name: '', sentiment: 'neutral' as CategorySenti
 
 export default function CategoriesTab({ categories, allItems, searchQuery, showAddSheet, onCloseAddSheet }: Props) {
 	const { t } = useTranslation('library');
+	const { showToast } = useToast();
 	const navigate = useNavigate();
 	const { editing, fields, deleting, setDeleting, setField, resetForm, startEdit, startDelete } = useLibraryForm<
 		TypedCategory,

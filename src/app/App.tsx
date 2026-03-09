@@ -8,10 +8,11 @@ import { HomePage } from '@/features/home';
 import { LogPage, ItemDetailPage } from '@/features/log';
 import { LibraryPage } from '@/features/library';
 import NavIcon from '@/shared/ui/NavIcon';
-import ToastContainer from '@/shared/ui/Toast';
-import SyncToast from '@/shared/ui/SyncToast';
+import { ToastProvider } from '@/shared/ui/Toast';
 import ReloadPrompt from '@/shared/ui/ReloadPrompt';
 import ErrorBoundary from '@/shared/ui/ErrorBoundary';
+import StoreEventToastBridge from './components/StoreEventToastBridge';
+import SyncStatusPill from './components/SyncStatusPill';
 
 // Heavy routes are lazy-loaded so their chunks (including recharts) are only
 // fetched when the user first navigates to that tab.
@@ -55,89 +56,91 @@ export default function App() {
 	}, []);
 
 	return (
-		<div className="h-dvh flex flex-col">
-			<main className="flex-1 min-h-0 overflow-y-auto max-w-4xl mx-auto w-full px-4 py-6">
-				<Suspense fallback={<PageLoader />}>
-					<Routes>
-						{routeConfig.map(({ path, labelKey, Component }) => (
+		<ToastProvider>
+			<div className="h-dvh flex flex-col">
+				<main className="flex-1 min-h-0 overflow-y-auto max-w-4xl mx-auto w-full px-4 py-6">
+					<Suspense fallback={<PageLoader />}>
+						<Routes>
+							{routeConfig.map(({ path, labelKey, Component }) => (
+								<Route
+									key={path}
+									path={path}
+									element={
+										<ErrorBoundary label={t(labelKey)}>
+											<Component />
+										</ErrorBoundary>
+									}
+								/>
+							))}
 							<Route
-								key={path}
-								path={path}
+								path="/log/item/:itemId"
 								element={
-									<ErrorBoundary label={t(labelKey)}>
-										<Component />
+									<ErrorBoundary label="Item Detail">
+										<ItemDetailPage />
 									</ErrorBoundary>
 								}
 							/>
-						))}
-						<Route
-							path="/log/item/:itemId"
-							element={
-								<ErrorBoundary label="Item Detail">
-									<ItemDetailPage />
-								</ErrorBoundary>
-							}
-						/>
-						<Route
-							path="/stats/category/:categoryId"
-							element={
-								<ErrorBoundary label="Category Detail">
-									<CategoryDetailPage />
-								</ErrorBoundary>
-							}
-						/>
-						<Route
-							path="/stats/item/:itemId"
-							element={
-								<ErrorBoundary label="Item Detail">
-									<StatsItemDetailPage />
-								</ErrorBoundary>
-							}
-						/>
-					</Routes>
-				</Suspense>
-			</main>
+							<Route
+								path="/stats/category/:categoryId"
+								element={
+									<ErrorBoundary label="Category Detail">
+										<CategoryDetailPage />
+									</ErrorBoundary>
+								}
+							/>
+							<Route
+								path="/stats/item/:itemId"
+								element={
+									<ErrorBoundary label="Item Detail">
+										<StatsItemDetailPage />
+									</ErrorBoundary>
+								}
+							/>
+						</Routes>
+					</Suspense>
+				</main>
 
-			<nav
-				className="fixed bottom-0 left-0 right-0 z-20 backdrop-blur-lg"
-				style={{
-					background: 'color-mix(in srgb, var(--bg-card) 80%, transparent)',
-					paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-				}}
-			>
-				<div className="max-w-4xl mx-auto flex justify-around relative">
-					{routeConfig.map(({ path, labelKey, icon }) => {
-						const isActive = path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
-						return (
-							<NavLink
-								key={path}
-								to={path}
-								className="flex flex-col items-center pt-2 pb-2 px-3 text-xs transition-colors relative flex-1"
-								style={{ color: isActive ? 'var(--color-accent)' : 'var(--text-muted)' }}
-							>
-								{isActive && (
-									<motion.span
-										layoutId="nav-indicator"
-										className="absolute top-0 left-0 right-0 h-0.5 rounded-full"
-										style={{ background: 'var(--color-accent)' }}
-										transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-									/>
-								)}
-								<span className="mb-1">
-									<NavIcon icon={icon} />
-								</span>
-								<span>{t(labelKey)}</span>
-							</NavLink>
-						);
-					})}
-				</div>
-			</nav>
+				<nav
+					className="fixed bottom-0 left-0 right-0 z-20 backdrop-blur-lg"
+					style={{
+						background: 'color-mix(in srgb, var(--bg-card) 80%, transparent)',
+						paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+					}}
+				>
+					<div className="max-w-4xl mx-auto flex justify-around relative">
+						{routeConfig.map(({ path, labelKey, icon }) => {
+							const isActive = path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
+							return (
+								<NavLink
+									key={path}
+									to={path}
+									className="flex flex-col items-center pt-2 pb-2 px-3 text-xs transition-colors relative flex-1"
+									style={{ color: isActive ? 'var(--color-accent)' : 'var(--text-muted)' }}
+								>
+									{isActive && (
+										<motion.span
+											layoutId="nav-indicator"
+											className="absolute top-0 left-0 right-0 h-0.5 rounded-full"
+											style={{ background: 'var(--color-accent)' }}
+											transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+										/>
+									)}
+									<span className="mb-1">
+										<NavIcon icon={icon} />
+									</span>
+									<span>{t(labelKey)}</span>
+								</NavLink>
+							);
+						})}
+					</div>
+				</nav>
 
-			<div className="h-16" />
+				<div className="h-16" />
 
-			<ToastContainer />
-			<SyncToast />
-			<ReloadPrompt />
-		</div>
+				<StoreEventToastBridge />
+				<SyncStatusPill />
+				<ReloadPrompt />
+			</div>
+		</ToastProvider>
 	);
 }

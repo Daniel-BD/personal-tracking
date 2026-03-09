@@ -4,7 +4,7 @@ import type { TrackerData } from '@/shared/lib/types';
 import type { ActionableCategoryRow } from '../utils/stats-engine';
 import { getLastNWeeks, getTopLimitCategories } from '../utils/stats-engine';
 import { addDashboardCard } from '@/shared/store/store';
-import { showToast } from '@/shared/ui/toast-store';
+import { useToast } from '@/shared/ui/useToast';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
 import { cn } from '@/shared/lib/cn';
 
@@ -16,6 +16,7 @@ interface ActionableCategoriesProps {
 
 export default function ActionableCategories({ data }: ActionableCategoriesProps) {
 	const { t } = useTranslation('stats');
+	const { showToast } = useToast();
 	// eslint-disable-next-line react-hooks/exhaustive-deps -- recalculate weeks when entries change
 	const weeks = useMemo(() => getLastNWeeks(8), [data.entries]);
 

@@ -8,12 +8,13 @@ Cross-feature, reusable code. Must NOT import from `features/`. Data flows one w
 - **`store-runtime.ts`** — Owns the singleton external-store state (`currentData`, `currentSyncStatus`), subscriptions, snapshots, and persistence on `setData()`. `store.ts` re-exports the store handles from here.
 - **`local-persistence.ts`** — Owns tracker LocalStorage loading/saving and the `tracker_data` key. Load path still migrates data, initializes default dashboard cards, and filters pending deletions before hydrating the runtime.
 - **`sync-state.ts`** — Owns local-only pending deletion/restoration sets, their persistence keys, and the debounced/serialized sync controller used by the facade.
+- **`store-events.ts`** — Typed semantic event surface for app presenters. Emits store-level events such as `sync-completed`, `sync-push-failed`, and `sync-load-failed` with codes/IDs instead of user-facing copy.
 - **`merge.ts`** — Pure tombstone and merge helpers: tombstone CRUD, pending-deletion filtering, and `mergeTrackerData(...)`. These helpers take explicit pending-sync state instead of reaching into UI or storage.
 - **`commands/`** — Mutation modules split by concern: `entries.ts`, `items-favorites.ts`, `categories-dashboard-cards.ts`, and `import-export-backup.ts`. Bind them in `store.ts`; keep cross-module behavior unchanged.
-- **`sync.ts`** — Thin compatibility shim over `sync-state.ts` + `merge.ts` plus Gist network operations (`pushToGist`, `loadFromGistFn`, backup/restore). This remains the place for sync side effects until Phase 2 removes store-to-UI coupling.
+- **`sync.ts`** — Thin compatibility shim over `sync-state.ts` + `merge.ts` plus Gist network operations (`pushToGist`, `loadFromGistFn`, backup/restore). Emits typed store events on sync completion/failure; does not import UI or translations.
 - **`migration.ts`** — Data migration (`migrateData()` for sentiment field) and dashboard initialization (`initializeDefaultDashboardCards()`).
 - **`import-export.ts`** — Import validation (`validateAndParseImport()`) and export download (`triggerExportDownload()`). Field-level validation of entries, items, and categories. Called by the import/export command module.
-- **`hooks.ts`** — React hooks wrapping the external store. Provides `useTrackerData()` for full data access, `useSyncStatus()`, and fine-grained selector hooks (`useEntries()`, `useActivityItems()`, `useFoodItems()`, `useActivityCategories()`, `useFoodCategories()`, `useDashboardCards()`, `useFavoriteItems()`) that prevent re-renders when unrelated data changes.
+- **`hooks.ts`** — React hooks wrapping the external store. Provides `useTrackerData()` for full data access, `useSyncStatus()`, and fine-grained selector hooks (`useEntries()`, `useActivityItems()`, `useFoodItems()`, `useActivityCategories()`, `useFoodCategories()`, `useDashboardCards()`, `useFavoriteItems()`) that prevent re-renders when unrelated data changes. App presenters subscribe to store events via `subscribeToStoreEvents()` from `store.ts`, not via shared UI.
 
 ### External Store Pattern Details
 
@@ -49,6 +50,7 @@ Test files in `store/__tests__/`:
 - `tombstones.test.ts` — Cross-device deletion sync via tombstones
 - `sync-state.test.ts` — Pending deletion/restoration persistence and debounced sync controller behavior
 - `merge-module.test.ts` — Focused coverage for the pure merge helper module
+- `store-events.test.ts` — Typed store-event subscription surface
 
 ## Lib (`lib/`)
 
@@ -98,13 +100,12 @@ Reserve `children` for the body/content area where each usage genuinely needs di
 - **`NavIcon.tsx`** — Navigation icon component (Lucide icons for bottom nav).
 - **`StarIcon.tsx`** — Reusable star icon (Lucide Star, filled/unfilled) for favorites.
 - **`IconActionButton.tsx`** — Reusable circular icon action button with semantic tones (`add`, `edit`, `delete`) and app color tokens.
-- **`Toast.tsx`** — Toast container component. Renders queued toasts, auto-dismisses after 3.5s, and shows optional action buttons.
-- **`toast-store.ts`** — Module-level toast bridge. Exports `showToast()` and the internal handler wiring used by `Toast.tsx` so feature/store code can enqueue toasts without a provider.
+- **`Toast.tsx`** — Generic toast provider and viewport. `ToastProvider` owns queued toast state and rendering; no store imports.
+- **`useToast.ts`** — React-facing hook for enqueueing toasts from components and hooks. Depends on `ToastProvider`, not on the store.
 - **`ConfirmDialog.tsx`** — Wraps `BottomSheet` for destructive action confirmations. Accepts `open`, `onClose`, `onConfirm`, `title`, `message` (optional), and `confirmLabel` (defaults to `'Delete'`). Confirm button is always danger-styled. Use this instead of native `confirm()`.
 - **`SentimentPills.tsx`** — Compact positive/limit count pills (green `N+`, red `N−`). Takes `{ positive, limit }` number props. Used by `DaySentimentSummary` and `DailyBalanceScore`.
 - **`EntityMetaBadges.tsx`** — Shared entity metadata helpers: `SentimentDot` (accent dot) and `CategorySentimentPills` (small sentiment-colored default-category pills used in Stats add modal and Library rows).
 - **`EntityTitle.tsx`** — Shared title text component for entity rows. Uses smaller typography and a two-line ellipsis clamp to protect action-button space in dense lists.
-- **`SyncToast.tsx`** — Sync status floating pill. Subscribes to `useSyncStatus()`: "Syncing…" (spinner) → "Synced" (checkmark, 1.5s) → "Sync failed" (2.5s). Only visible when Gist sync is configured.
 - **`ErrorBoundary.tsx`** — Class component (React requirement). Accepts optional `label` prop. Shows fallback with "Reload page" and "Try again" buttons.
 - **`ReloadPrompt.tsx`** — PWA update prompt (vite-plugin-pwa).
 
