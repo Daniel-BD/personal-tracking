@@ -26,6 +26,7 @@ Library page for item & category CRUD management. Compact card list with inline 
 - Items can be favorited/unfavorited via a star icon button (uses `toggleFavorite()` from store).
 - Adding a new item/category uses a `+` icon button in the page header.
 - **Merge flow**: Edit sheet → "Merge into..." button → close edit sheet → MergeTargetSheet (search/select) → MergeConfirmSheet (summary + optional note) → execute merge via `mergeItem()`/`mergeCategory()` from store → toast notification.
+- Row titles use smaller text and clamp to two lines (ellipsis) for long names in both items and categories lists.
 
 - List rows that navigate to stats detail pages are keyboard-accessible (`role="button"`, `tabIndex=0`, Enter/Space support) while keeping inline edit/delete/favorite icon buttons.
 

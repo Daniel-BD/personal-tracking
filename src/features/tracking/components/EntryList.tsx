@@ -14,6 +14,7 @@ import CategoryPicker from './CategoryPicker';
 import NativePickerInput from '@/shared/ui/NativePickerInput';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
+import EntityTitle from '@/shared/ui/EntityTitle';
 import IconActionButton from '@/shared/ui/IconActionButton';
 import { showToast } from '@/shared/ui/Toast';
 
@@ -137,9 +138,7 @@ export default function EntryList({ entries }: Props) {
 									>
 										<div className="flex items-start justify-between gap-3">
 											<div className="flex-1 min-w-0">
-												<p className="font-medium text-heading truncate block">
-													{getItemName(entry.type, entry.itemId)}
-												</p>
+												<EntityTitle text={getItemName(entry.type, entry.itemId)} />
 												<CategoryLine categoryIds={categoryIds} categories={typeCategories} />
 												{entry.notes && <p className="text-xs text-subtle mt-0.5 truncate italic">{entry.notes}</p>}
 											</div>

@@ -95,6 +95,7 @@ Reserve `children` for the body/content area where each usage genuinely needs di
 - **`ConfirmDialog.tsx`** — Wraps `BottomSheet` for destructive action confirmations. Accepts `open`, `onClose`, `onConfirm`, `title`, `message` (optional), and `confirmLabel` (defaults to `'Delete'`). Confirm button is always danger-styled. Use this instead of native `confirm()`.
 - **`SentimentPills.tsx`** — Compact positive/limit count pills (green `N+`, red `N−`). Takes `{ positive, limit }` number props. Used by `DaySentimentSummary` and `DailyBalanceScore`.
 - **`EntityMetaBadges.tsx`** — Shared entity metadata helpers: `SentimentDot` (accent dot) and `CategorySentimentPills` (small sentiment-colored default-category pills used in Stats add modal and Library rows).
+- **`EntityTitle.tsx`** — Shared title text component for entity rows. Uses smaller typography and a two-line ellipsis clamp to protect action-button space in dense lists.
 - **`SyncToast.tsx`** — Sync status floating pill. Subscribes to `useSyncStatus()`: "Syncing…" (spinner) → "Synced" (checkmark, 1.5s) → "Sync failed" (2.5s). Only visible when Gist sync is configured.
 - **`ErrorBoundary.tsx`** — Class component (React requirement). Accepts optional `label` prop. Shows fallback with "Reload page" and "Try again" buttons.
 - **`ReloadPrompt.tsx`** — PWA update prompt (vite-plugin-pwa).

@@ -19,6 +19,7 @@ Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`). `
 ## Components
 
 - **`EntryList.tsx`** — Grouped-by-date entry display with inline quick-add, edit, and delete icon buttons on each row. Date headers are sticky, uppercase, muted. Uses `BottomSheet` for editing entries. Tap row to navigate to item detail.
+- Entry row titles use smaller text and clamp to two lines with ellipsis to avoid overlapping action buttons.
 - **`CategoryLine.tsx`** — Shared category display with sentiment-colored pills (wrapping rows). Used on item/entry rows.
 - **`CategoryPicker.tsx`** — Multi-select category chips with inline creation. New categories created inline default to neutral sentiment.
 
