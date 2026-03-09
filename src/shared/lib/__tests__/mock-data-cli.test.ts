@@ -14,7 +14,7 @@ describe('mock-data CLI generator', () => {
 			execFileSync(
 				'node',
 				[
-					'scripts/mock-data/generate-storage-state.mjs',
+					'.agents/skills/mock-data-preview/scripts/generate-storage-state.mjs',
 					'--origin',
 					'http://127.0.0.1:4173',
 					'--days',
@@ -53,7 +53,7 @@ describe('mock-data CLI generator', () => {
 
 		try {
 			const args = [
-				'scripts/mock-data/generate-storage-state.mjs',
+				'.agents/skills/mock-data-preview/scripts/generate-storage-state.mjs',
 				'--origin',
 				'http://127.0.0.1:4173',
 				'--days',

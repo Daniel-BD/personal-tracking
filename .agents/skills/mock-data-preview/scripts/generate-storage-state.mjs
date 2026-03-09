@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { createMockTrackerData } from '../../public/mock-data/inject-mock-data.js';
+import { createMockTrackerData } from '../../../../public/mock-data/inject-mock-data.js';
 
 const DEFAULT_ORIGIN = 'http://127.0.0.1:4173';
 const DEFAULT_DATA_PATH = '.artifacts/mock-tracker-data.json';

@@ -5,6 +5,8 @@ description: Generate seeded mock tracker datasets and Playwright storage state 
 
 # Mock Data Preview Skill
 
+Script location: `.agents/skills/mock-data-preview/scripts/generate-storage-state.mjs`
+
 Run this command from repo root:
 
 ```bash
