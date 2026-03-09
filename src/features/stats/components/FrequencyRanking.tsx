@@ -6,7 +6,7 @@ import { getTodayDate, findItemWithCategories } from '@/shared/lib/types';
 import { filterEntriesByType, filterEntriesByDateRange, getEntryCategoryIds } from '@/features/tracking';
 import { getDateNDaysAgo } from '@/shared/lib/date-utils';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
-import TypeIcon from '@/shared/ui/TypeIcon';
+import { EntryTypePill } from '@/shared/ui/EntityMetaBadges';
 import { rankItems, buildItemLookup, type RankedItem } from '../utils/ranking-utils';
 import { getItemAccentColor, SENTIMENT_COLORS } from '../utils/stats-engine';
 
@@ -158,9 +158,7 @@ export default function FrequencyRanking({ entries, data }: Props) {
 								<div className="flex-1 min-w-0">
 									<div className="flex items-center justify-between gap-2 mb-0.5">
 										<div className="flex items-center gap-1.5 min-w-0">
-											{typeFilter === 'all' && (
-												<TypeIcon type={row.type} className="w-3.5 h-3.5 shrink-0 text-[var(--text-muted)]" />
-											)}
+											{typeFilter === 'all' && <EntryTypePill type={row.type} className="shrink-0" />}
 											<span className="text-sm text-heading truncate">{row.name}</span>
 										</div>
 										<span className="text-xs text-label shrink-0">{row.count}</span>

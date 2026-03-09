@@ -1,9 +1,9 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
-import TypeIcon from '@/shared/ui/TypeIcon';
 import { useTranslation } from 'react-i18next';
 import { getCurrentTime, getTodayDate, type Entry, type EntryType } from '@/shared/lib/types';
+import { EntryTypePill } from '@/shared/ui/EntityMetaBadges';
 import { addEntry, getItemById, deleteEntry, updateEntry } from '@/shared/store/store';
 import { useTrackerData } from '@/shared/store/hooks';
 import { getEntriesGroupedByDate } from '../utils/entry-grouping';
@@ -140,9 +140,7 @@ export default function EntryList({ entries, showType = false }: Props) {
 										<div className="flex items-center justify-between gap-3">
 											<div className="flex-1 min-w-0">
 												<div className="flex items-center gap-2">
-													{showType && (
-														<TypeIcon type={entry.type} className="w-4 h-4 shrink-0 text-[var(--text-muted)]" />
-													)}
+													{showType && <EntryTypePill type={entry.type} />}
 													<span className="font-medium text-heading truncate">
 														{getItemName(entry.type, entry.itemId)}
 													</span>
