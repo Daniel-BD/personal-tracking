@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
 	getWeekStartDate,
 	getDaysElapsedInCurrentWeek,
+	getDaysSinceMostRecentEntry,
 	processFoodEntriesByWeek,
 	calculateBalanceScore,
 	getScoreChange,
@@ -76,6 +77,24 @@ describe('getDaysElapsedInCurrentWeek', () => {
 		const monday = new Date('2026-02-16T00:00:00');
 		const beforeStart = new Date('2026-02-15T00:00:00');
 		expect(getDaysElapsedInCurrentWeek(monday, beforeStart)).toBe(1);
+	});
+});
+
+describe('getDaysSinceMostRecentEntry', () => {
+	it('returns null when there are no entries', () => {
+		expect(getDaysSinceMostRecentEntry([])).toBeNull();
+	});
+
+	it('returns 0 when latest entry is today', () => {
+		const today = new Date('2026-02-20T00:00:00');
+		const entries = [makeEntry({ date: '2026-02-20' }), makeEntry({ date: '2026-02-18' })];
+		expect(getDaysSinceMostRecentEntry(entries, today)).toBe(0);
+	});
+
+	it('returns full-day difference from most recent entry', () => {
+		const today = new Date('2026-02-20T00:00:00');
+		const entries = [makeEntry({ date: '2026-02-12' }), makeEntry({ date: '2026-02-17' })];
+		expect(getDaysSinceMostRecentEntry(entries, today)).toBe(3);
 	});
 });
 

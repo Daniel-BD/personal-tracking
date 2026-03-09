@@ -1,126 +1,128 @@
 {
-	"title": "Eating patterns",
-	"subtitle": "What your eating events are made of",
-	"period": {
-		"weekly": "Weekly",
-		"monthly": "Monthly",
-		"monthlyComingSoon": "Monthly view coming soon"
-	},
-	"empty": {
-		"noFoodEntries": "No food entries logged yet",
-		"startLogging": "Start logging food items to see your eating patterns"
-	},
-	"goalDashboard": {
-		"title": "Goals & Trends",
-		"addToDashboard": "+ Add to dashboard",
-		"noDashboardCards": "No cards added to your dashboard yet.",
-		"addFirstCategory": "Add your first category"
-	},
-	"goalCard": {
-		"removeFromDashboard": "Remove from dashboard",
-		"thisWeek_one": "This week: {{count}} event",
-		"thisWeek_other": "This week: {{count}} events",
-		"partialWeek": "(day {{day}}/7)",
-		"baselineAvg_one": "4-week avg: {{avg}} event",
-		"baselineAvg_other": "4-week avg: {{avg}} events",
-		"noMeaningfulChange": "No meaningful change",
-		"projected": "projected",
-		"currentlyLabel": "Currently {{change}} vs avg",
-		"event_one": "event",
-		"event_other": "events"
-	},
-	"balanceOverview": {
-		"scoreTitle": "Balance Score",
-		"scoreMeterDescription": "This week \u00b7 Positive \u00f7 (Positive + Limit)",
-		"weeklyBreakdownTitle": "Weekly Breakdown",
-		"chartPositive": "Positive",
-		"chartNeutral": "Neutral",
-		"chartLimit": "Limit",
-		"trendTitle": "8-Week Trend",
-		"lowDataWarning": "Faded weeks have less than 5 logged events"
-	},
-	"focusAreas": {
-		"title": "Focus Areas",
-		"limitPanel": {
-			"title": "Top Limit Categories",
-			"subtitle": "These dominate your limit choices"
-		},
-		"following": "\u2713 Following",
-		"follow": "+ Follow",
-		"dashboardFull": "Dashboard is full. Remove a category to add another.",
-		"addedToDashboard": "{{name}} added to your dashboard"
-	},
-	"addCategoryModal": {
-		"title": "Add to Dashboard",
-		"tabCategories": "Categories",
-		"tabItems": "Items",
-		"searchPlaceholder": "Search\u2026",
-		"searchItemsPlaceholder": "Search\u2026",
-		"added": "Added",
-		"noResults": "No categories found matching \"{{search}}\"",
-		"noItemResults": "No items found matching \"{{search}}\""
-	},
-	"frequencyRanking": {
-		"title": "Most logged",
-		"timePeriod": {
-			"all": "All time",
-			"7d": "7 days",
-			"30d": "30 days"
-		},
-		"typeFilter": {
-			"all": "All",
-			"activities": "Activities",
-			"food": "Food"
-		},
-		"viewMode": {
-			"items": "Items",
-			"categories": "Categories"
-		},
-		"empty": "No {{viewMode}} logged in this period"
-	},
-	"itemDetail": {
-		"thisWeek_one": "This week: {{count}} event",
-		"thisWeek_other": "This week: {{count}} events",
-		"partialWeek": "day {{day}}/7",
-		"comparedToAverage": "compared to 4 week average",
-		"baselineAvg": "4-week avg: {{avg}} events",
-		"projected": "projected",
-		"currentlyLabel": "Currently {{change}} vs avg",
-		"event_one": "event",
-		"event_other": "events",
-		"notFound": "Item not found",
-		"goBack": "Go back to Stats",
-		"defaultCategories": "Default categories"
-	},
-	"categoryDetail": {
-		"thisWeek_one": "This week: {{count}} event",
-		"thisWeek_other": "This week: {{count}} events",
-		"partialWeek": "day {{day}}/7",
-		"comparedToAverage": "compared to 4 week average",
-		"baselineAvg": "4-week avg: {{avg}} events",
-		"projected": "projected",
-		"currentlyLabel": "Currently {{change}} vs avg",
-		"event_one": "event",
-		"event_other": "events",
-		"notFound": "Category not found",
-		"goBack": "Go back to Stats",
-		"last8Weeks": "Last 8 weeks",
-		"weekLabel": "Wk {{week}}",
-		"weekBreakdownTitle": "Week {{week}} Breakdown",
-		"weekBreakdownTotal_one": "Total: {{count}}",
-		"weekBreakdownTotal_other": "Total: {{count}}",
-		"monthView": "Month View",
-		"yearView": "Year View",
-		"logged_one": "{{count}}",
-		"logged_other": "{{count}}",
-		"mostLogged": {
-			"title": "Most logged",
-			"timePeriod": {
-				"all": "All time",
-				"7d": "7 days",
-				"30d": "30 days"
-			},
-			"empty": "No items logged in this period"
-		}
-	}
+  "title": "Eating patterns",
+  "subtitle": "What your eating events are made of",
+  "period": {
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "monthlyComingSoon": "Monthly view coming soon"
+  },
+  "empty": {
+    "noFoodEntries": "No food entries logged yet",
+    "startLogging": "Start logging food items to see your eating patterns"
+  },
+  "goalDashboard": {
+    "title": "Goals & Trends",
+    "addToDashboard": "+ Add to dashboard",
+    "noDashboardCards": "No cards added to your dashboard yet.",
+    "addFirstCategory": "Add your first category"
+  },
+  "goalCard": {
+    "removeFromDashboard": "Remove from dashboard",
+    "thisWeek_one": "This week: {{count}} event",
+    "thisWeek_other": "This week: {{count}} events",
+    "partialWeek": "(day {{day}}/7)",
+    "baselineAvg_one": "4-week avg: {{avg}} event",
+    "baselineAvg_other": "4-week avg: {{avg}} events",
+    "noMeaningfulChange": "No meaningful change",
+    "projected": "projected",
+    "currentlyLabel": "Currently {{change}} vs avg",
+    "event_one": "event",
+    "event_other": "events"
+  },
+  "balanceOverview": {
+    "scoreTitle": "Balance Score",
+    "scoreMeterDescription": "This week \u00b7 Positive \u00f7 (Positive + Limit)",
+    "weeklyBreakdownTitle": "Weekly Breakdown",
+    "chartPositive": "Positive",
+    "chartNeutral": "Neutral",
+    "chartLimit": "Limit",
+    "trendTitle": "8-Week Trend",
+    "lowDataWarning": "Faded weeks have less than 5 logged events"
+  },
+  "focusAreas": {
+    "title": "Focus Areas",
+    "limitPanel": {
+      "title": "Top Limit Categories",
+      "subtitle": "These dominate your limit choices"
+    },
+    "following": "\u2713 Following",
+    "follow": "+ Follow",
+    "dashboardFull": "Dashboard is full. Remove a category to add another.",
+    "addedToDashboard": "{{name}} added to your dashboard"
+  },
+  "addCategoryModal": {
+    "title": "Add to Dashboard",
+    "tabCategories": "Categories",
+    "tabItems": "Items",
+    "searchPlaceholder": "Search\u2026",
+    "searchItemsPlaceholder": "Search\u2026",
+    "added": "Added",
+    "noResults": "No categories found matching \"{{search}}\"",
+    "noItemResults": "No items found matching \"{{search}}\""
+  },
+  "frequencyRanking": {
+    "title": "Most logged",
+    "timePeriod": {
+      "all": "All time",
+      "7d": "7 days",
+      "30d": "30 days"
+    },
+    "typeFilter": {
+      "all": "All",
+      "activities": "Activities",
+      "food": "Food"
+    },
+    "viewMode": {
+      "items": "Items",
+      "categories": "Categories"
+    },
+    "empty": "No {{viewMode}} logged in this period"
+  },
+  "itemDetail": {
+    "thisWeek_one": "This week: {{count}} event",
+    "thisWeek_other": "This week: {{count}} events",
+    "partialWeek": "day {{day}}/7",
+    "comparedToAverage": "compared to 4 week average",
+    "baselineAvg": "4-week avg: {{avg}} events",
+    "projected": "projected",
+    "currentlyLabel": "Currently {{change}} vs avg",
+    "event_one": "event",
+    "event_other": "events",
+    "notFound": "Item not found",
+    "goBack": "Go back to Stats",
+    "defaultCategories": "Default categories"
+  },
+  "categoryDetail": {
+    "thisWeek_one": "This week: {{count}} event",
+    "thisWeek_other": "This week: {{count}} events",
+    "partialWeek": "day {{day}}/7",
+    "comparedToAverage": "compared to 4 week average",
+    "baselineAvg": "4-week avg: {{avg}} events",
+    "projected": "projected",
+    "currentlyLabel": "Currently {{change}} vs avg",
+    "event_one": "event",
+    "event_other": "events",
+    "notFound": "Category not found",
+    "goBack": "Go back to Stats",
+    "last8Weeks": "Last 8 weeks",
+    "weekLabel": "Wk {{week}}",
+    "weekBreakdownTitle": "Week {{week}} Breakdown",
+    "weekBreakdownTotal_one": "Total: {{count}}",
+    "weekBreakdownTotal_other": "Total: {{count}}",
+    "monthView": "Month View",
+    "yearView": "Year View",
+    "logged_one": "{{count}}",
+    "logged_other": "{{count}}",
+    "mostLogged": {
+      "title": "Most logged",
+      "timePeriod": {
+        "all": "All time",
+        "7d": "7 days",
+        "30d": "30 days"
+      },
+      "empty": "No items logged in this period"
+    },
+    "daysSinceLastLogged_one": "{{count}} day since last logged",
+    "daysSinceLastLogged_other": "{{count}} days since last logged"
+  }
 }

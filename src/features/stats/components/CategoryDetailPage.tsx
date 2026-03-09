@@ -8,6 +8,7 @@ import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tr
 import {
 	getLastNWeeks,
 	getDaysElapsedInCurrentWeek,
+	getDaysSinceMostRecentEntry,
 	getDeltaSummaryParts,
 	SENTIMENT_COLORS,
 } from '../utils/stats-engine';
@@ -75,6 +76,8 @@ export default function CategoryDetailPage() {
 		return filterEntriesByCategory(data.entries, categoryId, data);
 	}, [categoryId, data.entries, data.activityItems, data.foodItems, data.activityCategories, data.foodCategories]);
 
+	const daysSinceLastLogged = useMemo(() => getDaysSinceMostRecentEntry(categoryEntries), [categoryEntries]);
+
 	if (!category) {
 		return (
 			<div className="flex flex-col items-center justify-center py-24 gap-4">
@@ -108,25 +111,33 @@ export default function CategoryDetailPage() {
 			</div>
 
 			{/* Summary stats */}
-			<div className="card p-4 space-y-1">
-				<div className="text-sm font-semibold text-heading">
-					{t('categoryDetail.thisWeek', { count: currentCount })}
-					{daysElapsed < 7 && (
-						<span className="text-xs font-normal text-label">
-							{' '}
-							({t('categoryDetail.partialWeek', { day: daysElapsed })})
-						</span>
+			<div className="space-y-2">
+				{sentiment === 'limit' && (
+					<p className="card inline-flex self-start rounded-full px-3 py-1 text-xs font-semibold text-heading">
+						{t('categoryDetail.daysSinceLastLogged', { count: daysSinceLastLogged ?? 0 })}
+					</p>
+				)}
+
+				<div className="card p-4 space-y-1">
+					<div className="text-sm font-semibold text-heading">
+						{t('categoryDetail.thisWeek', { count: currentCount })}
+						{daysElapsed < 7 && (
+							<span className="text-xs font-normal text-label">
+								{' '}
+								({t('categoryDetail.partialWeek', { day: daysElapsed })})
+							</span>
+						)}
+					</div>
+					{!summary.isStable && (
+						<div className="flex items-baseline gap-1.5 pt-1">
+							<span className="text-lg font-bold" style={{ color }}>
+								{summary.changeText}
+							</span>
+							{deltaEventsText && <span className="text-xs text-label">{deltaEventsText}</span>}
+							<span className="text-xs text-label">• {comparisonText}</span>
+						</div>
 					)}
 				</div>
-				{!summary.isStable && (
-					<div className="flex items-baseline gap-1.5 pt-1">
-						<span className="text-lg font-bold" style={{ color }}>
-							{summary.changeText}
-						</span>
-						{deltaEventsText && <span className="text-xs text-label">{deltaEventsText}</span>}
-						<span className="text-xs text-label">• {comparisonText}</span>
-					</div>
-				)}
 			</div>
 
 			{/* Trend chart */}
