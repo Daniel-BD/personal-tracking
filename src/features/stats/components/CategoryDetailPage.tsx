@@ -112,6 +112,12 @@ export default function CategoryDetailPage() {
 
 			{/* Summary stats */}
 			<div className="space-y-2">
+				{sentiment === 'limit' && (
+					<p className="card inline-flex self-start rounded-full px-3 py-1 text-xs font-semibold text-heading">
+						{t('categoryDetail.daysSinceLastLogged', { count: daysSinceLastLogged ?? 0 })}
+					</p>
+				)}
+
 				<div className="card p-4 space-y-1">
 					<div className="text-sm font-semibold text-heading">
 						{t('categoryDetail.thisWeek', { count: currentCount })}
@@ -132,12 +138,6 @@ export default function CategoryDetailPage() {
 						</div>
 					)}
 				</div>
-
-				{sentiment === 'limit' && (
-					<p className="inline-flex self-start rounded-full border border-line bg-surface px-3 py-1 text-xs font-semibold text-heading">
-						{t('categoryDetail.daysSinceLastLogged', { count: daysSinceLastLogged ?? 0 })}
-					</p>
-				)}
 			</div>
 
 			{/* Trend chart */}
