@@ -93,7 +93,7 @@ src/
 ├── app/          # Root layout, entry point, global CSS, styling guide
 ├── shared/       # Cross-feature: store, types, hooks, UI components
 │   ├── lib/      # Pure utilities (types, date-utils, github, theme, animation)
-│   ├── store/    # Singleton store, sync, migration, hooks
+│   ├── store/    # Store facade, runtime, persistence, sync, merge, commands, hooks
 │   ├── hooks/    # Browser hooks (useIsMobile)
 │   └── ui/       # Reusable UI components (no business logic)
 └── features/     # Self-contained feature domains
@@ -112,7 +112,7 @@ src/
 
 - **Components and pages**: ~250 lines max. Extract hooks, sub-components, or utilities if larger.
 - **Utility files** (pure functions in `utils/`): can be longer than 250 lines.
-- **`store.ts`**: kept under 400 lines, focused on CRUD only.
+- **`store.ts`**: keep this as the public facade only. Put persistence, sync state, merge helpers, and mutation implementations in dedicated modules instead of rebuilding a monolith here.
 
 ### Naming Conventions
 

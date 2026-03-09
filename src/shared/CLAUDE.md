@@ -4,15 +4,20 @@ Cross-feature, reusable code. Must NOT import from `features/`. Data flows one w
 
 ## Store (`store/`)
 
-- **`store.ts`** — Singleton external store with `useSyncExternalStore`-compatible API (`dataStore`, `syncStatusStore`). All CRUD operations (items, categories, entries, dashboard cards) plus merge operations (`mergeItem()`, `mergeCategory()`) and thin export/import wrappers. Every data mutation goes through this file. Store initialization is guarded by a module-level flag and invoked from `App.tsx`.
-- **`sync.ts`** — Gist sync/merge logic. Contains `pushToGist`, `loadFromGistFn`, `mergeTrackerData`, `pendingDeletions` tracking, and backup operations. Called by store.ts through wrapper functions.
+- **`store.ts`** — Public facade only. Exposes the compatibility surface (`dataStore`, `syncStatusStore`, initialization, sync trigger wiring, CRUD/merge/import/export/backup commands) by composing smaller internal modules. Keep callers importing from here, but do not move implementation detail back into it.
+- **`store-runtime.ts`** — Owns the singleton external-store state (`currentData`, `currentSyncStatus`), subscriptions, snapshots, and persistence on `setData()`. `store.ts` re-exports the store handles from here.
+- **`local-persistence.ts`** — Owns tracker LocalStorage loading/saving and the `tracker_data` key. Load path still migrates data, initializes default dashboard cards, and filters pending deletions before hydrating the runtime.
+- **`sync-state.ts`** — Owns local-only pending deletion/restoration sets, their persistence keys, and the debounced/serialized sync controller used by the facade.
+- **`merge.ts`** — Pure tombstone and merge helpers: tombstone CRUD, pending-deletion filtering, and `mergeTrackerData(...)`. These helpers take explicit pending-sync state instead of reaching into UI or storage.
+- **`commands/`** — Mutation modules split by concern: `entries.ts`, `items-favorites.ts`, `categories-dashboard-cards.ts`, and `import-export-backup.ts`. Bind them in `store.ts`; keep cross-module behavior unchanged.
+- **`sync.ts`** — Thin compatibility shim over `sync-state.ts` + `merge.ts` plus Gist network operations (`pushToGist`, `loadFromGistFn`, backup/restore). This remains the place for sync side effects until Phase 2 removes store-to-UI coupling.
 - **`migration.ts`** — Data migration (`migrateData()` for sentiment field) and dashboard initialization (`initializeDefaultDashboardCards()`).
-- **`import-export.ts`** — Import validation (`validateAndParseImport()`) and export download (`triggerExportDownload()`). Field-level validation of entries, items, and categories. Called by store.ts wrappers.
+- **`import-export.ts`** — Import validation (`validateAndParseImport()`) and export download (`triggerExportDownload()`). Field-level validation of entries, items, and categories. Called by the import/export command module.
 - **`hooks.ts`** — React hooks wrapping the external store. Provides `useTrackerData()` for full data access, `useSyncStatus()`, and fine-grained selector hooks (`useEntries()`, `useActivityItems()`, `useFoodItems()`, `useActivityCategories()`, `useFoodCategories()`, `useDashboardCards()`, `useFavoriteItems()`) that prevent re-renders when unrelated data changes.
 
 ### External Store Pattern Details
 
-Instead of React Context, the store uses a module-level singleton with `useSyncExternalStore` for reactivity. Store functions (CRUD operations) can be called from anywhere without prop drilling. Since `updateData()` uses object spread, unchanged sub-arrays keep the same reference, so `useSyncExternalStore` skips re-renders for unaffected slices. Prefer the most specific hook available; use `useTrackerData()` only when the full object is needed (e.g., passing to utility functions that take `TrackerData`).
+Instead of React Context, the store uses a module-level singleton with `useSyncExternalStore` for reactivity. Store commands can be called from anywhere without prop drilling. Since mutations still use object spread, unchanged sub-arrays keep the same reference, so `useSyncExternalStore` skips re-renders for unaffected slices. Prefer the most specific hook available; use `useTrackerData()` only when the full object is needed (e.g., passing to utility functions that take `TrackerData`).
 
 ### Dashboard Cards
 
@@ -28,7 +33,7 @@ Deletions are tracked via **tombstones** — `{ id, entityType, deletedAt }` rec
 
 ### Known Quirks
 
-- **Gist sync**: Fire-and-forget with merge logic. LocalStorage is always the source of truth. The store tracks `pendingDeletions` (by entity type, local-only) in `sync.ts` as a buffer for unsynced deletions, plus **tombstones** (synced in the Gist) for cross-device deletion propagation. The merge function (`mergeTrackerData`) uses the union of both `pendingDeletions` and tombstones to exclude deleted items. All gist operations (`pushToGist` and `loadFromGistFn`) are serialized via a shared `activeSync` lock in `store.ts` to prevent concurrent operations from racing on `pendingDeletions`. Pushes queue behind loads; loads wait for in-flight pushes via a `while (activeSync)` loop. Defense-in-depth: `mergeById` and `mergeTrackerData` filter deletions from **both** local and remote data, and `filterPendingDeletions()` is applied at `loadFromLocalStorage` time to catch any edge cases where deleted items were written back to localStorage before the push completed.
+- **Gist sync**: Fire-and-forget with merge logic. LocalStorage is always the source of truth. The store tracks `pendingDeletions` (by entity type, local-only) in `sync-state.ts` as a buffer for unsynced deletions, plus **tombstones** (synced in the Gist) for cross-device deletion propagation. The pure merge function (`merge.ts`) uses the union of both `pendingDeletions` and tombstones to exclude deleted items. All gist operations (`pushToGist` and `loadFromGistFn`) are serialized through the debounced sync controller from `sync-state.ts`, which `store.ts` owns. Pushes queue behind loads; loads wait for in-flight pushes. Defense-in-depth: `mergeById` and `mergeTrackerData` filter deletions from **both** local and remote data, and `filterPendingDeletions()` is applied at local load time to catch edge cases where deleted items were written back before the sync completed.
 - **Dashboard initialization**: On first load, `initializeDefaultDashboardCards()` (in `migration.ts`) auto-creates dashboard cards for categories named "Fruit", "Vegetables", or "Sugary drinks" if they exist. Runs once (guarded by `dashboardInitialized` flag).
 
 ### Tests
@@ -42,6 +47,8 @@ Test files in `store/__tests__/`:
 - `gist-sync.test.ts` — Gist sync
 - `favorites.test.ts` — Favorites
 - `tombstones.test.ts` — Cross-device deletion sync via tombstones
+- `sync-state.test.ts` — Pending deletion/restoration persistence and debounced sync controller behavior
+- `merge-module.test.ts` — Focused coverage for the pure merge helper module
 
 ## Lib (`lib/`)
 
