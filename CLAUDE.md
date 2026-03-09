@@ -25,6 +25,22 @@ npm run format       # Auto-format all code with Prettier (always run before com
 npm run format:check # Check if code is formatted (CI-friendly, no writes)
 ```
 
+## Mock Data Injection for UI/UX Preview
+
+Use the CLI command (no DevTools):
+
+```bash
+npm run mock-data:generate -- --origin http://127.0.0.1:4173
+```
+
+This creates:
+
+- `.artifacts/mock-tracker-data.json`
+- `.artifacts/mock-storage-state.json` (for Playwright `storageState`)
+
+For agent workflow details, use the `.agents/skills/mock-data-preview` skill.
+Missing required flag values are validated by the CLI parser and fail fast with an error.
+
 Tests use **Vitest** with **happy-dom** environment. Config is in `vitest.config.ts`. Shared test helpers (factory functions like `makeEntry`, `makeItem`, `makeCategory`, `makeValidData`) live in `src/shared/store/__tests__/fixtures.ts`.
 
 ## Project Overview
@@ -102,13 +118,13 @@ src/
 
 ### Naming Conventions
 
-| Category | Pattern | Example |
-|----------|---------|---------|
-| React components | PascalCase `.tsx` | `EntryList.tsx` |
-| Hooks | `use` prefix, camelCase `.ts` | `useSwipeGesture.ts` |
-| Utility modules | kebab-case `.ts` | `entry-filters.ts` |
-| Test files | colocated `__tests__/` folder | `features/tracking/__tests__/entry-filters.test.ts` |
-| Barrel exports | `index.ts` per feature | `features/tracking/index.ts` |
+| Category         | Pattern                       | Example                                             |
+| ---------------- | ----------------------------- | --------------------------------------------------- |
+| React components | PascalCase `.tsx`             | `EntryList.tsx`                                     |
+| Hooks            | `use` prefix, camelCase `.ts` | `useSwipeGesture.ts`                                |
+| Utility modules  | kebab-case `.ts`              | `entry-filters.ts`                                  |
+| Test files       | colocated `__tests__/` folder | `features/tracking/__tests__/entry-filters.test.ts` |
+| Barrel exports   | `index.ts` per feature        | `features/tracking/index.ts`                        |
 
 Avoid generic dump files like `helpers.ts`, `utils.ts` (without a descriptive prefix), or `misc.ts`.
 
