@@ -157,10 +157,12 @@ export default function CategoriesTab({ categories, allItems, searchQuery, showA
 							>
 								<div className="flex items-center justify-between gap-3">
 									<div className="flex-1 min-w-0">
-										<div className="flex items-center gap-2">
-											<SentimentDot color={SENTIMENT_COLORS[category.sentiment]} />
-											<span className="font-medium text-heading truncate">{category.name}</span>
+										<div className="flex flex-col items-start gap-1 min-w-0">
 											<EntryTypePill type={category.type} />
+											<div className="flex items-center gap-2 min-w-0 w-full">
+												<SentimentDot color={SENTIMENT_COLORS[category.sentiment]} />
+												<span className="font-medium text-heading truncate">{category.name}</span>
+											</div>
 										</div>
 										<p className="text-xs text-subtle mt-0.5">{t('categories.itemCount', { count: itemCount })}</p>
 									</div>

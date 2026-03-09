@@ -153,10 +153,12 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 							>
 								<div className="flex items-center justify-between gap-3">
 									<div className="flex-1 min-w-0">
-										<div className="flex items-center gap-2">
-											<SentimentDot color={getItemAccentColor(item.categories, categoriesByType[item.type])} />
-											<span className="font-medium text-heading truncate block">{item.name}</span>
+										<div className="flex flex-col items-start gap-1 min-w-0">
 											<EntryTypePill type={item.type} />
+											<div className="flex items-center gap-2 min-w-0 w-full">
+												<SentimentDot color={getItemAccentColor(item.categories, categoriesByType[item.type])} />
+												<span className="font-medium text-heading truncate block">{item.name}</span>
+											</div>
 										</div>
 										<CategorySentimentPills categories={itemCategories} emptyText={t('items.noCategories')} />
 									</div>

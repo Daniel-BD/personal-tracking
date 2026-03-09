@@ -127,10 +127,12 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 									}`}
 								>
 									<div className="min-w-0">
-										<div className="flex items-center gap-2">
-											<SentimentDot color={SENTIMENT_COLORS[category.sentiment]} />
-											<span className="font-medium truncate">{category.name}</span>
+										<div className="flex flex-col items-start gap-1 min-w-0">
 											<EntryTypePill type={category.type} />
+											<div className="flex items-center gap-2 min-w-0 w-full">
+												<SentimentDot color={SENTIMENT_COLORS[category.sentiment]} />
+												<span className="font-medium truncate">{category.name}</span>
+											</div>
 										</div>
 									</div>
 									{isAdded && <span className="text-xs font-medium text-label">{t('addCategoryModal.added')}</span>}
@@ -151,15 +153,17 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 									}`}
 								>
 									<div className="min-w-0">
-										<div className="flex items-center gap-2">
-											<SentimentDot
-												color={getItemAccentColor(
-													item.categories,
-													item.type === 'food' ? foodCategories : activityCategories,
-												)}
-											/>
-											<span className="font-medium truncate">{item.name}</span>
+										<div className="flex flex-col items-start gap-1 min-w-0">
 											<EntryTypePill type={item.type} />
+											<div className="flex items-center gap-2 min-w-0 w-full">
+												<SentimentDot
+													color={getItemAccentColor(
+														item.categories,
+														item.type === 'food' ? foodCategories : activityCategories,
+													)}
+												/>
+												<span className="font-medium truncate">{item.name}</span>
+											</div>
 										</div>
 										<CategorySentimentPills categories={resolveItemCategories(item)} />
 									</div>
