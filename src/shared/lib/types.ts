@@ -78,11 +78,6 @@ export function getTypeColor(_type: EntryType): string {
 export function getTypeLabel(type: EntryType): string {
 	return type === 'activity' ? 'Activity' : 'Food';
 }
-
-export function getTypeIcon(type: EntryType): string {
-	return type === 'activity' ? '🏃' : '🍽️';
-}
-
 export function getTypeColorMuted(_type: EntryType): string {
 	return 'type-accent-muted';
 }

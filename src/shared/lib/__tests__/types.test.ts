@@ -6,7 +6,6 @@ import {
 	getCurrentTime,
 	getTypeColor,
 	getTypeLabel,
-	getTypeIcon,
 	getTypeColorMuted,
 	getItems,
 	getCategories,
@@ -88,16 +87,6 @@ describe('getTypeLabel', () => {
 
 	it('returns Food for food', () => {
 		expect(getTypeLabel('food')).toBe('Food');
-	});
-});
-
-describe('getTypeIcon', () => {
-	it('returns runner emoji for activity', () => {
-		expect(getTypeIcon('activity')).toBe('\u{1F3C3}');
-	});
-
-	it('returns plate emoji for food', () => {
-		expect(getTypeIcon('food')).toBe('\u{1F37D}\uFE0F');
 	});
 });
 
