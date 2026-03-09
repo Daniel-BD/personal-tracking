@@ -24,7 +24,10 @@ Outputs:
 - `.artifacts/mock-tracker-data.json`
 - `.artifacts/mock-storage-state.json`
 
-Use in Playwright:
+## Screenshot workflow (important)
+
+### A) Local Playwright tests inside this repo
+Use storage state directly:
 
 ```ts
 import { test } from '@playwright/test';
@@ -35,6 +38,27 @@ test('stats screenshot', async ({ page }) => {
 	await page.goto('http://127.0.0.1:4173/stats');
 	await page.screenshot({ path: 'artifacts/stats.png', fullPage: true });
 });
+```
+
+### B) Codex `browser_tools` Playwright scripts
+`browser_tools` runs in a separate container and usually **cannot read** repo-local `.artifacts/mock-storage-state.json` by file path.
+Use runtime localStorage injection instead:
+
+1. Open `/settings` once (ensures app localStorage keys/schema are initialized).
+2. Inject config + tracker data with `page.evaluate(...)`.
+3. Navigate to target routes and capture screenshots.
+
+Example pattern:
+
+```py
+await page.goto('http://127.0.0.1:4173/settings', wait_until='networkidle')
+await page.evaluate("""(data) => {
+  localStorage.setItem('github_token', 'demo-token')
+  localStorage.setItem('gist_id', 'demo-gist')
+  localStorage.setItem('tracker_data', JSON.stringify(data))
+}""", mock_data)
+await page.goto('http://127.0.0.1:4173/', wait_until='networkidle')
+await page.screenshot(path='artifacts/home.png', full_page=True)
 ```
 
 After screenshots, regenerate with a new seed only if you need a different scenario. Keep the same seed for stable regression screenshots.

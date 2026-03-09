@@ -36,7 +36,9 @@ npm run mock-data:generate -- --origin http://127.0.0.1:4173
 This creates:
 
 - `.artifacts/mock-tracker-data.json`
-- `.artifacts/mock-storage-state.json` (for Playwright `storageState`)
+- `.artifacts/mock-storage-state.json` (for repo-local Playwright `storageState`)
+
+For screenshot automation in Codex `browser_tools`, prefer injecting mock data via `page.evaluate(...)` (`github_token`, `gist_id`, and `tracker_data`) after first opening `/settings`, since `browser_tools` may not be able to read repo-local storage state files by path.
 
 For agent workflow details, use the `.agents/skills/mock-data-preview` skill.
 Missing required flag values are validated by the CLI parser and fail fast with an error.
