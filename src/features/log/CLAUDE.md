@@ -17,6 +17,8 @@ Log page with filterable entry list. Exports its public API via `index.ts` barre
 - Date headers are sticky, uppercase, muted.
 - Uses `EntryList` from `@/features/tracking` for the actual entry display.
 - Entry rows show a star icon for favoriting/unfavoriting items.
+- Long entry titles use smaller text and clamp to two lines with ellipsis to avoid overlapping row action buttons.
+- Entry categories are displayed as sentiment-colored pills that can wrap across multiple rows.
 
 ## Tests
 

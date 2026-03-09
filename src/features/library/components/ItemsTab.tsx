@@ -9,6 +9,7 @@ import { CategoryPicker } from '@/features/tracking';
 import { cn } from '@/shared/lib/cn';
 import { getItemAccentColor } from '@/features/stats';
 import { SentimentDot, CategorySentimentPills } from '@/shared/ui/EntityMetaBadges';
+import EntityTitle from '@/shared/ui/EntityTitle';
 import StarIcon from '@/shared/ui/StarIcon';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
@@ -155,7 +156,7 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 									<div className="flex-1 min-w-0">
 										<div className="flex items-center gap-2">
 											<SentimentDot color={getItemAccentColor(item.categories, categoriesByType[item.type])} />
-											<span className="font-medium text-heading truncate block">{item.name}</span>
+											<EntityTitle text={item.name} className="flex-1 min-w-0" />
 										</div>
 										<CategorySentimentPills categories={itemCategories} emptyText={t('items.noCategories')} />
 									</div>
