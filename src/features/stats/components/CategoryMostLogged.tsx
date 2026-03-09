@@ -1,23 +1,23 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { TrackerData, Entry, CategorySentiment } from '@/shared/lib/types';
-import { getTodayDate, findItemWithCategories } from '@/shared/lib/types';
+import type { Entry, CategorySentiment, Item } from '@/shared/lib/types';
+import { getTodayDate } from '@/shared/lib/types';
 import { filterEntriesByDateRange } from '@/features/tracking';
 import { getDateNDaysAgo } from '@/shared/lib/date-utils';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
-import { SENTIMENT_COLORS, getItemAccentColor } from '../utils/stats-engine';
-import { rankItems, buildItemLookup } from '../utils/ranking-utils';
+import { rankItems } from '../utils/ranking-utils';
 
 type TimePeriod = 'all' | '7d' | '30d';
 
 interface Props {
 	entries: Entry[];
-	data: TrackerData;
+	itemById: Map<string, Item>;
+	itemAccentColorById: Map<string, string>;
 	sentiment: CategorySentiment;
 }
 
-export default function CategoryMostLogged({ entries, data, sentiment: _sentiment }: Props) {
+export default function CategoryMostLogged({ entries, itemById, itemAccentColorById, sentiment: _sentiment }: Props) {
 	const { t } = useTranslation('stats');
 	const navigate = useNavigate();
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('all');
@@ -31,8 +31,7 @@ export default function CategoryMostLogged({ entries, data, sentiment: _sentimen
 		});
 	}, [entries, timePeriod]);
 
-	const itemLookup = useMemo(() => buildItemLookup(data), [data]);
-	const ranked = useMemo(() => rankItems(filteredEntries, itemLookup), [filteredEntries, itemLookup]);
+	const ranked = useMemo(() => rankItems(filteredEntries, itemById), [filteredEntries, itemById]);
 
 	const maxCount = ranked.length > 0 ? ranked[0].count : 0;
 	const totalCount = filteredEntries.length;
@@ -59,10 +58,7 @@ export default function CategoryMostLogged({ entries, data, sentiment: _sentimen
 				<div className="space-y-1.5">
 					{ranked.map((row, i) => {
 						const pct = totalCount > 0 ? Math.round((row.count / totalCount) * 100) : 0;
-						const found = findItemWithCategories(data, row.id);
-						const barColor = found
-							? getItemAccentColor(found.item.categories, found.categories)
-							: SENTIMENT_COLORS.neutral;
+						const barColor = itemAccentColorById.get(row.id) ?? 'var(--color-neutral)';
 						return (
 							<button
 								key={row.id}

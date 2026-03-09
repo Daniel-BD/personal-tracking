@@ -7,10 +7,16 @@ Core entry/item/category logic. This is the foundational feature used by most ot
 - **`entry-filters.ts`** — `filterEntriesByDateRange`, `byType`, `byItem`, `byCategory`, etc.
 - **`entry-grouping.ts`** — `getEntriesGroupedByDate`, `countByItem`, month comparisons, weekly totals, etc.
 - **`category-utils.ts`** — `getEntryCategoryIds` (resolves category overrides), `getCategoryNameById`, `getEntryCategoryNames`, `getCategorySentimentCounts`.
+- **`tracking-indexes.ts`** — Pure derived lookup builders exported through the feature barrel: `buildEntriesByItem`, `buildEntriesByCategory`, `buildEntriesByWeek`, `buildItemById`, `buildCategoryById`, `buildItemCategoryIdsByItemId`, `buildItemCategoriesByItemId`, and `getEntryCategoryIdsFromIndex`.
+
+## Hooks
+
+- **`use-tracking-indexes.ts`** — Store-backed selector hooks that memoize the same derived lookups without widening shared-store APIs: `useEntriesByItem`, `useEntriesByCategory`, `useEntriesByWeek`, `useItemById`, `useCategoryById`, `useItemCategoryIdsByItemId`, and `useItemCategoriesByItemId`.
 
 ### Category Overrides
 
 Entries can override their item's default categories via `categoryOverrides`. Always use `getEntryCategoryIds()` to get effective categories — it checks overrides first, then falls back to the item's defaults.
+When you already have tracking index maps, use `getEntryCategoryIdsFromIndex()` instead of rebuilding a `TrackerData` object just to resolve the same effective categories.
 
 ### Category Sentiment
 
@@ -32,4 +38,5 @@ Within each day, entries sort by time (latest first); entries without time come 
 - `__tests__/entry-filters.test.ts`
 - `__tests__/entry-grouping.test.ts`
 - `__tests__/category-utils.test.ts`
+- `__tests__/tracking-indexes.test.tsx`
 - `__tests__/CategoryLine.test.tsx`

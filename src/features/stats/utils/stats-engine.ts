@@ -1,10 +1,16 @@
 import type { Entry, TrackerData, CategorySentiment, Category } from '@/shared/lib/types';
 import { getCategories } from '@/shared/lib/types';
 import {
+	buildCategoryById,
+	buildItemCategoryIdsByItemId,
+	getEntryCategoryIdsFromIndex,
 	getCategoryNameById,
 	getEntryCategoryIds,
 	filterEntriesByType,
 	getCategorySentimentCounts,
+	type CategoryById,
+	type EntriesByWeek,
+	type ItemCategoryIdsByItemId,
 } from '@/features/tracking';
 import { getISOWeekAndYear } from '@/shared/lib/date-utils';
 
@@ -149,49 +155,50 @@ export interface WeeklyData {
 	hasLowData: boolean;
 }
 
-/**
- * Process food entries for last N weeks
- */
-export function processFoodEntriesByWeek(
-	entries: Entry[],
-	data: TrackerData,
+export function processFoodEntriesByWeekFromIndexes(
+	entriesByWeek: EntriesByWeek,
+	categoryById: CategoryById,
+	itemCategoryIdsByItemId: ItemCategoryIdsByItemId,
 	weeks: Array<{ key: string; start: Date; end: Date }>,
 ): WeeklyData[] {
-	const foodEntries = filterEntriesByType(entries, 'food');
-	const foodCategories = getCategories(data, 'food');
-
 	return weeks.map((week) => {
-		const weekEntries = foodEntries.filter((e: Entry) => isEntryInWeek(e, week.start, week.end));
+		const weekEntries = (entriesByWeek.get(week.key) ?? []).filter((entry) => entry.type === 'food');
 
 		// Build category map with sentiment
 		const categoryMap = new Map<string, WeeklyCategoryData>();
 
 		weekEntries.forEach((entry: Entry) => {
-			const catIds = getEntryCategoryIds(entry, data);
-			catIds.forEach((catId: string) => {
-				const catName = getCategoryNameById(catId, data);
-				const category = foodCategories.find((c) => c.id === catId);
+			const categoryIds = getEntryCategoryIdsFromIndex(entry, itemCategoryIdsByItemId);
+			categoryIds.forEach((categoryId: string) => {
+				const category = categoryById.get(categoryId);
+				const categoryName = category?.name ?? '';
 				const sentiment = category?.sentiment ?? 'neutral';
 
-				if (!categoryMap.has(catId)) {
-					categoryMap.set(catId, {
-						categoryId: catId,
-						categoryName: catName,
+				if (!categoryMap.has(categoryId)) {
+					categoryMap.set(categoryId, {
+						categoryId,
+						categoryName,
 						sentiment,
 						count: 0,
 					});
 				}
-				const existing = categoryMap.get(catId)!;
+
+				const existing = categoryMap.get(categoryId)!;
 				existing.count += 1;
 			});
 		});
 
-		// Calculate sentiment totals
 		const categories = Array.from(categoryMap.values());
 		const sentimentCounts = {
-			positive: categories.filter((c) => c.sentiment === 'positive').reduce((s, c) => s + c.count, 0),
-			neutral: categories.filter((c) => c.sentiment === 'neutral').reduce((s, c) => s + c.count, 0),
-			limit: categories.filter((c) => c.sentiment === 'limit').reduce((s, c) => s + c.count, 0),
+			positive: categories
+				.filter((category) => category.sentiment === 'positive')
+				.reduce((sum, category) => sum + category.count, 0),
+			neutral: categories
+				.filter((category) => category.sentiment === 'neutral')
+				.reduce((sum, category) => sum + category.count, 0),
+			limit: categories
+				.filter((category) => category.sentiment === 'limit')
+				.reduce((sum, category) => sum + category.count, 0),
 		};
 
 		return {
@@ -205,6 +212,24 @@ export function processFoodEntriesByWeek(
 			hasLowData: weekEntries.length < 5,
 		};
 	});
+}
+
+/**
+ * Process food entries for last N weeks
+ */
+export function processFoodEntriesByWeek(
+	entries: Entry[],
+	data: TrackerData,
+	weeks: Array<{ key: string; start: Date; end: Date }>,
+): WeeklyData[] {
+	const foodEntries = filterEntriesByType(entries, 'food');
+	const categoryById = buildCategoryById(data.activityCategories, data.foodCategories);
+	const itemCategoryIdsByItemId = buildItemCategoryIdsByItemId(data.activityItems, data.foodItems);
+	const entriesByWeek = new Map(
+		weeks.map((week) => [week.key, foodEntries.filter((entry) => isEntryInWeek(entry, week.start, week.end))]),
+	);
+
+	return processFoodEntriesByWeekFromIndexes(entriesByWeek, categoryById, itemCategoryIdsByItemId, weeks);
 }
 
 /**
@@ -477,6 +502,52 @@ export function getTopLimitCategories(
 				value: share,
 				label: `${share}% of limit total`,
 				count,
+			};
+		});
+}
+
+export function getTopLimitCategoriesFromWeeklyData(
+	weeklyData: WeeklyData[],
+	limit: number = 5,
+): ActionableCategoryRow[] {
+	const counts = new Map<string, { categoryName: string; count: number }>();
+	let total = 0;
+
+	for (const week of weeklyData.slice(-4)) {
+		for (const category of week.categories) {
+			if (category.sentiment !== 'limit') {
+				continue;
+			}
+
+			const existing = counts.get(category.categoryId);
+			if (existing) {
+				existing.count += category.count;
+			} else {
+				counts.set(category.categoryId, {
+					categoryName: category.categoryName,
+					count: category.count,
+				});
+			}
+
+			total += category.count;
+		}
+	}
+
+	if (total === 0) {
+		return [];
+	}
+
+	return Array.from(counts.entries())
+		.sort((a, b) => b[1].count - a[1].count)
+		.slice(0, limit)
+		.map(([categoryId, value]) => {
+			const share = Math.round((value.count / total) * 100);
+			return {
+				categoryId,
+				categoryName: value.categoryName,
+				value: share,
+				label: `${share}% of limit total`,
+				count: value.count,
 			};
 		});
 }

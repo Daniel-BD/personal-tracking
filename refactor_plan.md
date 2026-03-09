@@ -22,12 +22,12 @@
 - [x] Update shared-layer docs so `shared/ui` is again store-free and generic.
 
 ### Phase 3: Stats Selectors and Indexes
-- [ ] Add reusable tracking indexes as pure utilities plus hooks, exported through `@/features/tracking`: `entriesByItem`, `entriesByCategory`, `entriesByWeek`, `itemById`, `categoryById`, and per-item category lookups.
-- [ ] Keep `useTrackerData()` available, but refactor the stats screens to stop depending on the full `TrackerData` object when only slices are needed.
-- [ ] Refactor `StatsPage` to use slice hooks plus precomputed weekly food stats instead of whole-store memo chains.
-- [ ] Refactor `GoalDashboard` to build card view models from slice hooks, dashboard cards, and precomputed indexes; remove repeated per-card filtering.
-- [ ] Refactor `CategoryDetailPage` and `ItemDetailPage` into thin view components backed by dedicated view-model hooks that compute weekly data once from indexes.
-- [ ] Keep stats behavior unchanged: 8-week windows, 4-week rolling baselines, partial-week prorating, and current routes all stay the same.
+- [x] Add reusable tracking indexes as pure utilities plus hooks, exported through `@/features/tracking`: `entriesByItem`, `entriesByCategory`, `entriesByWeek`, `itemById`, `categoryById`, and per-item category lookups.
+- [x] Keep `useTrackerData()` available, but refactor the stats screens to stop depending on the full `TrackerData` object when only slices are needed.
+- [x] Refactor `StatsPage` to use slice hooks plus precomputed weekly food stats instead of whole-store memo chains.
+- [x] Refactor `GoalDashboard` to build card view models from slice hooks, dashboard cards, and precomputed indexes; remove repeated per-card filtering.
+- [x] Refactor `CategoryDetailPage` and `ItemDetailPage` into thin view components backed by dedicated view-model hooks that compute weekly data once from indexes.
+- [x] Keep stats behavior unchanged: 8-week windows, 4-week rolling baselines, partial-week prorating, and current routes all stay the same.
 
 ### Phase 4: Library Entity Manager Refactor
 - [ ] Add a library-scoped scaffold for the repeated add/edit/delete/merge flow so both tabs stop duplicating the same orchestration.
@@ -40,12 +40,12 @@
 - [x] `@/shared/store/store` remains the compatibility entrypoint for existing callers throughout this refactor.
 - [x] `@/shared/store/hooks` keeps the current slice hooks; new hooks are additive.
 - [x] Add a typed store-event subscription interface in `shared/store` for app presenters.
-- [ ] Add tracking index exports in `@/features/tracking` so stats and library share the same derived lookup layer.
+- [x] Add tracking index exports in `@/features/tracking` so stats and library share the same derived lookup layer.
 
 ## Test Plan
 - [x] Keep the current store sync, merge, and tombstone suites passing while extracting modules.
 - [x] Add focused tests for the new merge and pending-deletion modules and for the new store-event surface.
-- [ ] Add focused tests for tracking index builders and stats view-model hooks, covering category and item lookup, week bucketing, and unchanged baseline calculations.
+- [x] Add focused tests for tracking index builders and stats view-model hooks, covering category and item lookup, week bucketing, and unchanged baseline calculations.
 - [ ] Add focused tests for library lookup helpers and one regression test per tab for add, edit, merge, and delete flow wiring.
 - [x] Each implementation slice ends with `npm run test -- --run`, `npm run lint`, `npm run build`, and `npm run format`.
 

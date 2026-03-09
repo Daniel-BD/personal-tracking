@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import type { Entry, TrackerData } from '@/shared/lib/types';
+import type { Entry } from '@/shared/lib/types';
 import type { CategorySentiment } from '@/shared/lib/types';
 import { formatDateLocal } from '@/shared/lib/date-utils';
-import { filterEntriesByCategory, filterEntriesByItem, filterEntriesByDateRange } from '@/features/tracking';
+import { filterEntriesByDateRange } from '@/features/tracking';
 import { SENTIMENT_COLORS } from '../utils/stats-engine';
 import PeriodNavigator from './PeriodNavigator';
 
@@ -11,9 +11,6 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 interface YearlyActivityGridProps {
 	entries: Entry[];
-	categoryId?: string;
-	itemId?: string;
-	data: TrackerData;
 	sentiment: CategorySentiment;
 	/** Override accent color. If set, takes precedence over sentiment color. */
 	accentColor?: string;
@@ -24,36 +21,25 @@ const CELL_SIZE = 11;
 const CELL_GAP = 2;
 const CELL_STEP = CELL_SIZE + CELL_GAP;
 
-export default function YearlyActivityGrid({
-	entries,
-	categoryId,
-	itemId,
-	data,
-	sentiment,
-	accentColor,
-}: YearlyActivityGridProps) {
+export default function YearlyActivityGrid({ entries, sentiment, accentColor }: YearlyActivityGridProps) {
 	const [yearOffset, setYearOffset] = useState(0);
 	const color = accentColor ?? SENTIMENT_COLORS[sentiment];
 	const targetYear = new Date().getFullYear() + yearOffset;
 
 	// Build date -> count map for the year
 	const dayCounts = useMemo(() => {
-		if (!categoryId && !itemId) return new Map<string, number>();
 		const range = {
 			start: `${targetYear}-01-01`,
 			end: `${targetYear}-12-31`,
 		};
-		const dateFiltered = filterEntriesByDateRange(entries, range);
-		const filtered = itemId
-			? filterEntriesByItem(dateFiltered, itemId)
-			: filterEntriesByCategory(dateFiltered, categoryId!, data);
+		const filtered = filterEntriesByDateRange(entries, range);
 
 		const counts = new Map<string, number>();
 		for (const entry of filtered) {
 			counts.set(entry.date, (counts.get(entry.date) || 0) + 1);
 		}
 		return counts;
-	}, [entries, categoryId, itemId, data, targetYear]);
+	}, [entries, targetYear]);
 
 	// Build weekly columns: each column is 7 days (Mon=0 to Sun=6)
 	const { weeks, monthPositions } = useMemo(() => {
