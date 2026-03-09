@@ -8,6 +8,7 @@ import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tr
 import {
 	getLastNWeeks,
 	getDaysElapsedInCurrentWeek,
+	getDaysSinceMostRecentEntry,
 	getDeltaSummaryParts,
 	SENTIMENT_COLORS,
 } from '../utils/stats-engine';
@@ -75,6 +76,8 @@ export default function CategoryDetailPage() {
 		return filterEntriesByCategory(data.entries, categoryId, data);
 	}, [categoryId, data.entries, data.activityItems, data.foodItems, data.activityCategories, data.foodCategories]);
 
+	const daysSinceLastLogged = useMemo(() => getDaysSinceMostRecentEntry(categoryEntries), [categoryEntries]);
+
 	if (!category) {
 		return (
 			<div className="flex flex-col items-center justify-center py-24 gap-4">
@@ -128,6 +131,14 @@ export default function CategoryDetailPage() {
 					</div>
 				)}
 			</div>
+
+			{sentiment === 'limit' && (
+				<div className="card p-4">
+					<p className="text-sm font-semibold text-heading">
+						{t('categoryDetail.daysSinceLastLogged', { count: daysSinceLastLogged ?? 0 })}
+					</p>
+				</div>
+			)}
 
 			{/* Trend chart */}
 			<CategoryTrendChart

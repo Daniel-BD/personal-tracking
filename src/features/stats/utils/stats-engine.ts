@@ -94,6 +94,24 @@ export function getDaysElapsedInCurrentWeek(weekStart: Date, today?: Date): numb
 }
 
 /**
+ * Calculate the number of full days since the most recent entry date.
+ * Returns `null` when no entries are provided.
+ */
+export function getDaysSinceMostRecentEntry(entries: Entry[], today?: Date): number | null {
+	if (entries.length === 0) return null;
+
+	const latestDateMs = entries.reduce((latest, entry) => {
+		const entryMs = new Date(`${entry.date}T00:00:00`).getTime();
+		return Math.max(latest, entryMs);
+	}, Number.NEGATIVE_INFINITY);
+
+	const now = today ? new Date(today) : new Date();
+	now.setHours(0, 0, 0, 0);
+	const diffDays = Math.floor((now.getTime() - latestDateMs) / 86400000);
+	return Math.max(0, diffDays);
+}
+
+/**
  * Check if an entry's date falls within a week
  */
 function isEntryInWeek(entry: Entry, weekStart: Date, weekEnd: Date): boolean {
