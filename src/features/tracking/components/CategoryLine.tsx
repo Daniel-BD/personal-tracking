@@ -16,5 +16,10 @@ export default function CategoryLine({ categoryIds, categories, emptyText }: Pro
 		resolvedCategories.push(cat);
 	}
 
-	return <CategorySentimentPills categories={resolvedCategories} emptyText={emptyText} className="mt-0.5" />;
+	const sentimentOrder = { positive: 0, limit: 1, neutral: 2 } as const;
+	const sortedCategories = [...resolvedCategories].sort(
+		(a, b) => sentimentOrder[a.sentiment] - sentimentOrder[b.sentiment],
+	);
+
+	return <CategorySentimentPills categories={sortedCategories} emptyText={emptyText} className="mt-0.5" />;
 }

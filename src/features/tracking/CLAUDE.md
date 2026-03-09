@@ -14,7 +14,7 @@ Entries can override their item's default categories via `categoryOverrides`. Al
 
 ### Category Sentiment
 
-Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`). `getCategorySentimentCounts()` computes positive/limit counts for display. The `CategoryLine` component now renders sentiment-colored category pills (wrapping to multiple rows when needed).
+Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`). `getCategorySentimentCounts()` computes positive/limit counts for display. The `CategoryLine` component now renders sentiment-colored category pills (wrapping to multiple rows when needed), sorted as positive → limit → neutral.
 
 ## Components
 
