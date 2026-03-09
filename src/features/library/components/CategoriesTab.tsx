@@ -1,10 +1,10 @@
-import { useState, type KeyboardEvent } from 'react';
+import { useMemo, type KeyboardEvent } from 'react';
 import { Pencil, Trash2, FolderOpen, Merge } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import type { Item, Category, CategorySentiment, EntryType } from '@/shared/lib/types';
+import type { CategorySentiment, EntryType } from '@/shared/lib/types';
 import { addCategory, updateCategory, deleteCategory, mergeCategory } from '@/shared/store/store';
-import { useEntries, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
+import { useEntries } from '@/shared/store/hooks';
 import { cn } from '@/shared/lib/cn';
 import { SENTIMENT_COLORS } from '@/features/stats';
 import EntityTitle from '@/shared/ui/EntityTitle';
@@ -14,19 +14,18 @@ import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import { useToast } from '@/shared/ui/useToast';
 import IconActionButton from '@/shared/ui/IconActionButton';
 import SentimentPicker from './SentimentPicker';
-import { useLibraryForm } from '../hooks/useLibraryForm';
-import { useMergeFlow } from '../hooks/useMergeFlow';
-import { countAffectedForCategoryMerge } from '../utils/merge-utils';
+import { useLibraryEntityManager } from '../hooks/useLibraryEntityManager';
+import { countAffectedEntryOverridesForCategoryMerge } from '../utils/merge-utils';
 import MergeTargetSheet from './MergeTargetSheet';
 import MergeConfirmSheet from './MergeConfirmSheet';
 import TypeSegmentedPicker from './TypeSegmentedPicker';
-
-export type TypedCategory = Category & { type: EntryType };
-export type TypedItem = Item & { type: EntryType };
+import type { CategoriesByType, ItemCountsByCategoryId } from '../utils/library-indexes';
+import type { TypedCategory } from '../types';
 
 interface Props {
 	categories: TypedCategory[];
-	allItems: TypedItem[];
+	categoriesByType: CategoriesByType;
+	itemCountsByCategoryId: ItemCountsByCategoryId;
 	searchQuery: string;
 	showAddSheet: boolean;
 	onCloseAddSheet: () => void;
@@ -34,83 +33,70 @@ interface Props {
 
 const CATEGORY_FORM_DEFAULTS = { name: '', sentiment: 'neutral' as CategorySentiment, type: 'activity' as EntryType };
 
-export default function CategoriesTab({ categories, allItems, searchQuery, showAddSheet, onCloseAddSheet }: Props) {
+export default function CategoriesTab({
+	categories,
+	categoriesByType,
+	itemCountsByCategoryId,
+	searchQuery,
+	showAddSheet,
+	onCloseAddSheet,
+}: Props) {
 	const { t } = useTranslation('library');
 	const { showToast } = useToast();
 	const navigate = useNavigate();
-	const { editing, fields, deleting, setDeleting, setField, resetForm, startEdit, startDelete } = useLibraryForm<
-		TypedCategory,
-		typeof CATEGORY_FORM_DEFAULTS,
-		{ id: string; name: string; itemCount: number; type: EntryType }
-	>({ showAddSheet, defaults: CATEGORY_FORM_DEFAULTS });
-
-	const [mergeType, setMergeType] = useState<EntryType | null>(null);
 	const entries = useEntries();
-	const activityCategories = useActivityCategories();
-	const foodCategories = useFoodCategories();
 	const {
+		editing,
+		fields,
+		deleting,
+		setDeleting,
+		setField,
+		resetForm,
+		handleAdd,
+		handleStartEdit,
+		handleSaveEdit,
+		handleDelete,
+		handleConfirmDelete,
+		mergeType,
 		mergeSource,
 		mergeTarget,
 		isSelectingTarget,
 		isConfirming,
-		startMerge,
 		selectTarget,
-		cancelMerge,
-		completeMerge,
-	} = useMergeFlow();
+		handleStartMerge,
+		handleCancelMerge,
+		handleCompleteMerge,
+	} = useLibraryEntityManager<
+		TypedCategory,
+		typeof CATEGORY_FORM_DEFAULTS,
+		{ id: string; name: string; itemCount: number; type: EntryType }
+	>({
+		showAddSheet,
+		defaults: CATEGORY_FORM_DEFAULTS,
+		canSubmit: (currentFields) => currentFields.name.trim().length > 0,
+		getEditFields: (category) => ({ name: category.name, sentiment: category.sentiment, type: category.type }),
+		getDeleteState: (category) => ({
+			id: category.id,
+			name: category.name,
+			itemCount: itemCountsByCategoryId.get(category.id) ?? 0,
+			type: category.type,
+		}),
+		onAdd: (currentFields) => addCategory(currentFields.type, currentFields.name.trim(), currentFields.sentiment),
+		onSave: (category, currentFields) =>
+			updateCategory(currentFields.type, category.id, currentFields.name.trim(), currentFields.sentiment),
+		onDelete: (category) => deleteCategory(category.type, category.id),
+	});
 
 	const effectiveMergeType = mergeType ?? fields.type;
-	const activeCategoriesForMerge = effectiveMergeType === 'activity' ? activityCategories : foodCategories;
-
-	function getItemCountForCategory(categoryId: string, type: EntryType): number {
-		return allItems.filter((item) => item.type === type && item.categories.includes(categoryId)).length;
-	}
-
-	function handleAdd() {
-		if (!fields.name.trim()) return;
-		addCategory(fields.type, fields.name.trim(), fields.sentiment);
-		resetForm();
-		onCloseAddSheet();
-	}
-
-	function handleStartEdit(category: TypedCategory) {
-		startEdit(category, { name: category.name, sentiment: category.sentiment, type: category.type });
-	}
-
-	function handleSaveEdit() {
-		if (!editing || !fields.name.trim()) return;
-		updateCategory(fields.type, editing.id, fields.name.trim(), fields.sentiment);
-		resetForm();
-	}
-
-	function handleDelete(category: TypedCategory) {
-		const itemCount = getItemCountForCategory(category.id, category.type);
-		startDelete({ id: category.id, name: category.name, itemCount, type: category.type });
-	}
-
-	function confirmDeleteCategory() {
-		if (!deleting) return;
-		deleteCategory(deleting.type, deleting.id);
-		resetForm();
-	}
-
-	function handleStartMerge() {
-		if (!editing) return;
-		setMergeType(editing.type);
-		const source = { id: editing.id, name: editing.name };
-		resetForm();
-		startMerge(source);
-	}
-
-	function handleCancelMerge() {
-		setMergeType(null);
-		cancelMerge();
-	}
-
-	function handleCompleteMerge() {
-		setMergeType(null);
-		completeMerge();
-	}
+	const activeCategoriesForMerge = categoriesByType[effectiveMergeType];
+	const categoryRows = useMemo(
+		() =>
+			categories.map((category) => ({
+				category,
+				itemCount: itemCountsByCategoryId.get(category.id) ?? 0,
+			})),
+		[categories, itemCountsByCategoryId],
+	);
 
 	function handleConfirmMerge() {
 		if (!mergeSource || !mergeTarget) return;
@@ -119,10 +105,12 @@ export default function CategoriesTab({ categories, allItems, searchQuery, showA
 		handleCompleteMerge();
 	}
 
-	const scopedItems = allItems.filter((item) => item.type === effectiveMergeType);
 	const mergePreview =
 		mergeSource && isConfirming
-			? countAffectedForCategoryMerge(scopedItems, entries, effectiveMergeType, mergeSource.id)
+			? {
+					itemCount: itemCountsByCategoryId.get(mergeSource.id) ?? 0,
+					entryCount: countAffectedEntryOverridesForCategoryMerge(entries, effectiveMergeType, mergeSource.id),
+				}
 			: { itemCount: 0, entryCount: 0 };
 
 	function handleRowKeyDown(event: KeyboardEvent<HTMLDivElement>, categoryId: string) {
@@ -144,9 +132,8 @@ export default function CategoriesTab({ categories, allItems, searchQuery, showA
 				</div>
 			) : (
 				<div className="card overflow-hidden">
-					{categories.map((category, idx) => {
-						const itemCount = getItemCountForCategory(category.id, category.type);
-						const isLastInGroup = idx === categories.length - 1;
+					{categoryRows.map(({ category, itemCount }, idx) => {
+						const isLastInGroup = idx === categoryRows.length - 1;
 
 						return (
 							<div
@@ -195,7 +182,7 @@ export default function CategoriesTab({ categories, allItems, searchQuery, showA
 			<ConfirmDialog
 				open={deleting !== null}
 				onClose={() => setDeleting(null)}
-				onConfirm={confirmDeleteCategory}
+				onConfirm={handleConfirmDelete}
 				title={t('categories.deleteDialog.title')}
 				message={
 					deleting
@@ -213,7 +200,7 @@ export default function CategoriesTab({ categories, allItems, searchQuery, showA
 				onClose={onCloseAddSheet}
 				title={t('categories.addSheet.title')}
 				actionLabel={t('common:btn.add')}
-				onAction={handleAdd}
+				onAction={() => handleAdd(onCloseAddSheet)}
 				actionDisabled={!fields.name.trim()}
 			>
 				<div className="space-y-4">

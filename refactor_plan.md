@@ -30,11 +30,11 @@
 - [x] Keep stats behavior unchanged: 8-week windows, 4-week rolling baselines, partial-week prorating, and current routes all stay the same.
 
 ### Phase 4: Library Entity Manager Refactor
-- [ ] Add a library-scoped scaffold for the repeated add/edit/delete/merge flow so both tabs stop duplicating the same orchestration.
-- [ ] Add a library index hook for precomputed lookup maps: categories by ID, categories by type, favorite item ID set, and item counts by category ID.
-- [ ] Refactor `ItemsTab` to use the scaffold plus lookup maps so row rendering no longer performs repeated category lookups or repeated favorite checks through the store facade.
-- [ ] Refactor `CategoriesTab` to use the scaffold plus precomputed item counts so row rendering and delete/merge previews stop scanning the full item list per row.
-- [ ] Keep current routes, bottom sheets, merge behavior, and translations unchanged. The goal is lower duplication and cheaper row rendering, not a UX redesign.
+- [x] Add a library-scoped scaffold for the repeated add/edit/delete/merge flow so both tabs stop duplicating the same orchestration.
+- [x] Add a library index hook for precomputed lookup maps: categories by ID, categories by type, favorite item ID set, and item counts by category ID.
+- [x] Refactor `ItemsTab` to use the scaffold plus lookup maps so row rendering no longer performs repeated category lookups or repeated favorite checks through the store facade.
+- [x] Refactor `CategoriesTab` to use the scaffold plus precomputed item counts so row rendering and delete/merge previews stop scanning the full item list per row.
+- [x] Keep current routes, bottom sheets, merge behavior, and translations unchanged. The goal is lower duplication and cheaper row rendering, not a UX redesign.
 
 ## Public APIs / Interfaces
 - [x] `@/shared/store/store` remains the compatibility entrypoint for existing callers throughout this refactor.
@@ -46,7 +46,7 @@
 - [x] Keep the current store sync, merge, and tombstone suites passing while extracting modules.
 - [x] Add focused tests for the new merge and pending-deletion modules and for the new store-event surface.
 - [x] Add focused tests for tracking index builders and stats view-model hooks, covering category and item lookup, week bucketing, and unchanged baseline calculations.
-- [ ] Add focused tests for library lookup helpers and one regression test per tab for add, edit, merge, and delete flow wiring.
+- [x] Add focused tests for library lookup helpers and one regression test per tab for add, edit, merge, and delete flow wiring.
 - [x] Each implementation slice ends with `npm run test -- --run`, `npm run lint`, `npm run build`, and `npm run format`.
 
 ## Assumptions and Defaults

@@ -81,6 +81,7 @@ Navigation uses a 5-tab bottom nav bar defined in `App.tsx`.
 - **Two parallel type hierarchies**: Activity and food share identical structures but are kept separate. Functions take `EntryType` ('activity' | 'food').
 - **External store**: Module singleton + `useSyncExternalStore` (not Context). Fine-grained selector hooks prevent re-renders. See `src/shared/CLAUDE.md`.
 - **Feature-owned derived indexes**: Build expensive cross-entity lookup maps in the owning feature on top of shared slice hooks rather than widening `shared/store`. Tracking now exports reusable entry/item/category index builders and hooks for Stats and Library-style consumers. See `src/features/tracking/CLAUDE.md`.
+- **Library-owned entity manager scaffolds**: Library-specific CRUD/merge orchestration and lookup maps live in `src/features/library` rather than adding feature behavior to `shared/store`. Reusable library lookup builders are exported through `@/features/library`.
 - **App-owned notifications**: Shared store code emits typed semantic events; the app layer owns localized sync toasts and the sync status pill. Shared UI stays store-free. See `src/shared/CLAUDE.md` and `src/app/CLAUDE.md`.
 - **Category overrides**: Entries override item defaults via `categoryOverrides`. Use `getEntryCategoryIds()`. See `src/features/tracking/CLAUDE.md`.
 - **Category sentiment**: Categories have `sentiment` ('positive' | 'neutral' | 'limit'). See `src/features/tracking/CLAUDE.md`.

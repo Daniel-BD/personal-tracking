@@ -1,10 +1,10 @@
-import { useState, type KeyboardEvent } from 'react';
+import { useMemo, type KeyboardEvent } from 'react';
 import { Pencil, Trash2, PackageOpen, Merge } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import type { Item, Category, EntryType } from '@/shared/lib/types';
-import { addItem, updateItem, deleteItem, mergeItem, toggleFavorite, isFavorite } from '@/shared/store/store';
-import { useEntries, useActivityItems, useFoodItems } from '@/shared/store/hooks';
+import type { Category, EntryType } from '@/shared/lib/types';
+import { addItem, updateItem, deleteItem, mergeItem, toggleFavorite } from '@/shared/store/store';
+import { useEntries } from '@/shared/store/hooks';
 import { CategoryPicker } from '@/features/tracking';
 import { cn } from '@/shared/lib/cn';
 import { getItemAccentColor } from '@/features/stats';
@@ -15,18 +15,20 @@ import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import { useToast } from '@/shared/ui/useToast';
 import IconActionButton from '@/shared/ui/IconActionButton';
-import { useLibraryForm } from '../hooks/useLibraryForm';
-import { useMergeFlow } from '../hooks/useMergeFlow';
+import { useLibraryEntityManager } from '../hooks/useLibraryEntityManager';
 import { countAffectedEntriesForItemMerge } from '../utils/merge-utils';
 import MergeTargetSheet from './MergeTargetSheet';
 import MergeConfirmSheet from './MergeConfirmSheet';
 import TypeSegmentedPicker from './TypeSegmentedPicker';
-
-export type TypedItem = Item & { type: EntryType };
+import type { CategoriesByType, FavoriteItemIdSet, TypedCategoryById } from '../utils/library-indexes';
+import type { TypedItem } from '../types';
 
 interface Props {
 	items: TypedItem[];
-	categoriesByType: Record<EntryType, (Category & { type: EntryType })[]>;
+	itemsByType: Record<EntryType, TypedItem[]>;
+	categoriesById: TypedCategoryById;
+	categoriesByType: CategoriesByType;
+	favoriteItemIdSet: FavoriteItemIdSet;
 	searchQuery: string;
 	showAddSheet: boolean;
 	onCloseAddSheet: () => void;
@@ -34,52 +36,76 @@ interface Props {
 
 const ITEM_FORM_DEFAULTS = { name: '', categories: [] as string[], type: 'activity' as EntryType };
 
-export default function ItemsTab({ items, categoriesByType, searchQuery, showAddSheet, onCloseAddSheet }: Props) {
+export default function ItemsTab({
+	items,
+	itemsByType,
+	categoriesById,
+	categoriesByType,
+	favoriteItemIdSet,
+	searchQuery,
+	showAddSheet,
+	onCloseAddSheet,
+}: Props) {
 	const { t } = useTranslation('library');
 	const { showToast } = useToast();
 	const navigate = useNavigate();
-	const { editing, fields, deleting, setDeleting, setField, resetForm, startEdit, startDelete } = useLibraryForm<
-		TypedItem,
-		typeof ITEM_FORM_DEFAULTS,
-		{ id: string; name: string; type: EntryType }
-	>({ showAddSheet, defaults: ITEM_FORM_DEFAULTS });
-
-	const [mergeType, setMergeType] = useState<EntryType | null>(null);
 	const entries = useEntries();
-	const activityItems = useActivityItems();
-	const foodItems = useFoodItems();
 	const {
+		editing,
+		fields,
+		deleting,
+		setDeleting,
+		setField,
+		resetForm,
+		handleAdd,
+		handleStartEdit,
+		handleSaveEdit,
+		handleDelete,
+		handleConfirmDelete,
+		mergeType,
 		mergeSource,
 		mergeTarget,
 		isSelectingTarget,
 		isConfirming,
-		startMerge,
 		selectTarget,
-		cancelMerge,
-		completeMerge,
-	} = useMergeFlow();
+		handleStartMerge,
+		handleCancelMerge,
+		handleCompleteMerge,
+	} = useLibraryEntityManager<TypedItem, typeof ITEM_FORM_DEFAULTS, { id: string; name: string; type: EntryType }>({
+		showAddSheet,
+		defaults: ITEM_FORM_DEFAULTS,
+		canSubmit: (currentFields) => currentFields.name.trim().length > 0,
+		getEditFields: (item) => ({ name: item.name, categories: [...item.categories], type: item.type }),
+		getDeleteState: (item) => ({ id: item.id, name: item.name, type: item.type }),
+		onAdd: (currentFields) => addItem(currentFields.type, currentFields.name.trim(), currentFields.categories),
+		onSave: (item, currentFields) =>
+			updateItem(currentFields.type, item.id, currentFields.name.trim(), currentFields.categories),
+		onDelete: (item) => deleteItem(item.type, item.id),
+	});
 
 	const effectiveMergeType = mergeType ?? fields.type;
-	const activeItemsForMerge = effectiveMergeType === 'activity' ? activityItems : foodItems;
+	const activeItemsForMerge = itemsByType[effectiveMergeType];
 	const categories = fields.type === 'activity' ? categoriesByType.activity : categoriesByType.food;
+	const itemRows = useMemo(
+		() =>
+			items.map((item) => {
+				const itemCategories: Category[] = item.categories
+					.map((categoryId) => categoriesById.get(categoryId))
+					.filter((category): category is NonNullable<typeof category> => category !== undefined)
+					.map(({ id, name, sentiment }) => ({ id, name, sentiment }));
 
-	function handleStartMerge() {
-		if (!editing) return;
-		setMergeType(editing.type);
-		const source = { id: editing.id, name: editing.name };
-		resetForm();
-		startMerge(source);
-	}
-
-	function handleCancelMerge() {
-		setMergeType(null);
-		cancelMerge();
-	}
-
-	function handleCompleteMerge() {
-		setMergeType(null);
-		completeMerge();
-	}
+				return {
+					item,
+					itemCategories,
+					accentColor: getItemAccentColor(
+						itemCategories.map((category) => category.id),
+						itemCategories,
+					),
+					isFavorite: favoriteItemIdSet.has(item.id),
+				};
+			}),
+		[items, categoriesById, favoriteItemIdSet],
+	);
 
 	function handleConfirmMerge(noteToAppend?: string) {
 		if (!mergeSource || !mergeTarget) return;
@@ -90,33 +116,6 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 
 	const mergeAffectedEntryCount =
 		mergeSource && isConfirming ? countAffectedEntriesForItemMerge(entries, effectiveMergeType, mergeSource.id) : 0;
-
-	function handleAdd() {
-		if (!fields.name.trim()) return;
-		addItem(fields.type, fields.name.trim(), fields.categories);
-		resetForm();
-		onCloseAddSheet();
-	}
-
-	function handleStartEdit(item: TypedItem) {
-		startEdit(item, { name: item.name, categories: [...item.categories], type: item.type });
-	}
-
-	function handleSaveEdit() {
-		if (!editing || !fields.name.trim()) return;
-		updateItem(fields.type, editing.id, fields.name.trim(), fields.categories);
-		resetForm();
-	}
-
-	function handleDelete(item: TypedItem) {
-		startDelete({ id: item.id, name: item.name, type: item.type });
-	}
-
-	function confirmDeleteItem() {
-		if (!deleting) return;
-		deleteItem(deleting.type, deleting.id);
-		resetForm();
-	}
 
 	function handleRowKeyDown(event: KeyboardEvent<HTMLDivElement>, itemId: string) {
 		if (event.key === 'Enter' || event.key === ' ') {
@@ -137,12 +136,8 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 				</div>
 			) : (
 				<div className="card overflow-hidden">
-					{items.map((item, idx) => {
-						const itemCategories: Category[] = item.categories
-							.map((categoryId) => categoriesByType[item.type].find((category) => category.id === categoryId))
-							.filter((category): category is NonNullable<typeof category> => category !== undefined)
-							.map(({ id, name, sentiment }) => ({ id, name, sentiment }));
-						const isLastInGroup = idx === items.length - 1;
+					{itemRows.map(({ item, itemCategories, accentColor, isFavorite }, idx) => {
+						const isLastInGroup = idx === itemRows.length - 1;
 
 						return (
 							<div
@@ -156,7 +151,7 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 								<div className="flex items-center justify-between gap-3">
 									<div className="flex-1 min-w-0">
 										<div className="flex items-center gap-2">
-											<SentimentDot color={getItemAccentColor(item.categories, categoriesByType[item.type])} />
+											<SentimentDot color={accentColor} />
 											<EntityTitle text={item.name} className="flex-1 min-w-0" />
 										</div>
 										<CategorySentimentPills categories={itemCategories} emptyText={t('items.noCategories')} />
@@ -169,11 +164,9 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 												toggleFavorite(item.id);
 											}}
 											className="p-1.5"
-											aria-label={
-												isFavorite(item.id) ? t('items.favoriteAriaLabel.remove') : t('items.favoriteAriaLabel.add')
-											}
+											aria-label={isFavorite ? t('items.favoriteAriaLabel.remove') : t('items.favoriteAriaLabel.add')}
 										>
-											<StarIcon filled={isFavorite(item.id)} className="w-4 h-4" />
+											<StarIcon filled={isFavorite} className="w-4 h-4" />
 										</button>
 										<IconActionButton
 											icon={Pencil}
@@ -204,7 +197,7 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 			<ConfirmDialog
 				open={deleting !== null}
 				onClose={() => setDeleting(null)}
-				onConfirm={confirmDeleteItem}
+				onConfirm={handleConfirmDelete}
 				title={t('items.deleteDialog.title')}
 				message={
 					deleting?.name
@@ -221,7 +214,7 @@ export default function ItemsTab({ items, categoriesByType, searchQuery, showAdd
 					type: fields.type === 'activity' ? t('common:type.activity') : t('common:type.food'),
 				})}
 				actionLabel={t('common:btn.add')}
-				onAction={handleAdd}
+				onAction={() => handleAdd(onCloseAddSheet)}
 				actionDisabled={!fields.name.trim()}
 			>
 				<div className="space-y-4">
