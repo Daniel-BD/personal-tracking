@@ -14,12 +14,12 @@ interface Props {
 
 export default function TypePillTitle({ type, title, showType = true, leading, className, titleClassName }: Props) {
 	return (
-		<div className={cn('flex flex-col items-start gap-1 min-w-0', className)}>
-			{showType && <EntryTypePill type={type} className="shrink-0" />}
-			<div className="flex items-center gap-2 min-w-0 w-full">
+		<div className={cn('flex items-center justify-between gap-2 min-w-0 w-full', className)}>
+			<div className="flex items-center gap-2 min-w-0 flex-1">
 				{leading}
 				<span className={cn('font-medium text-heading truncate', titleClassName)}>{title}</span>
 			</div>
+			{showType && <EntryTypePill type={type} className="shrink-0" />}
 		</div>
 	);
 }

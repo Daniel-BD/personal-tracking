@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { EntryTypePill } from '@/shared/ui/EntityMetaBadges';
+import TypePillTitle from '@/shared/ui/TypePillTitle';
 import { getCategoryNames } from '@/shared/store/store';
 import type { UnifiedItem } from '../hooks/useQuickLogSearch';
 
@@ -70,9 +70,8 @@ export default function QuickLogSearchInput({
 							onClick={() => handleSelectExisting(unified)}
 							className="w-full text-left px-4 py-3 hover:bg-[var(--bg-card-hover)] flex items-center gap-3 border-b border-[var(--border-subtle)] last:border-b-0"
 						>
-							<EntryTypePill type={unified.type} className="shrink-0" />
 							<div className="flex-1 min-w-0">
-								<div className="font-medium text-heading">{unified.item.name}</div>
+								<TypePillTitle type={unified.type} title={unified.item.name} />
 								{unified.item.categories.length > 0 && (
 									<div className="text-xs text-label truncate">
 										{getCategoryNames(unified.type, unified.item.categories).join(', ')}

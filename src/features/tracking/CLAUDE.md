@@ -18,7 +18,7 @@ Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`). `
 
 ## Components
 
-- **`EntryList.tsx`** — Grouped-by-date entry display with inline quick-add, edit, and delete icon buttons on each row. Date headers are sticky, uppercase, muted. Uses `BottomSheet` for editing entries. Tap row to navigate to item detail. Optional type metadata is rendered with shared `TypePillTitle`, placing the food/activity pill on a row above the item title.
+- **`EntryList.tsx`** — Grouped-by-date entry display with inline quick-add, edit, and delete icon buttons on each row. Date headers are sticky, uppercase, muted. Uses `BottomSheet` for editing entries. Tap row to navigate to item detail. Optional type metadata is rendered with shared `TypePillTitle`, keeping the food/activity pill right-aligned on the same row as the item title.
 - **`CategoryLine.tsx`** — Shared category display with sentiment indicators (green `+`, red `−`). Used on item/entry rows across Log and Library pages.
 - **`CategoryPicker.tsx`** — Multi-select category chips with inline creation. New categories created inline default to neutral sentiment.
 
