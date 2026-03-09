@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { parseArgs as nodeParseArgs } from 'node:util';
 import { createMockTrackerData } from '../../../../public/mock-data/inject-mock-data.js';
 
 const DEFAULT_ORIGIN = 'http://127.0.0.1:4173';
@@ -15,59 +16,40 @@ function parseNumber(value, flagName) {
 }
 
 function parseArgs(argv) {
-	const options = {
-		origin: DEFAULT_ORIGIN,
-		days: 70,
-		averageEntriesPerDay: 4,
-		seed: 20260308,
-		dataPath: DEFAULT_DATA_PATH,
-		storageStatePath: DEFAULT_STORAGE_STATE_PATH,
-	};
+	const { values } = nodeParseArgs({
+		args: argv,
+		options: {
+			origin: { type: 'string', default: DEFAULT_ORIGIN },
+			days: { type: 'string', default: '70' },
+			average: { type: 'string', default: '4' },
+			seed: { type: 'string', default: '20260308' },
+			'data-path': { type: 'string', default: DEFAULT_DATA_PATH },
+			'storage-state-path': { type: 'string', default: DEFAULT_STORAGE_STATE_PATH },
+			help: { type: 'boolean' },
+		},
+		allowPositionals: false,
+		strict: true,
+	});
 
-	for (let i = 0; i < argv.length; i += 1) {
-		const arg = argv[i];
-		const next = argv[i + 1];
-		switch (arg) {
-			case '--origin':
-				options.origin = next;
-				i += 1;
-				break;
-			case '--days':
-				options.days = parseNumber(next, '--days');
-				i += 1;
-				break;
-			case '--average':
-				options.averageEntriesPerDay = parseNumber(next, '--average');
-				i += 1;
-				break;
-			case '--seed':
-				options.seed = parseNumber(next, '--seed');
-				i += 1;
-				break;
-			case '--data-path':
-				options.dataPath = next;
-				i += 1;
-				break;
-			case '--storage-state-path':
-				options.storageStatePath = next;
-				i += 1;
-				break;
-			case '--help':
-				console.log(
-					`Usage: npm run mock-data:generate -- [options]\n\nOptions:\n  --origin <url>               Origin used in Playwright storage state\n  --days <number>              Days of history (default: 70)\n  --average <number>           Average entries per day (default: 4)\n  --seed <number>              RNG seed (default: 20260308)\n  --data-path <path>           JSON output path (default: .artifacts/mock-tracker-data.json)\n  --storage-state-path <path>  Playwright storage state path (default: .artifacts/mock-storage-state.json)\n`,
-				);
-				process.exit(0);
-			default:
-				if (arg.startsWith('--')) {
-					throw new Error(`Unknown option: ${arg}`);
-				}
-		}
+	if (values.help) {
+		console.log(
+			`Usage: npm run mock-data:generate -- [options]\n\nOptions:\n  --origin <url>               Origin used in Playwright storage state (default: "${DEFAULT_ORIGIN}")\n  --days <number>              Days of history (default: 70)\n  --average <number>           Average entries per day (default: 4)\n  --seed <number>              RNG seed (default: 20260308)\n  --data-path <path>           JSON output path (default: "${DEFAULT_DATA_PATH}")\n  --storage-state-path <path>  Playwright storage state path (default: "${DEFAULT_STORAGE_STATE_PATH}")\n`,
+		);
+		process.exit(0);
 	}
 
-	if (!options.origin) {
+	if (!values.origin) {
 		throw new Error('--origin cannot be empty');
 	}
-	return options;
+
+	return {
+		origin: values.origin,
+		days: parseNumber(values.days, '--days'),
+		averageEntriesPerDay: parseNumber(values.average, '--average'),
+		seed: parseNumber(values.seed, '--seed'),
+		dataPath: values['data-path'],
+		storageStatePath: values['storage-state-path'],
+	};
 }
 
 async function ensureParentDir(filePath) {

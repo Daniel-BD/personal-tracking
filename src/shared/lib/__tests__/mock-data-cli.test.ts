@@ -84,4 +84,14 @@ describe('mock-data CLI generator', () => {
 			rmSync(tempDir, { recursive: true, force: true });
 		}
 	});
+
+	it('fails when a flag value is missing', () => {
+		expect(() => {
+			execFileSync(
+				'node',
+				['.agents/skills/mock-data-preview/scripts/generate-storage-state.mjs', '--origin', '--days', '10'],
+				{ cwd: process.cwd(), encoding: 'utf-8', stdio: 'pipe' },
+			);
+		}).toThrow();
+	});
 });

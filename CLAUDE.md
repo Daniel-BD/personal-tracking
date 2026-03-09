@@ -39,6 +39,7 @@ This creates:
 - `.artifacts/mock-storage-state.json` (for Playwright `storageState`)
 
 For agent workflow details, use the `.agents/skills/mock-data-preview` skill.
+Missing required flag values are validated by the CLI parser and fail fast with an error.
 
 Tests use **Vitest** with **happy-dom** environment. Config is in `vitest.config.ts`. Shared test helpers (factory functions like `makeEntry`, `makeItem`, `makeCategory`, `makeValidData`) live in `src/shared/store/__tests__/fixtures.ts`.
 
