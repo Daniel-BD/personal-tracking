@@ -6,7 +6,7 @@ import { getTodayDate, findItemWithCategories } from '@/shared/lib/types';
 import { filterEntriesByType, filterEntriesByDateRange, getEntryCategoryIds } from '@/features/tracking';
 import { getDateNDaysAgo } from '@/shared/lib/date-utils';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
-import { EntryTypePill } from '@/shared/ui/EntityMetaBadges';
+import TypePillTitle from '@/shared/ui/TypePillTitle';
 import { rankItems, buildItemLookup, type RankedItem } from '../utils/ranking-utils';
 import { getItemAccentColor, SENTIMENT_COLORS } from '../utils/stats-engine';
 
@@ -157,10 +157,12 @@ export default function FrequencyRanking({ entries, data }: Props) {
 								<span className="text-xs text-muted w-5 text-right shrink-0">{i + 1}</span>
 								<div className="flex-1 min-w-0">
 									<div className="flex items-center justify-between gap-2 mb-0.5">
-										<div className="flex items-center gap-1.5 min-w-0">
-											{typeFilter === 'all' && <EntryTypePill type={row.type} className="shrink-0" />}
-											<span className="text-sm text-heading truncate">{row.name}</span>
-										</div>
+										<TypePillTitle
+											type={row.type}
+											title={row.name}
+											showType={typeFilter === 'all'}
+											titleClassName="text-sm"
+										/>
 										<span className="text-xs text-label shrink-0">{row.count}</span>
 									</div>
 									<div className="h-1 rounded-full bg-[var(--bg-inset)] overflow-hidden">

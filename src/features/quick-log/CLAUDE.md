@@ -17,7 +17,7 @@ Business logic is extracted into hooks; the components are presentational, wirin
 
 - **`QuickLogForm.tsx`** — Orchestrator: uses both hooks, renders `QuickLogSearchInput` + `QuickLogItemsList` + BottomSheet. Accepts an optional `children` render prop `(slots: { searchInput, itemsList }) => ReactNode` to let parent components position the slots within a custom layout.
 - **`QuickLogSearchInput.tsx`** — Borderless search input with dropdown results; each result row includes the shared `EntryTypePill` badge (food/activity). Accepts search state as props. Contains the blur-delay logic for dropdown click handling.
-- **`QuickLogItemsList.tsx`** — Favorites / Recent segmented list. Has internal `tab` state ('favorites' | 'recent'). Favorites show a star toggle button; recent items show a spacer in place of the star. Both rows show a shared `EntryTypePill` badge (food/activity) and use `QuickLogButton` for instant quick-log.
+- **`QuickLogItemsList.tsx`** — Favorites / Recent segmented list. Has internal `tab` state ('favorites' | 'recent'). Favorites show a star toggle button; recent items show a spacer in place of the star. Both rows use `TypePillTitle` to place the food/activity pill on a dedicated row above the item title, and use `QuickLogButton` for instant quick-log.
 - **`QuickLogButton.tsx`** — Animated Zap icon button. When clicked, it animates the icon color to yellow (`var(--color-favorite)`) and draws a clockwise progress circle around it. Uses Motion's `useAnimate` (WAAPI-based) for animations. Prevents double-clicks during animation via a ref guard. Respects `prefers-reduced-motion` by using a simple color pulse.
 
 ## UX Flow

@@ -22,4 +22,4 @@ Log page with filterable entry list. Exports its public API via `index.ts` barre
 
 - `__tests__/log-filters.test.ts` — Filter pipeline composition + type-change cleanup
 
-- Entry rows can optionally show a shared `EntryTypePill` (food/activity) when `showType` is enabled by the page.
+- Entry rows can optionally show the food/activity pill in a dedicated row above the item title (via shared `TypePillTitle`) when `showType` is enabled by the page.

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { EntryTypePill } from '@/shared/ui/EntityMetaBadges';
+import TypePillTitle from '@/shared/ui/TypePillTitle';
 import { toggleFavorite } from '@/shared/store/store';
 import StarIcon from '@/shared/ui/StarIcon';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
@@ -63,13 +63,8 @@ export default function QuickLogItemsList({ favoriteItemsList, recentItemsList, 
 								) : (
 									<span className="flex-shrink-0 w-6" />
 								)}
-								<button
-									type="button"
-									onClick={() => onSelectExisting(unified)}
-									className="flex-1 text-left flex items-center gap-3 min-w-0"
-								>
-									<EntryTypePill type={unified.type} className="shrink-0" />
-									<span className="text-body truncate">{unified.item.name}</span>
+								<button type="button" onClick={() => onSelectExisting(unified)} className="flex-1 text-left min-w-0">
+									<TypePillTitle type={unified.type} title={unified.item.name} titleClassName="text-body" />
 								</button>
 								<QuickLogButton
 									onClick={() => onQuickLog(unified)}

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getCurrentTime, getTodayDate, type Entry, type EntryType } from '@/shared/lib/types';
-import { EntryTypePill } from '@/shared/ui/EntityMetaBadges';
 import { addEntry, getItemById, deleteEntry, updateEntry } from '@/shared/store/store';
 import { useTrackerData } from '@/shared/store/hooks';
 import { getEntriesGroupedByDate } from '../utils/entry-grouping';
@@ -17,6 +16,7 @@ import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import IconActionButton from '@/shared/ui/IconActionButton';
 import { showToast } from '@/shared/ui/Toast';
+import TypePillTitle from '@/shared/ui/TypePillTitle';
 
 interface Props {
 	entries: Entry[];
@@ -139,12 +139,11 @@ export default function EntryList({ entries, showType = false }: Props) {
 									>
 										<div className="flex items-center justify-between gap-3">
 											<div className="flex-1 min-w-0">
-												<div className="flex items-center gap-2">
-													{showType && <EntryTypePill type={entry.type} />}
-													<span className="font-medium text-heading truncate">
-														{getItemName(entry.type, entry.itemId)}
-													</span>
-												</div>
+												<TypePillTitle
+													type={entry.type}
+													title={getItemName(entry.type, entry.itemId)}
+													showType={showType}
+												/>
 												<CategoryLine categoryIds={categoryIds} categories={typeCategories} />
 												{entry.notes && <p className="text-xs text-subtle mt-0.5 truncate italic">{entry.notes}</p>}
 											</div>
