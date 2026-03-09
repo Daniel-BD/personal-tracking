@@ -111,34 +111,34 @@ export default function CategoryDetailPage() {
 			</div>
 
 			{/* Summary stats */}
-			<div className="card p-4 space-y-1">
-				<div className="text-sm font-semibold text-heading">
-					{t('categoryDetail.thisWeek', { count: currentCount })}
-					{daysElapsed < 7 && (
-						<span className="text-xs font-normal text-label">
-							{' '}
-							({t('categoryDetail.partialWeek', { day: daysElapsed })})
-						</span>
+			<div className="space-y-2">
+				<div className="card p-4 space-y-1">
+					<div className="text-sm font-semibold text-heading">
+						{t('categoryDetail.thisWeek', { count: currentCount })}
+						{daysElapsed < 7 && (
+							<span className="text-xs font-normal text-label">
+								{' '}
+								({t('categoryDetail.partialWeek', { day: daysElapsed })})
+							</span>
+						)}
+					</div>
+					{!summary.isStable && (
+						<div className="flex items-baseline gap-1.5 pt-1">
+							<span className="text-lg font-bold" style={{ color }}>
+								{summary.changeText}
+							</span>
+							{deltaEventsText && <span className="text-xs text-label">{deltaEventsText}</span>}
+							<span className="text-xs text-label">• {comparisonText}</span>
+						</div>
 					)}
 				</div>
-				{!summary.isStable && (
-					<div className="flex items-baseline gap-1.5 pt-1">
-						<span className="text-lg font-bold" style={{ color }}>
-							{summary.changeText}
-						</span>
-						{deltaEventsText && <span className="text-xs text-label">{deltaEventsText}</span>}
-						<span className="text-xs text-label">• {comparisonText}</span>
-					</div>
-				)}
-			</div>
 
-			{sentiment === 'limit' && (
-				<div className="card p-4">
-					<p className="text-sm font-semibold text-heading">
+				{sentiment === 'limit' && (
+					<p className="inline-flex self-start rounded-full border border-line bg-surface px-3 py-1 text-xs font-semibold text-heading">
 						{t('categoryDetail.daysSinceLastLogged', { count: daysSinceLastLogged ?? 0 })}
 					</p>
-				</div>
-			)}
+				)}
+			</div>
 
 			{/* Trend chart */}
 			<CategoryTrendChart
