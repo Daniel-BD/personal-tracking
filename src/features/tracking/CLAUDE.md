@@ -14,12 +14,12 @@ Entries can override their item's default categories via `categoryOverrides`. Al
 
 ### Category Sentiment
 
-Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`). `getCategorySentimentCounts()` computes positive/limit counts for display. The `CategoryLine` component renders sentiment indicators: green `+` for positive, red `−` for limit (positives first).
+Each category has a `sentiment` property (`'positive' | 'neutral' | 'limit'`). `getCategorySentimentCounts()` computes positive/limit counts for display. The `CategoryLine` component now renders sentiment-colored category pills (wrapping to multiple rows when needed).
 
 ## Components
 
 - **`EntryList.tsx`** — Grouped-by-date entry display with inline quick-add, edit, and delete icon buttons on each row. Date headers are sticky, uppercase, muted. Uses `BottomSheet` for editing entries. Tap row to navigate to item detail.
-- **`CategoryLine.tsx`** — Shared category display with sentiment indicators (green `+`, red `−`). Used on item/entry rows across Log and Library pages.
+- **`CategoryLine.tsx`** — Shared category display with sentiment-colored pills (wrapping rows). Used on item/entry rows.
 - **`CategoryPicker.tsx`** — Multi-select category chips with inline creation. New categories created inline default to neutral sentiment.
 
 ## Entry Sorting
@@ -31,3 +31,4 @@ Within each day, entries sort by time (latest first); entries without time come 
 - `__tests__/entry-filters.test.ts`
 - `__tests__/entry-grouping.test.ts`
 - `__tests__/category-utils.test.ts`
+- `__tests__/CategoryLine.test.tsx`

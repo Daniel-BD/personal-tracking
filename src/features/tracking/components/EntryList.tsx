@@ -135,11 +135,11 @@ export default function EntryList({ entries }: Props) {
 										className={`px-4 py-3 ${!isLastInGroup ? 'border-b border-[var(--border-subtle)]' : ''}`}
 										onClick={() => navigate(`/log/item/${entry.itemId}?type=${entry.type}`)}
 									>
-										<div className="flex items-center justify-between gap-3">
+										<div className="flex items-start justify-between gap-3">
 											<div className="flex-1 min-w-0">
-												<span className="font-medium text-heading truncate">
+												<p className="font-medium text-heading truncate block">
 													{getItemName(entry.type, entry.itemId)}
-												</span>
+												</p>
 												<CategoryLine categoryIds={categoryIds} categories={typeCategories} />
 												{entry.notes && <p className="text-xs text-subtle mt-0.5 truncate italic">{entry.notes}</p>}
 											</div>
