@@ -13,7 +13,7 @@ import { getCardId } from '@/shared/lib/types';
 import type { EntryType } from '@/shared/lib/types';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import { SENTIMENT_COLORS, getItemAccentColor } from '../utils/stats-engine';
-import { SentimentDot, EntryTypePill, CategorySentimentPills } from '@/shared/ui/EntityMetaBadges';
+import { SentimentDot, CategorySentimentPills } from '@/shared/ui/EntityMetaBadges';
 
 interface AddCategoryModalProps {
 	onClose: () => void;
@@ -130,7 +130,6 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 										<div className="flex items-center gap-2">
 											<SentimentDot color={SENTIMENT_COLORS[category.sentiment]} />
 											<span className="font-medium truncate">{category.name}</span>
-											<EntryTypePill type={category.type} />
 										</div>
 									</div>
 									{isAdded && <span className="text-xs font-medium text-label">{t('addCategoryModal.added')}</span>}
@@ -159,7 +158,6 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 												)}
 											/>
 											<span className="font-medium truncate">{item.name}</span>
-											<EntryTypePill type={item.type} />
 										</div>
 										<CategorySentimentPills categories={resolveItemCategories(item)} />
 									</div>

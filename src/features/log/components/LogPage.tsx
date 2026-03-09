@@ -135,7 +135,7 @@ export default function LogPage() {
 					)}
 				</div>
 			) : (
-				<EntryList entries={filteredEntries} showType={typeFilter === 'all'} />
+				<EntryList entries={filteredEntries} />
 			)}
 
 			{/* Filter Bottom Sheet */}

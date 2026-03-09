@@ -7,7 +7,7 @@ import { addCategory, updateCategory, deleteCategory, mergeCategory } from '@/sh
 import { useEntries, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
 import { cn } from '@/shared/lib/cn';
 import { SENTIMENT_COLORS } from '@/features/stats';
-import { SentimentDot, EntryTypePill } from '@/shared/ui/EntityMetaBadges';
+import { SentimentDot } from '@/shared/ui/EntityMetaBadges';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import { showToast } from '@/shared/ui/Toast';
@@ -160,7 +160,6 @@ export default function CategoriesTab({ categories, allItems, searchQuery, showA
 										<div className="flex items-center gap-2">
 											<SentimentDot color={SENTIMENT_COLORS[category.sentiment]} />
 											<span className="font-medium text-heading truncate">{category.name}</span>
-											<EntryTypePill type={category.type} />
 										</div>
 										<p className="text-xs text-subtle mt-0.5">{t('categories.itemCount', { count: itemCount })}</p>
 									</div>
