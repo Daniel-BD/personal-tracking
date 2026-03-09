@@ -1,5 +1,5 @@
 import { cn } from '@/shared/lib/cn';
-import type { Category, CategorySentiment, EntryType } from '@/shared/lib/types';
+import type { Category, CategorySentiment } from '@/shared/lib/types';
 
 const SENTIMENT_PILL_COLORS: Record<CategorySentiment, { bg: string; text: string }> = {
 	positive: { bg: 'color-mix(in srgb, var(--color-success) 15%, var(--bg-card))', text: 'var(--color-success)' },
@@ -14,17 +14,6 @@ interface SentimentDotProps {
 
 export function SentimentDot({ color, className }: SentimentDotProps) {
 	return <div className={cn('w-2 h-2 rounded-full shrink-0', className)} style={{ backgroundColor: color }} />;
-}
-
-interface EntryTypePillProps {
-	type: EntryType;
-	className?: string;
-}
-
-export function EntryTypePill({ type, className }: EntryTypePillProps) {
-	return (
-		<span className={cn('text-xs text-label px-1.5 py-0.5 rounded-full bg-inset capitalize', className)}>{type}</span>
-	);
 }
 
 interface CategorySentimentPillsProps {
