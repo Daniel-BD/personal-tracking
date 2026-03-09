@@ -4,7 +4,7 @@ import type { TrackerData } from '@/shared/lib/types';
 import type { ActionableCategoryRow } from '../utils/stats-engine';
 import { getLastNWeeks, getTopLimitCategories } from '../utils/stats-engine';
 import { addDashboardCard } from '@/shared/store/store';
-import { showToast } from '@/shared/ui/Toast';
+import { showToast } from '@/shared/ui/toast-store';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
 import { cn } from '@/shared/lib/cn';
 

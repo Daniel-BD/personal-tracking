@@ -52,7 +52,8 @@ export default function BottomSheet({ open, onClose, children, title, actionLabe
 	return (
 		<div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden">
 			{/* Backdrop */}
-			<div className="absolute inset-0 bg-black/40 animate-fade-in" onClick={onClose} />
+			{/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+			<div className="absolute inset-0 bg-black/40 animate-fade-in" onMouseDown={onClose} />
 
 			{/* Sheet */}
 			<div

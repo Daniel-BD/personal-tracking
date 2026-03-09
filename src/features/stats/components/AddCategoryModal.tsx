@@ -89,10 +89,15 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 	};
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+		// eslint-disable-next-line jsx-a11y/no-static-element-interactions
+		<div
+			className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+			onMouseDown={onClose}
+		>
+			{/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
 			<div
 				className="card w-full max-w-md bg-elevated shadow-elevated flex flex-col max-h-[80vh]"
-				onClick={(e) => e.stopPropagation()}
+				onMouseDown={(e) => e.stopPropagation()}
 			>
 				<div className="p-4 border-b flex items-center justify-between">
 					<h3 className="text-lg font-bold">{t('addCategoryModal.title')}</h3>
@@ -175,8 +180,6 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 					)}
 				</div>
 			</div>
-
-			<div className="fixed inset-0 -z-10" onClick={onClose} />
 		</div>
 	);
 }

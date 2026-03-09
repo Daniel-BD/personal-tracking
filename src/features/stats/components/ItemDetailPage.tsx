@@ -37,7 +37,7 @@ export default function ItemDetailPage() {
 
 	const found = useMemo(() => (itemId ? findItemWithCategories(data, itemId) : undefined), [data, itemId]);
 	const item = found?.item;
-	const itemCategories = found?.categories ?? [];
+	const itemCategories = useMemo(() => found?.categories ?? [], [found]);
 
 	// Resolve default categories for this item
 	const defaultCategories = useMemo(() => {

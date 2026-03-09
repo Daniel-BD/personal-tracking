@@ -74,7 +74,7 @@ export default function CategoryDetailPage() {
 	const categoryEntries = useMemo(() => {
 		if (!categoryId) return [];
 		return filterEntriesByCategory(data.entries, categoryId, data);
-	}, [categoryId, data.entries, data.activityItems, data.foodItems, data.activityCategories, data.foodCategories]);
+	}, [categoryId, data]);
 
 	const daysSinceLastLogged = useMemo(() => getDaysSinceMostRecentEntry(categoryEntries), [categoryEntries]);
 

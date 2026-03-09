@@ -156,10 +156,12 @@ function CategoryDetailModal({ week, colorMap, onClose }: CategoryDetailModalPro
 	}, [week.categories]);
 
 	return (
-		<div className="fixed inset-0 bg-black/50 flex items-end z-50 sm:items-center">
+		// eslint-disable-next-line jsx-a11y/no-static-element-interactions
+		<div className="fixed inset-0 bg-black/50 flex items-end z-50 sm:items-center" onMouseDown={onClose}>
+			{/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
 			<div
 				className="bg-[var(--bg-elevated)] w-full sm:w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 space-y-4 max-h-96 overflow-y-auto"
-				onClick={(e) => e.stopPropagation()}
+				onMouseDown={(e) => e.stopPropagation()}
 			>
 				<div className="flex justify-between items-center pb-4 border-b border-[var(--border-default)]">
 					<div>
@@ -209,9 +211,6 @@ function CategoryDetailModal({ week, colorMap, onClose }: CategoryDetailModalPro
 					})}
 				</div>
 			</div>
-
-			{/* Close on background click */}
-			<div className="fixed inset-0 -z-10" onClick={onClose} />
 		</div>
 	);
 }

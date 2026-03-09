@@ -71,7 +71,7 @@ describe('BottomSheet', () => {
 		expect(buttons.length).toBe(0);
 	});
 
-	it('calls onClose when backdrop is clicked', () => {
+	it('calls onClose when backdrop is pressed', () => {
 		const onClose = vi.fn();
 		render(
 			<BottomSheet open={true} onClose={onClose} title="Title">
@@ -80,7 +80,7 @@ describe('BottomSheet', () => {
 		);
 
 		const backdrop = document.querySelector('.animate-fade-in')!;
-		fireEvent.click(backdrop);
+		fireEvent.mouseDown(backdrop);
 		expect(onClose).toHaveBeenCalledOnce();
 	});
 

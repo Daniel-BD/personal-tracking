@@ -64,8 +64,9 @@ export function getLastNWeeks(count: number = 8): Array<{ key: string; start: Da
 	for (let i = count - 1; i >= 0; i--) {
 		const date = new Date(today);
 		date.setDate(date.getDate() - i * 7);
+		const { year, week } = getISOWeekAndYear(date);
 		const key = getWeekKey(date);
-		const start = getWeekStartDate(date.getFullYear(), getISOWeekAndYear(date).week);
+		const start = getWeekStartDate(year, week);
 		const end = new Date(start);
 		end.setDate(end.getDate() + 6);
 

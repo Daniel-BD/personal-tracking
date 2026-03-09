@@ -13,7 +13,7 @@ import EntityTitle from '@/shared/ui/EntityTitle';
 import StarIcon from '@/shared/ui/StarIcon';
 import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
-import { showToast } from '@/shared/ui/Toast';
+import { showToast } from '@/shared/ui/toast-store';
 import IconActionButton from '@/shared/ui/IconActionButton';
 import { useLibraryForm } from '../hooks/useLibraryForm';
 import { useMergeFlow } from '../hooks/useMergeFlow';

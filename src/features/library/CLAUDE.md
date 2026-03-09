@@ -8,7 +8,7 @@ Library page for item & category CRUD management. Compact card list with inline 
 - **`ItemsTab.tsx`** — Item list across both activity and food types with sentiment accent dot and default-category sentiment pills. Row tap navigates to `/stats/item/:itemId`; inline favorite/edit/delete icon buttons are preserved. Add/edit BottomSheets include an in-sheet type picker (`TypeSegmentedPicker`) and use `CategoryPicker` for category assignment. Edit sheet includes "Merge into..." button.
 - **`CategoriesTab.tsx`** — Category list across both activity and food types with sentiment dot metadata. Row tap navigates to `/stats/category/:categoryId`; inline edit/delete icon buttons are preserved. Add/edit BottomSheets include an in-sheet type picker (`TypeSegmentedPicker`). Edit sheet includes "Merge into..." button.
 - **`SentimentPicker.tsx`** — Positive/neutral/limit radio group for setting category sentiment when creating or editing categories.
-- **`TypeSegmentedPicker.tsx`** — Shared activity/food segmented picker used by both item and category add/edit sheets, with translated labels from `common:type.*`.
+- **`TypeSegmentedPicker.tsx`** — Thin wrapper around shared `SegmentedControl` for the activity/food picker used by both item and category add/edit sheets, with translated labels from `common:type.*`.
 - **`MergeTargetSheet.tsx`** — BottomSheet with search input for selecting a merge target. Used by both items and categories.
 - **`MergeConfirmSheet.tsx`** — BottomSheet showing merge summary (affected counts), optional note input (items only), and confirm/cancel buttons.
 

@@ -3,13 +3,8 @@ import type { Entry, TrackerData } from '@/shared/lib/types';
 import type { CategorySentiment } from '@/shared/lib/types';
 import { formatDateLocal } from '@/shared/lib/date-utils';
 import { filterEntriesByCategory, filterEntriesByItem, filterEntriesByDateRange } from '@/features/tracking';
+import { SENTIMENT_COLORS } from '../utils/stats-engine';
 import PeriodNavigator from './PeriodNavigator';
-
-const SENTIMENT_COLORS: Record<CategorySentiment, string> = {
-	positive: 'var(--color-success)',
-	limit: 'var(--color-danger)',
-	neutral: 'var(--color-neutral)',
-};
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];

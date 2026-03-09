@@ -16,7 +16,7 @@ import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import EntityTitle from '@/shared/ui/EntityTitle';
 import IconActionButton from '@/shared/ui/IconActionButton';
-import { showToast } from '@/shared/ui/Toast';
+import { showToast } from '@/shared/ui/toast-store';
 
 interface Props {
 	entries: Entry[];
@@ -131,6 +131,7 @@ export default function EntryList({ entries }: Props) {
 								const isLastInGroup = idx === dateEntries.length - 1;
 
 								return (
+									// eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
 									<div
 										key={entry.id}
 										className={`px-4 py-3 ${!isLastInGroup ? 'border-b border-[var(--border-subtle)]' : ''}`}

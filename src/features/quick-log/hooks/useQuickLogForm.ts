@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import type { EntryType, Category } from '@/shared/lib/types';
 import { getTodayDate, getCurrentTime } from '@/shared/lib/types';
 import { addEntry, addItem, deleteEntry } from '@/shared/store/store';
-import { showToast } from '@/shared/ui/Toast';
+import { showToast } from '@/shared/ui/toast-store';
 import type { UnifiedItem } from './useQuickLogSearch';
 
 export function useQuickLogForm(activityCategories: Category[], foodCategories: Category[]) {

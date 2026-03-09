@@ -2,7 +2,7 @@ import type { TrackerData, DashboardCard, Tombstone, TombstoneEntityType } from 
 import { getCardId } from '@/shared/lib/types';
 import { getConfig, fetchGist, updateGist, isConfigured } from '@/shared/lib/github';
 import { migrateData } from './migration';
-import { showToast } from '@/shared/ui/Toast';
+import { showToast } from '@/shared/ui/toast-store';
 import i18n from '@/shared/lib/i18n';
 
 /**

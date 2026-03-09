@@ -67,7 +67,7 @@ export function useLogFilters() {
 					subtitle: categoryNames || undefined,
 				};
 			}),
-		[availableItems, typeFilter, activityItems, foodItems, activityCategories, foodCategories],
+		[availableItems, typeFilter, activityItems, activityCategories, foodCategories],
 	);
 
 	const activeFilterCount = selectedCategories.length + selectedItems.length;

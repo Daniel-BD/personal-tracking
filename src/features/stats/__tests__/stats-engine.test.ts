@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
 	getWeekStartDate,
+	getLastNWeeks,
 	getDaysElapsedInCurrentWeek,
 	getDaysSinceMostRecentEntry,
 	processFoodEntriesByWeek,
@@ -22,6 +23,7 @@ import {
 import { makeEntry, makeItem, makeCategory, makeValidData, resetIdCounter } from '@/shared/store/__tests__/fixtures';
 
 beforeEach(() => resetIdCounter());
+afterEach(() => vi.useRealTimers());
 
 // --- helpers ---
 
@@ -46,6 +48,23 @@ describe('getWeekStartDate', () => {
 		expect(result.getFullYear()).toBe(2024);
 		expect(result.getMonth()).toBe(11); // December
 		expect(result.getDate()).toBe(30);
+	});
+});
+
+describe('getLastNWeeks', () => {
+	it('uses the ISO year when deriving week boundaries around New Year', () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date('2025-12-31T12:00:00'));
+
+		const [week] = getLastNWeeks(1);
+
+		expect(week.key).toBe('2026-W01');
+		expect(week.start.getFullYear()).toBe(2025);
+		expect(week.start.getMonth()).toBe(11);
+		expect(week.start.getDate()).toBe(29);
+		expect(week.end.getFullYear()).toBe(2026);
+		expect(week.end.getMonth()).toBe(0);
+		expect(week.end.getDate()).toBe(4);
 	});
 });
 

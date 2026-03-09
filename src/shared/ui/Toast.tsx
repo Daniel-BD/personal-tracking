@@ -1,25 +1,14 @@
 import { useEffect, useState } from 'react';
-
-export interface ToastMessage {
-	id: number;
-	text: string;
-	action?: { label: string; onClick: () => void };
-}
-
-let toastIdCounter = 0;
-let addToastFn: ((msg: Omit<ToastMessage, 'id'>) => void) | null = null;
-
-export function showToast(text: string, action?: ToastMessage['action']) {
-	addToastFn?.({ text, action });
-}
+import { type ToastMessage, setToastHandler } from './toast-store';
 
 export default function ToastContainer() {
 	const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
 	useEffect(() => {
+		let toastIdCounter = 0;
 		const timers = new Map<number, ReturnType<typeof setTimeout>>();
 
-		addToastFn = (msg) => {
+		setToastHandler((msg) => {
 			const id = ++toastIdCounter;
 			setToasts((prev) => [...prev, { ...msg, id }]);
 			const timer = setTimeout(() => {
@@ -27,10 +16,10 @@ export default function ToastContainer() {
 				timers.delete(id);
 			}, 3500);
 			timers.set(id, timer);
-		};
+		});
 
 		return () => {
-			addToastFn = null;
+			setToastHandler(null);
 			timers.forEach((timer) => clearTimeout(timer));
 			timers.clear();
 		};

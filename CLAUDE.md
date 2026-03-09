@@ -7,10 +7,6 @@
 - **Always extract shared components** — if a piece of UI or logic is used in more than one place, extract it into a reusable component. When copying a component to use in a new location, extract the shared parts first rather than duplicating code.
 - You may need to run `npm install` first if `node_modules` is missing.
 
-## Checking PR Review Comments
-
-The `gh` CLI is not pre-authenticated in this environment. To check PR review comments, use the `WebFetch` tool on the GitHub PR URL (e.g., `https://github.com/Daniel-BD/personal-tracking/pull/123`). First fetch the PR list page to find the PR number, then fetch the individual PR page to read comments.
-
 ## Development Commands
 
 ```bash

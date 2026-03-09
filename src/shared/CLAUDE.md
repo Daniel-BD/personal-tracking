@@ -91,7 +91,8 @@ Reserve `children` for the body/content area where each usage genuinely needs di
 - **`NavIcon.tsx`** — Navigation icon component (Lucide icons for bottom nav).
 - **`StarIcon.tsx`** — Reusable star icon (Lucide Star, filled/unfilled) for favorites.
 - **`IconActionButton.tsx`** — Reusable circular icon action button with semantic tones (`add`, `edit`, `delete`) and app color tokens.
-- **`Toast.tsx`** — Toast notification system. `showToast()` is a module-level function (no provider). Toasts auto-dismiss after 3.5s, optionally include an action button.
+- **`Toast.tsx`** — Toast container component. Renders queued toasts, auto-dismisses after 3.5s, and shows optional action buttons.
+- **`toast-store.ts`** — Module-level toast bridge. Exports `showToast()` and the internal handler wiring used by `Toast.tsx` so feature/store code can enqueue toasts without a provider.
 - **`ConfirmDialog.tsx`** — Wraps `BottomSheet` for destructive action confirmations. Accepts `open`, `onClose`, `onConfirm`, `title`, `message` (optional), and `confirmLabel` (defaults to `'Delete'`). Confirm button is always danger-styled. Use this instead of native `confirm()`.
 - **`SentimentPills.tsx`** — Compact positive/limit count pills (green `N+`, red `N−`). Takes `{ positive, limit }` number props. Used by `DaySentimentSummary` and `DailyBalanceScore`.
 - **`EntityMetaBadges.tsx`** — Shared entity metadata helpers: `SentimentDot` (accent dot) and `CategorySentimentPills` (small sentiment-colored default-category pills used in Stats add modal and Library rows).
