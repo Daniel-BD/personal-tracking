@@ -8,6 +8,21 @@ interface BalanceScoreTrendChartProps {
 	weeklyData: WeeklyData[];
 }
 
+export function getBalanceTrendPointLabelY(cy: number): { scoreY: number; countsY: number } {
+	const isNearXAxis = cy > 130;
+	if (isNearXAxis) {
+		return {
+			scoreY: cy - 24,
+			countsY: cy - 10,
+		};
+	}
+
+	return {
+		scoreY: cy - 14,
+		countsY: cy + 18,
+	};
+}
+
 export default function BalanceScoreTrendChart({ weeklyData }: BalanceScoreTrendChartProps) {
 	const color = 'var(--color-accent)';
 
@@ -49,6 +64,7 @@ export default function BalanceScoreTrendChart({ weeklyData }: BalanceScoreTrend
 							const isLast = index === chartData.length - 1;
 							const r = isLast ? 5 : 3;
 							const opacity = payload.hasLowData ? 0.4 : 1;
+							const { scoreY, countsY } = getBalanceTrendPointLabelY(cy);
 
 							return (
 								<g opacity={opacity}>
@@ -56,7 +72,7 @@ export default function BalanceScoreTrendChart({ weeklyData }: BalanceScoreTrend
 									{/* Score label above dot */}
 									<text
 										x={cx}
-										y={cy - 14}
+										y={scoreY}
 										textAnchor="middle"
 										fontSize={11}
 										fontWeight={600}
@@ -65,7 +81,7 @@ export default function BalanceScoreTrendChart({ weeklyData }: BalanceScoreTrend
 										{payload.score}%
 									</text>
 									{/* Positive · Limit below dot */}
-									<text x={cx} y={cy + 18} textAnchor="middle" fontSize={9}>
+									<text x={cx} y={countsY} textAnchor="middle" fontSize={9}>
 										<tspan fill="var(--color-success)">{payload.positive}</tspan>
 										<tspan fill="var(--text-tertiary)"> · </tspan>
 										<tspan fill="var(--color-danger)">{payload.limit}</tspan>
