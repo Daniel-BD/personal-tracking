@@ -15,6 +15,7 @@ export function getWeeklyLineXAxisProps(fontSize: number = 11): WeeklyXAxisProps
 	return {
 		interval: 0,
 		minTickGap: 0,
+		height: 30,
 		tickMargin: 8,
 		tickLine: false,
 		axisLine: false,
@@ -34,8 +35,10 @@ export function getWeeklyVerticalBarCategoryAxisProps(isMobile: boolean): Weekly
 		type: 'category',
 		interval: 0,
 		minTickGap: 0,
+		tickLine: false,
+		axisLine: false,
 		tickMargin: 6,
-		width: isMobile ? 56 : 75,
+		width: isMobile ? 64 : 82,
 		tick: { fontSize: 12, fill: WEEKLY_AXIS_TICK_FILL },
 	};
 }

@@ -35,7 +35,7 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 ## Known Quirks
 
 - **Recharts in GoalCard**: The `dot` prop on `<Line>` uses a render function with explicit typing to satisfy TypeScript. The last data point gets a larger filled dot.
-- Weekly stats axes must not rely on Recharts default tick interval behavior. Use the shared weekly-axis helper so all 8 week labels remain visible after responsive re-measurements.
+- Weekly stats axes must not rely on Recharts default tick interval behavior. Use the shared weekly-axis helper so all 8 week labels remain visible after responsive re-measurements. The helper also reserves explicit axis height/width to prevent week labels from clipping after hydration and resize passes.
 - Chart colors use `--chart-color-1` through `--chart-color-9` CSS custom properties.
 
 ## Tests
