@@ -3,6 +3,7 @@ import type { Category, DashboardCard, Entry, EntryType, Item, TrackerData } fro
 import { getTodayDate } from '../src/shared/lib/types';
 import { getDateNDaysAgo } from '../src/shared/lib/date-utils';
 import { filterEntriesByDateRange, filterEntriesByType } from '../src/features/tracking';
+import { formatWeekLabel, getLastNWeeks } from '../src/features/stats/utils/stats-engine';
 import { expect, test } from './support/fixtures';
 
 type RankedEntity = {
@@ -11,6 +12,9 @@ type RankedEntity = {
 	count: number;
 	type: EntryType;
 };
+
+const MOBILE_STATS_VIEWPORT = { width: 390, height: 844 };
+const RESIZED_MOBILE_STATS_VIEWPORT = { width: 430, height: 844 };
 
 function escapeRegExp(value: string): string {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -176,6 +180,24 @@ function getFrequencyRankingSection(page: Page): Locator {
 
 function getEntityButton(scope: Locator, name: string): Locator {
 	return scope.getByRole('button', { name: new RegExp(`\\b${escapeRegExp(name)}\\b`) }).first();
+}
+
+function getExpectedWeeklyLabels(): string[] {
+	return getLastNWeeks(8).map((week) => formatWeekLabel(week.start));
+}
+
+async function expectWeeklyLabelsVisible(chart: Locator, labels: string[]): Promise<void> {
+	await expect(chart).toBeVisible();
+
+	for (const label of labels) {
+		await expect(chart.locator('text').filter({ hasText: new RegExp(`^${escapeRegExp(label)}$`) })).toBeVisible();
+	}
+}
+
+async function forceMobileResizeReflow(page: Page): Promise<void> {
+	await page.setViewportSize(RESIZED_MOBILE_STATS_VIEWPORT);
+	await page.waitForTimeout(50);
+	await page.evaluate(() => window.dispatchEvent(new Event('resize')));
 }
 
 test.describe('Stats e2e @full-regression', () => {
@@ -365,5 +387,49 @@ test.describe('Stats e2e @full-regression', () => {
 		await seededPage.reload();
 		await expect(getEntityButton(goalDashboard, category.name)).toBeVisible();
 		await expect(getEntityButton(goalDashboard, item.name)).toBeVisible();
+	});
+
+	test('weekly chart labels remain visible after mobile resize reflow on overview and detail charts', async ({
+		appData,
+		seededPage,
+	}) => {
+		const weekLabels = getExpectedWeeklyLabels();
+		const category =
+			appData.foodCategories.find((candidate) => candidate.id === 'fc-sugar') ?? appData.foodCategories[0];
+
+		if (!category) {
+			throw new Error('Expected a seeded category for weekly chart label coverage');
+		}
+
+		await seededPage.setViewportSize(MOBILE_STATS_VIEWPORT);
+		await seededPage.goto('/stats');
+
+		const firstGoalCardChart = getGoalDashboardSection(seededPage)
+			.locator('[role="button"]')
+			.first()
+			.locator('.recharts-responsive-container');
+		const weeklyBreakdownChart = seededPage
+			.getByRole('heading', { level: 3, name: 'Weekly Breakdown' })
+			.locator('xpath=..')
+			.locator('.recharts-responsive-container');
+
+		await expectWeeklyLabelsVisible(firstGoalCardChart, weekLabels);
+		await expectWeeklyLabelsVisible(weeklyBreakdownChart, weekLabels);
+
+		await forceMobileResizeReflow(seededPage);
+
+		await expectWeeklyLabelsVisible(firstGoalCardChart, weekLabels);
+		await expectWeeklyLabelsVisible(weeklyBreakdownChart, weekLabels);
+
+		await seededPage.setViewportSize(MOBILE_STATS_VIEWPORT);
+		await seededPage.goto(`/stats/category/${category.id}`);
+
+		const detailTrendChart = seededPage.locator('.recharts-responsive-container').first();
+
+		await expectWeeklyLabelsVisible(detailTrendChart, weekLabels);
+
+		await forceMobileResizeReflow(seededPage);
+
+		await expectWeeklyLabelsVisible(detailTrendChart, weekLabels);
 	});
 });

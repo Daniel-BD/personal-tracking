@@ -55,6 +55,7 @@ This file is the current map of what the Playwright suite covers. It is an inven
 
 - `@smoke` Stats renders seeded dashboard cards without showing the empty state.
 - Frequency ranking toggles across items/categories, 7-day/30-day/all windows, and activity/food type filters.
+- Weekly goal-card, weekly breakdown, and category detail trend-chart labels stay visible after a mobile viewport resize/reflow.
 - Goal dashboard cards navigate to the correct category and item detail routes.
 - Category detail renders days-since, weekly summary, most-logged items, and month/year period navigation.
 - Item detail renders weekly summary and linked default categories, and linked categories navigate to category detail.
@@ -78,7 +79,7 @@ This file is the current map of what the Playwright suite covers. It is an inven
 
 ## Coverage Totals
 
-- 43 end-to-end scenarios are currently defined.
+- 44 end-to-end scenarios are currently defined.
 - 5 scenarios are tagged `@smoke`.
 - Empty-state coverage exists for `/log` and `/stats`.
 - Explicit sync failure coverage exists for `/settings`.

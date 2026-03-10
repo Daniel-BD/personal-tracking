@@ -9,6 +9,7 @@ import {
 	formatWeekLabel,
 	getWeekNumber,
 } from '../utils/stats-engine';
+import { getWeeklyVerticalBarCategoryAxisProps, weeklyVerticalBarValueAxisProps } from '../utils/weekly-chart-axis';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
 
 function CompositionTooltip({ active, payload, label }: TooltipContentProps<number, string>) {
@@ -109,8 +110,8 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 							}
 						}}
 					>
-						<XAxis type="number" domain={[0, 100]} hide />
-						<YAxis dataKey="week" type="category" width={isMobile ? 50 : 75} tick={{ fontSize: 12 }} />
+						<XAxis {...weeklyVerticalBarValueAxisProps} />
+						<YAxis dataKey="week" {...getWeeklyVerticalBarCategoryAxisProps(isMobile)} />
 						<Tooltip content={CompositionTooltip} cursor={{ fill: 'var(--bg-inset)' }} />
 
 						{allCategoryIds.map((catId) => (
