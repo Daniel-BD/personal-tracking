@@ -117,7 +117,7 @@ export default function EntryList({ entries }: Props) {
 		<>
 			<div className="space-y-5">
 				{groupedArray.map(([dateStr, dateEntries]) => (
-					<div key={dateStr}>
+					<div key={dateStr} data-testid={`entries-date-group-${dateStr}`}>
 						{/* Date header — sticky, uppercase, muted */}
 						<div className="sticky top-0 z-10 bg-[var(--bg-page)] py-1.5 flex items-center justify-between">
 							<h3 className="text-[11px] font-semibold text-subtle uppercase tracking-wider">{formatDate(dateStr)}</h3>

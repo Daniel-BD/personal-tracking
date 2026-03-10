@@ -32,7 +32,7 @@ Business logic is extracted into hooks; the components are presentational, wirin
 - `__tests__/quick-log-search.test.ts` — Search, merge, favorites logic
 - `__tests__/quick-log-form.test.ts` — Instant quick-log entry creation
 - `__tests__/quick-log-button.test.tsx` — QuickLogButton rendering, click handling, double-click prevention, effect layers (mocks `motion/react`)
-
+- `e2e/quick-log.spec.ts` — Home-route quick-log flows with seeded localStorage + mocked GitHub sync: Favorites/Recent tab switching, instant-log undo, Recent reordering after quick-log, search create-action visibility, search reset after selecting an existing item, existing-item logging with note/time/category overrides, and Home refresh/setup-required states.
 
 ## UI Notes
 

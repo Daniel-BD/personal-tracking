@@ -83,6 +83,8 @@ export default function MonthCalendarView({ entries, sentiment, accentColor }: M
 				totalCount={totalCount}
 				periodLabel={monthLabel}
 				labelMinWidth="120px"
+				previousLabel="Previous month"
+				nextLabel="Next month"
 				onPrev={() => setMonthOffset((o) => o - 1)}
 				onNext={() => setMonthOffset((o) => o + 1)}
 				nextDisabled={monthOffset >= 0}

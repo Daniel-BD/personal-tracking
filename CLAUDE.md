@@ -15,7 +15,11 @@ npm run build        # Production build (tsc + vite build — always run before 
 npm run preview      # Preview production build
 npm run test         # Run tests once (vitest run)
 npm run test:watch   # Run tests in watch mode (vitest)
-npm run lint         # Run ESLint on src/ (always run before finishing)
+npm run test:e2e     # Build + run Playwright browser tests against vite preview
+npm run test:e2e:smoke # Build + run the tagged fast Playwright smoke subset
+npm run test:e2e:full-regression # Build + run the tagged broader Playwright regression suite
+npm run test:e2e:headed # Build + run Playwright browser tests with headed Chromium
+npm run lint         # Run ESLint on src/ and e2e/ (always run before finishing)
 npm run type-check   # Type-check without building (tsc --noEmit)
 npm run format       # Auto-format all code with Prettier (always run before committing)
 npm run format:check # Check if code is formatted (CI-friendly, no writes)
@@ -36,10 +40,14 @@ This creates:
 
 For screenshot automation in Codex `browser_tools`, prefer injecting mock data via `page.evaluate(...)` (`github_token`, `gist_id`, and `tracker_data`) after first opening `/settings`, since `browser_tools` may not be able to read repo-local storage state files by path.
 
+The Playwright e2e suite uses a shared deterministic harness in `e2e/support/fixtures.ts`: tests create `storageState` with `tracker_data`, `github_token`, and `gist_id`, then stub GitHub Gist API traffic so startup sync, Settings gist browsing/selection, export/import flows, and debounced pushes stay fully local and deterministic. The harness now supports multiple dataset variants (`seeded`, `empty`) plus fixture aliases for sync-failure coverage, and shared e2e assertions live in `e2e/support/assertions.ts`.
+High-value route failures (`/`, `/log`, `/library`, `/stats`, `/settings`) attach route screenshots through the shared fixture. Playwright tags use `@smoke` for the fast pass and `@full-regression` for the broader suite.
+
 For agent workflow details, use the `.agents/skills/mock-data-preview` skill.
 Missing required flag values are validated by the CLI parser and fail fast with an error.
 
 Tests use **Vitest** with **happy-dom** environment. Config is in `vitest.config.ts`. Shared test helpers (factory functions like `makeEntry`, `makeItem`, `makeCategory`, `makeValidData`) live in `src/shared/store/__tests__/fixtures.ts`.
+Browser integration tests live in `e2e/` and use Playwright with Chromium against `npm run preview`.
 
 ## Project Overview
 

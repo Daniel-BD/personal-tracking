@@ -10,6 +10,8 @@ interface PeriodNavigatorProps {
 	periodLabel: string;
 	/** Min width for the period label */
 	labelMinWidth: string;
+	previousLabel: string;
+	nextLabel: string;
 	onPrev: () => void;
 	onNext: () => void;
 	nextDisabled: boolean;
@@ -20,6 +22,8 @@ export default function PeriodNavigator({
 	totalCount,
 	periodLabel,
 	labelMinWidth,
+	previousLabel,
+	nextLabel,
 	onPrev,
 	onNext,
 	nextDisabled,
@@ -32,7 +36,12 @@ export default function PeriodNavigator({
 				{t('categoryDetail.logged', { count: totalCount })}
 			</h3>
 			<div className="flex items-center gap-0.5 rounded-full bg-[var(--bg-inset)] border border-[var(--border-default)] px-1">
-				<button onClick={onPrev} className="p-1.5 text-label hover:text-heading transition-colors">
+				<button
+					onClick={onPrev}
+					aria-label={previousLabel}
+					title={previousLabel}
+					className="p-1.5 text-label hover:text-heading transition-colors"
+				>
 					<ChevronLeft className="w-4 h-4" />
 				</button>
 				<span className="text-sm font-semibold text-heading text-center" style={{ minWidth: labelMinWidth }}>
@@ -41,6 +50,8 @@ export default function PeriodNavigator({
 				<button
 					onClick={onNext}
 					disabled={nextDisabled}
+					aria-label={nextLabel}
+					title={nextLabel}
 					className="p-1.5 text-label hover:text-heading transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
 				>
 					<ChevronRight className="w-4 h-4" />

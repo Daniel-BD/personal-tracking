@@ -10,3 +10,7 @@ Settings page split into section components. Exports its public API via `index.t
 - **`GistConfigSection.tsx`** — GitHub token + Gist ID configuration for sync.
 - **`ExportImportSection.tsx`** — JSON export/import. Uses `triggerExportDownload()` and `validateAndParseImport()` from store.
 - **`BackupSection.tsx`** — Backup Gist management.
+
+## Browser Coverage
+
+- **`e2e/settings.spec.ts`** — Seeded Settings coverage through the shared mocked localStorage + GitHub harness: seeded token/gist rendering, theme persistence, sync-pill success and failure states, primary/backup gist browsing and selection, invalid import handling, and export download verification.

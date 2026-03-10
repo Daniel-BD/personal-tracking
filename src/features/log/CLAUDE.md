@@ -23,5 +23,6 @@ Log page with filterable entry list. Exports its public API via `index.ts` barre
 ## Tests
 
 - `__tests__/log-filters.test.ts` — Filter pipeline composition + type-change cleanup
+- `e2e/log.spec.ts` — Seeded route rendering, type segmentation, category-filter chip/reset flows, entry edit/delete/quick-add coverage, and item-detail route navigation against mocked localStorage + GitHub sync
 
 - Entry rows do not display food/activity type pills.

@@ -107,6 +107,8 @@ export default function YearlyActivityGrid({ entries, sentiment, accentColor }: 
 				totalCount={totalCount}
 				periodLabel={String(targetYear)}
 				labelMinWidth="40px"
+				previousLabel="Previous year"
+				nextLabel="Next year"
 				onPrev={() => setYearOffset((o) => o - 1)}
 				onNext={() => setYearOffset((o) => o + 1)}
 				nextDisabled={yearOffset >= 0}

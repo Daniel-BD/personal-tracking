@@ -26,3 +26,7 @@ vite.config.ts.timestamp-*
 
 # Bundle visualizer output
 stats.html
+
+# Playwright output
+playwright-report/
+test-results/

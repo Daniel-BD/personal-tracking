@@ -15,3 +15,7 @@ Home page with quick-log and daily balance score.
 
 - **`HomePage.tsx`** — Composes `QuickLogForm` (via render prop) and `DailyBalanceScore`. Handles Gist sync refresh button.
 - **`DailyBalanceScore.tsx`** — Today's food sentiment balance percentage with animated progress bar and `SentimentPills`. Returns `null` if no food entries today.
+
+## Tests
+
+- `e2e/quick-log.spec.ts` — Home-route quick-log coverage for Favorites/Recent tab behavior, instant-log undo, Recent reordering, search/result-sheet flows, manual refresh sync-state transitions, and the setup-required warning when sync config is absent.

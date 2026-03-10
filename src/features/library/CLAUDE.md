@@ -29,6 +29,7 @@ Library page for item & category CRUD management. Compact card list with inline 
 - `__tests__/library-indexes.test.tsx` — Lookup builder and hook coverage for categories-by-ID/type, favorite ID sets, and category item counts.
 - `components/__tests__/ItemsTab.test.tsx` — Regression coverage for item add/edit/merge/delete wiring through `LibraryPage`.
 - `components/__tests__/CategoriesTab.test.tsx` — Regression coverage for category add/edit/merge/delete wiring through `LibraryPage`.
+- `e2e/library.spec.ts` — Seeded cross-type item/category rendering, item edit/delete/favorite sync, item/category merge flows, category add/edit/delete with sentiment persistence, library search filtering, and add-item coverage through Home search using the Playwright mocked-storage harness.
 
 ## Design Notes
 
@@ -38,7 +39,6 @@ Library page for item & category CRUD management. Compact card list with inline 
 - Row titles use smaller text and clamp to two lines (ellipsis) for long names in both items and categories lists.
 
 - List rows that navigate to stats detail pages are keyboard-accessible (`role="button"`, `tabIndex=0`, Enter/Space support) while keeping inline edit/delete/favorite icon buttons.
-
 
 ## Row Actions
 
