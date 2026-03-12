@@ -2,13 +2,19 @@ import { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Dot } from 'recharts';
 import type { WeeklyData } from '../utils/stats-engine';
 import { calculateBalanceScore, formatWeekLabel } from '../utils/stats-engine';
-import { getWeeklyLineXAxisProps, weeklyLineValueAxisProps } from '../utils/weekly-chart-axis';
+import {
+	createWeeklyChartId,
+	getWeeklyCategoryTicks,
+	getWeeklyLineXAxisProps,
+	weeklyLineValueAxisProps,
+} from '../utils/weekly-chart-axis';
 
 interface BalanceScoreTrendChartProps {
 	weeklyData: WeeklyData[];
 }
 
 export default function BalanceScoreTrendChart({ weeklyData }: BalanceScoreTrendChartProps) {
+	const chartId = useMemo(() => createWeeklyChartId('balance-score-trend'), []);
 	const color = 'var(--color-accent)';
 
 	const chartData = useMemo(
@@ -28,13 +34,16 @@ export default function BalanceScoreTrendChart({ weeklyData }: BalanceScoreTrend
 		const scores = chartData.map((d) => d.score);
 		return scores.reduce((sum, s) => sum + s, 0) / scores.length;
 	}, [chartData]);
+	const weeklyTicks = useMemo(() => getWeeklyCategoryTicks(chartData, (point) => point.label), [chartData]);
+	const xAxisId = `${chartId}-x-axis`;
+	const yAxisId = `${chartId}-y-axis`;
 
 	return (
-		<div className="h-52 w-full -mx-2">
+		<div className="h-52 w-full">
 			<ResponsiveContainer width="100%" height="100%">
-				<LineChart data={chartData} margin={{ top: 24, right: 16, left: 8, bottom: 24 }}>
-					<XAxis dataKey="label" {...getWeeklyLineXAxisProps()} />
-					<YAxis {...weeklyLineValueAxisProps} domain={[0, 110]} />
+				<LineChart id={`${chartId}-line-chart`} data={chartData} margin={{ top: 24, right: 12, left: 4, bottom: 24 }}>
+					<XAxis id={xAxisId} dataKey="label" ticks={weeklyTicks} {...getWeeklyLineXAxisProps()} />
+					<YAxis id={yAxisId} {...weeklyLineValueAxisProps} domain={[0, 110]} />
 					<ReferenceLine y={avgScore} stroke="var(--border-default)" strokeDasharray="4 4" strokeWidth={1} />
 					<Line
 						type="monotone"

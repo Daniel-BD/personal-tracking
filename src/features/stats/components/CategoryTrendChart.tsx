@@ -3,7 +3,12 @@ import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Dot 
 import type { CategorySentiment } from '@/shared/lib/types';
 import type { Entry } from '@/shared/lib/types';
 import { formatWeekLabel, getWeekNumber, getDailyBreakdown, SENTIMENT_COLORS } from '../utils/stats-engine';
-import { getWeeklyLineXAxisProps, weeklyLineValueAxisProps } from '../utils/weekly-chart-axis';
+import {
+	createWeeklyChartId,
+	getWeeklyCategoryTicks,
+	getWeeklyLineXAxisProps,
+	weeklyLineValueAxisProps,
+} from '../utils/weekly-chart-axis';
 import WeekBreakdownTooltip from './WeekBreakdownTooltip';
 
 interface ChartWeek {
@@ -33,6 +38,7 @@ export default function CategoryTrendChart({
 	selectedWeekIndex,
 	onSelectWeek,
 }: CategoryTrendChartProps) {
+	const chartId = useMemo(() => createWeeklyChartId('category-trend'), []);
 	const color = accentColor ?? SENTIMENT_COLORS[sentiment];
 
 	const chartData = useMemo(
@@ -43,6 +49,9 @@ export default function CategoryTrendChart({
 			})),
 		[weeks],
 	);
+	const weeklyTicks = useMemo(() => getWeeklyCategoryTicks(chartData, (point) => point.label), [chartData]);
+	const xAxisId = `${chartId}-x-axis`;
+	const yAxisId = `${chartId}-y-axis`;
 
 	const maxCount = useMemo(() => Math.max(...weeks.map((w) => w.count), baselineAvg, 1), [weeks, baselineAvg]);
 
@@ -59,11 +68,11 @@ export default function CategoryTrendChart({
 	return (
 		<div className="space-y-2">
 			{/* Line chart */}
-			<div className="h-48 w-full -mx-2">
+			<div className="h-48 w-full">
 				<ResponsiveContainer width="100%" height="100%">
-					<LineChart data={chartData} margin={{ top: 24, right: 16, left: 8, bottom: 4 }}>
-						<XAxis dataKey="label" {...getWeeklyLineXAxisProps()} />
-						<YAxis {...weeklyLineValueAxisProps} domain={[0, Math.ceil(maxCount * 1.2)]} />
+					<LineChart id={`${chartId}-line-chart`} data={chartData} margin={{ top: 24, right: 12, left: 4, bottom: 4 }}>
+						<XAxis id={xAxisId} dataKey="label" ticks={weeklyTicks} {...getWeeklyLineXAxisProps()} />
+						<YAxis id={yAxisId} {...weeklyLineValueAxisProps} domain={[0, Math.ceil(maxCount * 1.2)]} />
 						<ReferenceLine y={baselineAvg} stroke="var(--border-default)" strokeDasharray="4 4" strokeWidth={1} />
 						<Line
 							type="monotone"

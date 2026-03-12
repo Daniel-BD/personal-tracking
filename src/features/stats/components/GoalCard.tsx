@@ -4,7 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Dot } from 'recharts';
 import type { CategorySentiment } from '@/shared/lib/types';
 import { calcActualDeltaPercent, formatChangeText, SENTIMENT_COLORS } from '../utils/stats-engine';
-import { getWeeklyLineXAxisProps, weeklyLineValueAxisProps } from '../utils/weekly-chart-axis';
+import {
+	createWeeklyChartId,
+	getWeeklyCategoryTicks,
+	getWeeklyLineXAxisProps,
+	weeklyLineValueAxisProps,
+} from '../utils/weekly-chart-axis';
 
 interface GoalCardProps {
 	categoryName: string;
@@ -34,6 +39,7 @@ export default function GoalCard({
 	onCardClick,
 }: GoalCardProps) {
 	const { t } = useTranslation('stats');
+	const chartId = useMemo(() => createWeeklyChartId('goal-card'), []);
 	const color = accentColor ?? SENTIMENT_COLORS[sentiment];
 
 	const isStable = Math.abs(deltaPercent) < 0.1;
@@ -65,6 +71,9 @@ export default function GoalCard({
 		() => Math.max(...sparklineData.map((d) => d.count), baselineAvg, 1),
 		[sparklineData, baselineAvg],
 	);
+	const weeklyTicks = useMemo(() => getWeeklyCategoryTicks(sparklineData, (point) => point.label), [sparklineData]);
+	const xAxisId = `${chartId}-x-axis`;
+	const yAxisId = `${chartId}-y-axis`;
 
 	return (
 		<div
@@ -127,11 +136,15 @@ export default function GoalCard({
 			</div>
 
 			{/* 4. Trend chart */}
-			<div className="h-24 w-full -mx-2 mt-1">
+			<div className="h-24 w-full mt-1">
 				<ResponsiveContainer width="100%" height="100%">
-					<LineChart data={sparklineData} margin={{ top: 16, right: 12, left: 4, bottom: 4 }}>
-						<XAxis dataKey="label" {...getWeeklyLineXAxisProps(9)} />
-						<YAxis {...weeklyLineValueAxisProps} domain={[0, Math.ceil(maxCount * 1.2)]} />
+					<LineChart
+						id={`${chartId}-line-chart`}
+						data={sparklineData}
+						margin={{ top: 16, right: 8, left: 0, bottom: 4 }}
+					>
+						<XAxis id={xAxisId} dataKey="label" ticks={weeklyTicks} {...getWeeklyLineXAxisProps(9)} />
+						<YAxis id={yAxisId} {...weeklyLineValueAxisProps} domain={[0, Math.ceil(maxCount * 1.2)]} />
 						<ReferenceLine y={baselineAvg} stroke="var(--border-default)" strokeDasharray="4 4" strokeWidth={1} />
 						<Line
 							type="monotone"

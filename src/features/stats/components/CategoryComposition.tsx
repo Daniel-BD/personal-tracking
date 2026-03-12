@@ -9,7 +9,12 @@ import {
 	formatWeekLabel,
 	getWeekNumber,
 } from '../utils/stats-engine';
-import { getWeeklyVerticalBarCategoryAxisProps, weeklyVerticalBarValueAxisProps } from '../utils/weekly-chart-axis';
+import {
+	getWeeklyCategoryTicks,
+	getWeeklyVerticalBarCategoryAxisProps,
+	weeklyVerticalBarValueAxisProps,
+	createWeeklyChartId,
+} from '../utils/weekly-chart-axis';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
 
 function CompositionTooltip({ active, payload, label }: TooltipContentProps<number, string>) {
@@ -41,6 +46,7 @@ interface ModalState {
 }
 
 export default function CategoryComposition({ weeklyData }: CategoryCompositionProps) {
+	const chartId = useMemo(() => createWeeklyChartId('category-composition'), []);
 	const [modal, setModal] = useState<ModalState>({ isOpen: false, week: null });
 
 	const topCategoryIds = useMemo(() => {
@@ -87,6 +93,9 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 	}, [weeklyData]);
 
 	const isMobile = useIsMobile();
+	const weeklyTicks = useMemo(() => getWeeklyCategoryTicks(chartData, (point) => point.week), [chartData]);
+	const xAxisId = `${chartId}-x-axis`;
+	const yAxisId = `${chartId}-y-axis`;
 
 	const handleBarClick = (data: { weekKey?: string }) => {
 		const week = weeklyData.find((w) => w.weekKey === data.weekKey);
@@ -101,6 +110,7 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 				<h3 className="text-lg font-semibold">Category Composition</h3>
 				<ResponsiveContainer width="100%" height={280}>
 					<BarChart
+						id={`${chartId}-bar-chart`}
 						data={chartData}
 						layout="vertical"
 						margin={isMobile ? { top: 5, right: 10, left: 5, bottom: 5 } : { top: 5, right: 30, left: 80, bottom: 5 }}
@@ -110,8 +120,13 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 							}
 						}}
 					>
-						<XAxis {...weeklyVerticalBarValueAxisProps} />
-						<YAxis dataKey="week" {...getWeeklyVerticalBarCategoryAxisProps(isMobile)} />
+						<XAxis id={xAxisId} {...weeklyVerticalBarValueAxisProps} />
+						<YAxis
+							id={yAxisId}
+							dataKey="week"
+							ticks={weeklyTicks}
+							{...getWeeklyVerticalBarCategoryAxisProps(isMobile)}
+						/>
 						<Tooltip content={CompositionTooltip} cursor={{ fill: 'var(--bg-inset)' }} />
 
 						{allCategoryIds.map((catId) => (

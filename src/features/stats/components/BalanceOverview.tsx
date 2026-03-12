@@ -3,7 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import type { WeeklyData } from '../utils/stats-engine';
 import { calculateBalanceScore, getScoreChange, formatWeekLabel } from '../utils/stats-engine';
-import { getWeeklyVerticalBarCategoryAxisProps, weeklyVerticalBarValueAxisProps } from '../utils/weekly-chart-axis';
+import {
+	getWeeklyCategoryTicks,
+	getWeeklyVerticalBarCategoryAxisProps,
+	weeklyVerticalBarValueAxisProps,
+	createWeeklyChartId,
+} from '../utils/weekly-chart-axis';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
 import BalanceScoreTrendChart from './BalanceScoreTrendChart';
 
@@ -13,6 +18,7 @@ interface BalanceOverviewProps {
 
 export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 	const { t } = useTranslation('stats');
+	const chartId = useMemo(() => createWeeklyChartId('balance-breakdown'), []);
 	const data = useMemo(() => {
 		return weeklyData.map((week) => {
 			const { positive, neutral, limit } = week.sentimentCounts;
@@ -43,6 +49,9 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 	}, [currentScore, previousScore]);
 
 	const isMobile = useIsMobile();
+	const weeklyTicks = useMemo(() => getWeeklyCategoryTicks(data, (point) => point.week), [data]);
+	const xAxisId = `${chartId}-x-axis`;
+	const yAxisId = `${chartId}-y-axis`;
 
 	return (
 		<div className="space-y-4 sm:space-y-6">
@@ -95,12 +104,18 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 				<h3 className="text-lg font-semibold">{t('balanceOverview.weeklyBreakdownTitle')}</h3>
 				<ResponsiveContainer width="100%" height={280}>
 					<BarChart
+						id={`${chartId}-bar-chart`}
 						data={data}
 						layout="vertical"
 						margin={isMobile ? { top: 5, right: 10, left: 5, bottom: 5 } : { top: 5, right: 30, left: 80, bottom: 5 }}
 					>
-						<XAxis {...weeklyVerticalBarValueAxisProps} />
-						<YAxis dataKey="week" {...getWeeklyVerticalBarCategoryAxisProps(isMobile)} />
+						<XAxis id={xAxisId} {...weeklyVerticalBarValueAxisProps} />
+						<YAxis
+							id={yAxisId}
+							dataKey="week"
+							ticks={weeklyTicks}
+							{...getWeeklyVerticalBarCategoryAxisProps(isMobile)}
+						/>
 						<Tooltip
 							formatter={(value: number | undefined) => (value !== undefined ? `${Math.round(value)}%` : 'N/A')}
 							contentStyle={{
