@@ -415,9 +415,15 @@ test.describe('Stats e2e @full-regression', () => {
 
 		await expectWeeklyLabelsVisible(firstGoalCardChart, weekLabels);
 		await expectWeeklyLabelsVisible(weeklyBreakdownChart, weekLabels);
+		await seededPage.waitForTimeout(250);
+		await expectWeeklyLabelsVisible(firstGoalCardChart, weekLabels);
+		await expectWeeklyLabelsVisible(weeklyBreakdownChart, weekLabels);
 
 		await forceMobileResizeReflow(seededPage);
 
+		await expectWeeklyLabelsVisible(firstGoalCardChart, weekLabels);
+		await expectWeeklyLabelsVisible(weeklyBreakdownChart, weekLabels);
+		await seededPage.waitForTimeout(250);
 		await expectWeeklyLabelsVisible(firstGoalCardChart, weekLabels);
 		await expectWeeklyLabelsVisible(weeklyBreakdownChart, weekLabels);
 
@@ -427,9 +433,13 @@ test.describe('Stats e2e @full-regression', () => {
 		const detailTrendChart = seededPage.locator('.recharts-responsive-container').first();
 
 		await expectWeeklyLabelsVisible(detailTrendChart, weekLabels);
+		await seededPage.waitForTimeout(250);
+		await expectWeeklyLabelsVisible(detailTrendChart, weekLabels);
 
 		await forceMobileResizeReflow(seededPage);
 
+		await expectWeeklyLabelsVisible(detailTrendChart, weekLabels);
+		await seededPage.waitForTimeout(250);
 		await expectWeeklyLabelsVisible(detailTrendChart, weekLabels);
 	});
 });

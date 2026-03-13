@@ -62,7 +62,12 @@ export default function CategoryTrendChart({
 			<div className="h-48 w-full -mx-2">
 				<ResponsiveContainer width="100%" height="100%">
 					<LineChart data={chartData} margin={{ top: 24, right: 16, left: 8, bottom: 4 }}>
-						<XAxis dataKey="label" {...getWeeklyLineXAxisProps()} />
+						<XAxis
+							dataKey="label"
+							ticks={chartData.map((week) => week.label)}
+							allowDuplicatedCategory={false}
+							{...getWeeklyLineXAxisProps()}
+						/>
 						<YAxis {...weeklyLineValueAxisProps} domain={[0, Math.ceil(maxCount * 1.2)]} />
 						<ReferenceLine y={baselineAvg} stroke="var(--border-default)" strokeDasharray="4 4" strokeWidth={1} />
 						<Line

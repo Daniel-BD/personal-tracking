@@ -111,7 +111,12 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 						}}
 					>
 						<XAxis {...weeklyVerticalBarValueAxisProps} />
-						<YAxis dataKey="week" {...getWeeklyVerticalBarCategoryAxisProps(isMobile)} />
+						<YAxis
+							dataKey="week"
+							ticks={chartData.map((week) => String(week.week))}
+							allowDuplicatedCategory={false}
+							{...getWeeklyVerticalBarCategoryAxisProps(isMobile)}
+						/>
 						<Tooltip content={CompositionTooltip} cursor={{ fill: 'var(--bg-inset)' }} />
 
 						{allCategoryIds.map((catId) => (

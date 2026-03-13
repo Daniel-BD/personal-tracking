@@ -100,7 +100,12 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 						margin={isMobile ? { top: 5, right: 10, left: 5, bottom: 5 } : { top: 5, right: 30, left: 80, bottom: 5 }}
 					>
 						<XAxis {...weeklyVerticalBarValueAxisProps} />
-						<YAxis dataKey="week" {...getWeeklyVerticalBarCategoryAxisProps(isMobile)} />
+						<YAxis
+							dataKey="week"
+							ticks={data.map((week) => week.week)}
+							allowDuplicatedCategory={false}
+							{...getWeeklyVerticalBarCategoryAxisProps(isMobile)}
+						/>
 						<Tooltip
 							formatter={(value: number | undefined) => (value !== undefined ? `${Math.round(value)}%` : 'N/A')}
 							contentStyle={{

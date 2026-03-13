@@ -8,7 +8,7 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 
 - **`stats-engine.ts`** — Weekly food analytics, balance scores (based on category sentiment), actionable category rankings, and shared color helpers (`SENTIMENT_COLORS`, chart palette lookup). `processFoodEntriesByWeekFromIndexes()` is the index-backed path used by the Stats page; the legacy `processFoodEntriesByWeek()` wrapper stays available for compatibility. `getLastNWeeks()` derives week boundaries from ISO year/week so New Year week ranges stay correct.
 - **`stats-view-models.ts`** — Pure builders for goal dashboard cards, category detail, item detail, and shared weekly item/category count indexes. Keeps rolling 4-week baselines and partial-week prorating unchanged while avoiding repeated whole-store scans.
-- **`weekly-chart-axis.ts`** — Shared Recharts axis presets for weekly stats charts. Weekly labels must always set `interval={0}` and `minTickGap={0}` through this helper rather than relying on Recharts default tick pruning.
+- **`weekly-chart-axis.ts`** — Shared Recharts axis presets for weekly stats charts. Weekly labels must always set `interval={0}` and `minTickGap={0}` through this helper rather than relying on Recharts default tick pruning. Chart components should also pass explicit `ticks` arrays from their 8-week data and `allowDuplicatedCategory={false}` so labels stay stable after responsive re-measurements.
 
 ## Hooks
 
@@ -35,7 +35,7 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 ## Known Quirks
 
 - **Recharts in GoalCard**: The `dot` prop on `<Line>` uses a render function with explicit typing to satisfy TypeScript. The last data point gets a larger filled dot.
-- Weekly stats axes must not rely on Recharts default tick interval behavior. Use the shared weekly-axis helper so all 8 week labels remain visible after responsive re-measurements.
+- Weekly stats axes must not rely on Recharts default tick interval behavior. Use the shared weekly-axis helper and explicit per-chart `ticks` arrays (`allowDuplicatedCategory={false}`) so all 8 week labels remain visible after responsive re-measurements.
 - Chart colors use `--chart-color-1` through `--chart-color-9` CSS custom properties.
 
 ## Tests

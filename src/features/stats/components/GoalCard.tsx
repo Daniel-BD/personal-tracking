@@ -130,7 +130,12 @@ export default function GoalCard({
 			<div className="h-24 w-full -mx-2 mt-1">
 				<ResponsiveContainer width="100%" height="100%">
 					<LineChart data={sparklineData} margin={{ top: 16, right: 12, left: 4, bottom: 4 }}>
-						<XAxis dataKey="label" {...getWeeklyLineXAxisProps(9)} />
+						<XAxis
+							dataKey="label"
+							ticks={sparklineData.map((week) => week.label)}
+							allowDuplicatedCategory={false}
+							{...getWeeklyLineXAxisProps(9)}
+						/>
 						<YAxis {...weeklyLineValueAxisProps} domain={[0, Math.ceil(maxCount * 1.2)]} />
 						<ReferenceLine y={baselineAvg} stroke="var(--border-default)" strokeDasharray="4 4" strokeWidth={1} />
 						<Line

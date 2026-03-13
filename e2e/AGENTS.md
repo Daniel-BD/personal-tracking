@@ -55,7 +55,7 @@ This file is the current map of what the Playwright suite covers. It is an inven
 
 - `@smoke` Stats renders seeded dashboard cards without showing the empty state.
 - Frequency ranking toggles across items/categories, 7-day/30-day/all windows, and activity/food type filters.
-- Weekly goal-card, weekly breakdown, and category detail trend-chart labels stay visible after a mobile viewport resize/reflow.
+- Weekly goal-card, weekly breakdown, and category detail trend-chart labels stay visible after a mobile viewport resize/reflow and remain visible after a short delayed re-check.
 - Goal dashboard cards navigate to the correct category and item detail routes.
 - Category detail renders days-since, weekly summary, most-logged items, and month/year period navigation.
 - Item detail renders weekly summary and linked default categories, and linked categories navigate to category detail.

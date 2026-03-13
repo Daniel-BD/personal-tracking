@@ -33,7 +33,12 @@ export default function BalanceScoreTrendChart({ weeklyData }: BalanceScoreTrend
 		<div className="h-52 w-full -mx-2">
 			<ResponsiveContainer width="100%" height="100%">
 				<LineChart data={chartData} margin={{ top: 24, right: 16, left: 8, bottom: 24 }}>
-					<XAxis dataKey="label" {...getWeeklyLineXAxisProps()} />
+					<XAxis
+						dataKey="label"
+						ticks={chartData.map((week) => week.label)}
+						allowDuplicatedCategory={false}
+						{...getWeeklyLineXAxisProps()}
+					/>
 					<YAxis {...weeklyLineValueAxisProps} domain={[0, 110]} />
 					<ReferenceLine y={avgScore} stroke="var(--border-default)" strokeDasharray="4 4" strokeWidth={1} />
 					<Line
