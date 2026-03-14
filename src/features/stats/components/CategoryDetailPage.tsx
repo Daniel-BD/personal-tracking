@@ -1,17 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useTrackerData } from '@/shared/store/hooks';
-import { formatDateLocal } from '@/shared/lib/date-utils';
-import { filterEntriesByCategory, filterEntriesByDateRange } from '@/features/tracking';
-import {
-	getLastNWeeks,
-	getDaysElapsedInCurrentWeek,
-	getDaysSinceMostRecentEntry,
-	getDeltaSummaryParts,
-	SENTIMENT_COLORS,
-} from '../utils/stats-engine';
+import { useItemById } from '@/features/tracking';
+import { useCategoryDetailViewModel, useItemAccentColorById } from '../hooks/use-stats-view-models';
+import { getDeltaSummaryParts, SENTIMENT_COLORS } from '../utils/stats-engine';
 import CategoryTrendChart from './CategoryTrendChart';
 import MonthCalendarView from './MonthCalendarView';
 import YearlyActivityGrid from './YearlyActivityGrid';
@@ -21,62 +14,22 @@ export default function CategoryDetailPage() {
 	const { categoryId } = useParams<{ categoryId: string }>();
 	const navigate = useNavigate();
 	const { t } = useTranslation('stats');
-	const data = useTrackerData();
 	const [selectedWeekIndex, setSelectedWeekIndex] = useState<number | null>(null);
+	const viewModel = useCategoryDetailViewModel(categoryId);
+	const itemById = useItemById();
+	const itemAccentColorById = useItemAccentColorById();
 
-	// eslint-disable-next-line react-hooks/exhaustive-deps -- recalculate weeks when entries change
-	const weeks = useMemo(() => getLastNWeeks(8), [data.entries]);
-	const currentWeek = weeks[weeks.length - 1];
-	const daysElapsed = currentWeek ? getDaysElapsedInCurrentWeek(currentWeek.start) : 7;
-
-	// Find the category across food and activity
-	const category = useMemo(() => {
-		return (
-			data.foodCategories.find((c) => c.id === categoryId) || data.activityCategories.find((c) => c.id === categoryId)
-		);
-	}, [data.foodCategories, data.activityCategories, categoryId]);
-
-	// Calculate weekly data for this category
-	const weeklyStats = useMemo(() => {
-		if (!categoryId) return [];
-		return weeks.map((week) => {
-			const range = { start: formatDateLocal(week.start), end: formatDateLocal(week.end) };
-			const weekEntries = filterEntriesByCategory(filterEntriesByDateRange(data.entries, range), categoryId, data);
-			return {
-				weekKey: week.key,
-				label: week.key,
-				count: weekEntries.length,
-				start: week.start,
-				end: week.end,
-				entries: weekEntries,
-			};
-		});
-	}, [weeks, categoryId, data]);
-
-	// Baseline: average of the 4 weeks preceding the current (last) week
-	const baselineAvg = useMemo(() => {
-		const baselineWeeks = weeklyStats.slice(-5, -1);
-		if (baselineWeeks.length === 0) return 0;
-		const sum = baselineWeeks.reduce((s, w) => s + w.count, 0);
-		return sum / baselineWeeks.length;
-	}, [weeklyStats]);
-
-	// Current week stats
-	const currentCount = weeklyStats.length > 0 ? weeklyStats[weeklyStats.length - 1].count : 0;
-	const proratedBaseline = baselineAvg * (daysElapsed / 7);
-	const delta = currentCount - proratedBaseline;
-	const deltaPercent = proratedBaseline === 0 ? (currentCount > 0 ? 1 : 0) : delta / proratedBaseline;
-
+	const category = viewModel?.category;
+	const weeklyStats = viewModel?.weeklyStats ?? [];
+	const baselineAvg = viewModel?.baselineAvg ?? 0;
+	const currentCount = viewModel?.currentCount ?? 0;
+	const delta = viewModel?.delta ?? 0;
+	const deltaPercent = viewModel?.deltaPercent ?? 0;
+	const daysElapsed = viewModel?.daysElapsed ?? 7;
+	const categoryEntries = viewModel?.categoryEntries ?? [];
+	const daysSinceLastLogged = viewModel?.daysSinceLastLogged ?? null;
 	const sentiment = category?.sentiment ?? 'neutral';
 	const color = SENTIMENT_COLORS[sentiment];
-
-	// All entries for this category (used by most-logged section)
-	const categoryEntries = useMemo(() => {
-		if (!categoryId) return [];
-		return filterEntriesByCategory(data.entries, categoryId, data);
-	}, [categoryId, data.entries, data.activityItems, data.foodItems, data.activityCategories, data.foodCategories]);
-
-	const daysSinceLastLogged = useMemo(() => getDaysSinceMostRecentEntry(categoryEntries), [categoryEntries]);
 
 	if (!category) {
 		return (
@@ -150,13 +103,18 @@ export default function CategoryDetailPage() {
 			/>
 
 			{/* Month calendar view */}
-			<MonthCalendarView entries={data.entries} categoryId={categoryId!} data={data} sentiment={sentiment} />
+			<MonthCalendarView entries={categoryEntries} sentiment={sentiment} />
 
 			{/* Yearly activity grid */}
-			<YearlyActivityGrid entries={data.entries} categoryId={categoryId!} data={data} sentiment={sentiment} />
+			<YearlyActivityGrid entries={categoryEntries} sentiment={sentiment} />
 
 			{/* Most logged items in this category */}
-			<CategoryMostLogged entries={categoryEntries} data={data} sentiment={sentiment} />
+			<CategoryMostLogged
+				entries={categoryEntries}
+				itemById={itemById}
+				itemAccentColorById={itemAccentColorById}
+				sentiment={sentiment}
+			/>
 		</div>
 	);
 }

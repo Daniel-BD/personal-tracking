@@ -1,30 +1,40 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { TrackerData, Entry } from '@/shared/lib/types';
-import { getTodayDate, findItemWithCategories } from '@/shared/lib/types';
-import { filterEntriesByType, filterEntriesByDateRange, getEntryCategoryIds } from '@/features/tracking';
+import { type Category, type Entry, getTodayDate } from '@/shared/lib/types';
+import {
+	filterEntriesByDateRange,
+	filterEntriesByType,
+	getEntryCategoryIdsFromIndex,
+	useCategoryById,
+	useItemById,
+	useItemCategoryIdsByItemId,
+} from '@/features/tracking';
 import { getDateNDaysAgo } from '@/shared/lib/date-utils';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
-import { rankItems, buildItemLookup, type RankedItem } from '../utils/ranking-utils';
-import { getItemAccentColor, SENTIMENT_COLORS } from '../utils/stats-engine';
+import { rankItems, type RankedItem } from '../utils/ranking-utils';
+import { SENTIMENT_COLORS } from '../utils/stats-engine';
+import { useItemAccentColorById } from '../hooks/use-stats-view-models';
 
 type TimePeriod = 'all' | '7d' | '30d';
 type TypeFilter = 'all' | 'activity' | 'food';
 type ViewMode = 'items' | 'categories';
 
-function rankCategories(entries: Entry[], data: TrackerData): RankedItem[] {
-	const catLookup = new Map([...data.activityCategories, ...data.foodCategories].map((cat) => [cat.id, cat]));
+function rankCategories(
+	entries: Entry[],
+	categoryById: Map<string, Category>,
+	itemCategoryIdsByItemId: Map<string, string[]>,
+): RankedItem[] {
 	const counts = new Map<string, RankedItem>();
 
 	for (const entry of entries) {
-		const catIds = getEntryCategoryIds(entry, data);
+		const catIds = getEntryCategoryIdsFromIndex(entry, itemCategoryIdsByItemId);
 		for (const catId of catIds) {
 			const existing = counts.get(catId);
 			if (existing) {
 				existing.count++;
 			} else {
-				const cat = catLookup.get(catId);
+				const cat = categoryById.get(catId);
 				counts.set(catId, {
 					id: catId,
 					name: cat?.name ?? 'Unknown',
@@ -41,15 +51,18 @@ function rankCategories(entries: Entry[], data: TrackerData): RankedItem[] {
 
 interface Props {
 	entries: Entry[];
-	data: TrackerData;
 }
 
-export default function FrequencyRanking({ entries, data }: Props) {
+export default function FrequencyRanking({ entries }: Props) {
 	const { t } = useTranslation('stats');
 	const navigate = useNavigate();
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('all');
 	const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
 	const [viewMode, setViewMode] = useState<ViewMode>('items');
+	const itemById = useItemById();
+	const categoryById = useCategoryById();
+	const itemCategoryIdsByItemId = useItemCategoryIdsByItemId();
+	const itemAccentColorById = useItemAccentColorById();
 
 	const timeFilteredEntries = useMemo(() => {
 		if (timePeriod === 'all') return entries;
@@ -65,14 +78,12 @@ export default function FrequencyRanking({ entries, data }: Props) {
 		return filterEntriesByType(timeFilteredEntries, typeFilter);
 	}, [timeFilteredEntries, typeFilter]);
 
-	const itemLookup = useMemo(() => buildItemLookup(data), [data]);
-
 	const ranked = useMemo(() => {
 		if (viewMode === 'items') {
-			return rankItems(filteredEntries, itemLookup);
+			return rankItems(filteredEntries, itemById);
 		}
-		return rankCategories(filteredEntries, data);
-	}, [filteredEntries, data, viewMode, itemLookup]);
+		return rankCategories(filteredEntries, categoryById, itemCategoryIdsByItemId);
+	}, [filteredEntries, viewMode, itemById, categoryById, itemCategoryIdsByItemId]);
 
 	const maxCount = ranked.length > 0 ? ranked[0].count : 0;
 
@@ -80,9 +91,7 @@ export default function FrequencyRanking({ entries, data }: Props) {
 		if (viewMode === 'categories') {
 			return SENTIMENT_COLORS[row.sentiment ?? 'neutral'];
 		}
-		const found = findItemWithCategories(data, row.id);
-		if (!found) return SENTIMENT_COLORS.neutral;
-		return getItemAccentColor(found.item.categories, found.categories);
+		return itemAccentColorById.get(row.id) ?? SENTIMENT_COLORS.neutral;
 	};
 
 	return (

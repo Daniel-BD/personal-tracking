@@ -1,31 +1,22 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useTrackerData } from '@/shared/store/hooks';
+import { useDashboardCards, useEntries } from '@/shared/store/hooks';
 import BalanceOverview from './BalanceOverview';
 import ActionableCategories from './ActionableCategories';
 import CategoryComposition from './CategoryComposition';
 import GoalDashboard from './GoalDashboard';
 import FrequencyRanking from './FrequencyRanking';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
-import { getLastNWeeks, processFoodEntriesByWeek } from '../utils/stats-engine';
+import { useWeeklyFoodStats } from '../hooks/use-stats-view-models';
 
 type PeriodType = 'weekly' | 'monthly';
 
 export default function StatsPage() {
 	const { t } = useTranslation('stats');
-	const data = useTrackerData();
 	const [period, setPeriod] = useState<PeriodType>('weekly');
-
-	// eslint-disable-next-line react-hooks/exhaustive-deps -- recalculate weeks when entries change (new entries may span a new week)
-	const weeks = useMemo(() => getLastNWeeks(8), [data.entries]);
-
-	const weeklyData = useMemo(() => {
-		return processFoodEntriesByWeek(data.entries, data, weeks);
-	}, [data, weeks]);
-
-	const hasData = useMemo(() => {
-		return weeklyData.some((w) => w.totalCount > 0);
-	}, [weeklyData]);
+	const entries = useEntries();
+	const dashboardCards = useDashboardCards();
+	const { weeklyData, hasData } = useWeeklyFoodStats();
 
 	return (
 		<div className="space-y-4 sm:space-y-6 pb-6">
@@ -72,7 +63,7 @@ export default function StatsPage() {
 					<BalanceOverview weeklyData={weeklyData} />
 
 					{/* Section 1.5: Actionable Categories (Focus Areas) */}
-					<ActionableCategories data={data} />
+					<ActionableCategories weeklyData={weeklyData} dashboardCards={dashboardCards} />
 
 					{/* Section 2: Category Composition */}
 					<CategoryComposition weeklyData={weeklyData} />
@@ -80,10 +71,10 @@ export default function StatsPage() {
 			)}
 
 			{/* Frequency Ranking — shows for any entries */}
-			{data.entries.length > 0 && (
+			{entries.length > 0 && (
 				<>
 					<hr className="border-[var(--border-default)]" />
-					<FrequencyRanking entries={data.entries} data={data} />
+					<FrequencyRanking entries={entries} />
 				</>
 			)}
 		</div>

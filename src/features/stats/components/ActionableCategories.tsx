@@ -1,31 +1,30 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { TrackerData } from '@/shared/lib/types';
+import type { DashboardCard } from '@/shared/lib/types';
 import type { ActionableCategoryRow } from '../utils/stats-engine';
-import { getLastNWeeks, getTopLimitCategories } from '../utils/stats-engine';
+import { getTopLimitCategoriesFromWeeklyData, type WeeklyData } from '../utils/stats-engine';
 import { addDashboardCard } from '@/shared/store/store';
-import { showToast } from '@/shared/ui/Toast';
+import { useToast } from '@/shared/ui/useToast';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
 import { cn } from '@/shared/lib/cn';
 
 const MAX_DASHBOARD_CARDS = 6;
 
 interface ActionableCategoriesProps {
-	data: TrackerData;
+	weeklyData: WeeklyData[];
+	dashboardCards: DashboardCard[];
 }
 
-export default function ActionableCategories({ data }: ActionableCategoriesProps) {
+export default function ActionableCategories({ weeklyData, dashboardCards }: ActionableCategoriesProps) {
 	const { t } = useTranslation('stats');
-	// eslint-disable-next-line react-hooks/exhaustive-deps -- recalculate weeks when entries change
-	const weeks = useMemo(() => getLastNWeeks(8), [data.entries]);
-
-	const limitRows = useMemo(() => getTopLimitCategories(data.entries, data, weeks), [data, weeks]);
+	const { showToast } = useToast();
+	const limitRows = useMemo(() => getTopLimitCategoriesFromWeeklyData(weeklyData), [weeklyData]);
 
 	const followedIds = useMemo(() => {
-		return new Set((data.dashboardCards || []).map((c) => c.categoryId).filter((id): id is string => !!id));
-	}, [data.dashboardCards]);
+		return new Set(dashboardCards.map((card) => card.categoryId).filter((id): id is string => !!id));
+	}, [dashboardCards]);
 
-	const cardCount = data.dashboardCards?.length ?? 0;
+	const cardCount = dashboardCards.length;
 
 	if (limitRows.length === 0) return null;
 

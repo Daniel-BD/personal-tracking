@@ -80,6 +80,7 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 	];
 
 	const searchPlaceholder = t('addCategoryModal.searchPlaceholder');
+	const dialogTitleId = 'add-dashboard-dialog-title';
 
 	const resolveItemCategories = (item: { categories: string[]; type: EntryType }) => {
 		const typeCategories = item.type === 'food' ? foodCategories : activityCategories;
@@ -89,14 +90,30 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 	};
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+		// eslint-disable-next-line jsx-a11y/no-static-element-interactions
+		<div
+			className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+			onMouseDown={(event) => {
+				if (event.target === event.currentTarget) {
+					onClose();
+				}
+			}}
+		>
 			<div
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby={dialogTitleId}
 				className="card w-full max-w-md bg-elevated shadow-elevated flex flex-col max-h-[80vh]"
-				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="p-4 border-b flex items-center justify-between">
-					<h3 className="text-lg font-bold">{t('addCategoryModal.title')}</h3>
-					<button onClick={onClose} className="p-1 hover:bg-inset rounded-full transition-colors">
+					<h3 id={dialogTitleId} className="text-lg font-bold">
+						{t('addCategoryModal.title')}
+					</h3>
+					<button
+						onClick={onClose}
+						aria-label={t('addCategoryModal.close')}
+						className="p-1 hover:bg-inset rounded-full transition-colors"
+					>
 						<X className="w-5 h-5" strokeWidth={2} />
 					</button>
 				</div>
@@ -175,8 +192,6 @@ export default function AddCategoryModal({ onClose }: AddCategoryModalProps) {
 					)}
 				</div>
 			</div>
-
-			<div className="fixed inset-0 -z-10" onClick={onClose} />
 		</div>
 	);
 }

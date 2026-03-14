@@ -26,6 +26,7 @@ import {
 	removeDashboardCard,
 	backupToGist,
 	restoreFromBackupGist,
+	subscribeToStoreEvents,
 } from '../store';
 import {
 	pendingDeletions,
@@ -153,6 +154,31 @@ describe('gist sync', () => {
 			// Data should remain unchanged
 			expect(dataStore.getSnapshot().foodItems).toHaveLength(0);
 		});
+
+		it('emits a sync load failed event when loading from gist fails', async () => {
+			(isConfigured as Mock).mockReturnValue(true);
+			(fetchGist as Mock).mockRejectedValueOnce(new Error('Network error'));
+			const listener = vi.fn();
+			const unsubscribe = subscribeToStoreEvents(listener);
+
+			await loadFromGist();
+
+			expect(listener).toHaveBeenCalledWith({ type: 'sync-load-failed', code: 'fetch_failed' });
+			unsubscribe();
+		});
+
+		it('emits a sync completed event after a successful load', async () => {
+			(isConfigured as Mock).mockReturnValue(true);
+			(updateGist as Mock).mockResolvedValueOnce(undefined);
+			(fetchGist as Mock).mockResolvedValueOnce(makeValidData());
+			const listener = vi.fn();
+			const unsubscribe = subscribeToStoreEvents(listener);
+
+			await loadFromGist();
+
+			expect(listener).toHaveBeenCalledWith({ type: 'sync-completed', operation: 'load' });
+			unsubscribe();
+		});
 	});
 
 	// ── Merge on push ───────────────────────────────────────
@@ -178,6 +204,20 @@ describe('gist sync', () => {
 			const names = pushedData.foodItems.map((i) => i.name);
 			expect(names).toContain('Remote Apple');
 			expect(names).toContain('Local Banana');
+		});
+
+		it('emits a sync push failed event when pushing to gist fails', async () => {
+			(isConfigured as Mock).mockReturnValue(true);
+			(fetchGist as Mock).mockResolvedValue(makeValidData());
+			(updateGist as Mock).mockRejectedValueOnce(new Error('Update failed'));
+			const listener = vi.fn();
+			const unsubscribe = subscribeToStoreEvents(listener);
+
+			addItem('food', 'Local Banana', []);
+			await flushDebouncedSync();
+
+			expect(listener).toHaveBeenCalledWith({ type: 'sync-push-failed', code: 'update_failed' });
+			unsubscribe();
 		});
 
 		it('local items take precedence over remote on ID conflict', async () => {

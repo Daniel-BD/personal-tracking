@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { EntryType } from '@/shared/lib/types';
-import { cn } from '@/shared/lib/cn';
+import SegmentedControl from '@/shared/ui/SegmentedControl';
 
 interface TypeSegmentedPickerProps {
 	value: EntryType;
@@ -11,20 +11,15 @@ export default function TypeSegmentedPicker({ value, onChange }: TypeSegmentedPi
 	const { t } = useTranslation('common');
 
 	return (
-		<div className="flex rounded-lg bg-inset p-1 gap-1">
-			{(['activity', 'food'] as const).map((type) => (
-				<button
-					key={type}
-					type="button"
-					onClick={() => onChange(type)}
-					className={cn(
-						'flex-1 text-sm py-1.5 rounded-md transition-colors',
-						value === type ? 'bg-card text-heading font-medium' : 'text-label hover:text-heading',
-					)}
-				>
-					{type === 'activity' ? t('type.activity') : t('type.food')}
-				</button>
-			))}
-		</div>
+		<SegmentedControl
+			options={[
+				{ value: 'activity' as const, label: t('type.activity') },
+				{ value: 'food' as const, label: t('type.food') },
+			]}
+			value={value}
+			onChange={onChange}
+			variant="segment"
+			size="sm"
+		/>
 	);
 }

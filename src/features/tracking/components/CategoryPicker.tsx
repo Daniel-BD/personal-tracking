@@ -37,10 +37,6 @@ export default function CategoryPicker({ selected, categories, onChange, type }:
 		}
 	}
 
-	function getCategoryName(categoryId: string): string {
-		return categories.find((c) => c.id === categoryId)?.name ?? '';
-	}
-
 	function handleAddCategory() {
 		const trimmedName = searchText.trim();
 		if (!trimmedName || !type) return;
@@ -88,7 +84,10 @@ export default function CategoryPicker({ selected, categories, onChange, type }:
 	);
 
 	const selectedCategories = useMemo(
-		() => selected.map((id) => ({ id, name: getCategoryName(id) })).filter((c) => c.name),
+		() =>
+			selected
+				.map((id) => ({ id, name: categories.find((category) => category.id === id)?.name ?? '' }))
+				.filter((category) => category.name),
 		[selected, categories],
 	);
 

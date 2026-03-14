@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import type { WeeklyData } from '../utils/stats-engine';
 import { calculateBalanceScore, getScoreChange, formatWeekLabel } from '../utils/stats-engine';
+import { getWeeklyVerticalBarCategoryAxisProps, weeklyVerticalBarValueAxisProps } from '../utils/weekly-chart-axis';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
 import BalanceScoreTrendChart from './BalanceScoreTrendChart';
 
@@ -98,8 +99,8 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 						layout="vertical"
 						margin={isMobile ? { top: 5, right: 10, left: 5, bottom: 5 } : { top: 5, right: 30, left: 80, bottom: 5 }}
 					>
-						<XAxis type="number" domain={[0, 100]} hide />
-						<YAxis dataKey="week" type="category" width={isMobile ? 50 : 75} tick={{ fontSize: 12 }} />
+						<XAxis {...weeklyVerticalBarValueAxisProps} />
+						<YAxis dataKey="week" {...getWeeklyVerticalBarCategoryAxisProps(isMobile)} />
 						<Tooltip
 							formatter={(value: number | undefined) => (value !== undefined ? `${Math.round(value)}%` : 'N/A')}
 							contentStyle={{

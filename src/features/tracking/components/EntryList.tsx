@@ -16,7 +16,7 @@ import BottomSheet from '@/shared/ui/BottomSheet';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import EntityTitle from '@/shared/ui/EntityTitle';
 import IconActionButton from '@/shared/ui/IconActionButton';
-import { showToast } from '@/shared/ui/Toast';
+import { useToast } from '@/shared/ui/useToast';
 
 interface Props {
 	entries: Entry[];
@@ -24,6 +24,7 @@ interface Props {
 
 export default function EntryList({ entries }: Props) {
 	const { t } = useTranslation('log');
+	const { showToast } = useToast();
 	const navigate = useNavigate();
 	const data = useTrackerData();
 	const groupedEntries = useMemo(() => getEntriesGroupedByDate(entries), [entries]);
@@ -116,7 +117,7 @@ export default function EntryList({ entries }: Props) {
 		<>
 			<div className="space-y-5">
 				{groupedArray.map(([dateStr, dateEntries]) => (
-					<div key={dateStr}>
+					<div key={dateStr} data-testid={`entries-date-group-${dateStr}`}>
 						{/* Date header — sticky, uppercase, muted */}
 						<div className="sticky top-0 z-10 bg-[var(--bg-page)] py-1.5 flex items-center justify-between">
 							<h3 className="text-[11px] font-semibold text-subtle uppercase tracking-wider">{formatDate(dateStr)}</h3>
@@ -131,6 +132,7 @@ export default function EntryList({ entries }: Props) {
 								const isLastInGroup = idx === dateEntries.length - 1;
 
 								return (
+									// eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
 									<div
 										key={entry.id}
 										className={`px-4 py-3 ${!isLastInGroup ? 'border-b border-[var(--border-subtle)]' : ''}`}

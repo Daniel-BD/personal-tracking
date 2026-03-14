@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
 	getWeekStartDate,
+	getLastNWeeks,
 	getDaysElapsedInCurrentWeek,
 	getDaysSinceMostRecentEntry,
 	processFoodEntriesByWeek,
+	processFoodEntriesByWeekFromIndexes,
 	calculateBalanceScore,
 	getScoreChange,
 	getTopCategories,
@@ -19,9 +21,11 @@ import {
 	SENTIMENT_COLORS,
 	type WeeklyData,
 } from '../utils/stats-engine';
+import { buildCategoryById, buildEntriesByWeek, buildItemCategoryIdsByItemId } from '@/features/tracking';
 import { makeEntry, makeItem, makeCategory, makeValidData, resetIdCounter } from '@/shared/store/__tests__/fixtures';
 
 beforeEach(() => resetIdCounter());
+afterEach(() => vi.useRealTimers());
 
 // --- helpers ---
 
@@ -46,6 +50,23 @@ describe('getWeekStartDate', () => {
 		expect(result.getFullYear()).toBe(2024);
 		expect(result.getMonth()).toBe(11); // December
 		expect(result.getDate()).toBe(30);
+	});
+});
+
+describe('getLastNWeeks', () => {
+	it('uses the ISO year when deriving week boundaries around New Year', () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date('2025-12-31T12:00:00'));
+
+		const [week] = getLastNWeeks(1);
+
+		expect(week.key).toBe('2026-W01');
+		expect(week.start.getFullYear()).toBe(2025);
+		expect(week.start.getMonth()).toBe(11);
+		expect(week.start.getDate()).toBe(29);
+		expect(week.end.getFullYear()).toBe(2026);
+		expect(week.end.getMonth()).toBe(0);
+		expect(week.end.getDate()).toBe(4);
 	});
 });
 
@@ -174,6 +195,34 @@ describe('processFoodEntriesByWeek', () => {
 		expect(result[0].totalCount).toBe(0);
 		expect(result[0].categories).toEqual([]);
 		expect(result[0].sentimentCounts).toEqual({ positive: 0, neutral: 0, limit: 0 });
+	});
+
+	it('matches the index-backed weekly food stats calculation', () => {
+		const positive = makeCategory({ id: 'positive', name: 'Fruit', sentiment: 'positive' });
+		const limit = makeCategory({ id: 'limit', name: 'Candy', sentiment: 'limit' });
+		const foodItem = makeItem({ id: 'food-item', categories: ['positive'] });
+		const activityItem = makeItem({ id: 'activity-item', categories: [] });
+		const data = makeValidData({
+			foodCategories: [positive, limit],
+			foodItems: [foodItem],
+			activityItems: [activityItem],
+		});
+		const weeks = [makeWeek('2025-W03', '2025-01-13', '2025-01-19'), makeWeek('2025-W04', '2025-01-20', '2025-01-26')];
+		const entries = [
+			makeEntry({ id: 'food-1', type: 'food', itemId: 'food-item', date: '2025-01-14', categoryOverrides: null }),
+			makeEntry({ id: 'food-2', type: 'food', itemId: 'food-item', date: '2025-01-21', categoryOverrides: ['limit'] }),
+			makeEntry({ id: 'activity-1', type: 'activity', itemId: 'activity-item', date: '2025-01-22' }),
+		];
+
+		const legacy = processFoodEntriesByWeek(entries, data, weeks);
+		const indexed = processFoodEntriesByWeekFromIndexes(
+			buildEntriesByWeek(entries),
+			buildCategoryById(data.activityCategories, data.foodCategories),
+			buildItemCategoryIdsByItemId(data.activityItems, data.foodItems),
+			weeks,
+		);
+
+		expect(indexed).toEqual(legacy);
 	});
 });
 

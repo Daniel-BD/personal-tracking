@@ -1,10 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { X, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useActivityItems, useFoodItems, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
+import { useLibraryIndexes } from '../hooks/use-library-indexes';
 import ItemsTab from './ItemsTab';
 import CategoriesTab from './CategoriesTab';
+import { buildTypedCategories, buildTypedItems } from '../utils/library-indexes';
 
 export default function LibraryPage() {
 	const { t } = useTranslation('library');
@@ -12,27 +14,24 @@ export default function LibraryPage() {
 	const foodItems = useFoodItems();
 	const activityCategories = useActivityCategories();
 	const foodCategories = useFoodCategories();
+	const { categoriesById, categoriesByType, favoriteItemIdSet, itemCountsByCategoryId } = useLibraryIndexes();
 
 	const [activeSubTab, setActiveSubTab] = useState<'items' | 'categories'>('items');
 	const [searchQuery, setSearchQuery] = useState('');
 	const [showAddSheet, setShowAddSheet] = useState(false);
 
-	const allItems = useMemo(
-		() =>
-			[
-				...activityItems.map((item) => ({ ...item, type: 'activity' as const })),
-				...foodItems.map((item) => ({ ...item, type: 'food' as const })),
-			].sort((a, b) => a.name.localeCompare(b.name)),
-		[activityItems, foodItems],
-	);
+	const allItems = useMemo(() => buildTypedItems(activityItems, foodItems), [activityItems, foodItems]);
 
 	const allCategories = useMemo(
-		() =>
-			[
-				...activityCategories.map((category) => ({ ...category, type: 'activity' as const })),
-				...foodCategories.map((category) => ({ ...category, type: 'food' as const })),
-			].sort((a, b) => a.name.localeCompare(b.name)),
+		() => buildTypedCategories(activityCategories, foodCategories),
 		[activityCategories, foodCategories],
+	);
+	const itemsByType = useMemo(
+		() => ({
+			activity: allItems.filter((item) => item.type === 'activity'),
+			food: allItems.filter((item) => item.type === 'food'),
+		}),
+		[allItems],
 	);
 
 	const currentItems = useMemo(
@@ -49,14 +48,6 @@ export default function LibraryPage() {
 				? allCategories.filter((cat) => cat.name.toLowerCase().includes(searchQuery.toLowerCase()))
 				: allCategories,
 		[allCategories, searchQuery],
-	);
-
-	const categoriesByType = useMemo(
-		() => ({
-			activity: allCategories.filter((category) => category.type === 'activity'),
-			food: allCategories.filter((category) => category.type === 'food'),
-		}),
-		[allCategories],
 	);
 
 	const count = activeSubTab === 'items' ? currentItems.length : currentCategories.length;
@@ -113,7 +104,10 @@ export default function LibraryPage() {
 			{activeSubTab === 'items' ? (
 				<ItemsTab
 					items={currentItems}
+					itemsByType={itemsByType}
+					categoriesById={categoriesById}
 					categoriesByType={categoriesByType}
+					favoriteItemIdSet={favoriteItemIdSet}
 					searchQuery={searchQuery}
 					showAddSheet={showAddSheet}
 					onCloseAddSheet={() => setShowAddSheet(false)}
@@ -121,7 +115,8 @@ export default function LibraryPage() {
 			) : (
 				<CategoriesTab
 					categories={currentCategories}
-					allItems={allItems}
+					categoriesByType={categoriesByType}
+					itemCountsByCategoryId={itemCountsByCategoryId}
 					searchQuery={searchQuery}
 					showAddSheet={showAddSheet}
 					onCloseAddSheet={() => setShowAddSheet(false)}

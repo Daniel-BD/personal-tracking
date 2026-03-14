@@ -4,6 +4,17 @@ export function countAffectedEntriesForItemMerge(entries: Entry[], type: EntryTy
 	return entries.filter((e) => e.type === type && e.itemId === sourceId).length;
 }
 
+export function countAffectedEntryOverridesForCategoryMerge(
+	entries: Entry[],
+	type: EntryType,
+	sourceId: string,
+): number {
+	return entries.filter(
+		(entry) =>
+			entry.type === type && Array.isArray(entry.categoryOverrides) && entry.categoryOverrides.includes(sourceId),
+	).length;
+}
+
 export function countAffectedForCategoryMerge(
 	items: Item[],
 	entries: Entry[],

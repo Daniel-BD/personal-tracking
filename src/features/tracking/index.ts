@@ -29,6 +29,34 @@ export {
 	getCategoryTotals,
 } from './utils/entry-grouping';
 export type { ComparisonResult } from './utils/entry-grouping';
+export {
+	buildEntriesByItem,
+	buildEntriesByCategory,
+	buildEntriesByWeek,
+	buildItemById,
+	buildCategoryById,
+	buildItemCategoryIdsByItemId,
+	buildItemCategoriesByItemId,
+	getEntryCategoryIdsFromIndex,
+} from './utils/tracking-indexes';
+export type {
+	EntriesByItem,
+	EntriesByCategory,
+	EntriesByWeek,
+	ItemById,
+	CategoryById,
+	ItemCategoryIdsByItemId,
+	ItemCategoriesByItemId,
+} from './utils/tracking-indexes';
+export {
+	useEntriesByItem,
+	useEntriesByCategory,
+	useEntriesByWeek,
+	useItemById,
+	useCategoryById,
+	useItemCategoryIdsByItemId,
+	useItemCategoriesByItemId,
+} from './hooks/use-tracking-indexes';
 
 // Components
 export { default as EntryList } from './components/EntryList';

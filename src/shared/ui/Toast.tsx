@@ -1,41 +1,58 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { ToastContext, type ToastAction } from './toast-context';
 
-export interface ToastMessage {
+interface ToastMessage extends ToastInput {
 	id: number;
+}
+
+interface ToastInput {
 	text: string;
-	action?: { label: string; onClick: () => void };
+	action?: ToastAction;
 }
 
-let toastIdCounter = 0;
-let addToastFn: ((msg: Omit<ToastMessage, 'id'>) => void) | null = null;
-
-export function showToast(text: string, action?: ToastMessage['action']) {
-	addToastFn?.({ text, action });
-}
-
-export default function ToastContainer() {
+export function ToastProvider({ children }: { children: ReactNode }) {
 	const [toasts, setToasts] = useState<ToastMessage[]>([]);
+	const nextToastId = useRef(0);
+	const timersRef = useRef(new Map<number, ReturnType<typeof setTimeout>>());
+
+	const dismissToast = useCallback((id: number) => {
+		const timer = timersRef.current.get(id);
+		if (timer) {
+			clearTimeout(timer);
+			timersRef.current.delete(id);
+		}
+		setToasts((prev) => prev.filter((toast) => toast.id !== id));
+	}, []);
+
+	const showToast = useCallback(
+		(text: string, action?: ToastAction) => {
+			const id = ++nextToastId.current;
+			setToasts((prev) => [...prev, { id, text, action }]);
+			const timer = setTimeout(() => dismissToast(id), 3500);
+			timersRef.current.set(id, timer);
+		},
+		[dismissToast],
+	);
 
 	useEffect(() => {
-		const timers = new Map<number, ReturnType<typeof setTimeout>>();
-
-		addToastFn = (msg) => {
-			const id = ++toastIdCounter;
-			setToasts((prev) => [...prev, { ...msg, id }]);
-			const timer = setTimeout(() => {
-				setToasts((prev) => prev.filter((t) => t.id !== id));
-				timers.delete(id);
-			}, 3500);
-			timers.set(id, timer);
-		};
-
+		const timers = timersRef.current;
 		return () => {
-			addToastFn = null;
 			timers.forEach((timer) => clearTimeout(timer));
 			timers.clear();
 		};
 	}, []);
 
+	const value = useMemo(() => ({ showToast }), [showToast]);
+
+	return (
+		<ToastContext.Provider value={value}>
+			{children}
+			<ToastViewport toasts={toasts} />
+		</ToastContext.Provider>
+	);
+}
+
+function ToastViewport({ toasts }: { toasts: ToastMessage[] }) {
 	if (toasts.length === 0) return null;
 
 	return (

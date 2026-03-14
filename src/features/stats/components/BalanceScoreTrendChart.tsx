@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Dot } from 'recharts';
 import type { WeeklyData } from '../utils/stats-engine';
 import { calculateBalanceScore, formatWeekLabel } from '../utils/stats-engine';
+import { getWeeklyLineXAxisProps, weeklyLineValueAxisProps } from '../utils/weekly-chart-axis';
 
 interface BalanceScoreTrendChartProps {
 	weeklyData: WeeklyData[];
@@ -32,13 +33,8 @@ export default function BalanceScoreTrendChart({ weeklyData }: BalanceScoreTrend
 		<div className="h-52 w-full -mx-2">
 			<ResponsiveContainer width="100%" height="100%">
 				<LineChart data={chartData} margin={{ top: 24, right: 16, left: 8, bottom: 24 }}>
-					<XAxis
-						dataKey="label"
-						tickLine={false}
-						axisLine={false}
-						tick={{ fontSize: 11, fill: 'var(--text-tertiary)' }}
-					/>
-					<YAxis hide domain={[0, 110]} />
+					<XAxis dataKey="label" {...getWeeklyLineXAxisProps()} />
+					<YAxis {...weeklyLineValueAxisProps} domain={[0, 110]} />
 					<ReferenceLine y={avgScore} stroke="var(--border-default)" strokeDasharray="4 4" strokeWidth={1} />
 					<Line
 						type="monotone"
