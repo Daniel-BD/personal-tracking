@@ -2,6 +2,13 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import StatsPage from '../components/StatsPage';
 
+const statsState = vi.hoisted(() => ({
+	hasData: false,
+	entries: [] as unknown[],
+	dashboardCards: [] as unknown[],
+	weeklyData: [] as unknown[],
+}));
+
 vi.mock('react-i18next', () => ({
 	useTranslation: () => ({
 		t: (key: string) =>
@@ -15,12 +22,12 @@ vi.mock('react-i18next', () => ({
 }));
 
 vi.mock('@/shared/store/hooks', () => ({
-	useEntries: () => [],
-	useDashboardCards: () => [],
+	useEntries: () => statsState.entries,
+	useDashboardCards: () => statsState.dashboardCards,
 }));
 
 vi.mock('../hooks/use-stats-view-models', () => ({
-	useWeeklyFoodStats: () => ({ weeklyData: [], hasData: false }),
+	useWeeklyFoodStats: () => ({ weeklyData: statsState.weeklyData, hasData: statsState.hasData }),
 }));
 
 vi.mock('../components/BalanceOverview', () => ({ default: () => <div>BalanceOverview</div> }));
@@ -31,10 +38,20 @@ vi.mock('../components/FrequencyRanking', () => ({ default: () => <div>Frequency
 
 describe('StatsPage', () => {
 	it('does not render weekly/monthly segmented control', () => {
+		statsState.hasData = false;
+		statsState.entries = [];
 		render(<StatsPage />);
 
 		expect(screen.queryByRole('tab', { name: 'Weekly' })).toBeNull();
 		expect(screen.queryByRole('tab', { name: 'Monthly' })).toBeNull();
 		expect(screen.queryByText('No food entries logged yet')).not.toBeNull();
+	});
+
+	it('renders balance overview before goal dashboard when data exists', () => {
+		statsState.hasData = true;
+		render(<StatsPage />);
+
+		const content = screen.getByText('BalanceOverview').parentElement?.textContent ?? '';
+		expect(content.indexOf('BalanceOverview')).toBeLessThan(content.indexOf('GoalDashboard'));
 	});
 });

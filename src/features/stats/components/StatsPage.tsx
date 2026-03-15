@@ -32,18 +32,18 @@ export default function StatsPage() {
 			{/* Content */}
 			{hasData && (
 				<>
-					{/* Section 0: Goal Dashboard */}
-					<GoalDashboard />
-
-					<hr className="border-[var(--border-default)]" />
-
 					{/* Section 1: Balance Overview */}
 					<BalanceOverview weeklyData={weeklyData} />
 
-					{/* Section 1.5: Actionable Categories (Focus Areas) */}
+					<hr className="border-[var(--border-default)]" />
+
+					{/* Section 2: Goal Dashboard */}
+					<GoalDashboard />
+
+					{/* Section 3: Actionable Categories (Focus Areas) */}
 					<ActionableCategories weeklyData={weeklyData} dashboardCards={dashboardCards} />
 
-					{/* Section 2: Category Composition */}
+					{/* Section 4: Category Composition */}
 					<CategoryComposition weeklyData={weeklyData} />
 				</>
 			)}
