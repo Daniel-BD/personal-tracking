@@ -13,6 +13,7 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 ## Hooks
 
 - **`use-stats-view-models.ts`** — Thin stats-facing hooks built on shared slice hooks plus tracking indexes: `useWeeklyFoodStats`, `useGoalDashboardViewModels`, `useCategoryDetailViewModel`, `useItemDetailViewModel`, and `useItemAccentColorById`.
+- **`useScrollContainerToEnd.ts`** — Shared chart hook that sets `scrollLeft = scrollWidth` for horizontal overflow containers so weekly trend charts open with the latest week in view.
 
 ## Components
 
@@ -23,7 +24,7 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 - **`ItemDetailPage.tsx`** — Thin item detail view for `/stats/item/:itemId`, backed by `useItemDetailViewModel()`. Monthly and yearly sections now receive the item's prefiltered entry slice instead of refiltering the full store.
 - **`CategoryDetailPage.tsx`** — Thin category detail view for `/stats/category/:categoryId`, backed by `useCategoryDetailViewModel()`. The `limit` sentiment "days since last logged" pill still uses the same calculation; monthly and yearly sections use the category's prefiltered entry slice.
 - **`BalanceOverview.tsx`** — Overall balance score visualization (score card, trend chart, weekly breakdown).
-- **`BalanceScoreTrendChart.tsx`** — 8-week balance score line chart (Recharts `<Line>`). Shows score % above each dot and small positive/limit counts below. Modeled after `CategoryTrendChart`.
+- **`BalanceScoreTrendChart.tsx`** — 8-week balance score line chart (Recharts `<Line>`). Shows score % above each dot and small positive/limit counts below. Modeled after `CategoryTrendChart`. Wraps the chart in a horizontal overflow container and scales minimum chart width by week count so long histories stay scrollable on narrow screens, and the scroll position is automatically pinned to the rightmost edge (latest week) on render/update.
 - **`ActionableCategories.tsx`** — Top limit categories to reduce. Reads from precomputed weekly food stats plus dashboard-card slices instead of full `TrackerData`.
 - **`CategoryComposition.tsx`** — Stacked/bar chart showing category distribution.
 - **`FrequencyRanking.tsx`** — Ranked list of most-logged items or categories ordered by count, with SegmentedControl filters for time period (all time/7 days/30 days), type (all/activities/food), and view mode (items/categories). Uses tracking indexes plus `useItemAccentColorById()` instead of whole-store lookups. Rows are tappable and navigate to category/item detail pages.
@@ -36,6 +37,7 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 
 - **Recharts in GoalCard**: The `dot` prop on `<Line>` uses a render function with explicit typing to satisfy TypeScript. The last data point gets a larger filled dot.
 - Weekly stats axes must not rely on Recharts default tick interval behavior. Use the shared weekly-axis helper so all 8 week labels remain visible after responsive re-measurements.
+- Weekly line charts that can exceed viewport width should render inside `overflow-x-auto` wrappers with a computed `minWidth` (for example `weeks.length * 56`) so users can horizontally scroll instead of squashing labels and dots. For historical trend charts, initialize scroll position at the end so the most recent week is visible first.
 - Chart colors use `--chart-color-1` through `--chart-color-9` CSS custom properties.
 
 ## Tests
