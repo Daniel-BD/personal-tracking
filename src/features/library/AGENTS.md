@@ -4,7 +4,7 @@ Library page for item & category CRUD management. Compact card list with inline 
 
 ## Components
 
-- **`LibraryPage.tsx`** — Layout shell with header, Items/Categories segmented control, unified cross-type search, and add button. It builds the typed cross-type item/category lists once and shares library lookup maps (`useLibraryIndexes`) with the active tab.
+- **`LibraryPage.tsx`** — Layout shell with header, Items/Categories segmented control, unified cross-type search, and add button. It builds the typed cross-type item/category lists once and shares library lookup maps (`useLibraryIndexes`) with the active tab. Supports deep-link edit intents via query params (`?tab=...&edit=item|category&id=...`) and forwards them to the matching tab so the edit sheet opens automatically.
 - **`ItemsTab.tsx`** — Item list across both activity and food types with sentiment accent dot and default-category sentiment pills. Row tap navigates to `/stats/item/:itemId`; inline favorite/edit/delete icon buttons are preserved. Add/edit BottomSheets include an in-sheet type picker (`TypeSegmentedPicker`) and use `CategoryPicker` for category assignment. Edit sheet includes "Merge into..." button. Row view models are precomputed from library lookup maps so render no longer performs repeated category lookups or repeated favorite checks through the store facade.
 - **`CategoriesTab.tsx`** — Category list across both activity and food types with sentiment dot metadata. Row tap navigates to `/stats/category/:categoryId`; inline edit/delete icon buttons are preserved. Add/edit BottomSheets include an in-sheet type picker (`TypeSegmentedPicker`). Edit sheet includes "Merge into..." button. Per-row item counts and merge previews use precomputed category→item-count maps instead of scanning the full item list.
 - **`SentimentPicker.tsx`** — Positive/neutral/limit radio group for setting category sentiment when creating or editing categories.
@@ -27,6 +27,7 @@ Library page for item & category CRUD management. Compact card list with inline 
 ## Tests
 
 - `__tests__/library-indexes.test.tsx` — Lookup builder and hook coverage for categories-by-ID/type, favorite ID sets, and category item counts.
+- `components/__tests__/ItemsTab.test.tsx` and `components/__tests__/CategoriesTab.test.tsx` also cover deep-link query edit intents opening the corresponding edit sheets.
 - `components/__tests__/ItemsTab.test.tsx` — Regression coverage for item add/edit/merge/delete wiring through `LibraryPage`.
 - `components/__tests__/CategoriesTab.test.tsx` — Regression coverage for category add/edit/merge/delete wiring through `LibraryPage`.
 - `e2e/library.spec.ts` — Seeded cross-type item/category rendering, item edit/delete/favorite sync, item/category merge flows, category add/edit/delete with sentiment persistence, library search filtering, and add-item coverage through Home search using the Playwright mocked-storage harness.

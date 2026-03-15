@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useItemById } from '@/features/tracking';
+import IconActionButton from '@/shared/ui/IconActionButton';
 import { useCategoryDetailViewModel, useItemAccentColorById } from '../hooks/use-stats-view-models';
 import { getDeltaSummaryParts, SENTIMENT_COLORS } from '../utils/stats-engine';
 import CategoryTrendChart from './CategoryTrendChart';
@@ -55,12 +56,12 @@ export default function CategoryDetailPage() {
 					<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
 					<h1 className="text-xl font-bold text-heading">{category.name}</h1>
 				</div>
-				<button
-					onClick={() => navigate('/stats')}
-					className="p-2 -mr-2 text-label hover:text-heading transition-colors"
-				>
-					<X className="w-5 h-5" />
-				</button>
+				<IconActionButton
+					icon={Pencil}
+					tone="edit"
+					onClick={() => navigate(`/library?tab=categories&edit=category&id=${category.id}`)}
+					ariaLabel={t('categoryDetail.editCategory')}
+				/>
 			</div>
 
 			{/* Summary stats */}

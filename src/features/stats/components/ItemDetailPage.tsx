@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import IconActionButton from '@/shared/ui/IconActionButton';
 import { useItemDetailViewModel } from '../hooks/use-stats-view-models';
 import { getDeltaSummaryParts } from '../utils/stats-engine';
 import type { CategorySentiment } from '@/shared/lib/types';
@@ -56,9 +57,12 @@ export default function ItemDetailPage() {
 					<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: accentColor }} />
 					<h1 className="text-xl font-bold text-heading">{item.name}</h1>
 				</div>
-				<button onClick={() => navigate(-1)} className="p-2 -mr-2 text-label hover:text-heading transition-colors">
-					<X className="w-5 h-5" />
-				</button>
+				<IconActionButton
+					icon={Pencil}
+					tone="edit"
+					onClick={() => navigate(`/library?tab=items&edit=item&id=${item.id}`)}
+					ariaLabel={t('itemDetail.editItem')}
+				/>
 			</div>
 
 			{/* Default categories */}

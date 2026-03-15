@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import '@/shared/lib/i18n';
@@ -34,9 +34,9 @@ vi.mock('@/shared/store/sync', () => ({
 	clearDashboardCardRestored: vi.fn(),
 }));
 
-function renderLibraryPage() {
+function renderLibraryPage(initialEntry: string = '/library') {
 	return render(
-		<MemoryRouter>
+		<MemoryRouter initialEntries={[initialEntry]}>
 			<ToastProvider>
 				<LibraryPage />
 			</ToastProvider>
@@ -68,6 +68,7 @@ function getSheetAction(dialog: HTMLElement, label: string): HTMLButtonElement {
 
 describe('LibraryPage items tab', () => {
 	beforeEach(() => {
+		cleanup();
 		localStorage.clear();
 		resetIdCounter();
 
@@ -87,6 +88,13 @@ describe('LibraryPage items tab', () => {
 				),
 			);
 		});
+	});
+
+	it('opens item edit sheet from deep-link query params', () => {
+		renderLibraryPage('/library?tab=items&edit=item&id=item-banana');
+
+		const dialog = screen.getByRole('dialog');
+		expect(within(dialog).getByRole('heading', { name: 'Edit Banana' })).toBeTruthy();
 	});
 
 	it('wires add, edit, merge, and delete flows through the page scaffold', () => {

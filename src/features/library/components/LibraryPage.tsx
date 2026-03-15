@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { X, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { useActivityItems, useFoodItems, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
 import { useLibraryIndexes } from '../hooks/use-library-indexes';
@@ -8,17 +9,53 @@ import ItemsTab from './ItemsTab';
 import CategoriesTab from './CategoriesTab';
 import { buildTypedCategories, buildTypedItems } from '../utils/library-indexes';
 
+type LibrarySubTab = 'items' | 'categories';
+
+type EditIntent =
+	| {
+			kind: 'item';
+			id: string;
+	  }
+	| {
+			kind: 'category';
+			id: string;
+	  }
+	| null;
+
+function parseEditIntent(searchParams: URLSearchParams): EditIntent {
+	const editKind = searchParams.get('edit');
+	const id = searchParams.get('id');
+
+	if (!id) return null;
+	if (editKind === 'item') return { kind: 'item', id };
+	if (editKind === 'category') return { kind: 'category', id };
+	return null;
+}
+
+function parseInitialTab(searchParams: URLSearchParams, editIntent: EditIntent): LibrarySubTab {
+	if (editIntent?.kind === 'item') return 'items';
+	if (editIntent?.kind === 'category') return 'categories';
+
+	const tab = searchParams.get('tab');
+	return tab === 'categories' ? 'categories' : 'items';
+}
+
 export default function LibraryPage() {
 	const { t } = useTranslation('library');
+	const [searchParams, setSearchParams] = useSearchParams();
+	const initialEditIntent = useMemo(() => parseEditIntent(searchParams), [searchParams]);
 	const activityItems = useActivityItems();
 	const foodItems = useFoodItems();
 	const activityCategories = useActivityCategories();
 	const foodCategories = useFoodCategories();
 	const { categoriesById, categoriesByType, favoriteItemIdSet, itemCountsByCategoryId } = useLibraryIndexes();
 
-	const [activeSubTab, setActiveSubTab] = useState<'items' | 'categories'>('items');
+	const [activeSubTab, setActiveSubTab] = useState<LibrarySubTab>(() =>
+		parseInitialTab(searchParams, initialEditIntent),
+	);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [showAddSheet, setShowAddSheet] = useState(false);
+	const [editIntent, setEditIntent] = useState<EditIntent>(initialEditIntent);
 
 	const allItems = useMemo(() => buildTypedItems(activityItems, foodItems), [activityItems, foodItems]);
 
@@ -33,6 +70,12 @@ export default function LibraryPage() {
 		}),
 		[allItems],
 	);
+
+	useEffect(() => {
+		if (!editIntent) return;
+		setActiveSubTab(editIntent.kind === 'item' ? 'items' : 'categories');
+		setShowAddSheet(false);
+	}, [editIntent]);
 
 	const currentItems = useMemo(
 		() =>
@@ -49,6 +92,16 @@ export default function LibraryPage() {
 				: allCategories,
 		[allCategories, searchQuery],
 	);
+
+	function handleEditIntentHandled() {
+		setEditIntent(null);
+		if (!searchParams.get('edit') && !searchParams.get('id')) return;
+
+		const nextParams = new URLSearchParams(searchParams);
+		nextParams.delete('edit');
+		nextParams.delete('id');
+		setSearchParams(nextParams, { replace: true });
+	}
 
 	const count = activeSubTab === 'items' ? currentItems.length : currentCategories.length;
 	const countLabel = activeSubTab === 'items' ? t('countLabel.item', { count }) : t('countLabel.category', { count });
@@ -111,6 +164,8 @@ export default function LibraryPage() {
 					searchQuery={searchQuery}
 					showAddSheet={showAddSheet}
 					onCloseAddSheet={() => setShowAddSheet(false)}
+					initialEditItemId={editIntent?.kind === 'item' ? editIntent.id : null}
+					onInitialEditHandled={handleEditIntentHandled}
 				/>
 			) : (
 				<CategoriesTab
@@ -120,6 +175,8 @@ export default function LibraryPage() {
 					searchQuery={searchQuery}
 					showAddSheet={showAddSheet}
 					onCloseAddSheet={() => setShowAddSheet(false)}
+					initialEditCategoryId={editIntent?.kind === 'category' ? editIntent.id : null}
+					onInitialEditHandled={handleEditIntentHandled}
 				/>
 			)}
 		</div>

@@ -1,4 +1,4 @@
-import { useMemo, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, type KeyboardEvent } from 'react';
 import { Pencil, Trash2, FolderOpen, Merge } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -29,6 +29,8 @@ interface Props {
 	searchQuery: string;
 	showAddSheet: boolean;
 	onCloseAddSheet: () => void;
+	initialEditCategoryId?: string | null;
+	onInitialEditHandled?: () => void;
 }
 
 const CATEGORY_FORM_DEFAULTS = { name: '', sentiment: 'neutral' as CategorySentiment, type: 'activity' as EntryType };
@@ -40,6 +42,8 @@ export default function CategoriesTab({
 	searchQuery,
 	showAddSheet,
 	onCloseAddSheet,
+	initialEditCategoryId,
+	onInitialEditHandled,
 }: Props) {
 	const { t } = useTranslation('library');
 	const { showToast } = useToast();
@@ -89,6 +93,16 @@ export default function CategoriesTab({
 
 	const effectiveMergeType = mergeType ?? fields.type;
 	const activeCategoriesForMerge = categoriesByType[effectiveMergeType];
+
+	useEffect(() => {
+		if (!initialEditCategoryId) return;
+		const targetCategory = categories.find((category) => category.id === initialEditCategoryId);
+		if (!targetCategory) return;
+
+		handleStartEdit(targetCategory);
+		onInitialEditHandled?.();
+	}, [initialEditCategoryId, categories, handleStartEdit, onInitialEditHandled]);
+
 	const categoryRows = useMemo(
 		() =>
 			categories.map((category) => ({
