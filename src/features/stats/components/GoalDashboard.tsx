@@ -25,36 +25,25 @@ export default function GoalDashboard() {
 				</button>
 			</div>
 
-			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-				{dashboardData.map((card) => (
-					<GoalCard
-						key={card.cardId}
-						categoryName={card.name}
-						sentiment={card.sentiment}
-						accentColor={card.accentColor}
-						sparklineData={card.sparklineData}
-						currentCount={card.currentCount}
-						baselineAvg={card.baselineAvg}
-						deltaPercent={card.deltaPercent}
-						daysElapsed={card.daysElapsed}
-						onRemove={() => removeDashboardCard(card.cardId)}
-						onCardClick={() => navigate(card.navigateTo)}
-					/>
-				))}
-
-				{dashboardData.length === 0 && (
-					<div className="col-span-full py-8 text-center card bg-inset border-dashed">
-						<p className="text-label text-sm">{t('goalDashboard.noDashboardCards')}</p>
-						<button
-							onClick={() => setIsModalOpen(true)}
-							className="mt-2 text-sm font-semibold"
-							style={{ color: 'var(--color-accent)' }}
-						>
-							{t('goalDashboard.addFirstCategory')}
-						</button>
-					</div>
-				)}
-			</div>
+			{dashboardData.length > 0 && (
+				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+					{dashboardData.map((card) => (
+						<GoalCard
+							key={card.cardId}
+							categoryName={card.name}
+							sentiment={card.sentiment}
+							accentColor={card.accentColor}
+							sparklineData={card.sparklineData}
+							currentCount={card.currentCount}
+							baselineAvg={card.baselineAvg}
+							deltaPercent={card.deltaPercent}
+							daysElapsed={card.daysElapsed}
+							onRemove={() => removeDashboardCard(card.cardId)}
+							onCardClick={() => navigate(card.navigateTo)}
+						/>
+					))}
+				</div>
+			)}
 
 			{isModalOpen && <AddCategoryModal onClose={() => setIsModalOpen(false)} />}
 		</div>
