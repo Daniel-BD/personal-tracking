@@ -1,4 +1,4 @@
-import { useMemo, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, type KeyboardEvent } from 'react';
 import { Pencil, Trash2, PackageOpen, Merge } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -32,6 +32,8 @@ interface Props {
 	searchQuery: string;
 	showAddSheet: boolean;
 	onCloseAddSheet: () => void;
+	initialEditItemId?: string | null;
+	onInitialEditHandled?: () => void;
 }
 
 const ITEM_FORM_DEFAULTS = { name: '', categories: [] as string[], type: 'activity' as EntryType };
@@ -45,6 +47,8 @@ export default function ItemsTab({
 	searchQuery,
 	showAddSheet,
 	onCloseAddSheet,
+	initialEditItemId,
+	onInitialEditHandled,
 }: Props) {
 	const { t } = useTranslation('library');
 	const { showToast } = useToast();
@@ -86,6 +90,16 @@ export default function ItemsTab({
 	const effectiveMergeType = mergeType ?? fields.type;
 	const activeItemsForMerge = itemsByType[effectiveMergeType];
 	const categories = fields.type === 'activity' ? categoriesByType.activity : categoriesByType.food;
+
+	useEffect(() => {
+		if (!initialEditItemId) return;
+		const targetItem = items.find((item) => item.id === initialEditItemId);
+		if (!targetItem) return;
+
+		handleStartEdit(targetItem);
+		onInitialEditHandled?.();
+	}, [initialEditItemId, items, handleStartEdit, onInitialEditHandled]);
+
 	const itemRows = useMemo(
 		() =>
 			items.map((item) => {

@@ -60,7 +60,7 @@ export default function ItemDetailPage() {
 				<IconActionButton
 					icon={Pencil}
 					tone="edit"
-					onClick={() => navigate('/library')}
+					onClick={() => navigate(`/library?tab=items&edit=item&id=${item.id}`)}
 					ariaLabel={t('itemDetail.editItem')}
 				/>
 			</div>

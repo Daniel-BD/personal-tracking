@@ -332,7 +332,7 @@ test.describe('Stats e2e @full-regression', () => {
 		await expect(seededPage.getByText(getYearLabel(-1), { exact: true })).toBeVisible();
 
 		await seededPage.getByRole('button', { name: 'Edit category' }).click();
-		await expect(seededPage).toHaveURL(/\/library$/);
+		await expect(seededPage).toHaveURL(/\/library(?:\?.*)?$/);
 	});
 
 	test('item detail route renders weekly summary and linked categories', async ({ appData, seededPage }) => {
@@ -360,7 +360,7 @@ test.describe('Stats e2e @full-regression', () => {
 		await expect(seededPage.getByRole('button', { name: 'Edit item' })).toBeVisible();
 
 		await seededPage.getByRole('button', { name: 'Edit item' }).click();
-		await expect(seededPage).toHaveURL(/\/library$/);
+		await expect(seededPage).toHaveURL(/\/library(?:\?.*)?$/);
 
 		await seededPage.goto(`/stats/item/${item.id}`);
 		await seededPage.getByRole('button', { name: firstCategoryName, exact: true }).click();

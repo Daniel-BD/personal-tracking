@@ -59,7 +59,7 @@ export default function CategoryDetailPage() {
 				<IconActionButton
 					icon={Pencil}
 					tone="edit"
-					onClick={() => navigate('/library')}
+					onClick={() => navigate(`/library?tab=categories&edit=category&id=${category.id}`)}
 					ariaLabel={t('categoryDetail.editCategory')}
 				/>
 			</div>
