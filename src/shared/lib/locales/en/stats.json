@@ -86,7 +86,8 @@
 		"event_other": "events",
 		"notFound": "Item not found",
 		"goBack": "Go back to Stats",
-		"defaultCategories": "Default categories"
+		"defaultCategories": "Default categories",
+		"editItem": "Edit item"
 	},
 	"categoryDetail": {
 		"thisWeek_one": "This week: {{count}} event",
@@ -119,6 +120,7 @@
 			"empty": "No items logged in this period"
 		},
 		"daysSinceLastLogged_one": "{{count}} day since last logged",
-		"daysSinceLastLogged_other": "{{count}} days since last logged"
+		"daysSinceLastLogged_other": "{{count}} days since last logged",
+		"editCategory": "Edit category"
 	}
 }
