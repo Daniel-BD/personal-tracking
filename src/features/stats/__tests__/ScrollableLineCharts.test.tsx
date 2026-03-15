@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { render } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { WeeklyData } from '../utils/stats-engine';
 import BalanceScoreTrendChart from '../components/BalanceScoreTrendChart';
 import CategoryTrendChart from '../components/CategoryTrendChart';
@@ -32,7 +32,18 @@ vi.mock('../utils/stats-engine', async () => {
 });
 
 describe('scrollable weekly line charts', () => {
-	it('expands category trend chart width when week count exceeds viewport', () => {
+	beforeEach(() => {
+		Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {
+			configurable: true,
+			get: () => 640,
+		});
+	});
+
+	afterEach(() => {
+		delete (HTMLElement.prototype as { scrollWidth?: number }).scrollWidth;
+	});
+
+	it('expands category trend chart width and starts scrolled to the newest week', () => {
 		const weeks = Array.from({ length: 10 }, (_, index) => ({
 			label: `W${index}`,
 			count: index + 1,
@@ -55,9 +66,13 @@ describe('scrollable weekly line charts', () => {
 		const widthWrapper = container.querySelector('[style*="min-width"]');
 		expect(widthWrapper).not.toBeNull();
 		expect(widthWrapper?.getAttribute('style')).toContain('min-width: 560px');
+
+		const scrollContainer = container.querySelector('.overflow-x-auto') as HTMLDivElement | null;
+		expect(scrollContainer).not.toBeNull();
+		expect(scrollContainer?.scrollLeft).toBe(640);
 	});
 
-	it('keeps a minimum width for balance trend chart with short history', () => {
+	it('keeps a minimum width for short history and still starts at the right edge', () => {
 		const weeklyData: WeeklyData[] = Array.from({ length: 2 }, () => ({
 			start: new Date('2024-01-01'),
 			end: new Date('2024-01-07'),
@@ -74,5 +89,9 @@ describe('scrollable weekly line charts', () => {
 		const widthWrapper = container.querySelector('[style*="min-width"]');
 		expect(widthWrapper).not.toBeNull();
 		expect(widthWrapper?.getAttribute('style')).toContain('min-width: 320px');
+
+		const scrollContainer = container.querySelector('.overflow-x-auto') as HTMLDivElement | null;
+		expect(scrollContainer).not.toBeNull();
+		expect(scrollContainer?.scrollLeft).toBe(640);
 	});
 });

@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Dot 
 import type { WeeklyData } from '../utils/stats-engine';
 import { calculateBalanceScore, formatWeekLabel } from '../utils/stats-engine';
 import { getWeeklyLineXAxisProps, weeklyLineValueAxisProps } from '../utils/weekly-chart-axis';
+import { useScrollContainerToEnd } from '../hooks/useScrollContainerToEnd';
 
 interface BalanceScoreTrendChartProps {
 	weeklyData: WeeklyData[];
@@ -11,6 +12,7 @@ interface BalanceScoreTrendChartProps {
 export default function BalanceScoreTrendChart({ weeklyData }: BalanceScoreTrendChartProps) {
 	const color = 'var(--color-accent)';
 	const minChartWidth = Math.max(weeklyData.length * 56, 320);
+	const scrollContainerRef = useScrollContainerToEnd(weeklyData.length);
 
 	const chartData = useMemo(
 		() =>
@@ -31,7 +33,7 @@ export default function BalanceScoreTrendChart({ weeklyData }: BalanceScoreTrend
 	}, [chartData]);
 
 	return (
-		<div className="-mx-2 overflow-x-auto pb-2">
+		<div ref={scrollContainerRef} className="-mx-2 overflow-x-auto pb-2">
 			<div className="h-52 px-2" style={{ minWidth: `${minChartWidth}px` }}>
 				<ResponsiveContainer width="100%" height="100%">
 					<LineChart data={chartData} margin={{ top: 24, right: 16, left: 8, bottom: 24 }}>

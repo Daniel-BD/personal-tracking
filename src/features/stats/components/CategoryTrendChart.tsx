@@ -4,6 +4,7 @@ import type { CategorySentiment } from '@/shared/lib/types';
 import type { Entry } from '@/shared/lib/types';
 import { formatWeekLabel, getWeekNumber, getDailyBreakdown, SENTIMENT_COLORS } from '../utils/stats-engine';
 import { getWeeklyLineXAxisProps, weeklyLineValueAxisProps } from '../utils/weekly-chart-axis';
+import { useScrollContainerToEnd } from '../hooks/useScrollContainerToEnd';
 import WeekBreakdownTooltip from './WeekBreakdownTooltip';
 
 interface ChartWeek {
@@ -35,6 +36,7 @@ export default function CategoryTrendChart({
 }: CategoryTrendChartProps) {
 	const color = accentColor ?? SENTIMENT_COLORS[sentiment];
 	const minChartWidth = Math.max(weeks.length * 56, 320);
+	const scrollContainerRef = useScrollContainerToEnd(weeks.length);
 
 	const chartData = useMemo(
 		() =>
@@ -60,7 +62,7 @@ export default function CategoryTrendChart({
 	return (
 		<div className="space-y-2">
 			{/* Line chart */}
-			<div className="-mx-2 overflow-x-auto pb-2">
+			<div ref={scrollContainerRef} className="-mx-2 overflow-x-auto pb-2">
 				<div className="h-48 px-2" style={{ minWidth: `${minChartWidth}px` }}>
 					<ResponsiveContainer width="100%" height="100%">
 						<LineChart data={chartData} margin={{ top: 24, right: 16, left: 8, bottom: 4 }}>
