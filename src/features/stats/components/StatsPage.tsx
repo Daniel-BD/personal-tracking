@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDashboardCards, useEntries } from '@/shared/store/hooks';
 import BalanceOverview from './BalanceOverview';
@@ -6,14 +5,10 @@ import ActionableCategories from './ActionableCategories';
 import CategoryComposition from './CategoryComposition';
 import GoalDashboard from './GoalDashboard';
 import FrequencyRanking from './FrequencyRanking';
-import SegmentedControl from '@/shared/ui/SegmentedControl';
 import { useWeeklyFoodStats } from '../hooks/use-stats-view-models';
-
-type PeriodType = 'weekly' | 'monthly';
 
 export default function StatsPage() {
 	const { t } = useTranslation('stats');
-	const [period, setPeriod] = useState<PeriodType>('weekly');
 	const entries = useEntries();
 	const dashboardCards = useDashboardCards();
 	const { weeklyData, hasData } = useWeeklyFoodStats();
@@ -25,23 +20,6 @@ export default function StatsPage() {
 				<h1 className="text-2xl font-bold">{t('title')}</h1>
 				<p className="text-body">{t('subtitle')}</p>
 			</div>
-
-			{/* Period toggle */}
-			<SegmentedControl
-				options={[
-					{ value: 'weekly' as const, label: t('period.weekly') },
-					{
-						value: 'monthly' as const,
-						label: t('period.monthly'),
-						disabled: true,
-						title: t('period.monthlyComingSoon'),
-					},
-				]}
-				value={period}
-				onChange={setPeriod}
-				variant="segment"
-				size="sm"
-			/>
 
 			{/* Empty state */}
 			{!hasData && (
