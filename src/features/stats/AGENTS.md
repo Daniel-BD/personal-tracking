@@ -16,7 +16,7 @@ Stats page with goal dashboard, balance score, actionable categories, category c
 
 ## Components
 
-- **`StatsPage.tsx`** — Layout shell orchestrating all stats sections. Uses shared slice hooks plus precomputed weekly food stats instead of reading the full `TrackerData` object.
+- **`StatsPage.tsx`** — Layout shell orchestrating all stats sections. The top-level weekly/monthly segmented toggle was removed; the page is weekly-only. Uses shared slice hooks plus precomputed weekly food stats instead of reading the full `TrackerData` object.
 - **`GoalDashboard.tsx`** — Goal cards grid. Now renders prebuilt card view models from `useGoalDashboardViewModels()` so per-card sparkline counts come from shared weekly indexes rather than repeated date-range filters. Supports both food and activity items/categories.
 - **`GoalCard.tsx`** — Individual sparkline card showing this week's count vs. 4-week rolling baseline average. Uses Recharts `<Line>`. Accepts optional `accentColor` prop to override sentiment-derived color (used for item cards).
 - **`AddCategoryModal.tsx`** — Modal for adding new dashboard goal cards. Has a `SegmentedControl` toggle between "Categories" and "Items" tabs. Both tabs show food and activity entries. Category dots use sentiment colors; item dots use `getItemAccentColor()`. Item rows also display default-category sentiment pills. The container now exposes `role="dialog"` / `aria-modal` semantics with a labeled close button so Playwright and assistive tech can target it reliably.

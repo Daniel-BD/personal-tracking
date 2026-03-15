@@ -1,11 +1,6 @@
 {
 	"title": "Eating patterns",
 	"subtitle": "What your eating events are made of",
-	"period": {
-		"weekly": "Weekly",
-		"monthly": "Monthly",
-		"monthlyComingSoon": "Monthly view coming soon"
-	},
 	"empty": {
 		"noFoodEntries": "No food entries logged yet",
 		"startLogging": "Start logging food items to see your eating patterns"
@@ -31,7 +26,7 @@
 	},
 	"balanceOverview": {
 		"scoreTitle": "Balance Score",
-		"scoreMeterDescription": "This week \u00b7 Positive \u00f7 (Positive + Limit)",
+		"scoreMeterDescription": "This week · Positive ÷ (Positive + Limit)",
 		"weeklyBreakdownTitle": "Weekly Breakdown",
 		"chartPositive": "Positive",
 		"chartNeutral": "Neutral",
@@ -45,7 +40,7 @@
 			"title": "Top Limit Categories",
 			"subtitle": "These dominate your limit choices"
 		},
-		"following": "\u2713 Following",
+		"following": "✓ Following",
 		"follow": "+ Follow",
 		"dashboardFull": "Dashboard is full. Remove a category to add another.",
 		"addedToDashboard": "{{name}} added to your dashboard"
@@ -55,8 +50,8 @@
 		"close": "Close add to dashboard dialog",
 		"tabCategories": "Categories",
 		"tabItems": "Items",
-		"searchPlaceholder": "Search\u2026",
-		"searchItemsPlaceholder": "Search\u2026",
+		"searchPlaceholder": "Search…",
+		"searchItemsPlaceholder": "Search…",
 		"added": "Added",
 		"noResults": "No categories found matching \"{{search}}\"",
 		"noItemResults": "No items found matching \"{{search}}\""
