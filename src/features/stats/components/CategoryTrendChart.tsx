@@ -34,6 +34,7 @@ export default function CategoryTrendChart({
 	onSelectWeek,
 }: CategoryTrendChartProps) {
 	const color = accentColor ?? SENTIMENT_COLORS[sentiment];
+	const minChartWidth = Math.max(weeks.length * 56, 320);
 
 	const chartData = useMemo(
 		() =>
@@ -59,60 +60,62 @@ export default function CategoryTrendChart({
 	return (
 		<div className="space-y-2">
 			{/* Line chart */}
-			<div className="h-48 w-full -mx-2">
-				<ResponsiveContainer width="100%" height="100%">
-					<LineChart data={chartData} margin={{ top: 24, right: 16, left: 8, bottom: 4 }}>
-						<XAxis dataKey="label" {...getWeeklyLineXAxisProps()} />
-						<YAxis {...weeklyLineValueAxisProps} domain={[0, Math.ceil(maxCount * 1.2)]} />
-						<ReferenceLine y={baselineAvg} stroke="var(--border-default)" strokeDasharray="4 4" strokeWidth={1} />
-						<Line
-							type="monotone"
-							dataKey="count"
-							stroke={color}
-							strokeWidth={2.5}
-							isAnimationActive={false}
-							dot={(props: { cx?: number; cy?: number; index?: number; payload?: { count: number } }) => {
-								const { cx, cy, index, payload } = props;
-								if (cx == null || cy == null || index == null) return <g />;
-								const isSelected = index === selectedWeekIndex;
-								const isLast = index === weeks.length - 1;
-								const r = isSelected || isLast ? 5 : 3;
-								return (
-									<g
-										onClick={(e) => {
-											e.stopPropagation();
-											onSelectWeek(isSelected ? null : index);
-										}}
-										style={{ cursor: 'pointer' }}
-									>
-										{/* Invisible touch target */}
-										<circle cx={cx} cy={cy} r={20} fill="transparent" />
-										<Dot
-											cx={cx}
-											cy={cy}
-											r={r}
-											fill={isSelected || isLast ? color : 'var(--bg-card)'}
-											stroke={color}
-											strokeWidth={2}
-										/>
-										{/* Value label above dot */}
-										<text
-											x={cx}
-											y={cy - 12}
-											textAnchor="middle"
-											fontSize={11}
-											fontWeight={600}
-											fill="var(--text-secondary)"
+			<div className="-mx-2 overflow-x-auto pb-2">
+				<div className="h-48 px-2" style={{ minWidth: `${minChartWidth}px` }}>
+					<ResponsiveContainer width="100%" height="100%">
+						<LineChart data={chartData} margin={{ top: 24, right: 16, left: 8, bottom: 4 }}>
+							<XAxis dataKey="label" {...getWeeklyLineXAxisProps()} />
+							<YAxis {...weeklyLineValueAxisProps} domain={[0, Math.ceil(maxCount * 1.2)]} />
+							<ReferenceLine y={baselineAvg} stroke="var(--border-default)" strokeDasharray="4 4" strokeWidth={1} />
+							<Line
+								type="monotone"
+								dataKey="count"
+								stroke={color}
+								strokeWidth={2.5}
+								isAnimationActive={false}
+								dot={(props: { cx?: number; cy?: number; index?: number; payload?: { count: number } }) => {
+									const { cx, cy, index, payload } = props;
+									if (cx == null || cy == null || index == null) return <g />;
+									const isSelected = index === selectedWeekIndex;
+									const isLast = index === weeks.length - 1;
+									const r = isSelected || isLast ? 5 : 3;
+									return (
+										<g
+											onClick={(e) => {
+												e.stopPropagation();
+												onSelectWeek(isSelected ? null : index);
+											}}
+											style={{ cursor: 'pointer' }}
 										>
-											{payload?.count}
-										</text>
-									</g>
-								);
-							}}
-							activeDot={false}
-						/>
-					</LineChart>
-				</ResponsiveContainer>
+											{/* Invisible touch target */}
+											<circle cx={cx} cy={cy} r={20} fill="transparent" />
+											<Dot
+												cx={cx}
+												cy={cy}
+												r={r}
+												fill={isSelected || isLast ? color : 'var(--bg-card)'}
+												stroke={color}
+												strokeWidth={2}
+											/>
+											{/* Value label above dot */}
+											<text
+												x={cx}
+												y={cy - 12}
+												textAnchor="middle"
+												fontSize={11}
+												fontWeight={600}
+												fill="var(--text-secondary)"
+											>
+												{payload?.count}
+											</text>
+										</g>
+									);
+								}}
+								activeDot={false}
+							/>
+						</LineChart>
+					</ResponsiveContainer>
+				</div>
 			</div>
 
 			{/* Tooltip overlay */}
