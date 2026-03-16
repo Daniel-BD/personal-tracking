@@ -10,6 +10,7 @@ import { useCategoryById, useItemById, useItemCategoryIdsByItemId } from '@/feat
 import { getTopLimitRows, type ActionableLimitRow } from '../utils/stats-engine';
 
 const MAX_DASHBOARD_CARDS = 6;
+const FOCUS_AREA_ROWS_LIMIT = 10;
 type TimePeriod = '7d' | '30d';
 type ViewMode = 'categories' | 'items';
 
@@ -35,6 +36,7 @@ export default function ActionableCategories({ entries, dashboardCards }: Action
 				categoryById,
 				itemById,
 				itemCategoryIdsByItemId,
+				limit: FOCUS_AREA_ROWS_LIMIT,
 			}),
 		[entries, timePeriod, viewMode, categoryById, itemById, itemCategoryIdsByItemId],
 	);
@@ -138,7 +140,7 @@ function Panel({
 				</button>
 			</div>
 
-			<div className="space-y-2">
+			<div className="space-y-2 max-h-44 overflow-y-auto pr-1">
 				{rows.map((row) => {
 					const isFollowed = followedIds.has(row.id);
 					const barWidth = Math.max((row.value / maxValue) * 100, 4);

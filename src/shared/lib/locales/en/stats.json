@@ -48,8 +48,8 @@
 		"dashboardFull": "Dashboard is full. Remove a category to add another.",
 		"addedToDashboard": "{{name}} added to your dashboard",
 		"timePeriod": {
-			"7d": "7 days",
-			"30d": "30 days"
+			"7d": "7d",
+			"30d": "30d"
 		}
 	},
 	"addCategoryModal": {
