@@ -11,6 +11,7 @@ import {
 	getTopCategories,
 	buildCategoryColorMap,
 	groupCategoriesForWeek,
+	groupTopCategoriesForWeek,
 	getTopLimitCategories,
 	getWeekNumber,
 	getDailyBreakdown,
@@ -478,6 +479,45 @@ describe('groupCategoriesForWeek', () => {
 		const week = makeWeeklyData([]);
 		const result = groupCategoriesForWeek(week, ['a']);
 		expect(result).toEqual([]);
+	});
+});
+
+describe('groupTopCategoriesForWeek', () => {
+	const makeWeeklyData = (categories: WeeklyData['categories']): WeeklyData => ({
+		weekKey: 'w',
+		start: new Date(),
+		end: new Date(),
+		entries: [],
+		totalCount: 0,
+		hasLowData: false,
+		sentimentCounts: { positive: 0, neutral: 0, limit: 0 },
+		categories,
+	});
+
+	it('sorts each week by largest category first', () => {
+		const week = makeWeeklyData([
+			{ categoryId: 'a', categoryName: 'A', sentiment: 'neutral', count: 2 },
+			{ categoryId: 'b', categoryName: 'B', sentiment: 'neutral', count: 9 },
+			{ categoryId: 'c', categoryName: 'C', sentiment: 'neutral', count: 4 },
+		]);
+
+		const result = groupTopCategoriesForWeek(week, 20);
+		expect(result.map((category) => category.categoryId)).toEqual(['b', 'c', 'a']);
+	});
+
+	it('keeps the top 20 and groups the rest into Other', () => {
+		const week = makeWeeklyData(
+			Array.from({ length: 22 }, (_, index) => ({
+				categoryId: `c-${index}`,
+				categoryName: `C-${index}`,
+				sentiment: 'neutral' as const,
+				count: 22 - index,
+			})),
+		);
+
+		const result = groupTopCategoriesForWeek(week, 20);
+		expect(result).toHaveLength(21);
+		expect(result[20]).toMatchObject({ categoryId: 'OTHER', count: 3 });
 	});
 });
 

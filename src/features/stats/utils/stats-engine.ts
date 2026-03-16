@@ -347,6 +347,32 @@ export function groupCategoriesForWeek(
 	});
 }
 
+/**
+ * Group category data for a single week by count, showing top N + "Other".
+ */
+export function groupTopCategoriesForWeek(
+	week: WeeklyData,
+	limit: number = 20,
+): Array<{ categoryId: string; categoryName: string; sentiment: string; count: number }> {
+	const sortedCategories = [...week.categories].sort((a, b) => b.count - a.count);
+	const topCategories = sortedCategories.slice(0, limit);
+	const otherCount = sortedCategories.slice(limit).reduce((sum, category) => sum + category.count, 0);
+
+	if (otherCount === 0) {
+		return topCategories;
+	}
+
+	return [
+		...topCategories,
+		{
+			categoryId: 'OTHER',
+			categoryName: 'Other',
+			sentiment: 'neutral',
+			count: otherCount,
+		},
+	];
+}
+
 // ============================================================
 // Actionable Categories — used by the stats "Follow" section
 // ============================================================
