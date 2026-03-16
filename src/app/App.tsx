@@ -57,47 +57,52 @@ export default function App() {
 
 	return (
 		<ToastProvider>
-			<div className="h-dvh flex flex-col">
-				<main className="flex-1 min-h-0 overflow-y-auto max-w-4xl mx-auto w-full px-4 py-6">
-					<Suspense fallback={<PageLoader />}>
-						<Routes>
-							{routeConfig.map(({ path, labelKey, Component }) => (
+			<div className="min-h-dvh flex flex-col">
+				<main className="flex w-full flex-1 flex-col">
+					<div
+						className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 pt-6"
+						style={{ paddingBottom: 'calc(1.5rem + var(--app-bottom-nav-offset))' }}
+					>
+						<Suspense fallback={<PageLoader />}>
+							<Routes>
+								{routeConfig.map(({ path, labelKey, Component }) => (
+									<Route
+										key={path}
+										path={path}
+										element={
+											<ErrorBoundary label={t(labelKey)}>
+												<Component />
+											</ErrorBoundary>
+										}
+									/>
+								))}
 								<Route
-									key={path}
-									path={path}
+									path="/log/item/:itemId"
 									element={
-										<ErrorBoundary label={t(labelKey)}>
-											<Component />
+										<ErrorBoundary label="Item Detail">
+											<ItemDetailPage />
 										</ErrorBoundary>
 									}
 								/>
-							))}
-							<Route
-								path="/log/item/:itemId"
-								element={
-									<ErrorBoundary label="Item Detail">
-										<ItemDetailPage />
-									</ErrorBoundary>
-								}
-							/>
-							<Route
-								path="/stats/category/:categoryId"
-								element={
-									<ErrorBoundary label="Category Detail">
-										<CategoryDetailPage />
-									</ErrorBoundary>
-								}
-							/>
-							<Route
-								path="/stats/item/:itemId"
-								element={
-									<ErrorBoundary label="Item Detail">
-										<StatsItemDetailPage />
-									</ErrorBoundary>
-								}
-							/>
-						</Routes>
-					</Suspense>
+								<Route
+									path="/stats/category/:categoryId"
+									element={
+										<ErrorBoundary label="Category Detail">
+											<CategoryDetailPage />
+										</ErrorBoundary>
+									}
+								/>
+								<Route
+									path="/stats/item/:itemId"
+									element={
+										<ErrorBoundary label="Item Detail">
+											<StatsItemDetailPage />
+										</ErrorBoundary>
+									}
+								/>
+							</Routes>
+						</Suspense>
+					</div>
 				</main>
 
 				<nav
@@ -107,7 +112,7 @@ export default function App() {
 						paddingBottom: 'env(safe-area-inset-bottom, 0px)',
 					}}
 				>
-					<div className="max-w-4xl mx-auto flex justify-around relative">
+					<div className="max-w-4xl mx-auto flex justify-around relative w-full">
 						{routeConfig.map(({ path, labelKey, icon }) => {
 							const isActive = path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 							return (
@@ -134,8 +139,6 @@ export default function App() {
 						})}
 					</div>
 				</nav>
-
-				<div className="h-16" />
 
 				<StoreEventToastBridge />
 				<SyncStatusPill />

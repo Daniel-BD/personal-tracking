@@ -46,7 +46,7 @@ export default function HomePage() {
 	}
 
 	return (
-		<div className="flex flex-col h-full">
+		<div className="flex flex-1 flex-col min-h-0">
 			<QuickLogForm>
 				{({ searchInput, itemsList }) => (
 					<>

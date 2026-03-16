@@ -26,6 +26,44 @@ test.describe('Settings e2e @full-regression', () => {
 		await expect(seededPage.getByRole('heading', { name: 'Export & Import' })).toBeVisible();
 	});
 
+	test('desktop shell keeps the scrollbar on the browser edge while content stays centered', async ({ seededPage }) => {
+		await seededPage.setViewportSize({ width: 1440, height: 900 });
+		await gotoSettings(seededPage);
+
+		const metrics = await seededPage.evaluate(() => {
+			const scroller = document.scrollingElement;
+			const main = document.querySelector('main');
+			const contentShell = main?.firstElementChild;
+
+			if (
+				!(scroller instanceof HTMLElement) ||
+				!(main instanceof HTMLElement) ||
+				!(contentShell instanceof HTMLElement)
+			) {
+				throw new Error('Expected the app shell elements to be present');
+			}
+
+			const mainRect = main.getBoundingClientRect();
+			const shellRect = contentShell.getBoundingClientRect();
+
+			return {
+				documentScrolls: scroller.scrollHeight > scroller.clientHeight,
+				mainWidth: Math.round(mainRect.width),
+				viewportWidth: document.documentElement.clientWidth,
+				contentWidth: Math.round(shellRect.width),
+				leftInset: Math.round(shellRect.left),
+				rightInset: Math.round(document.documentElement.clientWidth - shellRect.right),
+				mainOverflowY: getComputedStyle(main).overflowY,
+			};
+		});
+
+		expect(metrics.documentScrolls).toBe(true);
+		expect(metrics.mainOverflowY).toBe('visible');
+		expect(metrics.mainWidth).toBe(metrics.viewportWidth);
+		expect(metrics.contentWidth).toBeLessThan(metrics.viewportWidth);
+		expect(Math.abs(metrics.leftInset - metrics.rightInset)).toBeLessThanOrEqual(2);
+	});
+
 	test('theme picker changes theme and persists across reload', async ({ seededPage }) => {
 		await gotoSettings(seededPage);
 
