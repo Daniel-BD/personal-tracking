@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import type { WeeklyData } from '../utils/stats-engine';
 import { calculateBalanceScore, getScoreChange, formatWeekLabel } from '../utils/stats-engine';
 import { getWeeklyVerticalBarCategoryAxisProps, weeklyVerticalBarValueAxisProps } from '../utils/weekly-chart-axis';
@@ -23,7 +23,6 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 				positive: total > 0 ? (positive / total) * 100 : 0,
 				neutral: total > 0 ? (neutral / total) * 100 : 0,
 				limit: total > 0 ? (limit / total) * 100 : 0,
-				opacity: week.hasLowData ? 0.4 : 1,
 			};
 		});
 	}, [weeklyData]);
@@ -85,9 +84,6 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 			<div className="card p-4 sm:p-6 space-y-3">
 				<h3 className="text-lg font-semibold">{t('balanceOverview.trendTitle')}</h3>
 				<BalanceScoreTrendChart weeklyData={weeklyData} />
-				{weeklyData.some((w) => w.hasLowData) && (
-					<p className="text-xs text-body">{t('balanceOverview.lowDataWarning')}</p>
-				)}
 			</div>
 
 			{/* Weekly breakdown chart */}
@@ -114,29 +110,21 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 							stackId="sentiment"
 							fill="var(--color-success)"
 							name={t('balanceOverview.chartPositive')}
-						>
-							{data.map((entry, index) => (
-								<Cell key={`positive-${index}`} opacity={entry.opacity} />
-							))}
-						</Bar>
+						/>
 						<Bar
 							dataKey="neutral"
 							stackId="sentiment"
 							fill="var(--color-neutral)"
 							name={t('balanceOverview.chartNeutral')}
-						>
-							{data.map((entry, index) => (
-								<Cell key={`neutral-${index}`} opacity={entry.opacity} />
-							))}
-						</Bar>
-						<Bar dataKey="limit" stackId="sentiment" fill="var(--color-danger)" name={t('balanceOverview.chartLimit')}>
-							{data.map((entry, index) => (
-								<Cell key={`limit-${index}`} opacity={entry.opacity} />
-							))}
-						</Bar>
+						/>
+						<Bar
+							dataKey="limit"
+							stackId="sentiment"
+							fill="var(--color-danger)"
+							name={t('balanceOverview.chartLimit')}
+						/>
 					</BarChart>
 				</ResponsiveContainer>
-				<p className="text-xs text-body">{t('balanceOverview.lowDataWarning')}</p>
 			</div>
 		</div>
 	);

@@ -27,7 +27,6 @@ describe('CategoryComposition', () => {
 				end: new Date('2025-01-12T23:59:59'),
 				entries: [],
 				totalCount: 10,
-				hasLowData: false,
 				sentimentCounts: { positive: 0, neutral: 10, limit: 0 },
 				categories: [
 					{ categoryId: 'a', categoryName: 'A', sentiment: 'neutral', count: 6 },

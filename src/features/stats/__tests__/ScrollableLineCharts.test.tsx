@@ -81,7 +81,6 @@ describe('scrollable weekly line charts', () => {
 			totalCount: 3,
 			categories: [],
 			sentimentCounts: { positive: 1, neutral: 1, limit: 1 },
-			hasLowData: false,
 		}));
 
 		const { container } = render(<BalanceScoreTrendChart weeklyData={weeklyData} />);

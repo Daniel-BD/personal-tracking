@@ -152,7 +152,6 @@ export interface WeeklyData {
 		neutral: number;
 		limit: number;
 	};
-	hasLowData: boolean;
 }
 
 export function processFoodEntriesByWeekFromIndexes(
@@ -209,7 +208,6 @@ export function processFoodEntriesByWeekFromIndexes(
 			totalCount: weekEntries.length,
 			categories,
 			sentimentCounts,
-			hasLowData: weekEntries.length < 5,
 		};
 	});
 }

@@ -31,8 +31,7 @@
 		"chartPositive": "Positive",
 		"chartNeutral": "Neutral",
 		"chartLimit": "Limit",
-		"trendTitle": "8-Week Trend",
-		"lowDataWarning": "Faded weeks have less than 5 logged events"
+		"trendTitle": "8-Week Trend"
 	},
 	"focusAreas": {
 		"title": "Focus Areas",
