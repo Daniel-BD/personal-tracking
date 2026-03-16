@@ -1,5 +1,6 @@
 {
-	"searchPlaceholder": "Search or create item...",
+	"searchPlaceholder": "Log item",
+	"clearSearchAriaLabel": "Clear search",
 	"createButton": "Create \"{{name}}\"",
 	"favoritesLabel": "Favorites",
 	"recentLabel": "Recent",

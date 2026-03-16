@@ -1,9 +1,10 @@
 import { useMemo, useState, useEffect } from 'react';
-import { X, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useActivityItems, useFoodItems, useActivityCategories, useFoodCategories } from '@/shared/store/hooks';
 import SegmentedControl from '@/shared/ui/SegmentedControl';
+import SearchField from '@/shared/ui/SearchField';
 import { useLibraryIndexes } from '../hooks/use-library-indexes';
 import ItemsTab from './ItemsTab';
 import CategoriesTab from './CategoriesTab';
@@ -135,23 +136,13 @@ export default function LibraryPage() {
 			/>
 
 			<div className="relative">
-				<input
-					type="text"
+				<SearchField
 					value={searchQuery}
-					onChange={(e) => setSearchQuery(e.target.value)}
+					onValueChange={setSearchQuery}
+					onClear={() => setSearchQuery('')}
+					clearAriaLabel={t('clearSearchAriaLabel')}
 					placeholder={t('searchPlaceholder.simple')}
-					className="form-input-sm pr-8"
 				/>
-				{searchQuery && (
-					<button
-						type="button"
-						onClick={() => setSearchQuery('')}
-						className="absolute right-3 top-1/2 -translate-y-1/2 text-subtle hover:text-body"
-						aria-label={t('clearSearchAriaLabel')}
-					>
-						<X className="w-4 h-4" strokeWidth={2} />
-					</button>
-				)}
 			</div>
 
 			{activeSubTab === 'items' ? (

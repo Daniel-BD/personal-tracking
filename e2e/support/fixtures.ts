@@ -66,7 +66,7 @@ export const test = base.extend<TestFixtures & TestOptions>({
 	},
 	seededPage: async ({ page }, runFixture, testInfo) => {
 		await page.goto('/');
-		await expect(page.getByPlaceholder('Search or create item...')).toBeVisible();
+		await expect(page.getByPlaceholder('Log item')).toBeVisible();
 		await runFixture(page);
 		await attachRouteFailureScreenshot(page, testInfo);
 	},

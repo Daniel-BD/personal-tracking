@@ -16,7 +16,7 @@ Business logic is extracted into hooks; the components are presentational, wirin
 ## Components
 
 - **`QuickLogForm.tsx`** — Orchestrator: uses both hooks, renders `QuickLogSearchInput` + `QuickLogItemsList` + BottomSheet. Accepts an optional `children` render prop `(slots: { searchInput, itemsList }) => ReactNode` to let parent components position the slots within a custom layout.
-- **`QuickLogSearchInput.tsx`** — Borderless search input with dropdown results showing item name and category names. Accepts search state as props. Contains the blur-delay logic for dropdown click handling.
+- **`QuickLogSearchInput.tsx`** — Quick-log search shell built on shared `SearchField`, with dropdown results showing item name and category names. Contains the blur-delay logic for dropdown click handling.
 - **`QuickLogItemsList.tsx`** — Favorites / Recent segmented list. Has internal `tab` state ('favorites' | 'recent'). Favorites show a star toggle button; recent items show a spacer in place of the star. Rows show item title and use `QuickLogButton` for instant quick-log.
 - **`QuickLogButton.tsx`** — Animated Zap icon button. When clicked, it animates the icon color to yellow (`var(--color-favorite)`) and draws a clockwise progress circle around it. Uses Motion's `useAnimate` (WAAPI-based) for animations. Prevents double-clicks during animation via a ref guard. Respects `prefers-reduced-motion` by using a simple color pulse.
 

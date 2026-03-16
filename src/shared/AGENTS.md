@@ -100,6 +100,7 @@ Reserve `children` for the body/content area where each usage genuinely needs di
 - **`NavIcon.tsx`** — Navigation icon component (Lucide icons for bottom nav).
 - **`StarIcon.tsx`** — Reusable star icon (Lucide Star, filled/unfilled) for favorites.
 - **`IconActionButton.tsx`** — Reusable circular icon action button with semantic tones (`add`, `edit`, `delete`) and app color tokens.
+- **`SearchField.tsx`** — Shared compact text-search input with the app’s `.form-input-sm` styling and optional trailing clear button. Used by Library and Home quick-log so search affordances stay visually consistent.
 - **`Toast.tsx`** — Generic toast provider and viewport. `ToastProvider` owns queued toast state and rendering; no store imports.
 - **`useToast.ts`** — React-facing hook for enqueueing toasts from components and hooks. Depends on `ToastProvider`, not on the store.
 - **`ConfirmDialog.tsx`** — Wraps `BottomSheet` for destructive action confirmations. Accepts `open`, `onClose`, `onConfirm`, `title`, `message` (optional), and `confirmLabel` (defaults to `'Delete'`). Confirm button is always danger-styled. Use this instead of native `confirm()`.

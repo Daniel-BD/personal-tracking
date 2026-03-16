@@ -68,7 +68,7 @@ async function createAndLogActivityItem(page: Parameters<typeof getLogEntryCount
 	await addDialog.getByRole('button', { name: 'Add', exact: true }).first().click();
 
 	await page.goto('/');
-	await page.getByPlaceholder('Search or create item...').fill(itemName);
+	await page.getByPlaceholder('Log item').fill(itemName);
 	await page.getByRole('button', { name: itemName, exact: true }).click();
 
 	const logDialog = page.getByRole('dialog', { name: `Log ${itemName}` });

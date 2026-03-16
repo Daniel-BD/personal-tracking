@@ -1,7 +1,7 @@
 import { useRef } from 'react';
-import { Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getCategoryNames } from '@/shared/store/store';
+import SearchField from '@/shared/ui/SearchField';
 import type { UnifiedItem } from '../hooks/useQuickLogSearch';
 
 /** Delay (ms) before closing dropdown on blur, so click events on dropdown options can fire first */
@@ -43,20 +43,16 @@ export default function QuickLogSearchInput({
 
 	return (
 		<div className="relative">
-			<div className="flex items-center gap-3 py-2">
-				<Search className="w-5 h-5 text-[var(--text-muted)] flex-shrink-0" strokeWidth={1.5} />
-				<input
-					ref={inputRef}
-					type="text"
-					value={query}
-					onChange={(e) => setQuery(e.target.value)}
-					onFocus={() => setIsFocused(true)}
-					onBlur={() => setTimeout(() => setIsFocused(false), BLUR_CLICK_DELAY_MS)}
-					placeholder={t('searchPlaceholder')}
-					className="flex-1 bg-transparent text-heading text-base placeholder:text-[var(--text-muted)] outline-none"
-				/>
-			</div>
-			<div className="h-px bg-[var(--border-subtle)]" />
+			<SearchField
+				ref={inputRef}
+				value={query}
+				onValueChange={setQuery}
+				onClear={() => setQuery('')}
+				clearAriaLabel={t('clearSearchAriaLabel')}
+				onFocus={() => setIsFocused(true)}
+				onBlur={() => setTimeout(() => setIsFocused(false), BLUR_CLICK_DELAY_MS)}
+				placeholder={t('searchPlaceholder')}
+			/>
 
 			{/* Search results dropdown */}
 			{showResults && (
