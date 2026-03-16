@@ -378,6 +378,29 @@ describe('getTopCategories', () => {
 		expect(result).toEqual(['a', 'b']);
 	});
 
+	it('defaults to top 20 categories when no limit is provided', () => {
+		const week: WeeklyData = {
+			weekKey: 'w',
+			start: new Date(),
+			end: new Date(),
+			entries: [],
+			totalCount: 0,
+			hasLowData: false,
+			sentimentCounts: { positive: 0, neutral: 0, limit: 0 },
+			categories: Array.from({ length: 25 }, (_, index) => ({
+				categoryId: `c-${index}`,
+				categoryName: `C-${index}`,
+				sentiment: 'neutral' as const,
+				count: 25 - index,
+			})),
+		};
+
+		const result = getTopCategories([week]);
+		expect(result).toHaveLength(20);
+		expect(result[0]).toBe('c-0');
+		expect(result[19]).toBe('c-19');
+	});
+
 	it('returns empty array when no categories', () => {
 		const week: WeeklyData = {
 			weekKey: 'w',

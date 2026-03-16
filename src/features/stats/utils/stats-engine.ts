@@ -260,7 +260,7 @@ export function getScoreChange(
 /**
  * Get top N categories across all weeks
  */
-export function getTopCategories(allWeeklyData: WeeklyData[], limit: number = 9): string[] {
+export function getTopCategories(allWeeklyData: WeeklyData[], limit: number = 20): string[] {
 	const categoryTotals = new Map<string, number>();
 
 	allWeeklyData.forEach((week) => {

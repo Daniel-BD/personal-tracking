@@ -44,7 +44,7 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 	const [modal, setModal] = useState<ModalState>({ isOpen: false, week: null });
 
 	const topCategoryIds = useMemo(() => {
-		return getTopCategories(weeklyData, 9);
+		return getTopCategories(weeklyData, 20);
 	}, [weeklyData]);
 
 	const colorMap = useMemo(() => {
