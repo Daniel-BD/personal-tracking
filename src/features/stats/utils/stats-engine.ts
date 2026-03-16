@@ -1,4 +1,4 @@
-import type { Entry, TrackerData, CategorySentiment, Category } from '@/shared/lib/types';
+import type { Entry, TrackerData, CategorySentiment, Category, Item } from '@/shared/lib/types';
 import { getCategories } from '@/shared/lib/types';
 import {
 	buildCategoryById,
@@ -360,6 +360,104 @@ export interface ActionableCategoryRow {
 	label: string;
 	/** Raw event count. Only populated for limit categories; undefined for positive categories. */
 	count?: number;
+}
+
+export interface ActionableLimitRow {
+	id: string;
+	name: string;
+	value: number;
+	label: string;
+	count: number;
+}
+
+interface TopLimitRowsOptions {
+	days: number;
+	mode: 'category' | 'item';
+	categoryById: Map<string, Category>;
+	itemById: Map<string, Item>;
+	itemCategoryIdsByItemId: ItemCategoryIdsByItemId;
+	limit?: number;
+	today?: string;
+}
+
+/**
+ * Build "top limit" rows from raw entries for a specific time window.
+ *
+ * - category mode counts each limit category occurrence.
+ * - item mode counts each entry whose effective categories include at least one limit category.
+ */
+export function getTopLimitRows(entries: Entry[], options: TopLimitRowsOptions): ActionableLimitRow[] {
+	const {
+		days,
+		mode,
+		categoryById,
+		itemById,
+		itemCategoryIdsByItemId,
+		limit = 5,
+		today = new Date().toISOString().slice(0, 10),
+	} = options;
+
+	const endDate = new Date(`${today}T00:00:00`);
+	const startDate = new Date(endDate);
+	startDate.setDate(startDate.getDate() - (days - 1));
+	const start = startDate.toISOString().slice(0, 10);
+
+	const counts = new Map<string, { name: string; count: number }>();
+	let total = 0;
+
+	for (const entry of entries) {
+		if (entry.type !== 'food' || entry.date < start || entry.date > today) {
+			continue;
+		}
+
+		const categoryIds = getEntryCategoryIdsFromIndex(entry, itemCategoryIdsByItemId);
+		const limitCategoryIds = categoryIds.filter((categoryId) => categoryById.get(categoryId)?.sentiment === 'limit');
+
+		if (limitCategoryIds.length === 0) {
+			continue;
+		}
+
+		if (mode === 'category') {
+			for (const categoryId of limitCategoryIds) {
+				const categoryName = categoryById.get(categoryId)?.name ?? 'Unknown';
+				const existing = counts.get(categoryId);
+				if (existing) {
+					existing.count += 1;
+				} else {
+					counts.set(categoryId, { name: categoryName, count: 1 });
+				}
+				total += 1;
+			}
+			continue;
+		}
+
+		const itemName = itemById.get(entry.itemId)?.name ?? 'Unknown';
+		const existing = counts.get(entry.itemId);
+		if (existing) {
+			existing.count += 1;
+		} else {
+			counts.set(entry.itemId, { name: itemName, count: 1 });
+		}
+		total += 1;
+	}
+
+	if (total === 0) {
+		return [];
+	}
+
+	return Array.from(counts.entries())
+		.sort((a, b) => b[1].count - a[1].count)
+		.slice(0, limit)
+		.map(([id, value]) => {
+			const share = Math.round((value.count / total) * 100);
+			return {
+				id,
+				name: value.name,
+				value: share,
+				label: `${share}% of limit total`,
+				count: value.count,
+			};
+		});
 }
 
 /**

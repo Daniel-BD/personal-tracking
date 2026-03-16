@@ -41,7 +41,7 @@ export default function StatsPage() {
 					<GoalDashboard />
 
 					{/* Section 3: Actionable Categories (Focus Areas) */}
-					<ActionableCategories weeklyData={weeklyData} dashboardCards={dashboardCards} />
+					<ActionableCategories entries={entries} dashboardCards={dashboardCards} />
 
 					{/* Section 4: Category Composition */}
 					<CategoryComposition weeklyData={weeklyData} />
