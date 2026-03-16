@@ -260,7 +260,7 @@ export function getScoreChange(
 /**
  * Get top N categories across all weeks
  */
-export function getTopCategories(allWeeklyData: WeeklyData[], limit: number = 20): string[] {
+export function getTopCategories(allWeeklyData: WeeklyData[], limit: number = 9): string[] {
 	const categoryTotals = new Map<string, number>();
 
 	allWeeklyData.forEach((week) => {
@@ -345,6 +345,32 @@ export function groupCategoriesForWeek(
 		if (bIdx === -1) return -1;
 		return aIdx - bIdx;
 	});
+}
+
+/**
+ * Group category data for a single week by count, showing top N + "Other".
+ */
+export function groupTopCategoriesForWeek(
+	week: WeeklyData,
+	limit: number = 20,
+): Array<{ categoryId: string; categoryName: string; sentiment: string; count: number }> {
+	const sortedCategories = [...week.categories].sort((a, b) => b.count - a.count);
+	const topCategories = sortedCategories.slice(0, limit);
+	const otherCount = sortedCategories.slice(limit).reduce((sum, category) => sum + category.count, 0);
+
+	if (otherCount === 0) {
+		return topCategories;
+	}
+
+	return [
+		...topCategories,
+		{
+			categoryId: 'OTHER',
+			categoryName: 'Other',
+			sentiment: 'neutral',
+			count: otherCount,
+		},
+	];
 }
 
 // ============================================================
