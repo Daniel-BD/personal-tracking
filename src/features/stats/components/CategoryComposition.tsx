@@ -21,12 +21,15 @@ function CompositionTooltip({ active, payload, label }: TooltipContentProps<numb
 		<div className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-card)] px-3 py-2 text-xs">
 			<p className="mb-1 font-semibold text-heading">{label}</p>
 			{sorted.map((entry) => {
-				const segmentName = `${entry.dataKey as string}Name`;
+				const segmentKey = entry.dataKey as string;
+				const segmentName = `${segmentKey}Name`;
+				const segmentColor = `${segmentKey}Color`;
 				const categoryName = (entry.payload?.[segmentName] as string) || entry.name;
+				const dotColor = (entry.payload?.[segmentColor] as string) || entry.color || 'var(--color-neutral)';
 
 				return (
 					<div key={entry.dataKey} className="flex items-center gap-1.5 mb-0.5">
-						<span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+						<span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: dotColor }} />
 						<span className="text-body">{categoryName}</span>
 						<span className="ml-auto pl-3 font-semibold text-heading">{Math.round(entry.value as number)}%</span>
 					</div>
