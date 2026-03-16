@@ -13,6 +13,7 @@ import {
 	groupCategoriesForWeek,
 	groupTopCategoriesForWeek,
 	getTopLimitCategories,
+	getTopLimitRows,
 	getWeekNumber,
 	getDailyBreakdown,
 	calcActualDeltaPercent,
@@ -752,5 +753,78 @@ describe('getItemAccentColor', () => {
 	it('ignores unknown category IDs', () => {
 		const catPos = makeCategory({ sentiment: 'positive' });
 		expect(getItemAccentColor(['unknown-id', catPos.id], [catPos])).toBe(SENTIMENT_COLORS.positive);
+	});
+});
+
+describe('getTopLimitRows', () => {
+	it('returns top limit categories for a selected period', () => {
+		const limitA = makeCategory({ id: 'limit-a', name: 'Candy', sentiment: 'limit' });
+		const limitB = makeCategory({ id: 'limit-b', name: 'Soda', sentiment: 'limit' });
+		const positive = makeCategory({ id: 'pos', name: 'Fruit', sentiment: 'positive' });
+		const item1 = makeItem({ id: 'i1', name: 'Chocolate', categories: ['limit-a'] });
+		const item2 = makeItem({ id: 'i2', name: 'Cola', categories: ['limit-b'] });
+		const item3 = makeItem({ id: 'i3', name: 'Apple', categories: ['pos'] });
+
+		const entries = [
+			makeEntry({ type: 'food', itemId: 'i1', date: '2025-01-25' }),
+			makeEntry({ type: 'food', itemId: 'i1', date: '2025-01-24' }),
+			makeEntry({ type: 'food', itemId: 'i2', date: '2025-01-23' }),
+			makeEntry({ type: 'food', itemId: 'i3', date: '2025-01-22' }),
+			makeEntry({ type: 'food', itemId: 'i1', date: '2025-01-10' }),
+		];
+
+		const categoryById = buildCategoryById([], [limitA, limitB, positive]);
+		const itemById = new Map([
+			[item1.id, item1],
+			[item2.id, item2],
+			[item3.id, item3],
+		]);
+		const itemCategoryIdsByItemId = buildItemCategoryIdsByItemId([], [item1, item2, item3]);
+
+		const result = getTopLimitRows(entries, {
+			days: 7,
+			mode: 'category',
+			categoryById,
+			itemById,
+			itemCategoryIdsByItemId,
+			today: '2025-01-25',
+		});
+
+		expect(result).toHaveLength(2);
+		expect(result[0]).toMatchObject({ id: 'limit-a', name: 'Candy', count: 2, value: 67 });
+		expect(result[1]).toMatchObject({ id: 'limit-b', name: 'Soda', count: 1, value: 33 });
+	});
+
+	it('returns top limit items for a selected period', () => {
+		const limit = makeCategory({ id: 'limit-a', name: 'Candy', sentiment: 'limit' });
+		const item1 = makeItem({ id: 'i1', name: 'Chocolate', categories: ['limit-a'] });
+		const item2 = makeItem({ id: 'i2', name: 'Ice Cream', categories: ['limit-a'] });
+
+		const entries = [
+			makeEntry({ type: 'food', itemId: 'i1', date: '2025-01-25' }),
+			makeEntry({ type: 'food', itemId: 'i1', date: '2025-01-24' }),
+			makeEntry({ type: 'food', itemId: 'i2', date: '2025-01-23' }),
+			makeEntry({ type: 'food', itemId: 'i2', date: '2024-12-15' }),
+		];
+
+		const categoryById = buildCategoryById([], [limit]);
+		const itemById = new Map([
+			[item1.id, item1],
+			[item2.id, item2],
+		]);
+		const itemCategoryIdsByItemId = buildItemCategoryIdsByItemId([], [item1, item2]);
+
+		const result = getTopLimitRows(entries, {
+			days: 30,
+			mode: 'item',
+			categoryById,
+			itemById,
+			itemCategoryIdsByItemId,
+			today: '2025-01-25',
+		});
+
+		expect(result).toHaveLength(2);
+		expect(result[0]).toMatchObject({ id: 'i1', name: 'Chocolate', count: 2, value: 67 });
+		expect(result[1]).toMatchObject({ id: 'i2', name: 'Ice Cream', count: 1, value: 33 });
 	});
 });

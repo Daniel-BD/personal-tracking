@@ -26,7 +26,7 @@ function getButtonClass<T extends string>(
 	variant: 'pill' | 'segment',
 	size: 'default' | 'sm' | 'xs',
 ): string {
-	const baseClass = `flex-1 rounded-md transition-colors ${sizeClasses[size]}`;
+	const baseClass = `flex-1 rounded-md transition-colors whitespace-nowrap ${sizeClasses[size]}`;
 
 	if (option.disabled) {
 		return `${baseClass} bg-[var(--bg-inset)] text-subtle cursor-not-allowed`;

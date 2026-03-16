@@ -26,7 +26,7 @@
 	},
 	"balanceOverview": {
 		"scoreTitle": "Balance Score",
-		"scoreMeterDescription": "This week · Positive ÷ (Positive + Limit)",
+		"scoreMeterDescription": "This week \u00b7 Positive \u00f7 (Positive + Limit)",
 		"weeklyBreakdownTitle": "Weekly Breakdown",
 		"chartPositive": "Positive",
 		"chartNeutral": "Neutral",
@@ -37,21 +37,28 @@
 	"focusAreas": {
 		"title": "Focus Areas",
 		"limitPanel": {
-			"title": "Top Limit Categories",
-			"subtitle": "These dominate your limit choices"
+			"topCategoriesTitle": "Top Limit Categories",
+			"topItemsTitle": "Top Limit Items",
+			"subtitle": "These dominate your limit choices",
+			"showItems": "Items",
+			"showCategories": "Categories"
 		},
-		"following": "✓ Following",
+		"following": "\u2713 Following",
 		"follow": "+ Follow",
 		"dashboardFull": "Dashboard is full. Remove a category to add another.",
-		"addedToDashboard": "{{name}} added to your dashboard"
+		"addedToDashboard": "{{name}} added to your dashboard",
+		"timePeriod": {
+			"7d": "7d",
+			"30d": "30d"
+		}
 	},
 	"addCategoryModal": {
 		"title": "Add to Dashboard",
 		"close": "Close add to dashboard dialog",
 		"tabCategories": "Categories",
 		"tabItems": "Items",
-		"searchPlaceholder": "Search…",
-		"searchItemsPlaceholder": "Search…",
+		"searchPlaceholder": "Search\u2026",
+		"searchItemsPlaceholder": "Search\u2026",
 		"added": "Added",
 		"noResults": "No categories found matching \"{{search}}\"",
 		"noItemResults": "No items found matching \"{{search}}\""
