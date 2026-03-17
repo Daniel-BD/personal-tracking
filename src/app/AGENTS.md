@@ -5,6 +5,7 @@ Root layout, entry point, and global CSS.
 ## Files
 
 - **`App.tsx`** — Root layout: React Router routes (each wrapped in `ErrorBoundary`) + 5-tab bottom nav bar + `ToastProvider` + store initialization. Store init is called here on mount.
+- **App shell scrolling** — `App.tsx` keeps `main` full-width so the browser document owns page scrolling. Route content is width-capped by an inner `max-w-4xl` wrapper, and bottom-nav spacing comes from shared CSS variables in `app.css` (`--app-bottom-nav-height`, `--app-bottom-nav-offset`).
 - **`components/StoreEventToastBridge.tsx`** — App-owned presenter that subscribes to typed store events and translates failure events into localized toasts.
 - **`components/SyncStatusPill.tsx`** — App-owned sync status floating pill. Uses `useSyncStatus()` for the active syncing phase and store events for the transient synced/error phases.
 - **`main.tsx`** — Entry point: `BrowserRouter` + `StrictMode`. Strips trailing slashes from `import.meta.env.BASE_URL` for basename.
@@ -17,6 +18,7 @@ Root layout, entry point, and global CSS.
 ## Known Quirks
 
 - **SPA routing**: The `BASE_PATH` env var can configure the base path for deployment. `main.tsx` strips trailing slashes from `import.meta.env.BASE_URL` for the BrowserRouter basename.
+- **Page scrolling**: Do not put `overflow-y-auto` on the centered route-width container in `App.tsx`; page-level scrolling belongs to the browser viewport so the scrollbar stays at the far right edge on desktop.
 - **Dark mode variant**: Tailwind v4 custom variant `@custom-variant dark (&:where(.dark, .dark *))` enables `dark:` utilities.
 - **Date/time input overrides**: `app.css` sets `min-width: 0` and `max-width: 100%` on date/time inputs to prevent browser intrinsic widths from causing overflow.
 

@@ -173,13 +173,13 @@ test.describe('Home quick log e2e @full-regression', () => {
 	});
 
 	test('search with no exact match shows the create action', async ({ seededPage }) => {
-		await seededPage.getByPlaceholder('Search or create item...').fill('Egg');
+		await seededPage.getByPlaceholder('Log item').fill('Egg');
 		await expect(seededPage.getByRole('button', { name: /^Eggs\b/ })).toBeVisible();
 		await expect(seededPage.getByRole('button', { name: 'Create "Egg"' })).toBeVisible();
 	});
 
 	test('search results close after selecting an existing item', async ({ seededPage }) => {
-		const searchInput = seededPage.getByPlaceholder('Search or create item...');
+		const searchInput = seededPage.getByPlaceholder('Log item');
 
 		await searchInput.fill('Egg');
 		await expect(seededPage.getByRole('button', { name: 'Create "Egg"' })).toBeVisible();
@@ -198,7 +198,7 @@ test.describe('Home quick log e2e @full-regression', () => {
 	test('searching an existing item can log through the bottom sheet', async ({ seededPage }) => {
 		const uniqueNote = 'Playwright integration note';
 
-		await seededPage.getByPlaceholder('Search or create item...').fill('Run');
+		await seededPage.getByPlaceholder('Log item').fill('Run');
 		await seededPage.getByRole('button', { name: 'Run' }).click();
 
 		const logDialog = seededPage.getByRole('dialog', { name: 'Log Run' });
@@ -217,7 +217,7 @@ test.describe('Home quick log e2e @full-regression', () => {
 		const customTime = '06:25';
 		const overrideCategoryName = 'Recovery';
 
-		await seededPage.getByPlaceholder('Search or create item...').fill('Run');
+		await seededPage.getByPlaceholder('Log item').fill('Run');
 		await seededPage.getByRole('button', { name: /^Run\b/ }).click();
 
 		const logDialog = seededPage.getByRole('dialog', { name: 'Log Run' });
@@ -269,6 +269,6 @@ test.describe('Home quick log e2e @full-regression', () => {
 		await expect(seededPage.getByRole('heading', { name: 'Setup Required' })).toBeVisible();
 		await expect(seededPage.getByText('Configure your GitHub token to start tracking.')).toBeVisible();
 		await expect(seededPage.getByRole('link', { name: 'Go to Settings' })).toBeVisible();
-		await expect(seededPage.getByPlaceholder('Search or create item...')).toHaveCount(0);
+		await expect(seededPage.getByPlaceholder('Log item')).toHaveCount(0);
 	});
 });

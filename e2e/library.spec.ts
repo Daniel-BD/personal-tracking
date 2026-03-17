@@ -80,7 +80,7 @@ test.describe('Library e2e @full-regression', () => {
 		await expect(seededPage.getByText(itemName)).toBeVisible();
 
 		await seededPage.goto('/');
-		await seededPage.getByPlaceholder('Search or create item...').fill(itemName);
+		await seededPage.getByPlaceholder('Log item').fill(itemName);
 		await seededPage.getByRole('button', { name: itemName, exact: true }).click();
 		await expect(seededPage.getByRole('dialog', { name: `Log ${itemName}` })).toBeVisible();
 	});
@@ -228,7 +228,7 @@ test.describe('Library e2e @full-regression', () => {
 		await expect(getLibraryRow(seededPage, sourceItemName)).toBeVisible();
 
 		await seededPage.goto('/');
-		await seededPage.getByPlaceholder('Search or create item...').fill(sourceItemName);
+		await seededPage.getByPlaceholder('Log item').fill(sourceItemName);
 		await seededPage.getByRole('button', { name: sourceItemName, exact: true }).click();
 
 		dialog = seededPage.getByRole('dialog', { name: `Log ${sourceItemName}` });

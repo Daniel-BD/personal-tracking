@@ -70,7 +70,6 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 			const dataPoint: Record<string, number | string> = {
 				week: formatWeekLabel(week.start),
 				weekKey: week.weekKey,
-				opacity: week.hasLowData ? 0.4 : 1,
 			};
 
 			segmentKeys.forEach((segmentKey, index) => {
@@ -131,7 +130,6 @@ export default function CategoryComposition({ weeklyData }: CategoryCompositionP
 									<Cell
 										key={`${segmentKey}-${index}`}
 										fill={(entry[`${segmentKey}Color`] as string) || 'var(--color-neutral)'}
-										opacity={entry.opacity as number}
 										cursor="pointer"
 									/>
 								))}

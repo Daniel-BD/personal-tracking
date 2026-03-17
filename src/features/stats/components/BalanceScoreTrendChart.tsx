@@ -21,7 +21,6 @@ export default function BalanceScoreTrendChart({ weeklyData }: BalanceScoreTrend
 				score: Math.round(calculateBalanceScore(week)),
 				positive: week.sentimentCounts.positive,
 				limit: week.sentimentCounts.limit,
-				hasLowData: week.hasLowData,
 			})),
 		[weeklyData],
 	);
@@ -52,10 +51,9 @@ export default function BalanceScoreTrendChart({ weeklyData }: BalanceScoreTrend
 
 								const isLast = index === chartData.length - 1;
 								const r = isLast ? 5 : 3;
-								const opacity = payload.hasLowData ? 0.4 : 1;
 
 								return (
-									<g opacity={opacity}>
+									<g>
 										<Dot
 											cx={cx}
 											cy={cy}

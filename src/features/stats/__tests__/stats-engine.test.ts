@@ -174,22 +174,6 @@ describe('processFoodEntriesByWeek', () => {
 		expect(result[0].sentimentCounts).toEqual({ positive: 1, neutral: 1, limit: 1 });
 	});
 
-	it('marks week as hasLowData when fewer than 5 entries', () => {
-		const data = makeValidData();
-		const weeks = [makeWeek('2025-W03', '2025-01-13', '2025-01-19')];
-		const entries = [makeEntry({ type: 'food', date: '2025-01-14' }), makeEntry({ type: 'food', date: '2025-01-15' })];
-		const result = processFoodEntriesByWeek(entries, data, weeks);
-		expect(result[0].hasLowData).toBe(true);
-	});
-
-	it('marks week as not hasLowData with 5+ entries', () => {
-		const data = makeValidData();
-		const weeks = [makeWeek('2025-W03', '2025-01-13', '2025-01-19')];
-		const entries = Array.from({ length: 5 }, (_, i) => makeEntry({ type: 'food', date: `2025-01-${13 + i}` }));
-		const result = processFoodEntriesByWeek(entries, data, weeks);
-		expect(result[0].hasLowData).toBe(false);
-	});
-
 	it('returns empty week data when no food entries match', () => {
 		const data = makeValidData();
 		const weeks = [makeWeek('2025-W03', '2025-01-13', '2025-01-19')];
@@ -238,7 +222,6 @@ describe('calculateBalanceScore', () => {
 			totalCount: 5,
 			categories: [],
 			sentimentCounts: { positive: 5, neutral: 2, limit: 0 },
-			hasLowData: false,
 		};
 		expect(calculateBalanceScore(weekData)).toBe(100);
 	});
@@ -252,7 +235,6 @@ describe('calculateBalanceScore', () => {
 			totalCount: 5,
 			categories: [],
 			sentimentCounts: { positive: 0, neutral: 2, limit: 5 },
-			hasLowData: false,
 		};
 		expect(calculateBalanceScore(weekData)).toBe(0);
 	});
@@ -266,7 +248,6 @@ describe('calculateBalanceScore', () => {
 			totalCount: 6,
 			categories: [],
 			sentimentCounts: { positive: 3, neutral: 2, limit: 3 },
-			hasLowData: false,
 		};
 		expect(calculateBalanceScore(weekData)).toBe(50);
 	});
@@ -280,7 +261,6 @@ describe('calculateBalanceScore', () => {
 			totalCount: 0,
 			categories: [],
 			sentimentCounts: { positive: 0, neutral: 0, limit: 0 },
-			hasLowData: true,
 		};
 		expect(calculateBalanceScore(weekData)).toBe(0);
 	});
@@ -294,7 +274,6 @@ describe('calculateBalanceScore', () => {
 			totalCount: 10,
 			categories: [],
 			sentimentCounts: { positive: 3, neutral: 100, limit: 1 },
-			hasLowData: false,
 		};
 		expect(calculateBalanceScore(weekData)).toBe(75);
 	});
@@ -334,7 +313,6 @@ describe('getTopCategories', () => {
 			end: new Date(),
 			entries: [],
 			totalCount: 0,
-			hasLowData: false,
 			sentimentCounts: { positive: 0, neutral: 0, limit: 0 },
 			categories: [
 				{ categoryId: 'a', categoryName: 'A', sentiment: 'neutral', count: 5 },
@@ -347,7 +325,6 @@ describe('getTopCategories', () => {
 			end: new Date(),
 			entries: [],
 			totalCount: 0,
-			hasLowData: false,
 			sentimentCounts: { positive: 0, neutral: 0, limit: 0 },
 			categories: [
 				{ categoryId: 'a', categoryName: 'A', sentiment: 'neutral', count: 8 },
@@ -367,7 +344,6 @@ describe('getTopCategories', () => {
 			end: new Date(),
 			entries: [],
 			totalCount: 0,
-			hasLowData: false,
 			sentimentCounts: { positive: 0, neutral: 0, limit: 0 },
 			categories: [
 				{ categoryId: 'a', categoryName: 'A', sentiment: 'neutral', count: 5 },
@@ -387,7 +363,6 @@ describe('getTopCategories', () => {
 			end: new Date(),
 			entries: [],
 			totalCount: 0,
-			hasLowData: false,
 			sentimentCounts: { positive: 0, neutral: 0, limit: 0 },
 			categories: [],
 		};
@@ -439,7 +414,6 @@ describe('groupCategoriesForWeek', () => {
 		end: new Date(),
 		entries: [],
 		totalCount: 0,
-		hasLowData: false,
 		sentimentCounts: { positive: 0, neutral: 0, limit: 0 },
 		categories,
 	});
@@ -490,7 +464,6 @@ describe('groupTopCategoriesForWeek', () => {
 		end: new Date(),
 		entries: [],
 		totalCount: 0,
-		hasLowData: false,
 		sentimentCounts: { positive: 0, neutral: 0, limit: 0 },
 		categories,
 	});
