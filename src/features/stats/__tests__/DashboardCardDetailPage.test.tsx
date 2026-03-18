@@ -93,7 +93,10 @@ describe('DashboardCardDetailPage', () => {
 
 		render(<DashboardCardDetailPage />);
 
-		fireEvent.click(screen.getByRole('button', { name: 'Fruit' }));
+		const fruitButton = screen.getByRole('button', { name: 'Fruit' });
+		expect(fruitButton.getAttribute('style') ?? '').not.toContain('border');
+
+		fireEvent.click(fruitButton);
 		fireEvent.click(screen.getByRole('button', { name: 'Vegetables' }));
 
 		expect(navigateMock).toHaveBeenNthCalledWith(1, '/stats/category/fruit');

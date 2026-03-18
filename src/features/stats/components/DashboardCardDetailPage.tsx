@@ -8,6 +8,7 @@ import { cn } from '@/shared/lib/cn';
 import { useActivityCategories, useActivityItems, useFoodCategories, useFoodItems } from '@/shared/store/hooks';
 import { removeDashboardCard, updateDashboardCard } from '@/shared/store/store';
 import { SENTIMENT_COLORS, getDeltaSummaryParts, getItemAccentColor } from '../utils/stats-engine';
+import { getDetailPillColors } from '../utils/detail-pill-colors';
 import { useDashboardCardDetailViewModel } from '../hooks/use-stats-view-models';
 import CategoryTrendChart from './CategoryTrendChart';
 import MonthCalendarView from './MonthCalendarView';
@@ -94,21 +95,21 @@ export default function DashboardCardDetailPage() {
 						<h1 className="text-xl font-bold text-heading truncate">{viewModel.name}</h1>
 					</div>
 					<div className="flex flex-wrap gap-2">
-						{viewModel.members.map((member) => (
-							<button
-								key={member.id}
-								type="button"
-								onClick={() => navigate(getMemberDetailHref(member.id))}
-								className="rounded-full px-2.5 py-1 text-xs font-medium transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
-								style={{
-									backgroundColor: 'color-mix(in srgb, var(--bg-card) 65%, var(--bg-inset))',
-									color: 'var(--text-secondary)',
-									border: `1px solid ${member.accentColor}`,
-								}}
-							>
-								{member.name}
-							</button>
-						))}
+						{viewModel.members.map((member) => {
+							const pillColors = getDetailPillColors(member.sentiment, member.accentColor);
+
+							return (
+								<button
+									key={member.id}
+									type="button"
+									onClick={() => navigate(getMemberDetailHref(member.id))}
+									className="rounded-full px-2.5 py-1 text-xs font-medium transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
+									style={{ backgroundColor: pillColors.bg, color: pillColors.text }}
+								>
+									{member.name}
+								</button>
+							);
+						})}
 					</div>
 				</div>
 				<IconActionButton icon={Pencil} tone="edit" onClick={openEdit} ariaLabel={t('dashboardCardDetail.editCard')} />
