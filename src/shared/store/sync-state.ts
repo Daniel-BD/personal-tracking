@@ -1,4 +1,5 @@
 import type { TrackerData } from '@/shared/lib/types';
+import { getCardId } from '@/shared/lib/types';
 
 export interface PendingDeletions {
 	entries: Set<string>;
@@ -247,9 +248,7 @@ export function getRemoteIdsByPendingKey(key: PendingDeletionKey, remote: Tracke
 		case 'foodCategories':
 			return new Set(remote.foodCategories.map((category) => category.id));
 		case 'dashboardCards':
-			return new Set(
-				(remote.dashboardCards || []).map((card) => card.categoryId ?? card.itemId).filter(Boolean) as string[],
-			);
+			return new Set((remote.dashboardCards || []).map((card) => getCardId(card)));
 		case 'favoriteItems':
 			return new Set(remote.favoriteItems || []);
 	}

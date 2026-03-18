@@ -6,7 +6,14 @@ import type {
 	TombstoneEntityType,
 	TrackerData,
 } from '@/shared/lib/types';
-import { generateId, getCardId, getCategoriesKey, getItemsKey } from '@/shared/lib/types';
+import {
+	generateId,
+	getCardId,
+	getCategoriesKey,
+	getDashboardCardEntityIds,
+	getDashboardCardEntityType,
+	getItemsKey,
+} from '@/shared/lib/types';
 import type { StoreCommandRuntime } from '../command-types';
 
 interface CategoryDashboardSyncDeps {
@@ -24,6 +31,43 @@ interface CategoryDashboardSyncDeps {
 }
 
 export function createCategoryDashboardCommands(runtime: StoreCommandRuntime, sync: CategoryDashboardSyncDeps) {
+	function pruneDashboardCards(
+		dashboardCards: DashboardCard[],
+		entityType: 'category' | 'item',
+		entityId: string,
+		replacementId?: string,
+	): DashboardCard[] {
+		return dashboardCards.flatMap((card) => {
+			if (getDashboardCardEntityType(card) !== entityType) {
+				return [card];
+			}
+
+			if (!card.entityIds?.length) {
+				if (entityType === 'category' && card.categoryId === entityId) {
+					if (!replacementId) return [];
+					return [{ ...card, categoryId: replacementId }];
+				}
+				if (entityType === 'item' && card.itemId === entityId) {
+					if (!replacementId) return [];
+					return [{ ...card, itemId: replacementId }];
+				}
+				return [card];
+			}
+
+			const nextIds = card.entityIds.map((id) => (id === entityId ? (replacementId ?? '') : id)).filter(Boolean);
+			if (nextIds.length === 0) {
+				return [];
+			}
+
+			return [
+				{
+					...card,
+					entityIds: Array.from(new Set(nextIds)),
+				},
+			];
+		});
+	}
+
 	function addCategory(type: EntryType, name: string, sentiment: CategorySentiment = 'neutral'): Category {
 		const category: Category = {
 			id: generateId(),
@@ -90,6 +134,7 @@ export function createCategoryDashboardCommands(runtime: StoreCommandRuntime, sy
 							categoryOverrides: entry.categoryOverrides.filter((id) => id !== categoryId),
 						};
 					}),
+					dashboardCards: pruneDashboardCards(data.dashboardCards || [], 'category', categoryId),
 				},
 				categoryId,
 				entityType,
@@ -113,9 +158,11 @@ export function createCategoryDashboardCommands(runtime: StoreCommandRuntime, sy
 
 		sync.pendingDeletions[categoryKey].add(sourceId);
 		const snapshotCards = runtime.getData().dashboardCards || [];
-		if (snapshotCards.find((card) => card.categoryId === sourceId)) {
-			sync.pendingDeletions.dashboardCards.add(sourceId);
-			sync.clearDashboardCardRestored(sourceId);
+		for (const card of snapshotCards) {
+			if (getCardId(card) === sourceId || card.categoryId === sourceId) {
+				sync.pendingDeletions.dashboardCards.add(getCardId(card));
+				sync.clearDashboardCardRestored(getCardId(card));
+			}
 		}
 		sync.persistPendingDeletions();
 
@@ -154,7 +201,7 @@ export function createCategoryDashboardCommands(runtime: StoreCommandRuntime, sy
 			});
 
 			const currentCards = data.dashboardCards || [];
-			let updatedCards = currentCards;
+			let updatedCards = pruneDashboardCards(currentCards, 'category', sourceId, targetId);
 			const extraTombstones: { id: string; entityType: TombstoneEntityType }[] = [];
 			const sourceCard = currentCards.find((card) => card.categoryId === sourceId);
 			const targetCard = currentCards.find((card) => card.categoryId === targetId);
@@ -162,10 +209,10 @@ export function createCategoryDashboardCommands(runtime: StoreCommandRuntime, sy
 			if (sourceCard) {
 				sync.clearDashboardCardRestored(sourceId);
 				if (targetCard) {
-					updatedCards = currentCards.filter((card) => card.categoryId !== sourceId);
+					updatedCards = updatedCards.filter((card) => card.categoryId !== sourceId);
 					extraTombstones.push({ id: sourceId, entityType: 'dashboardCard' });
 				} else {
-					updatedCards = currentCards.map((card) =>
+					updatedCards = updatedCards.map((card) =>
 						card.categoryId === sourceId ? { ...card, categoryId: targetId } : card,
 					);
 					extraTombstones.push({ id: sourceId, entityType: 'dashboardCard' });
@@ -188,17 +235,47 @@ export function createCategoryDashboardCommands(runtime: StoreCommandRuntime, sy
 		return { itemCount, entryCount };
 	}
 
-	function addDashboardCard(opts: { categoryId?: string; itemId?: string }): void {
-		if (!opts.categoryId && !opts.itemId) {
+	function addDashboardCard(opts: {
+		categoryId?: string;
+		itemId?: string;
+		name?: string;
+		entityType?: 'category' | 'item';
+		entityIds?: string[];
+	}): string {
+		const hasLegacy = Boolean(opts.categoryId || opts.itemId);
+		const hasCombined = Boolean(opts.name && opts.entityType && opts.entityIds?.length);
+
+		if (!hasLegacy && !hasCombined) {
 			throw new Error('Either categoryId or itemId is required');
 		}
 		if (opts.categoryId && opts.itemId) {
 			throw new Error('Only one of categoryId or itemId should be set');
 		}
+		if (hasLegacy && hasCombined) {
+			throw new Error('Dashboard cards must use a single configuration shape');
+		}
 
-		const cardId = (opts.categoryId ?? opts.itemId)!;
-		if ((runtime.getData().dashboardCards || []).some((card) => getCardId(card) === cardId)) {
-			return;
+		const normalizedEntityIds = opts.entityIds ? Array.from(new Set(opts.entityIds)) : undefined;
+		const cardId = hasCombined && normalizedEntityIds ? generateId() : (opts.categoryId ?? opts.itemId)!;
+
+		if (
+			(runtime.getData().dashboardCards || []).some((card) => {
+				if (getCardId(card) === cardId) {
+					return true;
+				}
+
+				if (!hasCombined) {
+					return false;
+				}
+
+				return (
+					getDashboardCardEntityType(card) === opts.entityType &&
+					getDashboardCardEntityIds(card).length === normalizedEntityIds!.length &&
+					getDashboardCardEntityIds(card).every((id) => normalizedEntityIds!.includes(id))
+				);
+			})
+		) {
+			return cardId;
 		}
 
 		const hadPendingDeletion = sync.pendingDeletions.dashboardCards.has(cardId);
@@ -215,6 +292,14 @@ export function createCategoryDashboardCommands(runtime: StoreCommandRuntime, sy
 		sync.persistPendingDeletions();
 
 		const card: DashboardCard = {
+			...(hasCombined
+				? {
+						id: cardId,
+						name: opts.name!.trim(),
+						entityType: opts.entityType!,
+						entityIds: normalizedEntityIds!,
+					}
+				: {}),
 			...(opts.categoryId ? { categoryId: opts.categoryId } : {}),
 			...(opts.itemId ? { itemId: opts.itemId } : {}),
 			baseline: 'rolling_4_week_avg',
@@ -231,6 +316,35 @@ export function createCategoryDashboardCommands(runtime: StoreCommandRuntime, sy
 				'dashboardCard',
 			),
 		);
+		runtime.triggerPush();
+		return cardId;
+	}
+
+	function updateDashboardCard(
+		cardId: string,
+		updates: { name: string; entityType: 'category' | 'item'; entityIds: string[] },
+	): void {
+		const nextEntityIds = Array.from(new Set(updates.entityIds));
+		if (!updates.name.trim() || nextEntityIds.length === 0) {
+			return;
+		}
+
+		runtime.updateData((data) => ({
+			...data,
+			dashboardCards: (data.dashboardCards || []).map((card) =>
+				getCardId(card) === cardId
+					? {
+							...card,
+							name: updates.name.trim(),
+							entityType: updates.entityType,
+							entityIds: nextEntityIds,
+							id: card.id ?? cardId,
+							categoryId: undefined,
+							itemId: undefined,
+						}
+					: card,
+			),
+		}));
 		runtime.triggerPush();
 	}
 
@@ -258,6 +372,7 @@ export function createCategoryDashboardCommands(runtime: StoreCommandRuntime, sy
 		deleteCategory,
 		mergeCategory,
 		addDashboardCard,
+		updateDashboardCard,
 		removeDashboardCard,
 	};
 }

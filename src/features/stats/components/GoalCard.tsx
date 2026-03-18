@@ -11,6 +11,7 @@ interface GoalCardProps {
 	sentiment: CategorySentiment;
 	/** Override accent color (e.g. blue for item cards). If set, takes precedence over sentiment color. */
 	accentColor?: string;
+	members?: { id: string; name: string; accentColor: string }[];
 	sparklineData: { week: string; count: number; label: string }[];
 	currentCount: number;
 	baselineAvg: number;
@@ -25,6 +26,7 @@ export default function GoalCard({
 	categoryName,
 	sentiment,
 	accentColor,
+	members = [],
 	sparklineData,
 	currentCount,
 	baselineAvg,
@@ -92,9 +94,33 @@ export default function GoalCard({
 			</button>
 
 			{/* 1. Category name + sentiment dot */}
-			<div className="flex items-center gap-1.5">
-				<div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-				<span className="text-xs font-medium text-label truncate max-w-[120px]">{categoryName}</span>
+			<div className="space-y-2">
+				<div className="flex items-center gap-1.5">
+					<div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+					<span className="text-xs font-medium text-label truncate max-w-[180px]">{categoryName}</span>
+				</div>
+				{members.length > 1 && (
+					<div className="flex flex-wrap gap-1">
+						{members.slice(0, 3).map((member) => (
+							<span
+								key={member.id}
+								className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+								style={{
+									border: `1px solid ${member.accentColor}`,
+									color: 'var(--text-secondary)',
+									backgroundColor: 'color-mix(in srgb, var(--bg-card) 70%, var(--bg-inset))',
+								}}
+							>
+								{member.name}
+							</span>
+						))}
+						{members.length > 3 && (
+							<span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-[var(--bg-inset)] text-[var(--text-secondary)]">
+								+{members.length - 3}
+							</span>
+						)}
+					</div>
+				)}
 			</div>
 
 			{/* 2. Current value block — explicit values */}

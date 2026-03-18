@@ -34,14 +34,33 @@ export const EntrySchema = z.object({
 
 export const DashboardCardSchema = z
 	.object({
+		id: z.string().optional(),
+		name: z.string().optional(),
+		entityType: z.enum(['category', 'item']).optional(),
+		entityIds: z.array(z.string()).optional(),
 		categoryId: z.string().optional(),
 		itemId: z.string().optional(),
 		baseline: z.literal('rolling_4_week_avg'),
 		comparison: z.literal('last_week'),
 	})
-	.refine((card) => (card.categoryId != null) !== (card.itemId != null), {
-		message: 'Exactly one of categoryId or itemId must be set',
-	});
+	.refine(
+		(card) => {
+			const hasLegacySingle = (card.categoryId != null) !== (card.itemId != null);
+			const hasCombined =
+				card.id != null &&
+				card.name != null &&
+				card.entityType != null &&
+				Array.isArray(card.entityIds) &&
+				card.entityIds.length > 0 &&
+				card.categoryId == null &&
+				card.itemId == null;
+
+			return hasLegacySingle || hasCombined;
+		},
+		{
+			message: 'DashboardCard must be either a single entity card or a named combined card',
+		},
+	);
 
 export const TombstoneEntityTypeSchema = z.enum([
 	'entry',

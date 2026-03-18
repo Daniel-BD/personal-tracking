@@ -22,7 +22,7 @@ Instead of React Context, the store uses a module-level singleton with `useSyncE
 
 ### Dashboard Cards
 
-`TrackerData.dashboardCards` stores user-configured goal cards. Each card has either a `categoryId` or an `itemId` (both optional, exactly one set). Category cards derive accent color from sentiment; item cards use sentiment-based accent color via `getItemAccentColor()` (positive if mostly positive categories, limit if mostly limit, neutral otherwise). Cards compare this week's count against a rolling 4-week baseline average. The `getCardId()` helper in `types.ts` returns the card's unique identifier (whichever ID is set). CRUD: `addDashboardCard({ categoryId })` or `addDashboardCard({ itemId })`, `removeDashboardCard(cardId)` in `store.ts`.
+`TrackerData.dashboardCards` stores user-configured goal cards. Legacy single-entity cards still use `categoryId` or `itemId`. Combined cards instead store a generated `id`, custom `name`, `entityType` (`'category' | 'item'`), and `entityIds`. Mixing categories and items inside one card is forbidden. Category cards derive accent color from sentiment; item cards use sentiment-based accent color via `getItemAccentColor()` (positive if mostly positive categories, limit if mostly limit, neutral otherwise). Cards compare this week's count against a rolling 4-week baseline average. Use `getCardId()`, `getDashboardCardEntityType()`, and `getDashboardCardEntityIds()` from `types.ts` instead of reading only `categoryId` / `itemId`. CRUD: `addDashboardCard(...)`, `updateDashboardCard(cardId, ...)`, and `removeDashboardCard(cardId)` in `store.ts`. Delete/merge flows must prune combined cards when members disappear.
 
 ### Favorites
 

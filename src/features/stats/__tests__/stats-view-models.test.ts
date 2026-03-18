@@ -11,6 +11,7 @@ import {
 import { makeCategory, makeEntry, makeItem, resetIdCounter } from '@/shared/store/__tests__/fixtures';
 import {
 	buildCategoryDetailViewModel,
+	buildDashboardCardDetailViewModel,
 	buildGoalDashboardViewModels,
 	buildItemAccentColorById,
 	buildItemDetailViewModel,
@@ -212,5 +213,93 @@ describe('stats view models', () => {
 		expect(viewModel?.baselineAvg).toBe(5.5);
 		expect(viewModel?.currentCount).toBe(3);
 		expect(viewModel?.deltaPercent).toBeCloseTo(0.2727, 4);
+	});
+	it('builds combined dashboard cards and a combined detail view model', () => {
+		const positive = makeCategory({ id: 'positive', name: 'Fruit', sentiment: 'positive' });
+		const neutral = makeCategory({ id: 'neutral', name: 'Beans', sentiment: 'neutral' });
+		const apple = makeItem({ id: 'apple', name: 'Apple', categories: ['positive'] });
+		const lentils = makeItem({ id: 'lentils', name: 'Lentils', categories: ['neutral'] });
+		const weeks = [
+			makeWeek('2026-W01', '2025-12-29', '2026-01-04'),
+			makeWeek('2026-W02', '2026-01-05', '2026-01-11'),
+			makeWeek('2026-W03', '2026-01-12', '2026-01-18'),
+			makeWeek('2026-W04', '2026-01-19', '2026-01-25'),
+			makeWeek('2026-W05', '2026-01-26', '2026-02-01'),
+			makeWeek('2026-W06', '2026-02-02', '2026-02-08'),
+			makeWeek('2026-W07', '2026-02-09', '2026-02-15'),
+			makeWeek('2026-W08', '2026-02-16', '2026-02-22'),
+		];
+		const entries = [
+			...addEntriesForDate('apple', '2026-01-27', 2),
+			...addEntriesForDate('lentils', '2026-01-28', 1),
+			...addEntriesForDate('apple', '2026-02-03', 3),
+			...addEntriesForDate('lentils', '2026-02-04', 2),
+			...addEntriesForDate('apple', '2026-02-17', 1),
+			...addEntriesForDate('lentils', '2026-02-18', 4),
+		];
+
+		const itemById = buildItemById([], [apple, lentils]);
+		const categoryById = buildCategoryById([], [positive, neutral]);
+		const itemCategoryIdsByItemId = buildItemCategoryIdsByItemId([], [apple, lentils]);
+		const itemCategoriesByItemId = buildItemCategoriesByItemId(itemCategoryIdsByItemId, categoryById);
+		const entriesByItem = buildEntriesByItem(entries);
+		const entriesByCategory = buildEntriesByCategory(entries, itemCategoryIdsByItemId);
+		const weeklyEntityCounts = buildWeeklyEntityCounts(weeks, buildEntriesByWeek(entries), itemCategoryIdsByItemId);
+
+		const cards = buildGoalDashboardViewModels({
+			dashboardCards: [
+				{
+					id: 'combo-1',
+					name: 'Healthy staples',
+					entityType: 'item',
+					entityIds: ['apple', 'lentils'],
+					baseline: 'rolling_4_week_avg',
+					comparison: 'last_week',
+				},
+			],
+			weeks,
+			daysElapsed: 3,
+			itemById,
+			categoryById,
+			itemCategoriesByItemId,
+			weeklyEntityCounts,
+		});
+
+		expect(cards[0]).toMatchObject({
+			cardId: 'combo-1',
+			name: 'Healthy staples',
+			isCombined: true,
+			navigateTo: '/stats/dashboard-card/combo-1',
+			currentCount: 5,
+		});
+		expect(cards[0].members.map((member) => member.name)).toEqual(['Apple', 'Lentils']);
+		expect(cards[0].sparklineData.map((point) => point.count)).toEqual([0, 0, 0, 0, 3, 5, 0, 5]);
+
+		const detail = buildDashboardCardDetailViewModel({
+			cardId: 'combo-1',
+			dashboardCards: [
+				{
+					id: 'combo-1',
+					name: 'Healthy staples',
+					entityType: 'item',
+					entityIds: ['apple', 'lentils'],
+					baseline: 'rolling_4_week_avg',
+					comparison: 'last_week',
+				},
+			],
+			weeks,
+			daysElapsed: 3,
+			itemById,
+			categoryById,
+			itemCategoriesByItemId,
+			entriesByItem,
+			entriesByCategory,
+		});
+
+		expect(detail).not.toBeNull();
+		expect(detail?.name).toBe('Healthy staples');
+		expect(detail?.entries).toHaveLength(entries.length);
+		expect(detail?.members.map((member) => member.name)).toEqual(['Apple', 'Lentils']);
+		expect(detail?.weeklyStats.map((week) => week.count)).toEqual([0, 0, 0, 0, 3, 5, 0, 5]);
 	});
 });
