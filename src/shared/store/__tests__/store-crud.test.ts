@@ -365,6 +365,46 @@ describe('store CRUD', () => {
 			expect(dataStore.getSnapshot().dashboardCards).toHaveLength(1);
 		});
 
+		it('supports combined dashboard cards with a custom name', () => {
+			const cardId = addDashboardCard({
+				name: 'Weekend treats',
+				entityType: 'category',
+				entityIds: ['cat-1', 'cat-2'],
+			});
+
+			const card = dataStore.getSnapshot().dashboardCards![0];
+			expect(cardId).toBeTruthy();
+			expect(card).toBeDefined();
+			expect(card!.id).toBe(cardId);
+			expect(card!.name).toBe('Weekend treats');
+			expect(card!.entityType).toBe('category');
+			expect(card!.entityIds).toEqual(['cat-1', 'cat-2']);
+		});
+
+		it('updates a combined dashboard card', async () => {
+			const cardId = addDashboardCard({
+				name: 'Weekend treats',
+				entityType: 'category',
+				entityIds: ['cat-1', 'cat-2'],
+			});
+
+			const { updateDashboardCard } = await import('@/shared/store/store');
+			updateDashboardCard(cardId, {
+				name: 'Weekday treats',
+				entityType: 'category',
+				entityIds: ['cat-2', 'cat-3'],
+			});
+
+			const updatedCard = dataStore.getSnapshot().dashboardCards![0];
+			expect(updatedCard).toBeDefined();
+			expect(updatedCard!).toMatchObject({
+				id: cardId,
+				name: 'Weekday treats',
+				entityType: 'category',
+				entityIds: ['cat-2', 'cat-3'],
+			});
+		});
+
 		it('addDashboardCard throws when neither categoryId nor itemId provided', () => {
 			expect(() => addDashboardCard({})).toThrow('Either categoryId or itemId is required');
 		});

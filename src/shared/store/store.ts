@@ -88,8 +88,15 @@ const importExportBackupCommands = createImportExportBackupCommands(commandRunti
 
 export const { addEntry, updateEntry, deleteEntry } = entryCommands;
 export const { addItem, updateItem, deleteItem, mergeItem, toggleFavorite, isFavorite } = itemFavoriteCommands;
-export const { addCategory, updateCategory, deleteCategory, mergeCategory, addDashboardCard, removeDashboardCard } =
-	categoryDashboardCommands;
+export const {
+	addCategory,
+	updateCategory,
+	deleteCategory,
+	mergeCategory,
+	addDashboardCard,
+	updateDashboardCard,
+	removeDashboardCard,
+} = categoryDashboardCommands;
 export const { exportData, importData, backupToGist, restoreFromBackupGist } = importExportBackupCommands;
 
 export function getItemById(type: EntryType, itemId: string): Item | undefined {

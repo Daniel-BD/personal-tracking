@@ -33,6 +33,7 @@ export default function GoalDashboard() {
 							categoryName={card.name}
 							sentiment={card.sentiment}
 							accentColor={card.accentColor}
+							members={card.members}
 							sparklineData={card.sparklineData}
 							currentCount={card.currentCount}
 							baselineAvg={card.baselineAvg}

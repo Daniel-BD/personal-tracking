@@ -19,6 +19,9 @@ import SyncStatusPill from './components/SyncStatusPill';
 const StatsPage = lazy(() => import('@/features/stats').then((m) => ({ default: m.StatsPage })));
 const CategoryDetailPage = lazy(() => import('@/features/stats').then((m) => ({ default: m.CategoryDetailPage })));
 const StatsItemDetailPage = lazy(() => import('@/features/stats').then((m) => ({ default: m.ItemDetailPage })));
+const DashboardCardDetailPage = lazy(() =>
+	import('@/features/stats').then((m) => ({ default: m.DashboardCardDetailPage })),
+);
 const SettingsPage = lazy(() => import('@/features/settings').then((m) => ({ default: m.SettingsPage })));
 
 const routeConfig = [
@@ -97,6 +100,14 @@ export default function App() {
 									element={
 										<ErrorBoundary label="Item Detail">
 											<StatsItemDetailPage />
+										</ErrorBoundary>
+									}
+								/>
+								<Route
+									path="/stats/dashboard-card/:cardId"
+									element={
+										<ErrorBoundary label="Dashboard Card Detail">
+											<DashboardCardDetailPage />
 										</ErrorBoundary>
 									}
 								/>

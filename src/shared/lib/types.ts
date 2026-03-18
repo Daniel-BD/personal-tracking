@@ -34,9 +34,38 @@ export type SyncStatus = 'idle' | 'syncing' | 'error';
 
 /** Get the unique identifier for a dashboard card (either categoryId or itemId). */
 export function getCardId(card: DashboardCard): string {
-	const id = card.categoryId ?? card.itemId;
+	const id = card.id ?? card.categoryId ?? card.itemId;
 	if (!id) throw new Error('DashboardCard must have either categoryId or itemId');
 	return id;
+}
+
+export function getDashboardCardEntityType(card: DashboardCard): 'category' | 'item' {
+	if (card.entityType) {
+		return card.entityType;
+	}
+
+	if (card.categoryId) {
+		return 'category';
+	}
+
+	if (card.itemId) {
+		return 'item';
+	}
+
+	throw new Error('DashboardCard must define an entity type');
+}
+
+export function getDashboardCardEntityIds(card: DashboardCard): string[] {
+	if (card.entityIds?.length) {
+		return card.entityIds;
+	}
+
+	const id = card.categoryId ?? card.itemId;
+	return id ? [id] : [];
+}
+
+export function isCombinedDashboardCard(card: DashboardCard): boolean {
+	return getDashboardCardEntityIds(card).length > 1 || card.id != null;
 }
 
 // ── Factory & utility functions ────────────────────────────

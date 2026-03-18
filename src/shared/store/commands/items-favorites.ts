@@ -1,5 +1,5 @@
 import type { EntryType, Item, TombstoneEntityType, TrackerData } from '@/shared/lib/types';
-import { generateId, getItemsKey } from '@/shared/lib/types';
+import { generateId, getDashboardCardEntityType, getItemsKey } from '@/shared/lib/types';
 import type { StoreCommandRuntime } from '../command-types';
 
 interface ItemFavoriteSyncDeps {
@@ -16,6 +16,31 @@ interface ItemFavoriteSyncDeps {
 }
 
 export function createItemFavoriteCommands(runtime: StoreCommandRuntime, sync: ItemFavoriteSyncDeps) {
+	function pruneDashboardCards(data: TrackerData, entityId: string, replacementId?: string): TrackerData {
+		return {
+			...data,
+			dashboardCards: (data.dashboardCards || []).flatMap((card) => {
+				if (getDashboardCardEntityType(card) !== 'item') {
+					return [card];
+				}
+
+				if (!card.entityIds?.length) {
+					if (card.itemId !== entityId) {
+						return [card];
+					}
+					return replacementId ? [{ ...card, itemId: replacementId }] : [];
+				}
+
+				const nextIds = card.entityIds.map((id) => (id === entityId ? (replacementId ?? '') : id)).filter(Boolean);
+				if (nextIds.length === 0) {
+					return [];
+				}
+
+				return [{ ...card, entityIds: Array.from(new Set(nextIds)) }];
+			}),
+		};
+	}
+
 	function addItem(type: EntryType, name: string, categoryIds: string[]): Item {
 		const item: Item = {
 			id: generateId(),
@@ -98,6 +123,7 @@ export function createItemFavoriteCommands(runtime: StoreCommandRuntime, sync: I
 				entries: data.entries.filter((entry) => !(entry.type === type && entry.itemId === id)),
 				favoriteItems: (data.favoriteItems || []).filter((favoriteId) => favoriteId !== id),
 			};
+			const withPrunedCards = pruneDashboardCards(updated, id);
 			const tombstoneEntries: { id: string; entityType: TombstoneEntityType }[] = [
 				{ id, entityType },
 				...entriesToDelete.map((entry) => ({ id: entry.id, entityType: 'entry' as const })),
@@ -107,7 +133,7 @@ export function createItemFavoriteCommands(runtime: StoreCommandRuntime, sync: I
 				tombstoneEntries.push({ id, entityType: 'favoriteItem' });
 			}
 
-			return sync.addTombstones(updated, tombstoneEntries);
+			return sync.addTombstones(withPrunedCards, tombstoneEntries);
 		});
 		runtime.triggerPush();
 	}
@@ -153,6 +179,7 @@ export function createItemFavoriteCommands(runtime: StoreCommandRuntime, sync: I
 				entries: updatedEntries,
 				favoriteItems: newFavorites,
 			};
+			updated = pruneDashboardCards(updated, sourceId, targetId);
 			const tombstoneEntries: { id: string; entityType: TombstoneEntityType }[] = [{ id: sourceId, entityType }];
 
 			if (sourceIsFavorite) {

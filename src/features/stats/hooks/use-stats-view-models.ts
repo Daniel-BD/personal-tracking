@@ -12,6 +12,7 @@ import {
 import { getDaysElapsedInCurrentWeek, getLastNWeeks, processFoodEntriesByWeekFromIndexes } from '../utils/stats-engine';
 import {
 	buildCategoryDetailViewModel,
+	buildDashboardCardDetailViewModel,
 	buildGoalDashboardViewModels,
 	buildItemAccentColorById,
 	buildItemDetailViewModel,
@@ -122,4 +123,42 @@ export function useItemDetailViewModel(itemId?: string) {
 			entriesByItem,
 		});
 	}, [itemId, weeks, daysElapsed, itemById, itemCategoriesByItemId, entriesByItem]);
+}
+
+export function useDashboardCardDetailViewModel(cardId?: string) {
+	const { weeks, daysElapsed } = useStatsWindow();
+	const dashboardCards = useDashboardCards();
+	const itemById = useItemById();
+	const categoryById = useCategoryById();
+	const itemCategoriesByItemId = useItemCategoriesByItemId();
+	const entriesByItem = useEntriesByItem();
+	const entriesByCategory = useEntriesByCategory();
+
+	return useMemo(() => {
+		if (!cardId) {
+			return null;
+		}
+
+		return buildDashboardCardDetailViewModel({
+			cardId,
+			dashboardCards,
+			weeks,
+			daysElapsed,
+			itemById,
+			categoryById,
+			itemCategoriesByItemId,
+			entriesByItem,
+			entriesByCategory,
+		});
+	}, [
+		cardId,
+		dashboardCards,
+		weeks,
+		daysElapsed,
+		itemById,
+		categoryById,
+		itemCategoriesByItemId,
+		entriesByItem,
+		entriesByCategory,
+	]);
 }

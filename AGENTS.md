@@ -95,6 +95,7 @@ Navigation uses a 5-tab bottom nav bar defined in `App.tsx`.
 - **Category overrides**: Entries override item defaults via `categoryOverrides`. Use `getEntryCategoryIds()`. See `src/features/tracking/AGENTS.md`.
 - **Category sentiment**: Categories have `sentiment` ('positive' | 'neutral' | 'limit'). See `src/features/tracking/AGENTS.md`.
 - **Gist sync**: Debounced push, merge-on-load (local wins on conflict). See `src/shared/AGENTS.md`.
+- **Combined dashboard cards**: Dashboard cards can now represent either a single category/item or a named combination of multiple categories or multiple items (never mixed). Combined cards use a generated card ID, keep the member IDs on the card object, and navigate to a dedicated dashboard-card detail route for editing.
 
 Component and feature-specific patterns (bottom sheets, toasts, swipe gestures, etc.) are documented in their respective `AGENTS.md` files.
 
