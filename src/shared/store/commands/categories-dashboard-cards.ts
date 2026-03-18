@@ -45,10 +45,18 @@ export function createCategoryDashboardCommands(runtime: StoreCommandRuntime, sy
 			if (!card.entityIds?.length) {
 				if (entityType === 'category' && card.categoryId === entityId) {
 					if (!replacementId) return [];
+					const hasReplacementCard = dashboardCards.some(
+						(other) => other !== card && !other.entityIds?.length && other.categoryId === replacementId,
+					);
+					if (hasReplacementCard) return [];
 					return [{ ...card, categoryId: replacementId }];
 				}
 				if (entityType === 'item' && card.itemId === entityId) {
 					if (!replacementId) return [];
+					const hasReplacementCard = dashboardCards.some(
+						(other) => other !== card && !other.entityIds?.length && other.itemId === replacementId,
+					);
+					if (hasReplacementCard) return [];
 					return [{ ...card, itemId: replacementId }];
 				}
 				return [card];
