@@ -82,6 +82,8 @@ export default function DashboardCardDetailPage() {
 	const saveDisabled = draftName.trim().length === 0 || draftIds.length === 0;
 	const sentiment = viewModel.entityType === 'category' ? viewModel.sentiment : 'neutral';
 	const accentColor = viewModel.accentColor;
+	const getMemberDetailHref = (memberId: string) =>
+		viewModel.entityType === 'category' ? `/stats/category/${memberId}` : `/stats/item/${memberId}`;
 
 	return (
 		<div className="space-y-6 pb-4">
@@ -93,9 +95,11 @@ export default function DashboardCardDetailPage() {
 					</div>
 					<div className="flex flex-wrap gap-2">
 						{viewModel.members.map((member) => (
-							<span
+							<button
 								key={member.id}
-								className="rounded-full px-2.5 py-1 text-xs font-medium"
+								type="button"
+								onClick={() => navigate(getMemberDetailHref(member.id))}
+								className="rounded-full px-2.5 py-1 text-xs font-medium transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
 								style={{
 									backgroundColor: 'color-mix(in srgb, var(--bg-card) 65%, var(--bg-inset))',
 									color: 'var(--text-secondary)',
@@ -103,7 +107,7 @@ export default function DashboardCardDetailPage() {
 								}}
 							>
 								{member.name}
-							</span>
+							</button>
 						))}
 					</div>
 				</div>
