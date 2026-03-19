@@ -5,16 +5,10 @@ import { useTranslation } from 'react-i18next';
 import IconActionButton from '@/shared/ui/IconActionButton';
 import { useItemDetailViewModel } from '../hooks/use-stats-view-models';
 import { getDeltaSummaryParts } from '../utils/stats-engine';
-import type { CategorySentiment } from '@/shared/lib/types';
+import { getDetailPillColors } from '../utils/detail-pill-colors';
 import CategoryTrendChart from './CategoryTrendChart';
 import MonthCalendarView from './MonthCalendarView';
 import YearlyActivityGrid from './YearlyActivityGrid';
-
-const SENTIMENT_PILL_COLORS: Record<CategorySentiment, { bg: string; text: string }> = {
-	positive: { bg: 'color-mix(in srgb, var(--color-success) 15%, var(--bg-card))', text: 'var(--color-success)' },
-	limit: { bg: 'color-mix(in srgb, var(--color-danger) 15%, var(--bg-card))', text: 'var(--color-danger)' },
-	neutral: { bg: 'var(--bg-inset)', text: 'var(--text-secondary)' },
-};
 
 export default function ItemDetailPage() {
 	const { itemId } = useParams<{ itemId: string }>();
@@ -73,7 +67,7 @@ export default function ItemDetailPage() {
 					</h3>
 					<div className="flex flex-wrap gap-1.5">
 						{defaultCategories.map((cat) => {
-							const pillColors = SENTIMENT_PILL_COLORS[cat.sentiment];
+							const pillColors = getDetailPillColors(cat.sentiment);
 							return (
 								<button
 									key={cat.id}

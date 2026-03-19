@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Dot } from 'recharts';
 import type { CategorySentiment } from '@/shared/lib/types';
 import { calcActualDeltaPercent, formatChangeText, SENTIMENT_COLORS } from '../utils/stats-engine';
+import { getDetailPillColors } from '../utils/detail-pill-colors';
 import { getWeeklyLineXAxisProps, weeklyLineValueAxisProps } from '../utils/weekly-chart-axis';
 
 interface GoalCardProps {
@@ -11,7 +12,7 @@ interface GoalCardProps {
 	sentiment: CategorySentiment;
 	/** Override accent color (e.g. blue for item cards). If set, takes precedence over sentiment color. */
 	accentColor?: string;
-	members?: { id: string; name: string; accentColor: string }[];
+	members?: { id: string; name: string; accentColor: string; sentiment: CategorySentiment }[];
 	sparklineData: { week: string; count: number; label: string }[];
 	currentCount: number;
 	baselineAvg: number;
@@ -101,19 +102,19 @@ export default function GoalCard({
 				</div>
 				{members.length > 1 && (
 					<div className="flex flex-wrap gap-1">
-						{members.slice(0, 3).map((member) => (
-							<span
-								key={member.id}
-								className="rounded-full px-2 py-0.5 text-[10px] font-medium"
-								style={{
-									border: `1px solid ${member.accentColor}`,
-									color: 'var(--text-secondary)',
-									backgroundColor: 'color-mix(in srgb, var(--bg-card) 70%, var(--bg-inset))',
-								}}
-							>
-								{member.name}
-							</span>
-						))}
+						{members.slice(0, 3).map((member) => {
+							const pillColors = getDetailPillColors(member.sentiment, member.accentColor);
+
+							return (
+								<span
+									key={member.id}
+									className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+									style={{ backgroundColor: pillColors.bg, color: pillColors.text }}
+								>
+									{member.name}
+								</span>
+							);
+						})}
 						{members.length > 3 && (
 							<span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-[var(--bg-inset)] text-[var(--text-secondary)]">
 								+{members.length - 3}
