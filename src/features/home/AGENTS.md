@@ -16,7 +16,7 @@ The browser document owns page scrolling at the shell level. Home keeps only the
 ## Components
 
 - **`HomePage.tsx`** — Composes `QuickLogForm` (via render prop) and `DailyBalanceScore`. Handles Gist sync refresh button.
-- **`DailyBalanceScore.tsx`** — Today's food sentiment balance percentage with animated progress bar and `SentimentPills`. Returns `null` if no food entries today.
+- **`DailyBalanceScore.tsx`** — Today's food sentiment balance percentage. Delegates the animated score row, gradient meter, and sentiment pills to shared `BalanceScoreMeter` and returns `null` if no food entries today.
 
 ## Tests
 
