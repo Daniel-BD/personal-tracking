@@ -38,10 +38,9 @@ This creates:
 - `.artifacts/mock-tracker-data.json`
 - `.artifacts/mock-storage-state.json` (for repo-local Playwright `storageState`)
 
-For screenshot automation in Codex `browser_tools`, prefer injecting mock data via `page.evaluate(...)` (`github_token`, `gist_id`, and `tracker_data`) after first opening `/settings`, since `browser_tools` may not be able to read repo-local storage state files by path.
+For Codex-driven UI preview flows, prefer injecting mock data via `page.evaluate(...)` (`github_token`, `gist_id`, and `tracker_data`) after first opening `/settings`, since repo-local Playwright `storageState` files may not be readable by every tool environment.
 
-The Playwright e2e suite uses a shared deterministic harness in `e2e/support/fixtures.ts`: tests create `storageState` with `tracker_data`, `github_token`, and `gist_id`, then stub GitHub Gist API traffic so startup sync, Settings gist browsing/selection, export/import flows, and debounced pushes stay fully local and deterministic. The harness now supports multiple dataset variants (`seeded`, `empty`) plus fixture aliases for sync-failure coverage, and shared e2e assertions live in `e2e/support/assertions.ts`.
-High-value route failures (`/`, `/log`, `/library`, `/stats`, `/settings`) attach route screenshots through the shared fixture. Playwright tags use `@smoke` for the fast pass and `@full-regression` for the broader suite.
+The Playwright e2e suite uses a shared deterministic harness in `e2e/support/fixtures.ts`: tests create `storageState` with `tracker_data`, `github_token`, and `gist_id`, then stub GitHub Gist API traffic so startup sync, Settings gist browsing/selection, export/import flows, and debounced pushes stay fully local and deterministic. The harness now supports multiple dataset variants (`seeded`, `empty`) plus fixture aliases for sync-failure coverage, and shared e2e assertions live in `e2e/support/assertions.ts`. Playwright tags use `@smoke` for the fast pass and `@full-regression` for the broader suite.
 
 For agent workflow details, use the `.agents/skills/mock-data-preview` skill.
 Missing required flag values are validated by the CLI parser and fail fast with an error.
