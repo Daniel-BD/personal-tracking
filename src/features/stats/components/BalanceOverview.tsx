@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import type { WeeklyData } from '../utils/stats-engine';
-import { calculateBalanceScore, getScoreChange, formatWeekLabel } from '../utils/stats-engine';
-import { getWeeklyVerticalBarCategoryAxisProps, weeklyVerticalBarValueAxisProps } from '../utils/weekly-chart-axis';
+import BalanceScoreMeter from '@/shared/ui/BalanceScoreMeter';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
+import type { WeeklyData } from '../utils/stats-engine';
+import { calculateBalanceScore, formatWeekLabel } from '../utils/stats-engine';
+import { getWeeklyVerticalBarCategoryAxisProps, weeklyVerticalBarValueAxisProps } from '../utils/weekly-chart-axis';
 import BalanceScoreTrendChart from './BalanceScoreTrendChart';
 
 interface BalanceOverviewProps {
@@ -27,67 +28,30 @@ export default function BalanceOverview({ weeklyData }: BalanceOverviewProps) {
 		});
 	}, [weeklyData]);
 
+	const currentWeek = weeklyData[weeklyData.length - 1];
 	const currentScore = useMemo(() => {
-		if (weeklyData.length === 0) return 0;
-		return calculateBalanceScore(weeklyData[weeklyData.length - 1]);
-	}, [weeklyData]);
-
-	const previousScore = useMemo(() => {
-		if (weeklyData.length < 2) return currentScore;
-		return calculateBalanceScore(weeklyData[weeklyData.length - 2]);
-	}, [weeklyData, currentScore]);
-
-	const scoreChange = useMemo(() => {
-		return getScoreChange(currentScore, previousScore);
-	}, [currentScore, previousScore]);
+		if (!currentWeek) return 0;
+		return calculateBalanceScore(currentWeek);
+	}, [currentWeek]);
 
 	const isMobile = useIsMobile();
 
 	return (
 		<div className="space-y-4 sm:space-y-6">
-			{/* Score Card */}
-			<div className="card p-4 sm:p-6 space-y-4">
-				<div className="flex items-baseline justify-between">
-					<h3 className="text-lg font-semibold">{t('balanceOverview.scoreTitle')}</h3>
-					<div className="flex items-center gap-2">
-						<span className="text-4xl font-bold" style={{ color: 'var(--color-accent)' }}>
-							{Math.round(currentScore)}%
-						</span>
-						{scoreChange.direction !== 'stable' && (
-							<div
-								className="text-sm font-semibold flex items-center gap-1"
-								style={{
-									color: scoreChange.direction === 'up' ? 'var(--color-success)' : 'var(--color-danger)',
-								}}
-							>
-								<span>{scoreChange.direction === 'up' ? '↑' : '↓'}</span>
-								<span>{scoreChange.percentChange}%</span>
-							</div>
-						)}
-					</div>
-				</div>
+			<BalanceScoreMeter
+				title={t('balanceOverview.scoreTitle')}
+				description={t('balanceOverview.scoreMeterDescription')}
+				score={currentScore}
+				positive={currentWeek?.sentimentCounts.positive ?? 0}
+				limit={currentWeek?.sentimentCounts.limit ?? 0}
+			/>
 
-				{/* Score meter */}
-				<div className="bg-[var(--bg-inset)] rounded-full h-4 overflow-hidden">
-					<div
-						className="h-full transition-all duration-300"
-						style={{
-							width: `${currentScore}%`,
-							background: `linear-gradient(to right, var(--color-danger), var(--color-warning), var(--color-success))`,
-						}}
-					/>
-				</div>
-				<p className="text-xs text-body">{t('balanceOverview.scoreMeterDescription')}</p>
-			</div>
-
-			{/* Balance score trend */}
-			<div className="card p-4 sm:p-6 space-y-3">
+			<div className="card space-y-3 p-4 sm:p-6">
 				<h3 className="text-lg font-semibold">{t('balanceOverview.trendTitle')}</h3>
 				<BalanceScoreTrendChart weeklyData={weeklyData} />
 			</div>
 
-			{/* Weekly breakdown chart */}
-			<div className="card p-4 sm:p-6 space-y-4">
+			<div className="card space-y-4 p-4 sm:p-6">
 				<h3 className="text-lg font-semibold">{t('balanceOverview.weeklyBreakdownTitle')}</h3>
 				<ResponsiveContainer width="100%" height={280}>
 					<BarChart
