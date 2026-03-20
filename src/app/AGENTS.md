@@ -4,7 +4,7 @@ Root layout, entry point, and global CSS.
 
 ## Files
 
-- **`App.tsx`** — Root layout: React Router routes (each wrapped in `ErrorBoundary`) + 5-tab bottom nav bar + `ToastProvider` + store initialization. Store init is called here on mount.
+- **`App.tsx`** — Root layout: React Router routes (each wrapped in `ErrorBoundary`) + 5-tab bottom nav bar + `ToastProvider` + store initialization. The `/stats` route keeps its path but the bottom-nav label is now “Trends”. Store init is called here on mount.
 - **App shell scrolling** — `App.tsx` keeps `main` full-width so the browser document owns page scrolling. Route content is width-capped by an inner `max-w-4xl` wrapper, and bottom-nav spacing comes from shared CSS variables in `app.css` (`--app-bottom-nav-height`, `--app-bottom-nav-offset`).
 - **`components/StoreEventToastBridge.tsx`** — App-owned presenter that subscribes to typed store events and translates failure events into localized toasts.
 - **`components/SyncStatusPill.tsx`** — App-owned sync status floating pill. Uses `useSyncStatus()` for the active syncing phase and store events for the transient synced/error phases.

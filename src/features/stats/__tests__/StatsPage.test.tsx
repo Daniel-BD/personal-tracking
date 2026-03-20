@@ -13,8 +13,7 @@ vi.mock('react-i18next', () => ({
 	useTranslation: () => ({
 		t: (key: string) =>
 			({
-				title: 'Eating patterns',
-				subtitle: 'What your eating events are made of',
+				title: 'Trends',
 				'empty.noFoodEntries': 'No food entries logged yet',
 				'empty.startLogging': 'Start logging food items to see your eating patterns',
 			})[key] ?? key,
@@ -44,6 +43,8 @@ describe('StatsPage', () => {
 
 		expect(screen.queryByRole('tab', { name: 'Weekly' })).toBeNull();
 		expect(screen.queryByRole('tab', { name: 'Monthly' })).toBeNull();
+		expect(screen.getByRole('heading', { name: 'Trends' })).toBeTruthy();
+		expect(screen.queryByText('What your eating events are made of')).toBeNull();
 		expect(screen.queryByText('No food entries logged yet')).not.toBeNull();
 	});
 

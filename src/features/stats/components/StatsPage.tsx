@@ -14,41 +14,29 @@ export default function StatsPage() {
 	const { weeklyData, hasData } = useWeeklyFoodStats();
 
 	return (
-		<div className="space-y-4 sm:space-y-6 pb-6">
-			{/* Header */}
-			<div className="space-y-2">
+		<div className="space-y-4 pb-6 sm:space-y-6">
+			<header>
 				<h1 className="text-2xl font-bold">{t('title')}</h1>
-				<p className="text-body">{t('subtitle')}</p>
-			</div>
+			</header>
 
-			{/* Empty state */}
 			{!hasData && (
-				<div className="card p-8 text-center space-y-2">
+				<div className="card space-y-2 p-8 text-center">
 					<p className="text-body">{t('empty.noFoodEntries')}</p>
 					<p className="text-sm text-label">{t('empty.startLogging')}</p>
 				</div>
 			)}
 
-			{/* Content */}
 			{hasData && (
 				<>
-					{/* Section 1: Balance Overview */}
 					<BalanceOverview weeklyData={weeklyData} />
 
 					<hr className="border-[var(--border-default)]" />
-
-					{/* Section 2: Goal Dashboard */}
 					<GoalDashboard />
-
-					{/* Section 3: Actionable Categories (Focus Areas) */}
 					<ActionableCategories entries={entries} dashboardCards={dashboardCards} />
-
-					{/* Section 4: Category Composition */}
 					<CategoryComposition weeklyData={weeklyData} />
 				</>
 			)}
 
-			{/* Frequency Ranking — shows for any entries */}
 			{entries.length > 0 && (
 				<>
 					<hr className="border-[var(--border-default)]" />
